@@ -20,6 +20,7 @@ Given the above value statement - it drives the idea of two primary execution mo
 - Command Line Interface
     - The tool that would allow for end-users to use in standard processes (development etc) as well as part of other automation such as CI/CD.
     - Innate ability to "audit" using reproducible and human-verifiable processes and tooling.
+    - Static manifest 
 
 - Kubernetes Operator/Controller
     - Providing the innate ability to enable **Continuous Compliance** for live-environments.
@@ -38,13 +39,27 @@ Given that understanding, one scenario that can adapt to this requirement is the
 
 ### OSCAL Processing
 
-OSCAL is not a trivial format to interact with. There are no actively supported golang "libraries" in order to abstract the utilization for use with business logic.
+OSCAL is not a trivial format to interact with. There are no actively supported golang "libraries" in order to abstract the utilization for use with business logic. With that said, it does provide a standard that cna be worked against in order to provide a common definition for use internally and externally. CNCF groups are evaluating the standardization of control information in sponsored projects through the use of tooling and OSCAL documentation. 
 
 #### Short-Term / low-oscal-integration
 
 If Lula were to simply ingest OSCAL component definitions, execute validation, and produce assessment results. This could ease the ability to maintain OSCAL datatypes across version updates through generation of datatypes from the OSCAL json schema.
 
+See special note for integration with Visualization below.
+
 #### Long-Term / high-oscal-integration
 
 Providing Golang libraries for both Metaschema and OSCAL would be an enabler for both the OSCAL ecosystem, as well as tooling such as Lula. If Lula is to ingest/produce any large subsets of the OSCAL models (Catalog/SSP/Component Definition/Assessment Plan/Assessment Results/ etc) across different versions of OSCAL documents over an extended lifecycle - then it may behoove the tooling to have underlying support through a [metaschema](https://pages.nist.gov/metaschema/specification/) implementation as opposed to manually generated structs.
 
+### Other Processing
+
+Support could be provided for ingestion of multiple formats to include OSCAL and other more-developer-friendly formats. Given the thoughts around integration, it seems reasonable that the tooling could ingest other data formats that expressed the relationship between expected configuration and actual configuration. 
+
+### Visualization Integration
+
+Definition of a standard approach for exposing data for visualization will be required. These could be:
+- A plugin for coordinating data upload
+- An external "shipper" for coordinating upload outside the boundary
+- Expectation that the visualization component is going to call Lula through an endpoint for the data
+
+* Note: The ability to leverage a visualization tool that understands OSCAL models could remove the need for Lula to have deep integration with OSCAL. 
