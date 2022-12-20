@@ -10,7 +10,7 @@ As we began to prove out the automation workflows from OSCAL component definitio
 
 ### Control Specification
 
-Optimally the specification for the controls that an application satisfies from a given standard or benchmark is both produced by/ lives alongside the project in the upstream. Maintainers and contributors to a project most often have the best understanding of the application runtime and would therefor understand the ability to satisfy a given control without the bounds of some context and configuration.
+Optimally the specification for the controls that an application satisfies from a given standard or benchmark is both produced by/ lives alongside the project in the upstream. Maintainers and contributors to a project most often have the best understanding of the application runtime and would therefore understand the ability to satisfy a given control without the bounds of some context and configuration.
 
 This creates the inheritance model where end-users can aggregate the documents for the applications that comprise their environment and derive any subset of controls satisfied (and not satisfied) given a configuration. 
 
@@ -39,7 +39,7 @@ Given that understanding, one scenario that can adapt to this requirement is the
 
 ### OSCAL Processing
 
-OSCAL is not a trivial format to interact with. There are no actively supported golang "libraries" in order to abstract the utilization for use with business logic. With that said, it does provide a standard that cna be worked against in order to provide a common definition for use internally and externally. CNCF groups are evaluating the standardization of control information in sponsored projects through the use of tooling and OSCAL documentation. 
+OSCAL is not a trivial format to interact with. There are no actively supported golang "libraries" in order to abstract the utilization for use with business logic. With that said, it does provide a standard that can be worked against in order to provide a common definition for use internally and externally. CNCF groups are evaluating the standardization of control information in sponsored projects through the use of tooling and OSCAL documentation. 
 
 #### Short-Term / low-oscal-integration
 
