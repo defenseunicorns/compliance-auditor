@@ -3,13 +3,10 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: demo-pod
-  namespace: foo
+  namespace: validation-test
   labels: 
     foo: bar
 spec:
   containers:
-    - command:
-        - sleep
-        - "3600"
-      image: busybox
+    - image: nginx
       name: pods-simple-container

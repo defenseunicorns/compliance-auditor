@@ -1,12 +1,14 @@
 package validate
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/pkg/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	oscalTypes "github.com/defenseunicorns/lula/src/types/oscal"
 	"github.com/spf13/cobra"
@@ -114,9 +116,10 @@ func ValidateOnPaths(obj *types.ReportObject) error {
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
-
 func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefinition) error {
 
+	// TODO: Is there a better location for context?
+	ctx := context.Background()
 	// Loops all the way down
 	// Keeps track of UUID's for later reporting and relation
 	for _, component := range compDef.Components {
@@ -135,7 +138,7 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 				}
 				var pass, fail int
 				for _, target := range implementedRequirement.Rules {
-					result, err := ValidateOnTarget(target)
+					result, err := ValidateOnTarget(ctx, target)
 
 					if err != nil {
 						return err
@@ -169,28 +172,18 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 
 // ValidateOnTarget takes a map[string]interface{}
 // It will return a single Result
-func ValidateOnTarget(target map[string]interface{}) (types.Result, error) {
-	var result types.Result
-	// for each rule
-	// identify the provider
+func ValidateOnTarget(ctx context.Context, target map[string]interface{}) (types.Result, error) {
 	// simple conditional until more providers are introduced
-	// if provider, ok := target["provider"].(string); ok && provider == "opa" {
-	// 	results, err = opa.Validate(ctx, target)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// } else {
-	// 	fmt.Println("Provider not found")
-	// 	continue
-	// }
-
-	// mock result until until initial provider is created
-	result.UUID = "12345"
-	result.ControlId = "cm4.1"
-	result.Failing = 0
-	result.Passing = 1
-
-	return result, nil
+	if provider, ok := target["provider"].(string); ok && provider == "opa" {
+		fmt.Println("OPA provider validating...")
+		results, err := opa.Validate(ctx, target["domain"].(string), target["payload"].(map[string]interface{}))
+		if err != nil {
+			return types.Result{}, err
+		}
+		return results, nil
+	} else {
+		return types.Result{}, errors.New("Unsupported provider")
+	}
 
 }
 

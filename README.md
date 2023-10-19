@@ -1,47 +1,46 @@
 # Lula - The Kubernetes Compliance Engine
 
-lula is a tool written to bridge the gap between expected configuration required for compliance and **_actual_** configuration.
+[![Go version](https://img.shields.io/github/go-mod/go-version/defenseunicorns/lula?filename=go.mod)](https://go.dev/)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/lula/badge)](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/lula)
+
+Lula is a tool written to bridge the gap between expected configuration required for compliance and **_actual_** configuration.
 
 Cloud Native Infrastructure, Platforms, and applications can establish OSCAL documents that live beside source-of-truth code bases. Providing an inheritance model for when a control that the technology can satisfy _IS_ satisfied in a live-environment.
 
 This can be well established and regulated standards such as NIST 800-53. It can also be best practices, Enterprise Standards, or simply team development standards that need to be continuously monitored and validated.
 
+## Why this approach vs a policy engine?
+- Lula is not meant to compete with policy engines - rather augment the auditing and alerting process
+- Often admission control processes have a difficult time establishing `big picture` global context control satisfaction
+- Lula is meant to allow modularity and inheritance of controls based upon the components of the system you build 
+
 ## How does it work?
 
-The primary functionality is leveraging [Kyverno CLI/Engine](https://kyverno.io/docs/kyverno-cli/).
-lula:
+Under the hood, Lula has two primary capabilities; Provider and Domains.
+- A Domain is an identifier for where to collect data to be validated
+- A Provider is the "engine" performing the validation using policy and the data collected.
 
-- Ingests a `oscal-component.yaml` and creates an object in memory
-- Queries all `implemented-requirements` for a `rules` field
-  - This rules block is a strict port from the rules of a [Kyverno ClusterPolicy](https://kyverno.io/docs/kyverno-policies/) resource
-- If a rules field exists:
-  - Generate a `ClusterPolicy` resource on the filesystem
-  - Execute the `applyCommandHelper` function from Kyverno CLI
-    - This will return the number of passing/failing resources in the cluster (or optionally static manifests on the filesystem)
-    - If any fail, given valid exclusions that may be present, the control is declared as `Fail`
-  - Remove `ClusterPolicy` from the filesystem
-  - This is done for each `implemented-requirement` that has a `rules` field
-- Generate a report of the findings (`Pass` or `fail` for each control) on the filesystem (optional - can be run with `--dry-run` in order to not write to filesystem)
+In the standard CLI workflow:
+- Target a `Component-Definition` OSCAL file for validation
+    - `lula validate oscal-component.yaml`
+- This creates an object in memory for the OSCAL content
+- Lula then traverses as required to identify `implemented-requirements` that contain a Lula Validation Payload
+- When the payload has been identified:
+    - Lula processes provider to understand which provider to use for validation
+        - More than one provider can be used in an OSCAL document
+    - Lula processes the domain to understand how data is collected (and which data to collect)
+    - Lula collects the data for validation as specified in the payload
+    - Lula performs validation of the data collected as specified as policy in the payload
+
 
 ## Getting Started
-
-## Demo
-
-### Static Manifest Demo
-
-![Resource Demo](./images/resource-demo.gif)
-
-
-### Live Cluster Demo
-
-![Cluster Demo](./images/cluster-demo.gif)
 
 ### Try it out
 
 #### Dependencies
 
 - A running Kubernetes cluster
-- GoLang version 1.19.1
+- GoLang version 1.21.x
 
 #### Steps
 
@@ -51,10 +50,12 @@ lula:
     git clone https://github.com/defenseunicorns/lula.git && cd lula
     ```
 
-1. While in the `lula` directory, compile the tool into an executable binary. This outputs the `lula` binary to the current working directory.
+1. While in the `lula` directory, compile the tool into an executable binary. This outputs the `lula` binary to the `bin` directory.
+
+    ```bash`
 
     ```bash
-    go build .
+    make build
     ```
 
 1. Apply the `./demo/namespace.yaml` file to create a namespace for the demo
@@ -117,4 +118,4 @@ lula:
 
 ## Developing
 
-- Go 1.19
+- Go 1.21

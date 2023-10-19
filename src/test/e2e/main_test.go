@@ -20,15 +20,15 @@ func TestMain(m *testing.M) {
 	cfg, _ := envconf.NewFromFlags()
 	testEnv = env.NewWithConfig(cfg)
 	kindClusterName = envconf.RandomName("validation-test", 32)
-	namespace = "validation-test-ns"
+	namespace = "validation-test"
 
 	testEnv.Setup(
 		envfuncs.CreateCluster(kind.NewProvider(), kindClusterName),
-		// envfuncs.CreateNamespace(namespace),
+		envfuncs.CreateNamespace(namespace),
 	)
 
 	testEnv.Finish(
-		// envfuncs.DeleteNamespace(namespace),
+		envfuncs.DeleteNamespace(namespace),
 		envfuncs.DestroyCluster(kindClusterName),
 	)
 

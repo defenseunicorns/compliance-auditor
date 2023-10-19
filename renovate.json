@@ -1,0 +1,23 @@
+{
+  "extends": ["config:base"],
+  "ignorePaths": ["**/adr/**", "**/docs/**", "**/test/**"],
+  "timezone": "America/New_York",
+  "schedule": ["after 12pm and before 11am every weekday"],
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
+  "platformAutomerge": true,
+  "platformCommit": true,
+  "postUpdateOptions": ["gomodTidy"],
+  "commitBodyTable": true
+}

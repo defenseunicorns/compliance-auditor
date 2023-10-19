@@ -59,8 +59,8 @@ $(BINDIR)/$(BINNAME): $(SRC)
 	CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -trimpath -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o '$(BINDIR)/$(BINNAME)' .
 
 .PHONY: test
-test: build ## Run automated tests.
-	go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
+test: 
+	cd src/test/e2e && go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
 
 .PHONY: install
 install: ## Install binary to $INSTALL_PATH.

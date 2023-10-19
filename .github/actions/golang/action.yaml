@@ -1,0 +1,10 @@
+name: setup-go
+description: "Setup Go binary and caching"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+      with:
+        go-version-file: './go.mod'
+        cache: true

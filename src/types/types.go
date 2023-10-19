@@ -44,3 +44,18 @@ type Result struct {
 	Failing     int    `json:"failing" yaml:"failing"`
 	Result      string `json:"result" yaml:"result"`
 }
+
+// Current placeholder for all requisite data in the payload
+// Fields will be populated as required otherwise left empty
+// This could be expanded as providers add more fields
+type Payload struct {
+	ResourceRules []ResourceRule `json:"resource-rules" yaml:"resource-rules"`
+	Rego          string         `json:"rego" yaml:"rego"`
+}
+
+type ResourceRule struct {
+	Group      string   `json:"group" yaml:"group"`
+	Version    string   `json:"version" yaml:"version"`
+	Resource   string   `json:"resource" yaml:"resource"`
+	Namespaces []string `json:"namespaces" yaml:"namespaces"`
+}
