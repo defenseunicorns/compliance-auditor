@@ -6,7 +6,7 @@
   "author": "Defense Unicorns",
   "scripts": {
     "build": "hugo",
-    "build:production": "npm run _hugo -- --minify",
+    "build:production": "npm run build -- --gc --minify",
     "clean": "rm -Rf public resources && hugo mod clean",
     "format:toml": "taplo format '**/**/*.toml'",
     "link-check": "npm run build && linkinator ./public --config .linkinator.config.json ",
