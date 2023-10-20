@@ -37,24 +37,32 @@ component-definition:
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
           quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
           dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        rules:
-        - provider: "opa"
-          domain: "kubernetes"
-          payload:
-            resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
-            - Group:            # empty or "" for core group
-              Version: v1       # Version of resource
-              Resource: pods    # Resource type
-              Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
-            rego: |
-              package validate
+        links:
+        - href: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
+          rel: reference
+          text: Lula Validation
+  back-matter: 
+    resources:
+    - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
+      title: Lula Validation
+      description: >-
+        provider: "opa"
+        domain: "kubernetes"
+        payload:
+          resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
+          - Group:            # empty or "" for core group
+            Version: v1       # Version of resource
+            Resource: pods    # Resource type
+            Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+          rego: |
+            package validate
 
-              foolabel {
-                input.kind == "Pod"
-                podLabel := input.metadata.labels.foo
-                podLabel == "bar"
-              }
+            foolabel {
+              input.kind == "Pod"
+              podLabel := input.metadata.labels.foo
+              podLabel == "bar"
+            }
 
-              validate {
-                foolabel
-              }
+            validate {
+              foolabel
+            }

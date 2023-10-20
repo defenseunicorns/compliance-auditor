@@ -12,9 +12,17 @@ type ComplianceReport struct {
 // This will hopefully make transformation to the reporting model easier
 // or be replaced by an OSCAL native type
 type ReportObject struct {
-	FilePaths  []string    `json:"file-paths" yaml:"file-paths"`
-	UUID       string      `json:"uuid" yaml:"uuid"`
-	Components []Component `json:"components" yaml:"components"`
+	FilePaths   []string              `json:"file-paths" yaml:"file-paths"`
+	UUID        string                `json:"uuid" yaml:"uuid"`
+	Components  []Component           `json:"components" yaml:"components"`
+	Validations map[string]Validation `json:"validations" yaml:"validations"`
+}
+
+type Validation struct {
+	Title       string                 `json:"title" yaml:"title"`
+	Description map[string]interface{} `json:"description" yaml:"description"`
+	Evaluated   bool                   `json:"evaluated" yaml:"evaluated"`
+	Result      Result                 `json:"result" yaml:"result"`
 }
 
 type Component struct {

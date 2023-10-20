@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -118,6 +119,9 @@ func ValidateOnPaths(obj *types.ReportObject) error {
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefinition) error {
 
+	// Populate a map[uuid]Validation into the validations
+	obj.Validations = oscal.BackMatterToMap(compDef.BackMatter)
+
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
 	// Loops all the way down
@@ -131,21 +135,40 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 				UUID: controlImplementation.UUID,
 			}
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
+
 				impReq := types.ImplementedReq{
 					UUID:        implementedRequirement.UUID,
 					ControlId:   implementedRequirement.ControlId,
 					Description: implementedRequirement.Description,
 				}
 				var pass, fail int
-				for _, target := range implementedRequirement.Rules {
-					result, err := ValidateOnTarget(ctx, target)
+				for _, link := range implementedRequirement.Links {
+					var result types.Result
+					var err error
+					// 	- We have traversed to the link
+					if link.Text == "Lula Validation" {
 
-					if err != nil {
-						return err
+						id := strings.Replace(link.Href, "#", "", 1)
+						fmt.Printf("Lula Validation id: %v\n", id)
+
+						// TODO: Is there a better way to get the UUID?
+						if val, ok := obj.Validations[id]; ok {
+							if val.Evaluated {
+								result = val.Result
+							} else {
+								result, err = ValidateOnTarget(ctx, val.Description)
+
+								if err != nil {
+									return err
+								}
+							}
+						}
+						pass += result.Passing
+						fail += result.Failing
+						impReq.Results = append(impReq.Results, result)
+
 					}
-					pass += result.Passing
-					fail += result.Failing
-					impReq.Results = append(impReq.Results, result)
+
 				}
 
 				if pass > 0 && fail <= 0 {

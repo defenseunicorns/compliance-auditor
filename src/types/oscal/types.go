@@ -143,16 +143,15 @@ type ResponsibleRole struct {
 }
 
 type ImplementedRequirement struct {
-	Description      string                   `json:"description" yaml:"description"`
-	Props            []Property               `json:"props,omitempty" yaml:"props,omitempty"`
-	Links            []Link                   `json:"links,omitempty" yaml:"links,omitempty"`
-	SetParameters    []SetParameter           `json:"set-parameters,omitempty" yaml:"set-parameters,omitempty"`
-	UUID             string                   `json:"uuid" yaml:"uuid"`
-	ControlId        string                   `json:"control-id" yaml:"control-id"`
-	ResponsibleRoles []ResponsibleRole        `json:"responsible-roles,omitempty" yaml:"responsible-roles,omitempty"`
-	Statements       []Statement              `json:"statements,omitempty" yaml:"statements,omitempty"`
-	Remarks          string                   `json:"remarks,omitempty" yaml:"remarks,omitempty"`
-	Rules            []map[string]interface{} `json:"rules,omitempty" yaml:"rules,omitempty"`
+	Description      string            `json:"description" yaml:"description"`
+	Props            []Property        `json:"props,omitempty" yaml:"props,omitempty"`
+	Links            []Link            `json:"links,omitempty" yaml:"links,omitempty"`
+	SetParameters    []SetParameter    `json:"set-parameters,omitempty" yaml:"set-parameters,omitempty"`
+	UUID             string            `json:"uuid" yaml:"uuid"`
+	ControlId        string            `json:"control-id" yaml:"control-id"`
+	ResponsibleRoles []ResponsibleRole `json:"responsible-roles,omitempty" yaml:"responsible-roles,omitempty"`
+	Statements       []Statement       `json:"statements,omitempty" yaml:"statements,omitempty"`
+	Remarks          string            `json:"remarks,omitempty" yaml:"remarks,omitempty"`
 }
 
 type ControlImplementation struct {
