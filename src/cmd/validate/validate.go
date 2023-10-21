@@ -145,13 +145,9 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 				for _, link := range implementedRequirement.Links {
 					var result types.Result
 					var err error
-					// 	- We have traversed to the link
+
 					if link.Text == "Lula Validation" {
-
 						id := strings.Replace(link.Href, "#", "", 1)
-						fmt.Printf("Lula Validation id: %v\n", id)
-
-						// TODO: Is there a better way to get the UUID?
 						if val, ok := obj.Validations[id]; ok {
 							if val.Evaluated {
 								result = val.Result
