@@ -61,6 +61,12 @@ type Payload struct {
 	Rego          string         `json:"rego" yaml:"rego"`
 }
 
+type Target struct {
+	Provider string  `json:"provider" yaml:"provider"`
+	Domain   string  `json:"domain" yaml:"domain"`
+	Payload  Payload `json:"payload" yaml:"payload"`
+}
+
 type ResourceRule struct {
 	Group      string   `json:"group" yaml:"group"`
 	Version    string   `json:"version" yaml:"version"`

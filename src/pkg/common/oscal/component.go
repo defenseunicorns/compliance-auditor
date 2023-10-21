@@ -7,6 +7,7 @@ import (
 	"github.com/defenseunicorns/lula/src/types"
 	oscalTypes "github.com/defenseunicorns/lula/src/types/oscal"
 	yaml2 "github.com/ghodss/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 // NewOscalComponentDefintion consumes a byte arrray and returns a new single OscalComponentDefinitionModel object
@@ -35,25 +36,18 @@ func BackMatterToMap(backMatter oscalTypes.BackMatter) map[string]types.Validati
 	resourceMap := make(map[string]types.Validation)
 
 	for _, resource := range backMatter.Resources {
-
 		if resource.Title == "Lula Validation" {
 			var lulaSelector map[string]interface{}
 
-			data := []byte(resource.Description)
-			jsonDoc, err := yaml2.YAMLToJSON(data)
+			err := yaml.Unmarshal([]byte(resource.Description), &lulaSelector)
 			if err != nil {
-				fmt.Printf("Error converting YAML to JSON: %s\n", err.Error())
+				fmt.Printf("Error marshalling yaml: %s\n", err.Error())
 				return nil
 			}
 
-			err = json.Unmarshal(jsonDoc, &lulaSelector)
-
-			if err != nil {
-				fmt.Printf("Error unmarshalling JSON: %s\n", err.Error())
-			}
 			validation := types.Validation{
 				Title:       resource.Title,
-				Description: lulaSelector,
+				Description: lulaSelector["target"].(map[string]interface{}),
 				Evaluated:   false,
 				Result:      types.Result{},
 			}
