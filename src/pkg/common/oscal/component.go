@@ -3,8 +3,8 @@ package oscal
 import (
 	"fmt"
 
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1/component-definition"
 	"github.com/defenseunicorns/lula/src/types"
-	oscalTypes "github.com/defenseunicorns/lula/src/types/oscal"
 	"gopkg.in/yaml.v3"
 )
 
