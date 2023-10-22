@@ -1,12 +1,10 @@
 package oscal
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/defenseunicorns/lula/src/types"
 	oscalTypes "github.com/defenseunicorns/lula/src/types/oscal"
-	yaml2 "github.com/ghodss/yaml"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,17 +13,10 @@ import (
 func NewOscalComponentDefinition(data []byte) (oscalTypes.ComponentDefinition, error) {
 	var oscalComponentDefinition oscalTypes.OscalComponentDefinitionModel
 
-	// TODO: see if we unmarshall yaml data more effectively
-	jsonDoc, err := yaml2.YAMLToJSON(data)
+	err := yaml.Unmarshal(data, &oscalComponentDefinition)
 	if err != nil {
-		fmt.Printf("Error converting YAML to JSON: %s\n", err.Error())
+		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
 		return oscalComponentDefinition.ComponentDefinition, err
-	}
-
-	err = json.Unmarshal(jsonDoc, &oscalComponentDefinition)
-
-	if err != nil {
-		fmt.Printf("Error unmarshalling JSON: %s\n", err.Error())
 	}
 
 	return oscalComponentDefinition.ComponentDefinition, nil
