@@ -142,13 +142,18 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 					Description: implementedRequirement.Description,
 				}
 				var pass, fail int
+				// IF the implemented requirement contains a link - check for Lula Validation
 				for _, link := range implementedRequirement.Links {
 					var result types.Result
 					var err error
-
+					// Current identifier is the link text
 					if link.Text == "Lula Validation" {
+						// Remove the leading '#' from the UUID reference
 						id := strings.Replace(link.Href, "#", "", 1)
+						// Check if the link exists in our pre-populated map of validations
 						if val, ok := obj.Validations[id]; ok {
+							// If the validation has already been evaluated, use the result from the evaluation
+							// Otherwise perform the validation
 							if val.Evaluated {
 								result = val.Result
 							} else {
