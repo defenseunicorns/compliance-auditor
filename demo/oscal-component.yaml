@@ -5,7 +5,7 @@ component-definition:
     title: OSCAL Demo Tool
     last-modified: '2022-09-13T12:00:00Z'
     version: "20220913"
-    oscal-version: 1.0.0
+    oscal-version: 1.1.1
     parties:
       # Should be consistent across all of the packages, but where is ground truth?
     - uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
