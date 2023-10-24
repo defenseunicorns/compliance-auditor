@@ -217,30 +217,6 @@ func ValidateOnTarget(ctx context.Context, target map[string]interface{}) (types
 
 }
 
-// TODO: this needs to evolve quite a bit - should transform a ReportObject into an OSCAL Model
-// Specifically re-traversing the layers
-func GenerateReportFromResults(results *types.ReportObject) ([]types.ComplianceReport, error) {
-	var complianceReports []types.ComplianceReport
-	// component-definition -> component -> control-implementation -> implemented-requirements -> targets
-
-	for _, component := range results.Components {
-		for _, control := range component.ControlImplementations {
-			for _, impReq := range control.ImplementedReqs {
-				currentReport := types.ComplianceReport{
-					UUID:        impReq.UUID,
-					ControlId:   impReq.ControlId,
-					Description: impReq.Description,
-					Result:      impReq.Status,
-				}
-
-				complianceReports = append(complianceReports, currentReport)
-			}
-		}
-	}
-
-	return complianceReports, nil
-}
-
 // This is the OSCAL document generation for final output.
 // This should include some ability to consolidate controls met in multiple input documents under single control entries
 // This should include fields that reference the source of the control to the original document ingested
