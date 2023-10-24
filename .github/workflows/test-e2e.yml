@@ -1,5 +1,8 @@
 name: E2E Testing
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ "main" ]
