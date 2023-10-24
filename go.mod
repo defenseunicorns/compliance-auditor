@@ -3,7 +3,8 @@ module github.com/defenseunicorns/lula
 go 1.21.3
 
 require (
-	github.com/defenseunicorns/go-oscal v0.0.0-20231023143454-d744a94b8cc1
+	github.com/defenseunicorns/go-oscal v0.0.0-20231024140314-f6393d093413
+	github.com/google/uuid v1.3.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v0.57.1
 	github.com/sirupsen/logrus v1.9.3
@@ -39,7 +40,6 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

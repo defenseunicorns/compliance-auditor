@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
-	yaml1 "sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 var validateHelp = `
@@ -45,8 +46,7 @@ var ValidateCmd = &cobra.Command{
 			return fmt.Errorf("Validation error: %w\n", err)
 		}
 
-		// Convert Results to expected report format
-		report, err := GenerateReportFromResults(&results)
+		report, err := oscal.GenerateAssessmentResult(&results)
 		if err != nil {
 			return fmt.Errorf("Generate error: %w\n", err)
 		}
@@ -162,8 +162,15 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 								if err != nil {
 									return err
 								}
+								// Store the result in the validation object
+								val.Result = result
+								val.Evaluated = true
+								obj.Validations[id] = val
 							}
+						} else {
+							return fmt.Errorf("Backmatter Validation %v not found", id)
 						}
+
 						pass += result.Passing
 						fail += result.Failing
 						impReq.Results = append(impReq.Results, result)
@@ -172,12 +179,11 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 
 				}
 
+				// Using language from Assessment Results model for Target Objective Status State
 				if pass > 0 && fail <= 0 {
-					impReq.Status = "Pass"
-				} else if pass == 0 && fail == 0 {
-					impReq.Status = "Not Evaluated"
+					impReq.Status = "satisfied"
 				} else {
-					impReq.Status = "Fail"
+					impReq.Status = "not-satisfied"
 				}
 
 				// TODO: convert to logging
@@ -238,16 +244,17 @@ func GenerateReportFromResults(results *types.ReportObject) ([]types.ComplianceR
 // This is the OSCAL document generation for final output.
 // This should include some ability to consolidate controls met in multiple input documents under single control entries
 // This should include fields that reference the source of the control to the original document ingested
-func WriteReport(compiledReport []types.ComplianceReport) error {
-	reportData, err := yaml1.Marshal(&compiledReport)
-	if err != nil {
-		return err
-	}
+func WriteReport(compiledReport any) error {
+	var b bytes.Buffer
+
+	yamlEncoder := yaml.NewEncoder(&b)
+	yamlEncoder.SetIndent(2)
+	yamlEncoder.Encode(compiledReport)
 
 	currentTime := time.Now()
-	fileName := "compliance_report-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
+	fileName := "assessment-results-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
 
-	err = os.WriteFile(fileName, reportData, 0644)
+	err := os.WriteFile(fileName, b.Bytes(), 0644)
 	if err != nil {
 		return err
 	}

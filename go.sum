@@ -21,8 +21,8 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/defenseunicorns/go-oscal v0.0.0-20231023143454-d744a94b8cc1 h1:X1BGymVZkM/685wrp404Ic3XBueBRCwb20aRtF3KAt0=
-github.com/defenseunicorns/go-oscal v0.0.0-20231023143454-d744a94b8cc1/go.mod h1:563/XX9wXEPw+CkLNp1fdVU1Hd27nrH4j9DhrqyCkkU=
+github.com/defenseunicorns/go-oscal v0.0.0-20231024140314-f6393d093413 h1:CdZq6Tq4+QsIJLWncgfkzZO+4+h06PGKMn0lLPaDxQE=
+github.com/defenseunicorns/go-oscal v0.0.0-20231024140314-f6393d093413/go.mod h1:CCf9ThsY2TxMyoDA7mKCClHlfwWwydGwJQjf/tNpjAs=
 github.com/dgraph-io/badger/v3 v3.2103.5 h1:ylPa6qzbjYRQMU6jokoj4wzcaweHylt//CH0AKt0akg=
 github.com/dgraph-io/badger/v3 v3.2103.5/go.mod h1:4MPiseMeDQ3FNCYwRbbcBOGJLf5jsE0PPFzRiKjtcdw=
 github.com/dgraph-io/ristretto v0.1.1 h1:6CWw5tJNgpegArSHpNHJKldNeq03FQCwYvfMVWajOK8=
