@@ -14,12 +14,15 @@ const OSCAL_VERSION = "1.1.1"
 func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsTypes.OscalAssessmentResultsModel, error) {
 	var assessmentResults assessmentResultsTypes.OscalAssessmentResultsModel
 
+	// Single time used for all time related fields
 	rfc3339Time := time.Now().Format(time.RFC3339)
 
+	// Create placeholders for data required in objects
 	controlMap := make(map[string]bool)
 	controlList := make([]assessmentResultsTypes.SelectControlById, 0)
 	findings := make([]assessmentResultsTypes.Finding, 0)
 
+	// Build the controlMap and Findings array
 	for _, component := range report.Components {
 		for _, controlImplementation := range component.ControlImplementations {
 			for _, implementedRequirement := range controlImplementation.ImplementedReqs {
@@ -31,7 +34,7 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 				}
 				// TODO: Need to add in the control implementation UUID
 				finding := assessmentResultsTypes.Finding{
-					UUID:        implementedRequirement.UUID,
+					UUID:        uuid.NewString(),
 					Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", component.UUID, controlImplementation.UUID, implementedRequirement.ControlId),
 					Description: implementedRequirement.Description,
 					Target: assessmentResultsTypes.FindingTarget{
@@ -47,6 +50,7 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 		}
 	}
 
+	// Convert control map to slice of SelectControlById
 	for controlId := range controlMap {
 		control := assessmentResultsTypes.SelectControlById{
 			ControlId: controlId,
@@ -58,9 +62,10 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 	assessmentResults.AssessmentResults.UUID = uuid.NewString()
 
 	// Create metadata object with requires fields and a few extras
+	// Where do we establish what `version` should be?
 	assessmentResults.AssessmentResults.Metadata = assessmentResultsTypes.Metadata{
 		Title:        "[System Name] Security Assessment Results (SAR)",
-		Version:      "0.0.1", // TODO: Set this to the version of the SAR
+		Version:      "0.0.1",
 		OscalVersion: OSCAL_VERSION,
 		Remarks:      "Lula Metadata Remarks",
 		Published:    rfc3339Time,
