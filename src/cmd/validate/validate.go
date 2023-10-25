@@ -171,8 +171,15 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 							return fmt.Errorf("Backmatter Validation %v not found", id)
 						}
 
+						if result.Passing > 0 && result.Failing <= 0 {
+							result.State = "satisfied"
+						} else {
+							result.State = "not-satisfied"
+						}
+
 						pass += result.Passing
 						fail += result.Failing
+
 						impReq.Results = append(impReq.Results, result)
 
 					}
@@ -181,13 +188,13 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 
 				// Using language from Assessment Results model for Target Objective Status State
 				if pass > 0 && fail <= 0 {
-					impReq.Status = "satisfied"
+					impReq.State = "satisfied"
 				} else {
-					impReq.Status = "not-satisfied"
+					impReq.State = "not-satisfied"
 				}
 
 				// TODO: convert to logging
-				fmt.Printf("UUID: %v\n\tResources Passing: %v\n\tResources Failing: %v\n\tStatus: %v\n", impReq.UUID, pass, fail, impReq.Status)
+				fmt.Printf("UUID: %v\n\tResources Passing: %v\n\tResources Failing: %v\n\tStatus: %v\n", impReq.UUID, pass, fail, impReq.State)
 
 				control.ImplementedReqs = append(control.ImplementedReqs, impReq)
 			}
