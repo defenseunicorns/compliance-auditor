@@ -3,7 +3,7 @@
 
 [build]
   command = "npm ci && hugo --gc --minify"
-  publish = "website/public"
+  publish = "public"
 
   [build.environment]
     HUGO_VERSION = "0.119.0"
