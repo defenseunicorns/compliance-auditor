@@ -2,6 +2,8 @@
 # (https://gohugo.io/hosting-and-deployment/hosting-on-netlify/#configure-hugo-version-in-netlify)
 
 [build]
+
+  base    = "website"
   command = "npm ci && hugo --gc --minify"
   publish = "public"
 
