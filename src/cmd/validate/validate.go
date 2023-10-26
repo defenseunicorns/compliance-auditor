@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1/component-definition"
+	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"

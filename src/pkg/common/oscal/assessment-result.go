@@ -5,48 +5,48 @@ import (
 	"strconv"
 	"time"
 
-	assessmentResultsTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1/assessment-results"
+	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/google/uuid"
 )
 
 const OSCAL_VERSION = "1.1.1"
 
-func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsTypes.OscalAssessmentResultsModel, error) {
-	var assessmentResults assessmentResultsTypes.OscalAssessmentResultsModel
+func GenerateAssessmentResult(report *types.ReportObject) (oscalTypes.OscalModels, error) {
+	var assessmentResults oscalTypes.OscalModels
 
 	// Single time used for all time related fields
 	rfc3339Time := time.Now().Format(time.RFC3339)
 
 	// Create placeholders for data required in objects
 	controlMap := make(map[string]bool)
-	controlList := make([]assessmentResultsTypes.SelectControlById, 0)
-	findings := make([]assessmentResultsTypes.Finding, 0)
-	observations := make([]assessmentResultsTypes.Observation, 0)
+	controlList := make([]oscalTypes.SelectControlById, 0)
+	findings := make([]oscalTypes.Finding, 0)
+	observations := make([]oscalTypes.Observation, 0)
 
 	// Build the controlMap and Findings array
 	for _, component := range report.Components {
 		for _, controlImplementation := range component.ControlImplementations {
 			for _, implementedRequirement := range controlImplementation.ImplementedReqs {
-				tempObservations := make([]assessmentResultsTypes.Observation, 0)
-				relatedObservations := make([]assessmentResultsTypes.RelatedObservation, 0)
+				tempObservations := make([]oscalTypes.Observation, 0)
+				relatedObservations := make([]oscalTypes.RelatedObservation, 0)
 				// For each result - there may be many observations
 				for _, result := range implementedRequirement.Results {
 
 					sharedUuid := uuid.NewString()
-					observation := assessmentResultsTypes.Observation{
+					observation := oscalTypes.Observation{
 						Collected:   rfc3339Time,
 						Description: fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, result.UUID),
 						Methods:     []string{"TEST"},
 						UUID:        sharedUuid,
-						RelevantEvidence: []assessmentResultsTypes.RelevantEvidence{
+						RelevantEvidence: []oscalTypes.RelevantEvidence{
 							{
 								Description: fmt.Sprintf("Result: %s - Passing Resources: %s - Failing Resources %s\n", result.State, strconv.Itoa(result.Passing), strconv.Itoa(result.Failing)),
 							},
 						},
 					}
 
-					relatedObservation := assessmentResultsTypes.RelatedObservation{
+					relatedObservation := oscalTypes.RelatedObservation{
 						ObservationUuid: sharedUuid,
 					}
 
@@ -60,12 +60,12 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 					controlMap[implementedRequirement.ControlId] = true
 				}
 				// TODO: Need to add in the control implementation UUID
-				finding := assessmentResultsTypes.Finding{
+				finding := oscalTypes.Finding{
 					UUID:        uuid.NewString(),
 					Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", component.UUID, controlImplementation.UUID, implementedRequirement.ControlId),
 					Description: implementedRequirement.Description,
-					Target: assessmentResultsTypes.FindingTarget{
-						Status: assessmentResultsTypes.Status{
+					Target: oscalTypes.FindingTarget{
+						Status: oscalTypes.Status{
 							State: implementedRequirement.State,
 						},
 						TargetId: implementedRequirement.ControlId,
@@ -81,7 +81,7 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 
 	// Convert control map to slice of SelectControlById
 	for controlId := range controlMap {
-		control := assessmentResultsTypes.SelectControlById{
+		control := oscalTypes.SelectControlById{
 			ControlId: controlId,
 		}
 		controlList = append(controlList, control)
@@ -92,7 +92,7 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 
 	// Create metadata object with requires fields and a few extras
 	// Where do we establish what `version` should be?
-	assessmentResults.AssessmentResults.Metadata = assessmentResultsTypes.Metadata{
+	assessmentResults.AssessmentResults.Metadata = oscalTypes.Metadata{
 		Title:        "[System Name] Security Assessment Results (SAR)",
 		Version:      "0.0.1",
 		OscalVersion: OSCAL_VERSION,
@@ -102,16 +102,16 @@ func GenerateAssessmentResult(report *types.ReportObject) (assessmentResultsType
 	}
 
 	// Create results object
-	assessmentResults.AssessmentResults.Results = []assessmentResultsTypes.Result{
+	assessmentResults.AssessmentResults.Results = []oscalTypes.Result{
 		{
 			UUID:        uuid.NewString(),
 			Title:       "Lula Result Title",
 			Start:       rfc3339Time,
 			Description: "Lula Result Description",
-			ReviewedControls: assessmentResultsTypes.ReviewedControls{
+			ReviewedControls: oscalTypes.ReviewedControls{
 				Description: "Lula Control Description",
 				Remarks:     "Lula Control Remarks",
-				ControlSelections: []assessmentResultsTypes.AssessedControls{
+				ControlSelections: []oscalTypes.AssessedControls{
 					{
 						Description:     "Lula Assessed Controls Description",
 						IncludeControls: controlList,

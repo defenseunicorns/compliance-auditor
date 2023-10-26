@@ -3,23 +3,23 @@ package oscal
 import (
 	"fmt"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1/component-definition"
+	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
 
-// NewOscalComponentDefintion consumes a byte arrray and returns a new single OscalComponentDefinitionModel object
+// NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
 // Standard use is to read a file from the filesystem and pass the []byte to this function
 func NewOscalComponentDefinition(data []byte) (oscalTypes.ComponentDefinition, error) {
-	var oscalComponentDefinition oscalTypes.OscalComponentDefinitionModel
+	var oscalModels oscalTypes.OscalModels
 
-	err := yaml.Unmarshal(data, &oscalComponentDefinition)
+	err := yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
-		return oscalComponentDefinition.ComponentDefinition, err
+		return oscalModels.ComponentDefinition, err
 	}
 
-	return oscalComponentDefinition.ComponentDefinition, nil
+	return oscalModels.ComponentDefinition, nil
 }
 
 // Map an array of resources to a map of UUID to validation object
