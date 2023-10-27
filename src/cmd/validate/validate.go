@@ -46,7 +46,7 @@ var ValidateCmd = &cobra.Command{
 			return fmt.Errorf("Validation error: %w\n", err)
 		}
 
-		report, err := oscal.GenerateAssessmentResult(&results)
+		report, err := oscal.GenerateAssessmentResults(&results)
 		if err != nil {
 			return fmt.Errorf("Generate error: %w\n", err)
 		}

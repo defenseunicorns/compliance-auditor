@@ -52,6 +52,10 @@ func TestPodLabelValidation(t *testing.T) {
 			if result.Passing <= 0 {
 				t.Fatal("Passing resources should be 1, but got :", result.Failing)
 			}
+
+			if result.State != "satisfied" {
+				t.Fatal("State should be satisfied, but got :", result.State)
+			}
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -93,6 +97,10 @@ func TestPodLabelValidation(t *testing.T) {
 
 			if result.Failing <= 0 {
 				t.Fatal("Failing resources should be 1, but got :", result.Failing)
+			}
+
+			if result.State != "not-satisfied" {
+				t.Fatal("State should be not-satisfied, but got :", result.State)
 			}
 
 			return ctx

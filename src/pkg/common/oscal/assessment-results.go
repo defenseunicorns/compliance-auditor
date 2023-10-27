@@ -12,7 +12,7 @@ import (
 
 const OSCAL_VERSION = "1.1.1"
 
-func GenerateAssessmentResult(report *types.ReportObject) (oscalTypes.OscalModels, error) {
+func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalModels, error) {
 	var assessmentResults oscalTypes.OscalModels
 
 	// Single time used for all time related fields
