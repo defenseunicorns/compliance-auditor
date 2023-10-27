@@ -177,6 +177,8 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 							result.State = "not-satisfied"
 						}
 
+						result.UUID = id
+
 						pass += result.Passing
 						fail += result.Failing
 
