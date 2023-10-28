@@ -52,11 +52,13 @@ component-definition:
           provider: opa
           domain: kubernetes
           payload:
-            resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
-            - Group:            # empty or "" for core group
-              Version: v1       # Version of resource
-              Resource: pods    # Resource type
-              Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+            resources:
+            - name: collection-1
+              resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
+              - Group:            # empty or "" for core group
+                Version: v1       # Version of resource
+                Resource: pods    # Resource type
+                Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
             rego: |
               package validate
 

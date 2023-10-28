@@ -1,5 +1,7 @@
 package types
 
+import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 // this is a temporary struct until a reporting model is selected
 type ComplianceReport struct {
 	UUID        string `json:"uuid" yaml:"uuid"`
@@ -58,8 +60,14 @@ type Result struct {
 // Fields will be populated as required otherwise left empty
 // This could be expanded as providers add more fields
 type Payload struct {
+	Resources []Resources `json:"resources" yaml:"resources"`
+	Rego      string      `json:"rego" yaml:"rego"`
+}
+
+type Resources struct {
+	Name          string         `json:"name" yaml:"name"`
+	Description   string         `json:"description" yaml:"description"`
 	ResourceRules []ResourceRule `json:"resource-rules" yaml:"resource-rules"`
-	Rego          string         `json:"rego" yaml:"rego"`
 }
 
 type Target struct {
@@ -73,4 +81,9 @@ type ResourceRule struct {
 	Version    string   `json:"version" yaml:"version"`
 	Resource   string   `json:"resource" yaml:"resource"`
 	Namespaces []string `json:"namespaces" yaml:"namespaces"`
+}
+
+type Collection struct {
+	Name    string                      `json:"name" yaml:"name"`
+	Dataset []unstructured.Unstructured `json:"dataset" yaml:"dataset"`
 }

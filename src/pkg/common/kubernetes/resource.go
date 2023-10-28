@@ -13,35 +13,39 @@ import (
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
 // This function is used to query the cluster for all resources required for processing
-func QueryCluster(ctx context.Context, payload types.Payload) ([]unstructured.Unstructured, error) {
+func QueryCluster(ctx context.Context, payload types.Payload) ([]types.Collection, error) {
+
+	// We may need a new type here to hold groups of resources
 
 	config := ctrl.GetConfigOrDie()
 	dynamic := dynamic.NewForConfigOrDie(config)
-	var resources []unstructured.Unstructured
+	var collections []types.Collection
 
-	for _, rule := range payload.ResourceRules {
+	// TODO: Start here
+	// Convert resource appending to use collections instead
 
-		if len(rule.Namespaces) == 0 {
-			items, err := GetResourcesDynamically(dynamic, ctx,
-				rule.Group, rule.Version, rule.Resource, "")
-			if err != nil {
-				return nil, err
-			}
-			resources = append(resources, items...)
-		} else {
-			for _, namespace := range rule.Namespaces {
+	for _, resource := range payload.Resources {
+		for _, rule := range resource.ResourceRules {
+
+			if len(rule.Namespaces) == 0 {
 				items, err := GetResourcesDynamically(dynamic, ctx,
-					rule.Group, rule.Version, rule.Resource, namespace)
+					rule.Group, rule.Version, rule.Resource, "")
 				if err != nil {
 					return nil, err
 				}
 				resources = append(resources, items...)
+			} else {
+				for _, namespace := range rule.Namespaces {
+					items, err := GetResourcesDynamically(dynamic, ctx,
+						rule.Group, rule.Version, rule.Resource, namespace)
+					if err != nil {
+						return nil, err
+					}
+					resources = append(resources, items...)
+				}
 			}
-
 		}
-
 	}
-
 	return resources, nil
 }
 
