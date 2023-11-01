@@ -59,11 +59,28 @@ component-definition:
                 Version: v1       # Version of resource
                 Resource: pods    # Resource type
                 Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+            - name: collection-2
+              resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
+              - Group:            # empty or "" for core group
+                Version: v1       # Version of resource
+                Resource: namespaces   # Resource type
+                Namespaces: []
+              - Group:            # empty or "" for core group
+                Version: v1       # Version of resource
+                Resource: peerauthentications   # Resource type
+                Namespaces: []
             rego: |
               package validate
 
+              pods := inputs.objects
+
+
               validate {
                 input.kind == "Pod"
+
+                pods[0].metadata.labels.foo == "bar"
+                pods[1].metadata.labels.bar == "foo"
+
                 podLabel := input.metadata.labels.foo
                 podLabel == "bar"
               }

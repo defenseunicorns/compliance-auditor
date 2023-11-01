@@ -28,17 +28,22 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 
 	// query kubernetes for resource data if domain == "kubernetes"
 	// TODO: evaluate processes for manifests/helm charts
-	var resources []unstructured.Unstructured
+	var collection []types.Collection
 	if domain == "kubernetes" {
-		resources, err = kube.QueryCluster(ctx, payload)
+		collection, err = kube.QueryCluster(ctx, payload)
 		if err != nil {
 			return types.Result{}, err
 		}
+
+		// Should we convert []unstructured.Unstructured to []map[string]interface{} here?
+		// Allow for standardizing the data to a single format at the collection type
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
 
 	// Convert to []map[string]interface{} for rego validation
+	// Currently we convert a single unstructured.Unstructured to a map[string]interface{}
+	// TODO:
 	var mapData []map[string]interface{}
 	for _, item := range resources {
 		mapData = append(mapData, item.Object)

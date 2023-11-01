@@ -19,12 +19,13 @@ func QueryCluster(ctx context.Context, payload types.Payload) ([]types.Collectio
 
 	config := ctrl.GetConfigOrDie()
 	dynamic := dynamic.NewForConfigOrDie(config)
-	var collections []types.Collection
+	collections := make([]types.Collection, 0)
 
 	// TODO: Start here
 	// Convert resource appending to use collections instead
 
 	for _, resource := range payload.Resources {
+		resources := make([]unstructured.Unstructured, 0)
 		for _, rule := range resource.ResourceRules {
 
 			if len(rule.Namespaces) == 0 {
@@ -45,8 +46,14 @@ func QueryCluster(ctx context.Context, payload types.Payload) ([]types.Collectio
 				}
 			}
 		}
+		collection := types.Collection{
+			Name:    resource.Name,
+			Dataset: resources,
+		}
+
+		collections = append(collections, collection)
 	}
-	return resources, nil
+	return collections, nil
 }
 
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []unstructured.Unstructured
