@@ -34,6 +34,8 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		if err != nil {
 			return types.Result{}, err
 		}
+	} else if domain == "api" {
+		log.Println("do the damn thing!")
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
