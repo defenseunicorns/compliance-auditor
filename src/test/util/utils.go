@@ -47,3 +47,29 @@ func GetPod(podFilePath string) (*v1.Pod, error) {
 	}
 	return pod, nil
 }
+
+func GetConfigMap(configMapFilePath string) (*v1.ConfigMap, error) {
+	bytes, err := os.ReadFile(configMapFilePath)
+	if err != nil {
+		return nil, err
+	}
+	configMap := &v1.ConfigMap{}
+	err = yaml.Unmarshal(bytes, &configMap)
+	if err != nil {
+		return nil, err
+	}
+	return configMap, nil
+}
+
+func GetService(serviceFilePath string) (*v1.Service, error) {
+	bytes, err := os.ReadFile(serviceFilePath)
+	if err != nil {
+		return nil, err
+	}
+	service := &v1.Service{}
+	err = yaml.Unmarshal(bytes, &service)
+	if err != nil {
+		return nil, err
+	}
+	return service, nil
+}
