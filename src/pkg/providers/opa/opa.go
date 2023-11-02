@@ -36,6 +36,9 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		}
 	} else if domain == "api" {
 		log.Println("do the damn thing!")
+		// 1) need to (somehow) expose in-cluster service externally! (cuz Lula code can't assume k8s is serving API http!)
+		// 2) httpd go library to call exposed service
+
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
