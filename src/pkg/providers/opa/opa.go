@@ -1,12 +1,15 @@
 package opa
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"strconv"
 	"sync"
+	"net/http"
 
 	"github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
 	"github.com/defenseunicorns/lula/src/types"
@@ -26,27 +29,48 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		return types.Result{}, err
 	}
 
+	// Need []map[string]interface{} for rego validation
+	var mapData []map[string]interface{}
+	
 	// query kubernetes for resource data if domain == "kubernetes"
 	// TODO: evaluate processes for manifests/helm charts
-	var resources []unstructured.Unstructured
 	if domain == "kubernetes" {
+		var resources []unstructured.Unstructured
 		resources, err = kube.QueryCluster(ctx, payload)
 		if err != nil {
 			return types.Result{}, err
 		}
+		for _, item := range resources {
+			mapData = append(mapData, item.Object)
+		}
+
 	} else if domain == "api" {
-		log.Println("do the damn thing!")
-		// 1) need to (somehow) expose in-cluster service externally! (cuz Lula code can't assume k8s is serving API http!)
-		// 2) httpd go library to call exposed service
+		transport := &http.Transport{}
+		client := &http.Client{Transport: transport}
+
+		resp, err := client.Get("http://localhost/api-field")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer resp.Body.Close()
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var prettyBuff bytes.Buffer
+		json.Indent(&prettyBuff, body, "", "  ")
+		prettyString := prettyBuff.String()
+		prettyString = "["+prettyString+"]"
+
+		err = json.Unmarshal([]byte(prettyString), &mapData)
+		if err != nil {
+			log.Fatal(err)
+		}
+		
 
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
-	}
-
-	// Convert to []map[string]interface{} for rego validation
-	var mapData []map[string]interface{}
-	for _, item := range resources {
-		mapData = append(mapData, item.Object)
 	}
 
 	// TODO: Add logging optionality for understanding what resources are actually being validated
