@@ -70,3 +70,22 @@ spec:
     targetPort: 80
   selector:
     app: api-field
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-field-ingress
+  namespace: validation-test
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - http:
+      paths:
+      - pathType: Prefix
+        path: /api-field
+        backend:
+          service:
+            name: api-field
+            port:
+              number: 80
