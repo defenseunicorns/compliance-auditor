@@ -4,11 +4,13 @@ import (
 	"context"
 	"testing"
 	"time"
+	// "encoding/json"
 
-	// "github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/test/util"
-	// "github.com/defenseunicorns/lula/src/types"
+	"github.com/defenseunicorns/lula/src/types"
 	corev1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
@@ -53,42 +55,64 @@ func TestApiValidation(t *testing.T) {
 			// TODO: do we need to delay until service gets "hooked up" to pod..?
 			ctx = context.WithValue(ctx, "api-field-service", service)
 
+			ingress, err := util.GetIngress("./scenarios/api-field/ingress.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, ingress); err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "api-field-ingress", ingress)
+
+			// json, _ := json.MarshalIndent(ingress,"", "  ")
+			// t.Fatal(string(json))
+
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			t.Skip("TODO")
-			// oscalPath := []string{"./scenarios/api-field/oscal-component.yaml"}
+			oscalPath := []string{"./scenarios/api-field/oscal-component.yaml"}
 
-			// results := types.ReportObject{
-			// 	FilePaths: oscalPath,
-			// }
-			// err := validate.ValidateOnPaths(&results)
-			// if err != nil {
-			// 	t.Fatal("Validation error, result:", results)
-			// }
+			results := types.ReportObject{
+				FilePaths: oscalPath,
+			}
+			err := validate.ValidateOnPaths(&results)
+			if err != nil {
+				t.Fatal("Validation error, result:", results)
+			}
 
-			// // TODO: maybe this brings to light modifying the
-			// result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
+			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
 
-			// if result.Failing != 0 {
-			// 	t.Fatal("Failing resources should be 0, but got :", result.Failing)
-			// }
+			if result.Failing != 0 {
+				t.Fatal("Failing resources should be 0, but got :", result.Failing)
+			}
 
-			// if result.Passing <= 0 {
-			// 	t.Fatal("Passing resources should be 1, but got :", result.Failing)
-			// }
+			if result.Passing <= 0 {
+				t.Fatal("Passing resources should be 1, but got :", result.Failing)
+			}
 
-			// if result.State != "satisfied" {
-			// 	t.Fatal("State should be satisfied, but got :", result.State)
-			// }
+			if result.State != "satisfied" {
+				t.Fatal("State should be satisfied, but got :", result.State)
+			}
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			ingress := ctx.Value("api-field-ingress").(*netv1.Ingress)
+			if err := config.Client().Resources().Delete(ctx, ingress); err != nil {
+				t.Fatal(err)
+			}
+			err := wait.
+				For(conditions.New(config.Client().Resources()).
+				ResourceDeleted(ingress),
+				wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			service := ctx.Value("api-field-service").(*corev1.Service)
 			if err := config.Client().Resources().Delete(ctx, service); err != nil {
 				t.Fatal(err)
 			}
-			err := wait.
+			err = wait.
 				For(conditions.New(config.Client().Resources()).
 				ResourceDeleted(service),
 				wait.WithTimeout(time.Minute*5))
@@ -163,27 +187,26 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			t.Skip("TODO")
-			// oscalPath := []string{"./scenarios/pod-label/oscal-component.yaml"}
+			oscalPath := []string{"./scenarios/pod-label/oscal-component.yaml"}
 
-			// results := types.ReportObject{
-			// 	FilePaths: oscalPath,
-			// }
-			// err := validate.ValidateOnPaths(&results)
-			// if err != nil {
-			// 	t.Fatal("Validation error, result:", results)
-			// }
+			results := types.ReportObject{
+				FilePaths: oscalPath,
+			}
+			err := validate.ValidateOnPaths(&results)
+			if err != nil {
+				t.Fatal("Validation error, result:", results)
+			}
 
-			// // TODO: maybe this brings to light modifying the
-			// result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
+			// TODO: maybe this brings to light modifying the
+			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
 
-			// if result.Failing <= 0 {
-			// 	t.Fatal("Failing resources should be 1, but got :", result.Failing)
-			// }
+			if result.Failing <= 0 {
+				t.Fatal("Failing resources should be 1, but got :", result.Failing)
+			}
 
-			// if result.State != "not-satisfied" {
-			// 	t.Fatal("State should be not-satisfied, but got :", result.State)
-			// }
+			if result.State != "not-satisfied" {
+				t.Fatal("State should be not-satisfied, but got :", result.State)
+			}
 
 			return ctx
 		}).

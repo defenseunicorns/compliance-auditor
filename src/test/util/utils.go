@@ -6,6 +6,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	netv1 "k8s.io/api/networking/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -72,4 +73,17 @@ func GetService(serviceFilePath string) (*v1.Service, error) {
 		return nil, err
 	}
 	return service, nil
+}
+
+func GetIngress(ingressFilePath string) (*netv1.Ingress, error) {
+	bytes, err := os.ReadFile(ingressFilePath)
+	if err != nil {
+		return nil, err
+	}
+	ingress := &netv1.Ingress{}
+	err = yaml.Unmarshal(bytes, &ingress)
+	if err != nil {
+		return nil, err
+	}
+	return ingress, nil
 }

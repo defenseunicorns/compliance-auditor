@@ -39,7 +39,9 @@ func TestMain(m *testing.M) {
 			kind.NewProvider(),
 			kindClusterName,
 			"kind-config.yaml"),
+
 		envfuncs.CreateNamespace(namespace),
+
 		func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 			// load stream of nginx-ingress resources
 			ingressBytes, err := os.ReadFile("nginx-ingress.yaml")
@@ -53,7 +55,7 @@ func TestMain(m *testing.M) {
 			}
 			decoder.DecodeEach(ctx, strings.NewReader(ingressYAML), decoder.CreateHandler(resource))
 
-			// wait for deployment object to be ready
+			// wait for ingress controller deployment object to be ready
 			deployment := appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "ingress-nginx-controller",

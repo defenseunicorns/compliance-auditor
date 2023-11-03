@@ -51,7 +51,7 @@ component-definition:
           domain: api
           payload:
             request:
-              url: "http://api-field.validation-test.svc.cluster.local"
+              url: "http://localhost/api-field"
             rego: |
               package validate
 
