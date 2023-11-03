@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"net/http"
 
@@ -21,34 +22,45 @@ import (
 )
 
 func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
-
-	// Convert map[string]interface to a RegoTarget
-	var payload types.Payload
-	err := mapstructure.Decode(data, &payload)
-	if err != nil {
-		return types.Result{}, err
-	}
-
-	// Need []map[string]interface{} for rego validation
-	var mapData []map[string]interface{}
-	
 	// query kubernetes for resource data if domain == "kubernetes"
 	// TODO: evaluate processes for manifests/helm charts
 	if domain == "kubernetes" {
+		// Convert map[string]interface to a RegoTarget
+		var payload types.Payload
+		err := mapstructure.Decode(data, &payload)
+		if err != nil {
+			return types.Result{}, err
+		}
+
 		var resources []unstructured.Unstructured
 		resources, err = kube.QueryCluster(ctx, payload)
 		if err != nil {
 			return types.Result{}, err
 		}
+		// Need []map[string]interface{} for rego validation
+		var mapData []map[string]interface{}
 		for _, item := range resources {
 			mapData = append(mapData, item.Object)
 		}
 
+		// TODO: Add logging optionality for understanding what resources are actually being validated
+		results, err := GetValidatedAssets(ctx, payload.Rego, mapData)
+		if err != nil {
+			return types.Result{}, err
+		}
+
+		return results, nil
+
 	} else if domain == "api" {
+		var payload types.PayloadAPI
+		err := mapstructure.Decode(data, &payload)
+		if err != nil {
+			return types.Result{}, err
+		}
+
 		transport := &http.Transport{}
 		client := &http.Client{Transport: transport}
-
-		resp, err := client.Get("http://localhost/api-field")
+		resp, err := client.Get(payload.Request.URL)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -58,29 +70,40 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		if err != nil {
 			log.Fatal(err)
 		}
-		var prettyBuff bytes.Buffer
-		json.Indent(&prettyBuff, body, "", "  ")
-		prettyString := prettyBuff.String()
-		prettyString = "["+prettyString+"]"
+// log.Fatal(string(body))
+		var mapData []map[string]interface{}
 
-		err = json.Unmarshal([]byte(prettyString), &mapData)
-		if err != nil {
-			log.Fatal(err)
+		contentType := resp.Header.Get("Content-Type")
+		if contentType == "application/json" {
+
+			var prettyBuff bytes.Buffer
+			json.Indent(&prettyBuff, body, "", "  ")
+			prettyJson := prettyBuff.String()
+
+			// response body must be a list to unmarshal into mapData correctly
+			if ! strings.HasPrefix(prettyJson, "[") {
+				prettyJson = "["+strings.TrimSpace(prettyJson)+"]"
+			}
+
+			err = json.Unmarshal([]byte(prettyJson), &mapData)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+		} else {
+			return types.Result{}, fmt.Errorf("content type %s is not supported", contentType)
 		}
-		
+
+		results, err := GetValidatedAssets(ctx, payload.Rego, mapData)
+		if err != nil {
+			return types.Result{}, err
+		}
+
+		return results, nil
 
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
-
-	// TODO: Add logging optionality for understanding what resources are actually being validated
-	results, err := GetValidatedAssets(ctx, payload.Rego, mapData)
-	if err != nil {
-		return types.Result{}, err
-	}
-	// return results
-
-	return results, nil
 }
 
 // GetValidatedAssets performs the validation of the dataset against the given rego policy
