@@ -4,8 +4,7 @@ import (
 	"context"
 	"testing"
 	"time"
-	// "encoding/json"
-
+	
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"github.com/defenseunicorns/lula/src/types"
@@ -63,9 +62,6 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 			ctx = context.WithValue(ctx, "api-field-ingress", ingress)
-
-			// json, _ := json.MarshalIndent(ingress,"", "  ")
-			// t.Fatal(string(json))
 
 			return ctx
 		}).
@@ -184,6 +180,15 @@ func TestApiValidation(t *testing.T) {
 			// TODO: do we need to delay until service gets "hooked up" to pod..?
 			ctx = context.WithValue(ctx, "api-field-service", service)
 
+			ingress, err := util.GetIngress("./scenarios/api-field/ingress.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, ingress); err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "api-field-ingress", ingress)
+
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -211,11 +216,23 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			ingress := ctx.Value("api-field-ingress").(*netv1.Ingress)
+			if err := config.Client().Resources().Delete(ctx, ingress); err != nil {
+				t.Fatal(err)
+			}
+			err := wait.
+				For(conditions.New(config.Client().Resources()).
+				ResourceDeleted(ingress),
+				wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			service := ctx.Value("api-field-service").(*corev1.Service)
 			if err := config.Client().Resources().Delete(ctx, service); err != nil {
 				t.Fatal(err)
 			}
-			err := wait.
+			err = wait.
 				For(conditions.New(config.Client().Resources()).
 				ResourceDeleted(service),
 				wait.WithTimeout(time.Minute*5))
