@@ -70,7 +70,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		if err != nil {
 			log.Fatal(err)
 		}
-// log.Fatal(string(body))
+
 		var mapData []map[string]interface{}
 
 		contentType := resp.Header.Get("Content-Type")
