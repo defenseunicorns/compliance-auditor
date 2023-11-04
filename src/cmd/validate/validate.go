@@ -94,19 +94,26 @@ func ValidateCommand() *cobra.Command {
 func ValidateOnPaths(obj *types.ReportObject) error {
 	// for each path
 	for _, path := range obj.FilePaths {
+
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
 			fmt.Printf("Path: %v does not exist - unable to digest document\n", path)
 			continue
 		}
-
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
 		compDef, err := oscal.NewOscalComponentDefinition(data)
+		if err != nil {
+			return err
+		}
+
 		err = ValidateOnCompDef(obj, compDef)
+		if err != nil {
+			return err
+		}
 
 		obj.UUID = compDef.UUID
 	}
@@ -158,7 +165,6 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 								result = val.Result
 							} else {
 								result, err = ValidateOnTarget(ctx, val.Description)
-
 								if err != nil {
 									return err
 								}
@@ -203,7 +209,6 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 			comp.ControlImplementations = append(comp.ControlImplementations, control)
 		}
 		obj.Components = append(obj.Components, comp)
-
 	}
 
 	return nil

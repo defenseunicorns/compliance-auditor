@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 	"time"
-	
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"github.com/defenseunicorns/lula/src/types"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
+	"sigs.k8s.io/e2e-framework/klient/k8s"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
@@ -51,7 +51,6 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, service); err != nil {
 				t.Fatal(err)
 			}
-			// TODO: do we need to delay until service gets "hooked up" to pod..?
 			ctx = context.WithValue(ctx, "api-field-service", service)
 
 			ingress, err := util.GetIngress("./scenarios/api-field/ingress.yaml")
@@ -59,6 +58,17 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 			if err = config.Client().Resources().Create(ctx, ingress); err != nil {
+				t.Fatal(err)
+			}
+			err = wait.
+				For(conditions.New(config.Client().Resources()).
+				ResourceMatch(ingress, func(object k8s.Object) bool {
+					ing, _ := object.(*netv1.Ingress)
+					if len(ing.Status.LoadBalancer.Ingress) < 1 { return false }
+					return ing.Status.LoadBalancer.Ingress[0].Hostname == "localhost"
+				}),
+				wait.WithTimeout(time.Minute*5))
+			if err != nil {
 				t.Fatal(err)
 			}
 			ctx = context.WithValue(ctx, "api-field-ingress", ingress)
@@ -73,7 +83,7 @@ func TestApiValidation(t *testing.T) {
 			}
 			err := validate.ValidateOnPaths(&results)
 			if err != nil {
-				t.Fatal("Validation error, result:", results)
+				t.Fatal(err)
 			}
 
 			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
@@ -177,7 +187,6 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, service); err != nil {
 				t.Fatal(err)
 			}
-			// TODO: do we need to delay until service gets "hooked up" to pod..?
 			ctx = context.WithValue(ctx, "api-field-service", service)
 
 			ingress, err := util.GetIngress("./scenarios/api-field/ingress.yaml")
@@ -187,12 +196,23 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, ingress); err != nil {
 				t.Fatal(err)
 			}
+			err = wait.
+				For(conditions.New(config.Client().Resources()).
+				ResourceMatch(ingress, func(object k8s.Object) bool {
+					ing, _ := object.(*netv1.Ingress)
+					if len(ing.Status.LoadBalancer.Ingress) < 1 { return false }
+					return ing.Status.LoadBalancer.Ingress[0].Hostname == "localhost"
+				}),
+				wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
 			ctx = context.WithValue(ctx, "api-field-ingress", ingress)
 
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			oscalPath := []string{"./scenarios/pod-label/oscal-component.yaml"}
+			oscalPath := []string{"./scenarios/api-field/oscal-component.yaml"}
 
 			results := types.ReportObject{
 				FilePaths: oscalPath,
@@ -267,5 +287,5 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).Feature()
 
-	testEnv.Test(t, featureTrueValidation, featureFalseValidation)
+	testEnv.Test(t, featureTrueValidation, featureFalseValidation )
 }

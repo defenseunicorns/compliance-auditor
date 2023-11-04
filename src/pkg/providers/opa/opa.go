@@ -62,13 +62,17 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		client := &http.Client{Transport: transport}
 		resp, err := client.Get(payload.Request.URL)
 		if err != nil {
-			log.Fatal(err)
+			return types.Result{}, err
+		}
+		if resp.StatusCode != 200 {
+			return types.Result{},
+			fmt.Errorf("expected status code 200 but got %d\n", resp.StatusCode)
 		}
 
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			return types.Result{}, err
 		}
 
 		var mapData []map[string]interface{}
@@ -87,7 +91,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 
 			err = json.Unmarshal([]byte(prettyJson), &mapData)
 			if err != nil {
-				log.Fatal(err)
+				return types.Result{}, err
 			}
 
 		} else {
@@ -98,7 +102,6 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		if err != nil {
 			return types.Result{}, err
 		}
-
 		return results, nil
 
 	} else {
