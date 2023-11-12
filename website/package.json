@@ -21,7 +21,7 @@
     "@fontsource/roboto": "^5.0.8",
     "@taplo/cli": "^0.5.2",
     "autoprefixer": "^10.4.16",
-    "hugo-extended": "^0.119.0",
+    "hugo-extended": "^0.120.0",
     "linkinator": "^5.0.2",
     "markdownlint-cli": "0.37.0",
     "postcss-cli": "^10.1.0",
