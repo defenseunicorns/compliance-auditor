@@ -1,6 +1,7 @@
 package opa
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,10 +9,9 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
+	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/mitchellh/mapstructure"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -26,31 +26,24 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		return types.Result{}, err
 	}
 
-	// query kubernetes for resource data if domain == "kubernetes"
-	// TODO: evaluate processes for manifests/helm charts
-	var collection []types.Collection
+	// TODO: Start here
+	// need to create a single map[string]interface{}
+	// What is the top level? or is there not one?
+	// IE map["pods-vt"]interface{}
+	// map[""pods-other]interface{}
+
+	collections := make([]map[string]interface{}, 0)
 	if domain == "kubernetes" {
-		collection, err = kube.QueryCluster(ctx, payload)
+		collections, err = kube.QueryCluster(ctx, payload.Resources)
 		if err != nil {
 			return types.Result{}, err
 		}
-
-		// Should we convert []unstructured.Unstructured to []map[string]interface{} here?
-		// Allow for standardizing the data to a single format at the collection type
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
 
-	// Convert to []map[string]interface{} for rego validation
-	// Currently we convert a single unstructured.Unstructured to a map[string]interface{}
-	// TODO:
-	var mapData []map[string]interface{}
-	for _, item := range resources {
-		mapData = append(mapData, item.Object)
-	}
-
 	// TODO: Add logging optionality for understanding what resources are actually being validated
-	results, err := GetValidatedAssets(ctx, payload.Rego, mapData)
+	results, err := GetValidatedAssets(ctx, payload.Rego, collections)
 	if err != nil {
 		return types.Result{}, err
 	}
@@ -72,12 +65,11 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset []map[st
 		return matchResult, fmt.Errorf("failed to compile rego policy: %w", err)
 	}
 
-	fmt.Printf("Applying policy against %s resources\n", strconv.Itoa(len(dataset)))
 	for _, asset := range dataset {
+		fmt.Printf("Applying policy against %s resources\n", strconv.Itoa(len(asset)))
 		wg.Add(1)
 		go func(asset map[string]interface{}) {
 			defer wg.Done()
-
 			regoCalc := rego.New(
 				rego.Query("data.validate"),
 				rego.Compiler(compiler),
@@ -85,6 +77,8 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset []map[st
 			)
 
 			resultSet, err := regoCalc.Eval(ctx)
+
+			fmt.Printf("Length of result set: %d\n", len(resultSet))
 			if err != nil || resultSet == nil || len(resultSet) == 0 {
 				wg.Done()
 			}

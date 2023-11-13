@@ -35,3 +35,10 @@ Currently the Lula Kubernetes Domain and OPA provider operate under the current 
   - Meaning `[]unstructured.Unstructured` -> `map[string]interface{}`
   - Notice how this is now a collection of objects unlike previously
 - The OPA provider then validates each item in the array against the rego policy
+
+## How does this work?
+- We need the ability to group resources into a collection 
+  - Create a `resource` type
+    - Each resource will contain some identifier and an array of resourcerules
+
+-  

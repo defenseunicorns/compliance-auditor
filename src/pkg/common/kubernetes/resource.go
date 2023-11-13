@@ -13,45 +13,43 @@ import (
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
 // This function is used to query the cluster for all resources required for processing
-func QueryCluster(ctx context.Context, payload types.Payload) ([]types.Collection, error) {
+func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]interface{}, error) {
 
 	// We may need a new type here to hold groups of resources
 
 	config := ctrl.GetConfigOrDie()
 	dynamic := dynamic.NewForConfigOrDie(config)
-	collections := make([]types.Collection, 0)
 
-	// TODO: Start here
-	// Convert resource appending to use collections instead
+	collections := make(map[string]interface{}, 0)
 
-	for _, resource := range payload.Resources {
-		resources := make([]unstructured.Unstructured, 0)
-		for _, rule := range resource.ResourceRules {
+	for _, resource := range resources {
+		collection := make(map[string]interface{})
+		rule := resource.ResourceRule
+		if len(rule.Namespaces) == 0 {
+			items, err := GetResourcesDynamically(dynamic, ctx,
+				rule.Group, rule.Version, rule.Resource, "")
+			if err != nil {
+				return nil, err
+			}
 
-			if len(rule.Namespaces) == 0 {
+			for _, item := range items {
+				collection[string(item.GetUID())] = item.Object
+			}
+		} else {
+			for _, namespace := range rule.Namespaces {
 				items, err := GetResourcesDynamically(dynamic, ctx,
-					rule.Group, rule.Version, rule.Resource, "")
+					rule.Group, rule.Version, rule.Resource, namespace)
 				if err != nil {
 					return nil, err
 				}
-				resources = append(resources, items...)
-			} else {
-				for _, namespace := range rule.Namespaces {
-					items, err := GetResourcesDynamically(dynamic, ctx,
-						rule.Group, rule.Version, rule.Resource, namespace)
-					if err != nil {
-						return nil, err
-					}
-					resources = append(resources, items...)
+
+				for _, item := range items {
+					collection[string(item.GetUID())] = item.Object
 				}
 			}
 		}
-		collection := types.Collection{
-			Name:    resource.Name,
-			Dataset: resources,
-		}
 
-		collections = append(collections, collection)
+		collections[resource.Name] = collection
 	}
 	return collections, nil
 }
