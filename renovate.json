@@ -19,5 +19,6 @@
   "platformAutomerge": true,
   "platformCommit": true,
   "postUpdateOptions": ["gomodTidy"],
-  "commitBodyTable": true
+  "commitBodyTable": true,
+  "commitMessagePrefix": "deps"
 }

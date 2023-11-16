@@ -51,7 +51,7 @@ component-definition:
           domain: api
           payload:
             request:
-              url: "http://localhost/api-field"
+              url: "http://localhost"
             rego: |
               package validate
 

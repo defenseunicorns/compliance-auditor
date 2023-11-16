@@ -18,7 +18,7 @@ data:
         listen       80;
         server_name  _;
         location / {
-          add_header Content-Type application/json;
+          default_type application/json;
           return 200 '{"pass":false}\n';
         }
       }
