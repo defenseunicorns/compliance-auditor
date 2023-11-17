@@ -23,7 +23,7 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 	collections := make(map[string]interface{}, 0)
 
 	for _, resource := range resources {
-		collection := make(map[string]interface{})
+		collection := make([]map[string]interface{}, 0)
 		rule := resource.ResourceRule
 		if len(rule.Namespaces) == 0 {
 			items, err := GetResourcesDynamically(dynamic, ctx,
@@ -33,7 +33,7 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 			}
 
 			for _, item := range items {
-				collection[string(item.GetUID())] = item.Object
+				collection = append(collection, item.Object)
 			}
 		} else {
 			for _, namespace := range rule.Namespaces {
@@ -44,7 +44,7 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 				}
 
 				for _, item := range items {
-					collection[string(item.GetUID())] = item.Object
+					collection = append(collection, item.Object)
 				}
 			}
 		}

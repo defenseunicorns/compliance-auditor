@@ -53,7 +53,7 @@ component-definition:
           domain: kubernetes
           payload:
             resources:
-            - name: pods-vt       # Identifier for use in the rego below
+            - name: podsvt       # Identifier for use in the rego below
               resourceRule:       # Mandatory, resource selection criteria, at least one resource rule is required
                 Group:            # empty or "" for core group
                 Version: v1       # Version of resource
@@ -62,8 +62,11 @@ component-definition:
             rego: |
               package validate
 
+              import future.keywords.every
+
               validate {
-                input.kind == "Pod"
-                podLabel := input.metadata.labels.foo
-                podLabel == "bar"
+                every pod in input.podsvt {
+                  podLabel := pod.metadata.labels.foo
+                  podLabel == "bar"
+                }
               }

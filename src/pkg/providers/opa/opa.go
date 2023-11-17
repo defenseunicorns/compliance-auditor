@@ -19,8 +19,6 @@ import (
 
 func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
 
-	// Given that this is executed per-target - there may never be a need for a slice?
-
 	if domain == "kubernetes" {
 		var payload types.Payload
 		err := mapstructure.Decode(data, &payload)
