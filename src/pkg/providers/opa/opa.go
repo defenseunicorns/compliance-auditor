@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
-	"sync"
 
 	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
 	"github.com/defenseunicorns/lula/src/types"
@@ -32,19 +30,18 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 	// map[""pods-other]interface{}
 
 	// Given that this is executed per-target - there may never be a need for a slice?
-	collections := make([]map[string]interface{}, 0)
+	collection := make(map[string]interface{}, 0)
 	if domain == "kubernetes" {
-		collection, err := kube.QueryCluster(ctx, payload.Resources)
+		collection, err = kube.QueryCluster(ctx, payload.Resources)
 		if err != nil {
 			return types.Result{}, err
 		}
-		collections = append(collections, collection)
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
 
 	// TODO: Add logging optionality for understanding what resources are actually being validated
-	results, err := GetValidatedAssets(ctx, payload.Rego, collections)
+	results, err := GetValidatedAssets(ctx, payload.Rego, collection)
 	if err != nil {
 		return types.Result{}, err
 	}
@@ -54,8 +51,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 }
 
 // GetValidatedAssets performs the validation of the dataset against the given rego policy
-func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset []map[string]interface{}) (types.Result, error) {
-	var wg sync.WaitGroup
+func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}) (types.Result, error) {
 	var matchResult types.Result
 
 	compiler, err := ast.CompileModules(map[string]string{
@@ -66,50 +62,40 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset []map[st
 		return matchResult, fmt.Errorf("failed to compile rego policy: %w", err)
 	}
 
-	for _, asset := range dataset {
-		fmt.Printf("Applying policy against %s resources\n", strconv.Itoa(len(asset)))
-		wg.Add(1)
-		go func(asset map[string]interface{}) {
-			defer wg.Done()
-			regoCalc := rego.New(
-				rego.Query("data.validate"),
-				rego.Compiler(compiler),
-				rego.Input(asset),
-			)
+	regoCalc := rego.New(
+		rego.Query("data.validate"),
+		rego.Compiler(compiler),
+		rego.Input(dataset),
+	)
 
-			resultSet, err := regoCalc.Eval(ctx)
+	resultSet, err := regoCalc.Eval(ctx)
 
-			fmt.Printf("Length of result set: %d\n", len(resultSet))
-			if err != nil || resultSet == nil || len(resultSet) == 0 {
-				wg.Done()
-			}
-
-			for _, result := range resultSet {
-				for _, expression := range result.Expressions {
-					expressionBytes, err := json.Marshal(expression.Value)
-					if err != nil {
-						wg.Done()
-					}
-
-					var expressionMap map[string]interface{}
-					err = json.Unmarshal(expressionBytes, &expressionMap)
-					if err != nil {
-						wg.Done()
-					}
-					// TODO: add logging optionality here for developer experience
-					if matched, ok := expressionMap["validate"]; ok && matched.(bool) {
-						// fmt.Printf("Asset %s matched policy: %s\n\n", asset, expression)
-						matchResult.Passing += 1
-					} else {
-						// fmt.Printf("Asset %s no matched policy: %s\n\n", asset, expression)
-						matchResult.Failing += 1
-					}
-				}
-			}
-		}(asset)
+	if err != nil || resultSet == nil || len(resultSet) == 0 {
+		return matchResult, fmt.Errorf("failed to evaluate rego policy: %w", err)
 	}
 
-	wg.Wait()
+	for _, result := range resultSet {
+		for _, expression := range result.Expressions {
+			expressionBytes, err := json.Marshal(expression.Value)
+			if err != nil {
+				return matchResult, fmt.Errorf("failed to marshal expression: %w", err)
+			}
+
+			var expressionMap map[string]interface{}
+			err = json.Unmarshal(expressionBytes, &expressionMap)
+			if err != nil {
+				return matchResult, fmt.Errorf("failed to unmarshal expression: %w", err)
+			}
+			// TODO: add logging optionality here for developer experience
+			if matched, ok := expressionMap["validate"]; ok && matched.(bool) {
+				// fmt.Printf("Asset %s matched policy: %s\n\n", asset, expression)
+				matchResult.Passing += 1
+			} else {
+				// fmt.Printf("Asset %s no matched policy: %s\n\n", asset, expression)
+				matchResult.Failing += 1
+			}
+		}
+	}
 
 	return matchResult, nil
 }
