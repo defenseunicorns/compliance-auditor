@@ -68,6 +68,15 @@ type Resource struct {
 	ResourceRule ResourceRule `json:"resource-rule" yaml:"resource-rule"`
 }
 
+type PayloadAPI struct {
+	Request Request `mapstructure:"request" json:"request" yaml:"request"`
+	Rego    string  `json:"rego" yaml:"rego"`
+}
+
+type Request struct {
+	URL string   `json:"url" yaml:"url"`
+}
+
 type Target struct {
 	Provider string  `json:"provider" yaml:"provider"`
 	Domain   string  `json:"domain" yaml:"domain"`

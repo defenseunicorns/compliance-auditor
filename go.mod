@@ -1,6 +1,6 @@
 module github.com/defenseunicorns/lula
 
-go 1.21.3
+go 1.21.4
 
 require (
 	github.com/defenseunicorns/go-oscal v0.0.0-20231026225204-93f4762ee7f0
@@ -8,11 +8,11 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v0.58.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.28.3
-	k8s.io/apimachinery v0.28.3
-	k8s.io/client-go v0.28.3
+	k8s.io/api v0.28.4
+	k8s.io/apimachinery v0.28.4
+	k8s.io/client-go v0.28.4
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/e2e-framework v0.3.0
 	sigs.k8s.io/yaml v1.4.0

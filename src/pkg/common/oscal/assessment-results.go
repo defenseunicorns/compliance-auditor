@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/google/uuid"
 )
@@ -32,7 +32,6 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 				relatedObservations := make([]oscalTypes.RelatedObservation, 0)
 				// For each result - there may be many observations
 				for _, result := range implementedRequirement.Results {
-
 					sharedUuid := uuid.NewString()
 					observation := oscalTypes.Observation{
 						Collected:   rfc3339Time,
@@ -51,7 +50,7 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 					}
 
 					relatedObservations = append(relatedObservations, relatedObservation)
-					tempObservations = append(observations, observation)
+					tempObservations = append(tempObservations, observation)
 				}
 
 				if _, ok := controlMap[implementedRequirement.ControlId]; ok {

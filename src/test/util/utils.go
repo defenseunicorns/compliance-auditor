@@ -5,6 +5,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"sigs.k8s.io/yaml"
 )
@@ -46,4 +47,43 @@ func GetPod(podFilePath string) (*v1.Pod, error) {
 		return nil, err
 	}
 	return pod, nil
+}
+
+func GetConfigMap(configMapFilePath string) (*v1.ConfigMap, error) {
+	bytes, err := os.ReadFile(configMapFilePath)
+	if err != nil {
+		return nil, err
+	}
+	configMap := &v1.ConfigMap{}
+	err = yaml.Unmarshal(bytes, &configMap)
+	if err != nil {
+		return nil, err
+	}
+	return configMap, nil
+}
+
+func GetService(serviceFilePath string) (*v1.Service, error) {
+	bytes, err := os.ReadFile(serviceFilePath)
+	if err != nil {
+		return nil, err
+	}
+	service := &v1.Service{}
+	err = yaml.Unmarshal(bytes, &service)
+	if err != nil {
+		return nil, err
+	}
+	return service, nil
+}
+
+func GetIngress(ingressFilePath string) (*netv1.Ingress, error) {
+	bytes, err := os.ReadFile(ingressFilePath)
+	if err != nil {
+		return nil, err
+	}
+	ingress := &netv1.Ingress{}
+	err = yaml.Unmarshal(bytes, &ingress)
+	if err != nil {
+		return nil, err
+	}
+	return ingress, nil
 }
