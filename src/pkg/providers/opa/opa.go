@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 
 	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
 	"github.com/defenseunicorns/lula/src/types"
@@ -21,16 +20,14 @@ import (
 func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
 
 	// Given that this is executed per-target - there may never be a need for a slice?
-	collection := make(map[string]interface{}, 0)
-	if domain == "kubernetes" {
 
-		// Convert map[string]interface to a RegoTarget
+	if domain == "kubernetes" {
 		var payload types.Payload
 		err := mapstructure.Decode(data, &payload)
 		if err != nil {
 			return types.Result{}, err
 		}
-		collection, err = kube.QueryCluster(ctx, payload.Resources)
+		collection, err := kube.QueryCluster(ctx, payload.Resources)
 		if err != nil {
 			return types.Result{}, err
 		}
@@ -50,47 +47,48 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 			return types.Result{}, err
 		}
 
-		transport := &http.Transport{}
-		client := &http.Client{Transport: transport}
-		resp, err := client.Get(payload.Request.URL)
-		if err != nil {
-			return types.Result{}, err
-		}
-		if resp.StatusCode != 200 {
-			return types.Result{},
-				fmt.Errorf("expected status code 200 but got %d\n", resp.StatusCode)
-		}
+		collection := make(map[string]interface{}, 0)
 
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return types.Result{}, err
-		}
+		for _, request := range payload.Requests {
+			transport := &http.Transport{}
+			client := &http.Client{Transport: transport}
 
-		var mapData []map[string]interface{}
-
-		contentType := resp.Header.Get("Content-Type")
-		if contentType == "application/json" {
-
-			var prettyBuff bytes.Buffer
-			json.Indent(&prettyBuff, body, "", "  ")
-			prettyJson := prettyBuff.String()
-			fmt.Println(prettyJson)
-			// response body must be a list to unmarshal into mapData correctly
-			if !strings.HasPrefix(prettyJson, "[") {
-				prettyJson = "[" + strings.TrimSpace(prettyJson) + "]"
+			fmt.Println(request.URL)
+			resp, err := client.Get(request.URL)
+			if err != nil {
+				return types.Result{}, err
+			}
+			if resp.StatusCode != 200 {
+				return types.Result{},
+					fmt.Errorf("expected status code 200 but got %d\n", resp.StatusCode)
 			}
 
-			err = json.Unmarshal([]byte(prettyJson), &mapData)
+			defer resp.Body.Close()
+			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return types.Result{}, err
 			}
 
-		} else {
-			return types.Result{}, fmt.Errorf("content type %s is not supported", contentType)
+			contentType := resp.Header.Get("Content-Type")
+			if contentType == "application/json" {
+
+				var prettyBuff bytes.Buffer
+				json.Indent(&prettyBuff, body, "", "  ")
+				prettyJson := prettyBuff.String()
+
+				var tempData interface{}
+				err = json.Unmarshal([]byte(prettyJson), &tempData)
+				if err != nil {
+					return types.Result{}, err
+				}
+				collection[request.Name] = tempData
+
+			} else {
+				return types.Result{}, fmt.Errorf("content type %s is not supported", contentType)
+			}
 		}
 
-		results, err := GetValidatedAssets(ctx, payload.Rego, mapData[0])
+		results, err := GetValidatedAssets(ctx, payload.Rego, collection)
 		if err != nil {
 			return types.Result{}, err
 		}

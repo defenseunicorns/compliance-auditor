@@ -69,12 +69,13 @@ type Resource struct {
 }
 
 type PayloadAPI struct {
-	Request Request `mapstructure:"request" json:"request" yaml:"request"`
-	Rego    string  `json:"rego" yaml:"rego"`
+	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
+	Rego     string    `json:"rego" yaml:"rego"`
 }
 
 type Request struct {
-	URL string   `json:"url" yaml:"url"`
+	Name string `json:"name" yaml:"name"`
+	URL  string `json:"url" yaml:"url"`
 }
 
 type Target struct {
