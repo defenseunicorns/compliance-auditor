@@ -1,7 +1,6 @@
 package opa
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -32,12 +31,14 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 	// IE map["pods-vt"]interface{}
 	// map[""pods-other]interface{}
 
+	// Given that this is executed per-target - there may never be a need for a slice?
 	collections := make([]map[string]interface{}, 0)
 	if domain == "kubernetes" {
-		collections, err = kube.QueryCluster(ctx, payload.Resources)
+		collection, err := kube.QueryCluster(ctx, payload.Resources)
 		if err != nil {
 			return types.Result{}, err
 		}
+		collections = append(collections, collection)
 	} else {
 		return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 	}
