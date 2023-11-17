@@ -46,39 +46,6 @@ func TestApiValidation(t *testing.T) {
 			}
 			ctx = context.WithValue(ctx, "api-field-pod", pod)
 
-			// // Create the service
-			// service, err := util.GetService("./scenarios/api-field/service.yaml")
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-			// if err = config.Client().Resources().Create(ctx, service); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// ctx = context.WithValue(ctx, "api-field-service", service)
-
-			// // Create the ingress
-			// ingress, err := util.GetIngress("./scenarios/api-field/ingress.yaml")
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-			// if err = config.Client().Resources().Create(ctx, ingress); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// err = wait.
-			// 	For(conditions.New(config.Client().Resources()).
-			// 		ResourceMatch(ingress, func(object k8s.Object) bool {
-			// 			ing, _ := object.(*netv1.Ingress)
-			// 			if len(ing.Status.LoadBalancer.Ingress) < 1 {
-			// 				return false
-			// 			}
-			// 			return ing.Status.LoadBalancer.Ingress[0].Hostname == "localhost"
-			// 		}),
-			// 		wait.WithTimeout(time.Minute*5))
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-			// ctx = context.WithValue(ctx, "api-field-ingress", ingress)
-
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -108,30 +75,6 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			// ingress := ctx.Value("api-field-ingress").(*netv1.Ingress)
-			// if err := config.Client().Resources().Delete(ctx, ingress); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// err := wait.
-			// 	For(conditions.New(config.Client().Resources()).
-			// 		ResourceDeleted(ingress),
-			// 		wait.WithTimeout(time.Minute*5))
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-
-			// service := ctx.Value("api-field-service").(*corev1.Service)
-			// if err := config.Client().Resources().Delete(ctx, service); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// err = wait.
-			// 	For(conditions.New(config.Client().Resources()).
-			// 		ResourceDeleted(service),
-			// 		wait.WithTimeout(time.Minute*5))
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-
 			pod := ctx.Value("api-field-pod").(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
@@ -185,38 +128,6 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 			ctx = context.WithValue(ctx, "api-field-pod", pod)
-
-			// service, err := util.GetService("./scenarios/api-field/service.yaml")
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-			// if err = config.Client().Resources().Create(ctx, service); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// ctx = context.WithValue(ctx, "api-field-service", service)
-
-			// ingress, err := util.GetIngress("./scenarios/api-field/ingress.yaml")
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-			// if err = config.Client().Resources().Create(ctx, ingress); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// err = wait.
-			// 	For(conditions.New(config.Client().Resources()).
-			// 		ResourceMatch(ingress, func(object k8s.Object) bool {
-			// 			ing, _ := object.(*netv1.Ingress)
-			// 			if len(ing.Status.LoadBalancer.Ingress) < 1 {
-			// 				return false
-			// 			}
-			// 			return ing.Status.LoadBalancer.Ingress[0].Hostname == "localhost"
-			// 		}),
-			// 		wait.WithTimeout(time.Minute*5))
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-			// ctx = context.WithValue(ctx, "api-field-ingress", ingress)
-
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -244,30 +155,6 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			// ingress := ctx.Value("api-field-ingress").(*netv1.Ingress)
-			// if err := config.Client().Resources().Delete(ctx, ingress); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// err := wait.
-			// 	For(conditions.New(config.Client().Resources()).
-			// 		ResourceDeleted(ingress),
-			// 		wait.WithTimeout(time.Minute*5))
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-
-			// service := ctx.Value("api-field-service").(*corev1.Service)
-			// if err := config.Client().Resources().Delete(ctx, service); err != nil {
-			// 	t.Fatal(err)
-			// }
-			// err = wait.
-			// 	For(conditions.New(config.Client().Resources()).
-			// 		ResourceDeleted(service),
-			// 		wait.WithTimeout(time.Minute*5))
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-
 			pod := ctx.Value("api-field-pod").(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
