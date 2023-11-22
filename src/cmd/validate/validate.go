@@ -174,7 +174,7 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 								obj.Validations[id] = val
 							}
 						} else {
-							return fmt.Errorf("Backmatter Validation %v not found", id)
+							return fmt.Errorf("Back matter Validation %v not found", id)
 						}
 
 						if result.Passing > 0 && result.Failing <= 0 {
@@ -202,7 +202,7 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 				}
 
 				// TODO: convert to logging
-				fmt.Printf("UUID: %v\n\tResources Passing: %v\n\tResources Failing: %v\n\tStatus: %v\n", impReq.UUID, pass, fail, impReq.State)
+				fmt.Printf("UUID: %v\n\tStatus: %v\n", impReq.UUID, impReq.State)
 
 				control.ImplementedReqs = append(control.ImplementedReqs, impReq)
 			}

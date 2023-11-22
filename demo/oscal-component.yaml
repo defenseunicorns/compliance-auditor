@@ -64,6 +64,8 @@ component-definition:
 
               import future.keywords.every
 
+              default validate = false
+
               validate {
                 every pod in input.podsvt {
                   podLabel := pod.metadata.labels.foo

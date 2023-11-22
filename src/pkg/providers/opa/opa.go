@@ -17,6 +17,8 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 )
 
+// TODO: What is the new version of the information we are displaying on the command line?
+
 func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
 
 	if domain == "kubernetes" {
@@ -101,6 +103,12 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}) (types.Result, error) {
 	var matchResult types.Result
 
+	if len(dataset) == 0 {
+		// Not an error but no entries to validate
+		// TODO: add a warning log
+		return matchResult, nil
+	}
+
 	compiler, err := ast.CompileModules(map[string]string{
 		"validate.rego": regoPolicy,
 	})
@@ -135,10 +143,9 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 			}
 			// TODO: add logging optionality here for developer experience
 			if matched, ok := expressionMap["validate"]; ok && matched.(bool) {
-				// fmt.Printf("Asset %s matched policy: %s\n\n", asset, expression)
+				// TODO: Is there a way to determine how many resources failed?
 				matchResult.Passing += 1
 			} else {
-				// fmt.Printf("Asset %s no matched policy: %s\n\n", asset, expression)
 				matchResult.Failing += 1
 			}
 		}

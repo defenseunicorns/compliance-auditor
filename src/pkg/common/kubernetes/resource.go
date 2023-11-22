@@ -49,7 +49,12 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 			}
 		}
 
-		collections[resource.Name] = collection
+		if len(collection) > 0 {
+			// Append to collections if not empty collection
+			// Adding the collection to the map when empty will result in a false positive for the validation in OPA?
+			// TODO: add warning log here
+			collections[resource.Name] = collection
+		}
 	}
 	return collections, nil
 }
