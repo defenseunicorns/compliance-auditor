@@ -53,7 +53,6 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 			transport := &http.Transport{}
 			client := &http.Client{Transport: transport}
 
-			fmt.Println(request.URL)
 			resp, err := client.Get(request.URL)
 			if err != nil {
 				return types.Result{}, err

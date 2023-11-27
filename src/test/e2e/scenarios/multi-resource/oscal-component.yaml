@@ -27,7 +27,7 @@ component-definition:
         - C18F4A9F-A402-415B-8D13-B51739D689FF # matches parties entry for Defense Unicorns
     control-implementations:
     - uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
-      source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+      source: # Link to generic security document
       description:
         Validate generic security requirements
       implemented-requirements:
@@ -38,35 +38,67 @@ component-definition:
           quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
           dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         links:
-          - href: '#a7377430-2328-4dc4-a9e2-b3f31dc1dff9'
-            rel: reference
-            text: Lula Validation
+        - href: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
+          rel: reference
+          text: Lula Validation
+        - href: '#F9EC74AE-19A0-4822-8D7C-214AECCEB7C6'
+          rel: reference
+          text: Lula Validation
   back-matter: 
     resources:
-    - uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+    - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
       title: Lula Validation
-      rlinks:
-        - href: lula.dev
       description: >-
         target:
           provider: opa
           domain: kubernetes
           payload:
             resources:
-            - name: podsvt       # Identifier for use in the rego below
-              resourceRule:       # Mandatory, resource selection criteria, at least one resource rule is required
-                Group:            # empty or "" for core group
-                Version: v1       # Version of resource
-                Resource: pods    # Resource type
-                Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+            - name: podsvt1
+              resourceRule:
+                Group:
+                Version: v1
+                Resource: pods
+                Namespaces: [validation-test1]
+            - name: podsvt2
+              resourceRule:
+                Group:
+                Version: v1
+                Resource: pods
+                Namespaces: [validation-test2]
             rego: |
               package validate
 
               import future.keywords.every
 
               validate {
-                every pod in input.podsvt {
-                  podLabel := pod.metadata.labels.foo
-                  podLabel == "bar"
+                every pod in input.podsvt1 {
+                  podLabel := pod.metadata.labels.locality
+                  podLabel == "vt1"
                 }
+
+                every pod in input.podsvt2 {
+                  podLabel := pod.metadata.labels.locality
+                  podLabel == "vt2"
+                }
+              }
+    - uuid: F9EC74AE-19A0-4822-8D7C-214AECCEB7C6
+      title: Lula Validation
+      description: >-
+        target:
+          provider: opa
+          domain: kubernetes
+          payload:
+            requests:
+              - name: local
+                url: "http://localhost"
+              - name: test
+                url: "http://localhost/test"  
+            rego: |
+              package validate
+
+              validate {
+                input.local.pass == true
+                input.test.pass == true
+                input.test.test == true
               }

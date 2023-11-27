@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: validation-test
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes  auto;
+    error_log  /var/log/nginx/error.log notice;
+    pid        /var/run/nginx.pid;
+    events {
+      worker_connections  1024;
+    }
+    http {
+      server {
+        listen       80;
+        server_name  _;
+        location / {
+          default_type application/json;
+          return 200 '{"pass":true}\n';
+        }
+
+        location /test {
+          default_type application/json;
+          return 200 '{"pass":true, "test": true}\n';
+        }
+      }
+    }

@@ -45,14 +45,6 @@ func TestPodLabelValidation(t *testing.T) {
 			// TODO: maybe this brings to light modifying the
 			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
 
-			if result.Failing != 0 {
-				t.Fatal("Failing resources should be 0, but got :", result.Failing)
-			}
-
-			if result.Passing <= 0 {
-				t.Fatal("Passing resources should be 1, but got :", result.Failing)
-			}
-
 			if result.State != "satisfied" {
 				t.Fatal("State should be satisfied, but got :", result.State)
 			}
@@ -92,12 +84,7 @@ func TestPodLabelValidation(t *testing.T) {
 				t.Fatal("Validation error, result:", results)
 			}
 
-			// TODO: maybe this brings to light modifying the
 			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
-
-			if result.Failing <= 0 {
-				t.Fatal("Failing resources should be 1, but got :", result.Failing)
-			}
 
 			if result.State != "not-satisfied" {
 				t.Fatal("State should be not-satisfied, but got :", result.State)

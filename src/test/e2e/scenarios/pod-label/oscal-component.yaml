@@ -50,16 +50,21 @@ component-definition:
           provider: opa
           domain: kubernetes
           payload:
-            resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
-            - Group:            # empty or "" for core group
-              Version: v1       # Version of resource
-              Resource: pods    # Resource type
-              Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+            resources:
+            - name: podsvt
+              resourceRule:
+                Group:
+                Version: v1
+                Resource: pods
+                Namespaces: [validation-test]
             rego: |
               package validate
 
+              import future.keywords.every
+
               validate {
-                input.kind == "Pod"
-                podLabel := input.metadata.labels.foo
-                podLabel == "bar"
+                every pod in input.podsvt {
+                  podLabel := pod.metadata.labels.foo
+                  podLabel == "bar"
+                }
               }
