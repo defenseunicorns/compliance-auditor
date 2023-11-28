@@ -17,8 +17,7 @@ As described - the previous model performs a collection of 0 -> N objects for 0 
 ```mermaid
 graph TD;
   A[Lula] -->|Validate| B(OSCAL);
-  B -->|Collect Data 
-        Single Array of all objects| C(Data 0 -> N Objects);
+  B -->|Collect Data Single Array of all objects| C(Data 0 -> N Objects);
   C -->| | D{Validation};
   D --> | Single Object | E((Apply Policy));
   E --> D;
@@ -33,11 +32,9 @@ The proposed model is to create a single map with the primary identifier being t
 ```mermaid
 graph TD;
   A[Lula] -->|Validate| B(OSCAL);
-  B -->|Collect Data 
-        Create Map with primary identifier per collection| C(Data 1 -> N Objects);
+  B -->|Collect Data - Create Map with primary identifier per collection| C(Data 1 -> N Objects);
   C -->| | D{Validation};
-  D --> | Map
-          Each Collection of resources is the key/value  | E((Apply Policy));
+  D --> | Map Each Collection of resources is the key/value  | E((Apply Policy));
   E --> F(Result);
 ```
 
