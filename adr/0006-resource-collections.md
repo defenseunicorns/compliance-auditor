@@ -15,14 +15,14 @@ Lula has been using a data-collection and validation model where each object in 
 As described - the previous model performs a collection of 0 -> N objects for 0 -> N types of objects and places this in a single array. Each object in the array is then validated individually.
 
 ```mermaid
-flowchart TD
-  A[Lula] -->|Validate| B(OSCAL)
+graph TD;
+  A[Lula] -->|Validate| B(OSCAL);
   B -->|Collect Data 
-        Single Array of all objects| C(Data 0 -> N Objects)
-  C -->| | D{Validation}
-  D --> | Single Object | E((Apply Policy))
-  E --> D
-  D --> | Done | F(Result)
+        Single Array of all objects| C(Data 0 -> N Objects);
+  C -->| | D{Validation};
+  D --> | Single Object | E((Apply Policy));
+  E --> D;
+  D --> | Done | F(Result);
 ```
 
 ### Proposed Model
@@ -31,14 +31,14 @@ The proposed model is to create a single map with the primary identifier being t
 
 
 ```mermaid
-flowchart TD
-  A[Lula] -->|Validate| B(OSCAL)
+graph TD;
+  A[Lula] -->|Validate| B(OSCAL);
   B -->|Collect Data 
-        Create Map with primary identifier per collection| C(Data 1 -> N Objects)
-  C -->| | D{Validation}
+        Create Map with primary identifier per collection| C(Data 1 -> N Objects);
+  C -->| | D{Validation};
   D --> | Map
-          Each Collection of resources is the key/value  | E((Apply Policy))
-  E --> F(Result)
+          Each Collection of resources is the key/value  | E((Apply Policy));
+  E --> F(Result);
 ```
 
 ## Decision
