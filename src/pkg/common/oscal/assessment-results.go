@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/google/uuid"
 )
 
 const OSCAL_VERSION = "1.1.1"
@@ -32,7 +32,7 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 				relatedObservations := make([]oscalTypes.RelatedObservation, 0)
 				// For each result - there may be many observations
 				for _, result := range implementedRequirement.Results {
-					sharedUuid := uuid.NewString()
+					sharedUuid := uuid.NewUUID()
 					observation := oscalTypes.Observation{
 						Collected:   rfc3339Time,
 						Description: fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, result.UUID),
@@ -60,7 +60,7 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 				}
 				// TODO: Need to add in the control implementation UUID
 				finding := oscalTypes.Finding{
-					UUID:        uuid.NewString(),
+					UUID:        uuid.NewUUID(),
 					Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", component.UUID, controlImplementation.UUID, implementedRequirement.ControlId),
 					Description: implementedRequirement.Description,
 					Target: oscalTypes.FindingTarget{
@@ -87,7 +87,7 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 	}
 
 	// Always create a new UUID for the assessment results (for now)
-	assessmentResults.AssessmentResults.UUID = uuid.NewString()
+	assessmentResults.AssessmentResults.UUID = uuid.NewUUID()
 
 	// Create metadata object with requires fields and a few extras
 	// Where do we establish what `version` should be?
@@ -103,7 +103,7 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 	// Create results object
 	assessmentResults.AssessmentResults.Results = []oscalTypes.Result{
 		{
-			UUID:        uuid.NewString(),
+			UUID:        uuid.NewUUID(),
 			Title:       "Lula Result Title",
 			Start:       rfc3339Time,
 			Description: "Lula Result Description",
