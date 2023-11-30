@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -86,4 +87,12 @@ func GetIngress(ingressFilePath string) (*netv1.Ingress, error) {
 		return nil, err
 	}
 	return ingress, nil
+}
+
+func GetNamespace(name string) (*v1.Namespace, error) {
+	return &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}, nil
 }

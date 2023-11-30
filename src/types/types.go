@@ -58,17 +58,24 @@ type Result struct {
 // Fields will be populated as required otherwise left empty
 // This could be expanded as providers add more fields
 type Payload struct {
-	ResourceRules []ResourceRule `json:"resource-rules" yaml:"resource-rules"`
-	Rego          string         `json:"rego" yaml:"rego"`
+	Resources []Resource `json:"resources" yaml:"resources"`
+	Rego      string     `json:"rego" yaml:"rego"`
+}
+
+type Resource struct {
+	Name         string       `json:"name" yaml:"name"`
+	Description  string       `json:"description" yaml:"description"`
+	ResourceRule ResourceRule `json:"resource-rule" yaml:"resource-rule"`
 }
 
 type PayloadAPI struct {
-	Request Request `mapstructure:"request" json:"request" yaml:"request"`
-	Rego    string  `json:"rego" yaml:"rego"`
+	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
+	Rego     string    `json:"rego" yaml:"rego"`
 }
 
 type Request struct {
-	URL string   `json:"url" yaml:"url"`
+	Name string `json:"name" yaml:"name"`
+	URL  string `json:"url" yaml:"url"`
 }
 
 type Target struct {
@@ -78,6 +85,7 @@ type Target struct {
 }
 
 type ResourceRule struct {
+	Name       string   `json:"name" yaml:"name"`
 	Group      string   `json:"group" yaml:"group"`
 	Version    string   `json:"version" yaml:"version"`
 	Resource   string   `json:"resource" yaml:"resource"`

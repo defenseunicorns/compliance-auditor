@@ -50,11 +50,12 @@ component-definition:
           provider: opa
           domain: api
           payload:
-            request:
-              url: "http://localhost"
+            requests:
+              - name: local
+                url: "http://localhost"
             rego: |
               package validate
 
               validate {
-                input.pass == true
+                input.local.pass == true
               }
