@@ -22,12 +22,10 @@ To validate on a cluster:
 	lula validate ./oscal-component.yaml
 `
 
-var cluster bool
-
-var ValidateCmd = &cobra.Command{
+var validateCmd = &cobra.Command{
 	Use:     "validate",
-	Short:   "validate",
-	Long:    "Lula Validation for compliance with established policy",
+	Short:   "validate an OSCAL component definition",
+	Long:    "Lula Validation of an OSCAL component definition",
 	Example: validateHelp,
 	RunE: func(cmd *cobra.Command, componentDefinitionPaths []string) error {
 		// Conduct further error checking here (IE flags/arguments)
@@ -63,7 +61,7 @@ var ValidateCmd = &cobra.Command{
 func ValidateCommand() *cobra.Command {
 
 	// insert flag options here
-	return ValidateCmd
+	return validateCmd
 }
 
 /*
