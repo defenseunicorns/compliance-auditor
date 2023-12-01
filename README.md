@@ -42,6 +42,11 @@ In the standard CLI workflow:
 #### Dependencies
 
 - A running Kubernetes cluster
+    - Kind
+        - `kind create cluster -n lula-test`
+    - K3d
+        - `k3d cluster create lula-test`
+- kubectl
 - GoLang version 1.21.x
 
 #### Steps
@@ -52,50 +57,71 @@ In the standard CLI workflow:
     git clone https://github.com/defenseunicorns/lula.git && cd lula
     ```
 
-1. While in the `lula` directory, compile the tool into an executable binary. This outputs the `lula` binary to the `bin` directory.
+2. While in the `lula` directory, compile the tool into an executable binary. This outputs the `lula` binary to the `bin` directory.
 
     ```shell
     make build
     ```
 
-1. Apply the `./demo/namespace.yaml` file to create a namespace for the demo
+3. Apply the `./demo/namespace.yaml` file to create a namespace for the demo
 
     ```shell
     kubectl apply -f ./demo/namespace.yaml
     ```
 
-1. Apply the `./demo/pod.fail.yaml` to create a pod in your cluster
+4. Apply the `./demo/pod.fail.yaml` to create a pod in your cluster
 
     ```shell
     kubectl apply -f ./demo/pod.fail.yaml
     ```
 
-1. Run the following command in the `lula` directory:
+5. Run the following command in the `lula` directory:
 
     ```shell
     ./bin/lula validate ./demo/oscal-component.yaml
     ```
 
-    The output in your terminal should inform you that there is at least one failing pod in the cluster:
+    The output in your terminal should inform you that the control validated is `not-satisfied`:
 
     ```shell
-    Applying 1 policy rule to 19 resources...
-
-    policy 42c2ffdc-5f05-44df-a67f-eec8660aeffd -> resource foo/Pod/demo-pod failed: 
-    1. ID-1: validation error: Every pod in namespace 'foo' should have 'foo=bar' label. rule ID-1 failed at path /metadata/labels/foo/ 
+    OPA provider validating...
     UUID: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
-            Resources Passing: 0
-            Resources Failing: 1
-            Status: Fail
+            Status: not-satisfied
     ```
 
-1. Now, apply the `./demo/pod.pass.yaml` file to your cluster to configure the pod to pass compliance validation:
+    This will also produce an assessment-results file with timestamp - review the findings and observations:
+
+    ```yaml
+    findings:
+    - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit....
+      related-observations:
+        - observation-uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
+      target:
+        status:
+            state: not-satisfied
+        target-id: ID-1
+        type: objective-id
+      title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+      uuid: 32ad2bce-e2f6-4445-a96e-a3b693b942f1
+    observations:
+    - collected: "2023-12-01T13:22:09-08:00"
+      description: |
+        [TEST] ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+      methods:
+        - TEST
+      relevant-evidence:
+        - description: |
+            Result: not-satisfied - Passing Resources: 0 - Failing Resources 1
+      uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
+    ```
+
+6. Now, apply the `./demo/pod.pass.yaml` file to your cluster to configure the pod to pass compliance validation:
 
     ```shell
     kubectl apply -f ./demo/pod.pass.yaml
     ```
 
-1. Run the following command in the `lula` directory:
+7. Run the following command in the `lula` directory:
 
     ```shell
     ./bin/lula validate ./demo/oscal-component.yaml
@@ -104,17 +130,40 @@ In the standard CLI workflow:
     The output should now show the pod as passing the compliance requirement:
 
     ```shell
-    Applying 1 policy rule to 19 resources...
+    OPA provider validating...
     UUID: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
-            Resources Passing: 1
-            Resources Failing: 0
-            Status: Pass
+            Status: satisfied
+    ```
+
+    This will produce a new assessment-results file with timestamp - review the findings and observations:
+
+    ```yaml
+    findings:
+    - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit...
+      related-observations:
+        - observation-uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
+      target:
+        status:
+            state: not-satisfied
+        target-id: ID-1
+        type: objective-id
+      title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+      uuid: 32ad2bce-e2f6-4445-a96e-a3b693b942f1
+    observations:
+    - collected: "2023-12-01T13:22:09-08:00"
+      description: |
+        [TEST] ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+      methods:
+        - TEST
+      relevant-evidence:
+        - description: |
+            Result: not-satisfied - Passing Resources: 0 - Failing Resources 1
+      uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
     ```
 
 ## Future Extensibility
 
 - Support for cloud infrastructure state queries
-- Support for API validation
 
 ## Developing
 

@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: demo-pod-fail
+  name: demo-pod
   namespace: validation-test
   labels: 
     foo: bar2
