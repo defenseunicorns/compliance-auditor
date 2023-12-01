@@ -3,7 +3,7 @@ module github.com/defenseunicorns/lula
 go 1.21.4
 
 require (
-	github.com/defenseunicorns/go-oscal v0.0.0-20231130202535-a6c1aa2a7882
+	github.com/defenseunicorns/go-oscal v0.0.0-20231201160813-ad8478ffc397
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v0.59.0
 	github.com/spf13/cobra v1.8.0
@@ -56,8 +56,11 @@ require (
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
+	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/swaggest/jsonschema-go v0.3.62 // indirect
+	github.com/swaggest/refl v1.3.0 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
 	github.com/vladimirvivien/gexe v0.2.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
