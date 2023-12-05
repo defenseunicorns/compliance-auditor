@@ -23,7 +23,7 @@
     "hugo-extended": "^0.120.4",
     "linkinator": "^6.0.2",
     "markdownlint-cli": "0.37.0",
-    "postcss-cli": "^10.1.0",
+    "postcss-cli": "^11.0.0",
     "prettier": "^3.1.0"
   }
 }
