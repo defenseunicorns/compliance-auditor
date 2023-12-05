@@ -12,9 +12,10 @@ type ComplianceReport struct {
 // This will hopefully make transformation to the reporting model easier
 // or be replaced by an OSCAL native type
 type ReportObject struct {
-	FilePaths   []string              `json:"file-paths" yaml:"file-paths"`
-	UUID        string                `json:"uuid" yaml:"uuid"`
-	Components  []Component           `json:"components" yaml:"components"`
+	FilePaths  []string    `json:"file-paths" yaml:"file-paths"`
+	UUID       string      `json:"uuid" yaml:"uuid"`
+	Components []Component `json:"components" yaml:"components"`
+	// Validations is a map[link UUID]Validation{}
 	Validations map[string]Validation `json:"validations" yaml:"validations"`
 }
 
@@ -38,7 +39,7 @@ type ControlImplementation struct {
 type ImplementedReq struct {
 	UUID        string   `json:"uuid" yaml:"uuid"`
 	ControlId   string   `json:"control-id" yaml:"control-id"`
-	Status      string   `json:"status" yaml:"status"`
+	State       string   `json:"state" yaml:"state"`
 	Description string   `json:"description" yaml:"description"`
 	Results     []Result `json:"results" yaml:"results"`
 }
@@ -50,15 +51,31 @@ type Result struct {
 	Description string `json:"description" yaml:"description"`
 	Passing     int    `json:"passing" yaml:"passing"`
 	Failing     int    `json:"failing" yaml:"failing"`
-	Result      string `json:"result" yaml:"result"`
+	State       string `json:"state" yaml:"state"`
 }
 
 // Current placeholder for all requisite data in the payload
 // Fields will be populated as required otherwise left empty
 // This could be expanded as providers add more fields
 type Payload struct {
-	ResourceRules []ResourceRule `json:"resource-rules" yaml:"resource-rules"`
-	Rego          string         `json:"rego" yaml:"rego"`
+	Resources []Resource `json:"resources" yaml:"resources"`
+	Rego      string     `json:"rego" yaml:"rego"`
+}
+
+type Resource struct {
+	Name         string       `json:"name" yaml:"name"`
+	Description  string       `json:"description" yaml:"description"`
+	ResourceRule ResourceRule `json:"resource-rule" yaml:"resource-rule"`
+}
+
+type PayloadAPI struct {
+	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
+	Rego     string    `json:"rego" yaml:"rego"`
+}
+
+type Request struct {
+	Name string `json:"name" yaml:"name"`
+	URL  string `json:"url" yaml:"url"`
 }
 
 type Target struct {
@@ -68,6 +85,7 @@ type Target struct {
 }
 
 type ResourceRule struct {
+	Name       string   `json:"name" yaml:"name"`
 	Group      string   `json:"group" yaml:"group"`
 	Version    string   `json:"version" yaml:"version"`
 	Resource   string   `json:"resource" yaml:"resource"`

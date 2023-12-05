@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -8,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1/component-definition"
+	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
-	yaml1 "sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 var validateHelp = `
@@ -21,12 +22,10 @@ To validate on a cluster:
 	lula validate ./oscal-component.yaml
 `
 
-var cluster bool
-
-var ValidateCmd = &cobra.Command{
+var validateCmd = &cobra.Command{
 	Use:     "validate",
-	Short:   "validate",
-	Long:    "Lula Validation for compliance with established policy",
+	Short:   "validate an OSCAL component definition",
+	Long:    "Lula Validation of an OSCAL component definition",
 	Example: validateHelp,
 	RunE: func(cmd *cobra.Command, componentDefinitionPaths []string) error {
 		// Conduct further error checking here (IE flags/arguments)
@@ -45,8 +44,7 @@ var ValidateCmd = &cobra.Command{
 			return fmt.Errorf("Validation error: %w\n", err)
 		}
 
-		// Convert Results to expected report format
-		report, err := GenerateReportFromResults(&results)
+		report, err := oscal.GenerateAssessmentResults(&results)
 		if err != nil {
 			return fmt.Errorf("Generate error: %w\n", err)
 		}
@@ -63,7 +61,7 @@ var ValidateCmd = &cobra.Command{
 func ValidateCommand() *cobra.Command {
 
 	// insert flag options here
-	return ValidateCmd
+	return validateCmd
 }
 
 /*
@@ -94,19 +92,26 @@ func ValidateCommand() *cobra.Command {
 func ValidateOnPaths(obj *types.ReportObject) error {
 	// for each path
 	for _, path := range obj.FilePaths {
+
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
 			fmt.Printf("Path: %v does not exist - unable to digest document\n", path)
 			continue
 		}
-
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
 		compDef, err := oscal.NewOscalComponentDefinition(data)
+		if err != nil {
+			return err
+		}
+
 		err = ValidateOnCompDef(obj, compDef)
+		if err != nil {
+			return err
+		}
 
 		obj.UUID = compDef.UUID
 	}
@@ -158,37 +163,50 @@ func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefi
 								result = val.Result
 							} else {
 								result, err = ValidateOnTarget(ctx, val.Description)
-
 								if err != nil {
 									return err
 								}
+								// Store the result in the validation object
+								val.Result = result
+								val.Evaluated = true
+								obj.Validations[id] = val
 							}
+						} else {
+							return fmt.Errorf("Back matter Validation %v not found", id)
 						}
+
+						if result.Passing > 0 && result.Failing <= 0 {
+							result.State = "satisfied"
+						} else {
+							result.State = "not-satisfied"
+						}
+
+						result.UUID = id
+
 						pass += result.Passing
 						fail += result.Failing
+
 						impReq.Results = append(impReq.Results, result)
 
 					}
 
 				}
 
+				// Using language from Assessment Results model for Target Objective Status State
 				if pass > 0 && fail <= 0 {
-					impReq.Status = "Pass"
-				} else if pass == 0 && fail == 0 {
-					impReq.Status = "Not Evaluated"
+					impReq.State = "satisfied"
 				} else {
-					impReq.Status = "Fail"
+					impReq.State = "not-satisfied"
 				}
 
 				// TODO: convert to logging
-				fmt.Printf("UUID: %v\n\tResources Passing: %v\n\tResources Failing: %v\n\tStatus: %v\n", impReq.UUID, pass, fail, impReq.Status)
+				fmt.Printf("UUID: %v\n\tStatus: %v\n", impReq.UUID, impReq.State)
 
 				control.ImplementedReqs = append(control.ImplementedReqs, impReq)
 			}
 			comp.ControlImplementations = append(comp.ControlImplementations, control)
 		}
 		obj.Components = append(obj.Components, comp)
-
 	}
 
 	return nil
@@ -211,43 +229,20 @@ func ValidateOnTarget(ctx context.Context, target map[string]interface{}) (types
 
 }
 
-// TODO: this needs to evolve quite a bit - should transform a ReportObject into an OSCAL Model
-// Specifically re-traversing the layers
-func GenerateReportFromResults(results *types.ReportObject) ([]types.ComplianceReport, error) {
-	var complianceReports []types.ComplianceReport
-	// component-definition -> component -> control-implementation -> implemented-requirements -> targets
-
-	for _, component := range results.Components {
-		for _, control := range component.ControlImplementations {
-			for _, impReq := range control.ImplementedReqs {
-				currentReport := types.ComplianceReport{
-					UUID:        impReq.UUID,
-					ControlId:   impReq.ControlId,
-					Description: impReq.Description,
-					Result:      impReq.Status,
-				}
-
-				complianceReports = append(complianceReports, currentReport)
-			}
-		}
-	}
-
-	return complianceReports, nil
-}
-
 // This is the OSCAL document generation for final output.
 // This should include some ability to consolidate controls met in multiple input documents under single control entries
 // This should include fields that reference the source of the control to the original document ingested
-func WriteReport(compiledReport []types.ComplianceReport) error {
-	reportData, err := yaml1.Marshal(&compiledReport)
-	if err != nil {
-		return err
-	}
+func WriteReport(compiledReport any) error {
+	var b bytes.Buffer
+
+	yamlEncoder := yaml.NewEncoder(&b)
+	yamlEncoder.SetIndent(2)
+	yamlEncoder.Encode(compiledReport)
 
 	currentTime := time.Now()
-	fileName := "compliance_report-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
+	fileName := "assessment-results-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
 
-	err = os.WriteFile(fileName, reportData, 0644)
+	err := os.WriteFile(fileName, b.Bytes(), 0644)
 	if err != nil {
 		return err
 	}

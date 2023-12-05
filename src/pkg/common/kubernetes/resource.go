@@ -13,21 +13,28 @@ import (
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
 // This function is used to query the cluster for all resources required for processing
-func QueryCluster(ctx context.Context, payload types.Payload) ([]unstructured.Unstructured, error) {
+func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]interface{}, error) {
+
+	// We may need a new type here to hold groups of resources
 
 	config := ctrl.GetConfigOrDie()
 	dynamic := dynamic.NewForConfigOrDie(config)
-	var resources []unstructured.Unstructured
 
-	for _, rule := range payload.ResourceRules {
+	collections := make(map[string]interface{}, 0)
 
+	for _, resource := range resources {
+		collection := make([]map[string]interface{}, 0)
+		rule := resource.ResourceRule
 		if len(rule.Namespaces) == 0 {
 			items, err := GetResourcesDynamically(dynamic, ctx,
 				rule.Group, rule.Version, rule.Resource, "")
 			if err != nil {
 				return nil, err
 			}
-			resources = append(resources, items...)
+
+			for _, item := range items {
+				collection = append(collection, item.Object)
+			}
 		} else {
 			for _, namespace := range rule.Namespaces {
 				items, err := GetResourcesDynamically(dynamic, ctx,
@@ -35,14 +42,21 @@ func QueryCluster(ctx context.Context, payload types.Payload) ([]unstructured.Un
 				if err != nil {
 					return nil, err
 				}
-				resources = append(resources, items...)
-			}
 
+				for _, item := range items {
+					collection = append(collection, item.Object)
+				}
+			}
 		}
 
+		if len(collection) > 0 {
+			// Append to collections if not empty collection
+			// Adding the collection to the map when empty will result in a false positive for the validation in OPA?
+			// TODO: add warning log here
+			collections[resource.Name] = collection
+		}
 	}
-
-	return resources, nil
+	return collections, nil
 }
 
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []unstructured.Unstructured

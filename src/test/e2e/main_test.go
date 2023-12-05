@@ -23,7 +23,11 @@ func TestMain(m *testing.M) {
 	namespace = "validation-test"
 
 	testEnv.Setup(
-		envfuncs.CreateCluster(kind.NewProvider(), kindClusterName),
+		envfuncs.CreateClusterWithConfig(
+			kind.NewProvider(),
+			kindClusterName,
+			"kind-config.yaml"),
+
 		envfuncs.CreateNamespace(namespace),
 	)
 
