@@ -7,13 +7,27 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/types"
+	"gopkg.in/yaml.v3"
 )
 
 const OSCAL_VERSION = "1.1.1"
 
-func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalModels, error) {
-	var assessmentResults oscalTypes.OscalModels
+func NewAssessmentResults(data []byte) (oscalTypes.AssessmentResults, error) {
+	var assessmentResults oscalTypes.AssessmentResults
+
+	err := yaml.Unmarshal(data, &assessmentResults)
+	if err != nil {
+		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
+		return oscalTypes.AssessmentResults{}, err
+	}
+
+	return assessmentResults, nil
+}
+
+func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.AssessmentResults, error) {
+	var assessmentResults oscalTypes.AssessmentResults
 
 	// Single time used for all time related fields
 	rfc3339Time := time.Now().Format(time.RFC3339)
@@ -87,32 +101,32 @@ func GenerateAssessmentResults(report *types.ReportObject) (oscalTypes.OscalMode
 	}
 
 	// Always create a new UUID for the assessment results (for now)
-	assessmentResults.AssessmentResults.UUID = uuid.NewUUID()
+	assessmentResults.UUID = uuid.NewUUID()
 
 	// Create metadata object with requires fields and a few extras
 	// Where do we establish what `version` should be?
-	assessmentResults.AssessmentResults.Metadata = oscalTypes.Metadata{
+	assessmentResults.Metadata = oscalTypes.Metadata{
 		Title:        "[System Name] Security Assessment Results (SAR)",
 		Version:      "0.0.1",
 		OscalVersion: OSCAL_VERSION,
-		Remarks:      "Lula Metadata Remarks",
+		Remarks:      "Assessment Results generated from Lula",
 		Published:    rfc3339Time,
 		LastModified: rfc3339Time,
 	}
 
 	// Create results object
-	assessmentResults.AssessmentResults.Results = []oscalTypes.Result{
+	assessmentResults.Results = []oscalTypes.Result{
 		{
 			UUID:        uuid.NewUUID(),
-			Title:       "Lula Result Title",
+			Title:       "Lula Validation Result",
 			Start:       rfc3339Time,
-			Description: "Lula Result Description",
+			Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
 			ReviewedControls: oscalTypes.ReviewedControls{
-				Description: "Lula Control Description",
-				Remarks:     "Lula Control Remarks",
+				Description: "Controls validated",
+				Remarks:     "Validation performed may indicate full or partial satisfaction",
 				ControlSelections: []oscalTypes.AssessedControls{
 					{
-						Description:     "Lula Assessed Controls Description",
+						Description:     "Controls Assessed by Lula",
 						IncludeControls: controlList,
 					},
 				},

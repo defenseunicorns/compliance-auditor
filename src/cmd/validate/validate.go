@@ -17,9 +17,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type flags struct {
+	AssessmentFile string // -a --assessment-file
+
+}
+
+var opts = &flags{}
+
 var validateHelp = `
 To validate on a cluster:
 	lula validate ./oscal-component.yaml
+
+To indicate a specific Assessment Results file to create or append to:
+	lula validate ./oscal-component.yaml -a assessment-results.yaml
 `
 
 var validateCmd = &cobra.Command{
@@ -50,7 +60,7 @@ var validateCmd = &cobra.Command{
 		}
 
 		// Write report(s) to file
-		err = WriteReport(report)
+		err = WriteReport(report, opts.AssessmentFile)
 		if err != nil {
 			return fmt.Errorf("Write error: %w\n", err)
 		}
@@ -61,6 +71,7 @@ var validateCmd = &cobra.Command{
 func ValidateCommand() *cobra.Command {
 
 	// insert flag options here
+	validateCmd.Flags().StringVarP(&opts.AssessmentFile, "assessment-file", "a", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	return validateCmd
 }
 
@@ -232,19 +243,58 @@ func ValidateOnTarget(ctx context.Context, target map[string]interface{}) (types
 // This is the OSCAL document generation for final output.
 // This should include some ability to consolidate controls met in multiple input documents under single control entries
 // This should include fields that reference the source of the control to the original document ingested
-func WriteReport(compiledReport any) error {
+func WriteReport(report oscalTypes.AssessmentResults, assessmentFilePath string) error {
+
+	var fileName string
+	var tempAssessment oscalTypes.AssessmentResults
+
+	if assessmentFilePath != "" {
+
+		_, err := os.Stat(assessmentFilePath)
+		if err == nil {
+			// File does exist
+			data, err := os.ReadFile(assessmentFilePath)
+			if err != nil {
+				return err
+			}
+
+			tempAssessment, err = oscal.NewAssessmentResults(data)
+			if err != nil {
+				return err
+			}
+
+			results := make([]oscalTypes.Result, 0)
+			// append new results first
+			results = append(results, report.Results...)
+			results = append(results, tempAssessment.Results...)
+			tempAssessment.Results = results
+			fileName = assessmentFilePath
+
+		} else if os.IsNotExist(err) {
+			// File does not exist
+			tempAssessment = report
+			fileName = assessmentFilePath
+		} else {
+			// Some other error occurred (permission issues, etc.)
+			return err
+		}
+
+	} else {
+		tempAssessment = report
+		currentTime := time.Now()
+		fileName = "assessment-results-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
+	}
+
 	var b bytes.Buffer
 
 	yamlEncoder := yaml.NewEncoder(&b)
 	yamlEncoder.SetIndent(2)
-	yamlEncoder.Encode(compiledReport)
-
-	currentTime := time.Now()
-	fileName := "assessment-results-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
+	yamlEncoder.Encode(tempAssessment)
 
 	err := os.WriteFile(fileName, b.Bytes(), 0644)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
