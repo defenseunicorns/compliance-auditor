@@ -264,7 +264,7 @@ func WriteReport(report oscalTypes.AssessmentResults, assessmentFilePath string)
 			}
 
 			results := make([]oscalTypes.Result, 0)
-			// append new results first
+			// append new results first - unfurl so as to allow multiple results in the future
 			results = append(results, report.Results...)
 			results = append(results, tempAssessment.Results...)
 			tempAssessment.Results = results
