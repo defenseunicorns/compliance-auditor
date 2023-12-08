@@ -28,6 +28,7 @@ var evaluateCmd = &cobra.Command{
 	Short:   "evaluate two results of a Security Assessment Results",
 	Long:    "Lula evaluation of Security Assessment Results",
 	Example: evaluateHelp,
+	Aliases: []string{"eval"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// Access the files and evaluate them
