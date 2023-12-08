@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
@@ -37,24 +39,21 @@ var validateCmd = &cobra.Command{
 	Short:   "validate an OSCAL component definition",
 	Long:    "Lula Validation of an OSCAL component definition",
 	Example: validateHelp,
-	RunE: func(cmd *cobra.Command, componentDefinitionPaths []string) error {
+	RunE: func(cmd *cobra.Command, componentDefinitionPath []string) error {
 		// Conduct further error checking here (IE flags/arguments)
-		if len(componentDefinitionPaths) == 0 {
+		// TODO: Change input to use a -f flag
+		if len(componentDefinitionPath) == 0 {
 			fmt.Println(cmd.Long)
 			return errors.New("Path to OSCAL component definition(s) required")
 		}
 
-		results := types.ReportObject{
-			FilePaths: componentDefinitionPaths,
-		}
-
 		// Primary expected path for validation of OSCAL documents
-		err := ValidateOnPaths(&results)
+		findings, observations, err := ValidateOnPath(componentDefinitionPath[0])
 		if err != nil {
 			return fmt.Errorf("Validation error: %w\n", err)
 		}
 
-		report, err := oscal.GenerateAssessmentResults(&results)
+		report, err := oscal.GenerateAssessmentResults(findings, observations)
 		if err != nil {
 			return fmt.Errorf("Generate error: %w\n", err)
 		}
@@ -100,127 +99,158 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPaths(obj *types.ReportObject) error {
-	// for each path
-	for _, path := range obj.FilePaths {
+func ValidateOnPath(path string) (map[string]oscalTypes.Finding, []oscalTypes.Observation, error) {
 
-		_, err := os.Stat(path)
-		if os.IsNotExist(err) {
-			fmt.Printf("Path: %v does not exist - unable to digest document\n", path)
-			continue
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		compDef, err := oscal.NewOscalComponentDefinition(data)
-		if err != nil {
-			return err
-		}
-
-		err = ValidateOnCompDef(obj, compDef)
-		if err != nil {
-			return err
-		}
-
-		obj.UUID = compDef.UUID
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		fmt.Printf("Path: %v does not exist - unable to digest document\n", path)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
 	}
 
-	return nil
+	compDef, err := oscal.NewOscalComponentDefinition(data)
+	if err != nil {
+		return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
+	}
+
+	findingMap, observations, err := ValidateOnCompDef(compDef)
+	if err != nil {
+		return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
+	}
+
+	return findingMap, observations, err
 
 }
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
-func ValidateOnCompDef(obj *types.ReportObject, compDef oscalTypes.ComponentDefinition) error {
+func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscalTypes.Finding, []oscalTypes.Observation, error) {
 
 	// Populate a map[uuid]Validation into the validations
-	obj.Validations = oscal.BackMatterToMap(compDef.BackMatter)
+	validations := oscal.BackMatterToMap(compDef.BackMatter)
 
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
 	// Loops all the way down
-	// Keeps track of UUID's for later reporting and relation
+
+	findings := make(map[string]oscalTypes.Finding)
+	observations := make([]oscalTypes.Observation, 0)
+
 	for _, component := range compDef.Components {
-		comp := types.Component{
-			UUID: component.UUID,
-		}
 		for _, controlImplementation := range component.ControlImplementations {
-			control := types.ControlImplementation{
-				UUID: controlImplementation.UUID,
-			}
+			rfc3339Time := time.Now().Format(time.RFC3339)
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
 
-				impReq := types.ImplementedReq{
-					UUID:        implementedRequirement.UUID,
-					ControlId:   implementedRequirement.ControlId,
-					Description: implementedRequirement.Description,
+				// This should produce a finding - check if an existing finding for the control-id has been processed
+				var finding oscalTypes.Finding
+				tempObservations := make([]oscalTypes.Observation, 0)
+				relatedObservations := make([]oscalTypes.RelatedObservation, 0)
+
+				if _, ok := findings[implementedRequirement.ControlId]; ok {
+					finding = findings[implementedRequirement.ControlId]
+				} else {
+					finding = oscalTypes.Finding{
+						UUID:        uuid.NewUUID(),
+						Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", component.UUID, controlImplementation.UUID, implementedRequirement.ControlId),
+						Description: implementedRequirement.Description,
+					}
 				}
+
 				var pass, fail int
 				// IF the implemented requirement contains a link - check for Lula Validation
+
 				for _, link := range implementedRequirement.Links {
 					var result types.Result
 					var err error
 					// Current identifier is the link text
 					if link.Text == "Lula Validation" {
+						sharedUuid := uuid.NewUUID()
+						observation := oscalTypes.Observation{
+							Collected: rfc3339Time,
+							Methods:   []string{"TEST"},
+							UUID:      sharedUuid,
+						}
 						// Remove the leading '#' from the UUID reference
 						id := strings.Replace(link.Href, "#", "", 1)
+						observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
 						// Check if the link exists in our pre-populated map of validations
-						if val, ok := obj.Validations[id]; ok {
-							// If the validation has already been evaluated, use the result from the evaluation
-							// Otherwise perform the validation
+						if val, ok := validations[id]; ok {
+							// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
 							if val.Evaluated {
 								result = val.Result
 							} else {
 								result, err = ValidateOnTarget(ctx, val.Description)
 								if err != nil {
-									return err
+									return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
 								}
 								// Store the result in the validation object
 								val.Result = result
 								val.Evaluated = true
-								obj.Validations[id] = val
+								validations[id] = val
 							}
 						} else {
-							return fmt.Errorf("Back matter Validation %v not found", id)
+							return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
 						}
 
+						// Individual result state
 						if result.Passing > 0 && result.Failing <= 0 {
 							result.State = "satisfied"
 						} else {
 							result.State = "not-satisfied"
 						}
 
-						result.UUID = id
+						observation.RelevantEvidence = []oscalTypes.RelevantEvidence{
+							{
+								Description: fmt.Sprintf("Result: %s - Passing Resources: %s - Failing Resources %s\n", result.State, strconv.Itoa(result.Passing), strconv.Itoa(result.Failing)),
+							},
+						}
+
+						relatedObservation := oscalTypes.RelatedObservation{
+							ObservationUuid: sharedUuid,
+						}
 
 						pass += result.Passing
 						fail += result.Failing
 
-						impReq.Results = append(impReq.Results, result)
-
+						// Coalesce slices and objects
+						relatedObservations = append(relatedObservations, relatedObservation)
+						tempObservations = append(tempObservations, observation)
 					}
 
 				}
 
 				// Using language from Assessment Results model for Target Objective Status State
-				if pass > 0 && fail <= 0 {
-					impReq.State = "satisfied"
+				var state string
+				if finding.Target.Status.State == "not-satisfied" {
+					state = "not-satisfied"
+				} else if pass > 0 && fail <= 0 {
+					state = "satisfied"
 				} else {
-					impReq.State = "not-satisfied"
+					state = "not-satisfied"
 				}
 
 				// TODO: convert to logging
-				fmt.Printf("UUID: %v\n\tStatus: %v\n", impReq.UUID, impReq.State)
+				fmt.Printf("UUID: %v\n\tStatus: %v\n", finding.UUID, state)
 
-				control.ImplementedReqs = append(control.ImplementedReqs, impReq)
+				finding.Target = oscalTypes.FindingTarget{
+					Status: oscalTypes.Status{
+						State: state,
+					},
+					TargetId: implementedRequirement.ControlId,
+					Type:     "objective-id",
+				}
+
+				finding.RelatedObservations = relatedObservations
+
+				findings[implementedRequirement.ControlId] = finding
+				observations = append(observations, tempObservations...)
 			}
-			comp.ControlImplementations = append(comp.ControlImplementations, control)
 		}
-		obj.Components = append(obj.Components, comp)
 	}
 
-	return nil
+	return findings, observations, nil
 }
 
 // ValidateOnTarget takes a map[string]interface{}

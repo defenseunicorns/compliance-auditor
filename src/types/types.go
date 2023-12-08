@@ -1,47 +1,10 @@
 package types
 
-// this is a temporary struct until a reporting model is selected
-type ComplianceReport struct {
-	UUID        string `json:"uuid" yaml:"uuid"`
-	ControlId   string `json:"control-id" yaml:"control-id"`
-	Description string `json:"description" yaml:"description"`
-	Result      string `json:"result" yaml:"result"`
-}
-
-// The ReportObject keeps track of all pertinent information as it relates to relational data IE UUID's
-// This will hopefully make transformation to the reporting model easier
-// or be replaced by an OSCAL native type
-type ReportObject struct {
-	FilePaths  []string    `json:"file-paths" yaml:"file-paths"`
-	UUID       string      `json:"uuid" yaml:"uuid"`
-	Components []Component `json:"components" yaml:"components"`
-	// Validations is a map[link UUID]Validation{}
-	Validations map[string]Validation `json:"validations" yaml:"validations"`
-}
-
 type Validation struct {
 	Title       string                 `json:"title" yaml:"title"`
 	Description map[string]interface{} `json:"description" yaml:"description"`
 	Evaluated   bool                   `json:"evaluated" yaml:"evaluated"`
 	Result      Result                 `json:"result" yaml:"result"`
-}
-
-type Component struct {
-	UUID                   string                  `json:"uuid" yaml:"uuid"`
-	ControlImplementations []ControlImplementation `json:"control-implementations" yaml:"control-implementations"`
-}
-
-type ControlImplementation struct {
-	UUID            string           `json:"uuid" yaml:"uuid"`
-	ImplementedReqs []ImplementedReq `json:"implemented-reqs" yaml:"implemented-reqs"`
-}
-
-type ImplementedReq struct {
-	UUID        string   `json:"uuid" yaml:"uuid"`
-	ControlId   string   `json:"control-id" yaml:"control-id"`
-	State       string   `json:"state" yaml:"state"`
-	Description string   `json:"description" yaml:"description"`
-	Results     []Result `json:"results" yaml:"results"`
 }
 
 // native type for conversion to targeted report format
