@@ -5,6 +5,7 @@ import (
 
 	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/cmd/version"
 )
 
 var rootCmd = &cobra.Command{
@@ -25,4 +26,5 @@ func init() {
 
 	rootCmd.AddCommand(commands...)
 	tools.Include(rootCmd)
+	version.Include(rootCmd)
 }
