@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/test/util"
-	"github.com/defenseunicorns/lula/src/types"
 	corev1 "k8s.io/api/core/v1"
 	// netv1 "k8s.io/api/networking/v1"
 	// "sigs.k8s.io/e2e-framework/klient/k8s"
@@ -49,21 +48,20 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			oscalPath := []string{"./scenarios/api-field/oscal-component.yaml"}
+			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 
-			results := types.ReportObject{
-				FilePaths: oscalPath,
-			}
-			err := validate.ValidateOnPaths(&results)
+			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
-
-			if result.State != "satisfied" {
-				t.Fatal("State should be satisfied, but got :", result.State)
+			for _, finding := range findingMap {
+				state := finding.Target.Status.State
+				if state != "satisfied" {
+					t.Fatal("State should be satisfied, but got :", state)
+				}
 			}
+
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -123,21 +121,18 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			oscalPath := []string{"./scenarios/api-field/oscal-component.yaml"}
+			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 
-			results := types.ReportObject{
-				FilePaths: oscalPath,
-			}
-			err := validate.ValidateOnPaths(&results)
+			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
-				t.Fatal("Validation error, result:", results)
+				t.Fatal(err)
 			}
 
-			// TODO: maybe this brings to light modifying the
-			result := results.Components[0].ControlImplementations[0].ImplementedReqs[0].Results[0]
-
-			if result.State != "not-satisfied" {
-				t.Fatal("State should be not-satisfied, but got :", result.State)
+			for _, finding := range findingMap {
+				state := finding.Target.Status.State
+				if state != "not-satisfied" {
+					t.Fatal("State should be not-satisfied, but got :", state)
+				}
 			}
 
 			return ctx
