@@ -1,0 +1,102 @@
+name: Publish Lula Packages on Tag
+
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      # Checkout the repo and setup the tooling for this job
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup golang
+        uses: ./.github/actions/golang
+
+      - name: Build CLI
+        run: |
+          make build
+
+      # Upload the contents of the build directory for later stages to use
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: build-artifacts
+          path: bin/
+          retention-days: 1
+
+  validate:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Checkout the repo and setup the tooling for this job
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: build-artifacts
+          path: bin/
+
+      - name: Setup golang
+        uses: ./.github/actions/golang
+
+      - name: Make lula executable
+        run: |
+          chmod +x bin/lula
+      
+      # Build the example packages and run the tests
+      - name: Run e2e tests
+        run: |
+          make test
+
+      - name: Save logs
+        if: always()
+        uses: ./.github/actions/save-logs
+
+  push:
+    runs-on: ubuntu-latest
+    needs: validate
+    permissions:
+      contents: write
+    steps:
+      # Checkout the repo and setup the tooling for this job
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup golang
+        uses: ./.github/actions/golang
+
+      - name: Install tools
+        uses: ./.github/actions/install-tools
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: build-artifacts
+          path: bin/
+
+      # Create the GitHub release notes
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist --debug
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
