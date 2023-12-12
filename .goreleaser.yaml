@@ -16,6 +16,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w -X github.com/defenseunicorns/lula/src/config.CLIVersion={{.Tag}}
 
 # Save the built artifacts as binaries (instead of wrapping them in a tarball)
 archives:
