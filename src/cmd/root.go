@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/defenseunicorns/lula/src/cmd/evaluate"
 	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/cmd/version"
@@ -22,6 +23,7 @@ func Execute() {
 func init() {
 	commands := []*cobra.Command{
 		validate.ValidateCommand(),
+		evaluate.EvaluateCommand(),
 	}
 
 	rootCmd.AddCommand(commands...)
