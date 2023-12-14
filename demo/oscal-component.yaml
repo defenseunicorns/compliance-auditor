@@ -52,6 +52,8 @@ component-definition:
           provider: opa
           domain: kubernetes
           payload:
+            wait-for:
+              
             resources:
             - name: podsvt       # Identifier for use in the rego below
               resourceRule:       # Mandatory, resource selection criteria, at least one resource rule is required

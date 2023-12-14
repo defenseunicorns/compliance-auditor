@@ -22,13 +22,24 @@ type Result struct {
 // This could be expanded as providers add more fields
 type Payload struct {
 	Resources []Resource `json:"resources" yaml:"resources"`
+	WaitFor   WaitFor    `json:"wait-for" yaml:"wait-for"`
 	Rego      string     `json:"rego" yaml:"rego"`
 }
 
 type Resource struct {
 	Name         string       `json:"name" yaml:"name"`
 	Description  string       `json:"description" yaml:"description"`
+	WaitFor      WaitFor      `json:"wait-for" yaml:"wait-for"`
 	ResourceRule ResourceRule `json:"resource-rule" yaml:"resource-rule"`
+}
+
+type WaitFor struct {
+	Condition string `json:"condition" yaml:"condition"`
+	Jsonpath  string `json:"jsonpath" yaml:"jsonpath"`
+	Kind      string `json:"kind" yaml:"kind"`
+	Namespace string `json:"namespace" yaml:"namespace"`
+	Timeout   string `json:"timeout" yaml:"timeout"`
+	Interval  string `json:"interval" yaml:"interval"`
 }
 
 type PayloadAPI struct {
