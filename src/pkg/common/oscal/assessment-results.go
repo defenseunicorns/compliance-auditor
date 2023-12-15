@@ -79,3 +79,11 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes.Finding, observa
 
 	return assessmentResults, nil
 }
+
+func GenerateFindingsMap(findings []oscalTypes.Finding) map[string]oscalTypes.Finding {
+	findingsMap := make(map[string]oscalTypes.Finding)
+	for _, finding := range findings {
+		findingsMap[finding.Target.TargetId] = finding
+	}
+	return findingsMap
+}
