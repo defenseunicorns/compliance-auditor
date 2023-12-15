@@ -20,7 +20,6 @@ import (
 // TODO: What is the new version of the information we are displaying on the command line?
 
 func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
-
 	if domain == "kubernetes" {
 		var payload types.Payload
 		err := mapstructure.Decode(data, &payload)
@@ -28,26 +27,9 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 			return types.Result{}, err
 		}
 
-		var forCondition string
-		var waitCmd bool
-		if payload.WaitFor.Condition != "" {
-			forCondition = fmt.Sprintf("--for=condition=%s", payload.WaitFor.Condition)
-			waitCmd = true
-		}
-
-		if payload.WaitFor.Jsonpath != "" {
-			if waitCmd {
-				return types.Result{}, fmt.Errorf("only one of waitFor.condition or waitFor.jsonpath can be specified")
-			}
-			forCondition = fmt.Sprintf("--for=jsonpath=%s", payload.WaitFor.Jsonpath)
-			waitCmd = true
-		}
-
-		if waitCmd {
-			err := kube.WaitForCondition(forCondition, payload.WaitFor.Kind, payload.WaitFor.Namespace, payload.WaitFor.Timeout)
-			if err != nil {
-				return types.Result{}, err
-			}
+		err = kube.EvaluateWait(payload.Wait)
+		if err != nil {
+			return types.Result{}, err
 		}
 
 		collection, err := kube.QueryCluster(ctx, payload.Resources)
