@@ -1,20 +1,14 @@
 package kube
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	k8stypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/cli-runtime/pkg/resource"
-	watchtools "k8s.io/client-go/tools/watch"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/cmd"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"k8s.io/kubectl/pkg/cmd/wait"
@@ -22,6 +16,7 @@ import (
 
 var errNoMatchingResources = errors.New("no matching resources found")
 
+// This is specific to Lula - Check if we need to execute any wait operations.
 func EvaluateWait(waitPayload types.Wait) error {
 	var forCondition string
 	waitCmd := false
@@ -46,15 +41,19 @@ func EvaluateWait(waitPayload types.Wait) error {
 
 		err := WaitForCondition(forCondition, waitPayload.Kind, waitPayload.Namespace, timeoutString)
 		if err != nil {
+			// Likely add a catch here for specific errors that we can then return nil on - as wait is best-effort
 			return err
 		}
 	}
 	return nil
 }
 
+// This is required bootstrapping for use of RunWait()
 func WaitForCondition(condition string, kind string, namespace string, timeout string) (err error) {
-	// Required parameters for kubectl
-	o := cmd.KubectlOptions{}
+	ioStreams := genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+	o := cmd.KubectlOptions{
+		IOStreams: ioStreams,
+	}
 	kubeConfigFlags := genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag().WithDiscoveryBurst(300).WithDiscoveryQPS(50.0)
 	kubeConfigFlags.Namespace = &namespace
 	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
@@ -75,58 +74,9 @@ func WaitForCondition(condition string, kind string, namespace string, timeout s
 	if err != nil {
 		return err
 	}
-	err = RunModifiedWait(opts)
+	err = opts.RunWait()
 	if err != nil {
 		return err
 	}
 	return nil
-
-}
-
-type ConditionFunc func(ctx context.Context, info *resource.Info, o *wait.WaitOptions) (finalObject runtime.Object, done bool, err error)
-
-// ResourceLocation holds the location of a resource
-type ResourceLocation struct {
-	GroupResource schema.GroupResource
-	Namespace     string
-	Name          string
-}
-
-// UIDMap maps ResourceLocation with UID
-type UIDMap map[ResourceLocation]k8stypes.UID
-
-func RunModifiedWait(o *wait.WaitOptions) error {
-	ctx, cancel := watchtools.ContextWithOptionalTimeout(context.Background(), o.Timeout)
-	defer cancel()
-
-	visitCount := 0
-	visitFunc := func(info *resource.Info, err error) error {
-		if err != nil {
-			return err
-		}
-
-		visitCount++
-		finalObject, success, err := o.ConditionFn(ctx, info, o)
-		if success {
-			return nil
-		}
-		if err == nil {
-			return fmt.Errorf("%v unsatisified for unknown reason", finalObject)
-		}
-		return err
-	}
-	visitor := o.ResourceFinder.Do()
-	isForDelete := strings.ToLower(o.ForCondition) == "delete"
-	if visitor, ok := visitor.(*resource.Result); ok && isForDelete {
-		visitor.IgnoreErrors(apierrors.IsNotFound)
-	}
-
-	err := visitor.Visit(visitFunc)
-	if err != nil {
-		return err
-	}
-	if visitCount == 0 && !isForDelete {
-		return errNoMatchingResources
-	}
-	return err
 }
