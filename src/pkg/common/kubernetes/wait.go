@@ -1,7 +1,6 @@
 package kube
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -13,8 +12,6 @@ import (
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"k8s.io/kubectl/pkg/cmd/wait"
 )
-
-var errNoMatchingResources = errors.New("no matching resources found")
 
 // This is specific to Lula - Check if we need to execute any wait operations.
 func EvaluateWait(waitPayload types.Wait) error {
@@ -39,9 +36,8 @@ func EvaluateWait(waitPayload types.Wait) error {
 			timeoutString = fmt.Sprintf("%s", waitPayload.Timeout)
 		}
 
-		err := WaitForCondition(forCondition, waitPayload.Kind, waitPayload.Namespace, timeoutString)
+		err := WaitForCondition(forCondition, waitPayload.Namespace, timeoutString, waitPayload.Kind)
 		if err != nil {
-			// Likely add a catch here for specific errors that we can then return nil on - as wait is best-effort
 			return err
 		}
 	}
@@ -49,19 +45,20 @@ func EvaluateWait(waitPayload types.Wait) error {
 }
 
 // This is required bootstrapping for use of RunWait()
-func WaitForCondition(condition string, kind string, namespace string, timeout string) (err error) {
+func WaitForCondition(condition string, namespace string, timeout string, args ...string) (err error) {
+	// Required for printer - investigate exposing this as needed for modification
 	ioStreams := genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 	o := cmd.KubectlOptions{
 		IOStreams: ioStreams,
 	}
 	kubeConfigFlags := genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag().WithDiscoveryBurst(300).WithDiscoveryQPS(50.0)
+	// Namespace is attributed here
 	kubeConfigFlags.Namespace = &namespace
+	// Setup factory and flags
 	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
-
 	f := cmdutil.NewFactory(matchVersionKubeConfigFlags)
-
 	flags := wait.NewWaitFlags(f, o.IOStreams)
-
+	// Add condition
 	flags.ForCondition = condition
 	if timeout != "" {
 		flags.Timeout, err = time.ParseDuration(timeout)
@@ -69,7 +66,6 @@ func WaitForCondition(condition string, kind string, namespace string, timeout s
 			return err
 		}
 	}
-	args := []string{kind}
 	opts, err := flags.ToOptions(args)
 	if err != nil {
 		return err
