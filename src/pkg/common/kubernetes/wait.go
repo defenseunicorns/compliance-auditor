@@ -1,8 +1,10 @@
 package kube
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
@@ -34,14 +36,62 @@ func EvaluateWait(waitPayload types.Wait) error {
 		var timeoutString string
 		if waitPayload.Timeout != "" {
 			timeoutString = fmt.Sprintf("%s", waitPayload.Timeout)
+		} else {
+			timeoutString = "5m"
 		}
 
-		err := WaitForCondition(forCondition, waitPayload.Namespace, timeoutString, waitPayload.Kind)
+		// Timeout control parameters
+		duration, err := time.ParseDuration(timeoutString)
+		expiration := time.Now().Add(duration)
+		startTime := time.Now()
+
+		// Wait for existence
+		err = WaitForExistence(waitPayload.Kind, waitPayload.Namespace, duration)
+		if err != nil {
+			return err
+		}
+
+		// Calculate time remaining to explicitly pass as a timeout
+		timeoutRemaining := expiration.Sub(startTime)
+
+		err = WaitForCondition(forCondition, waitPayload.Namespace, timeoutRemaining.String(), waitPayload.Kind)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func WaitForExistence(kind string, namespace string, timeout time.Duration) (err error) {
+	expired := time.After(timeout)
+	name := strings.Split(kind, "/")[1]
+
+	for {
+		// Delay check for 2 seconds
+		time.Sleep(time.Second * 2)
+
+		select {
+		case <-expired:
+			return fmt.Errorf("Timeout Expired")
+		default:
+			gvr, err := getGroupVersionResource(kind)
+			if err != nil {
+				return err
+			}
+
+			resources, err := GetResourcesDynamically(context.TODO(), gvr.Group, gvr.Version, gvr.Resource, namespace)
+			if err != nil {
+				return err
+			}
+
+			for _, resource := range resources {
+				if resource.GetName() == name {
+					// Success
+					return nil
+				}
+			}
+		}
+	}
 }
 
 // This is required bootstrapping for use of RunWait()

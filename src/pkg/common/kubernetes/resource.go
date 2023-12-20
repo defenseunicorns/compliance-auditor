@@ -2,11 +2,14 @@ package kube
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/defenseunicorns/lula/src/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -17,16 +20,13 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 
 	// We may need a new type here to hold groups of resources
 
-	config := ctrl.GetConfigOrDie()
-	dynamic := dynamic.NewForConfigOrDie(config)
-
 	collections := make(map[string]interface{}, 0)
 
 	for _, resource := range resources {
 		collection := make([]map[string]interface{}, 0)
 		rule := resource.ResourceRule
 		if len(rule.Namespaces) == 0 {
-			items, err := GetResourcesDynamically(dynamic, ctx,
+			items, err := GetResourcesDynamically(ctx,
 				rule.Group, rule.Version, rule.Resource, "")
 			if err != nil {
 				return nil, err
@@ -37,7 +37,7 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 			}
 		} else {
 			for _, namespace := range rule.Namespaces {
-				items, err := GetResourcesDynamically(dynamic, ctx,
+				items, err := GetResourcesDynamically(ctx,
 					rule.Group, rule.Version, rule.Resource, namespace)
 				if err != nil {
 					return nil, err
@@ -61,9 +61,12 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []unstructured.Unstructured
 // This function is used to query the cluster for specific subset of resources required for processing
-func GetResourcesDynamically(dynamic dynamic.Interface, ctx context.Context,
+func GetResourcesDynamically(ctx context.Context,
 	group string, version string, resource string, namespace string) (
 	[]unstructured.Unstructured, error) {
+
+	config := ctrl.GetConfigOrDie()
+	dynamic := dynamic.NewForConfigOrDie(config)
 
 	resourceId := schema.GroupVersionResource{
 		Group:    group,
@@ -79,4 +82,34 @@ func GetResourcesDynamically(dynamic dynamic.Interface, ctx context.Context,
 	}
 
 	return list.Items, nil
+}
+
+func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
+	config := ctrl.GetConfigOrDie()
+	name := strings.Split(kind, "/")[0]
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	_, resourceList, _, err := discoveryClient.GroupsAndMaybeResources()
+	if err != nil {
+
+		return nil, err
+	}
+
+	for gv, list := range resourceList {
+		for _, item := range list.APIResources {
+			if item.SingularName == name {
+				return &schema.GroupVersionResource{
+					Group:    gv.Group,
+					Version:  gv.Version,
+					Resource: item.Name,
+				}, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("kind %s not found", kind)
 }

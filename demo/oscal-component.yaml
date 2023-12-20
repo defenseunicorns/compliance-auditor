@@ -56,7 +56,7 @@ component-definition:
               condition: Ready
               kind: pod/demo-pod
               namespace: validation-test
-              timeout: 20s
+              timeout: 30s
             resources:
             - name: podsvt       # Identifier for use in the rego below
               resourceRule:       # Mandatory, resource selection criteria, at least one resource rule is required
