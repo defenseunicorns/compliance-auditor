@@ -51,6 +51,12 @@ func EvaluateWait(waitPayload types.Wait) error {
 			return err
 		}
 
+		// If just waiting for existence - return here
+		switch waitPayload.Condition {
+		case "", "exist", "exists", "Exist", "Exists":
+			return nil
+		}
+
 		// Calculate time remaining to explicitly pass as a timeout
 		timeoutRemaining := expiration.Sub(startTime)
 
