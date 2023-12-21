@@ -1,0 +1,15 @@
+name: save-logs
+description: "Save debug logs"
+
+runs:
+  using: composite
+  steps:
+    - name: Fix log permissions
+      run: |
+        sudo chown $USER /tmp/lula-*.log || echo ""
+      shell: bash
+
+    - uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+      with:
+        name: debug-log
+        path: /tmp/lula-*.logd

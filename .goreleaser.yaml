@@ -1,0 +1,52 @@
+before:
+  hooks:
+    - go mod tidy
+
+# Build a universal macOS binary
+universal_binaries:
+  - replace: false
+
+# Build the different combination of goos/arch binaries
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/defenseunicorns/lula/src/config.CLIVersion={{.Tag}}
+
+# Save the built artifacts as binaries (instead of wrapping them in a tarball)
+archives:
+  - format: binary
+    name_template: "{{ .ProjectName }}_{{ .Tag }}_{{- title .Os }}_{{ .Arch }}"
+
+# generate a sha256 checksum of all release artifacts
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# generate sboms for each binary artifact
+sboms:
+  - artifacts: binary
+    documents:
+      - "sbom_{{ .ProjectName }}_{{ .Tag }}_{{- title .Os }}_{{ .Arch }}.sbom"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-snapshot"
+
+# Use the auto-generated changelog github provides
+changelog:
+  use: github-native
+
+# Generate a GitHub release and publish the release for the tag
+release:
+  github:
+    owner: defenseunicorns
+    name: lula
+  prerelease: auto
+  mode: append
+  draft: false
