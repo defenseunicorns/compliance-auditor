@@ -2,11 +2,11 @@ package evaluate
 
 import (
 	"fmt"
-	"os"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
 
@@ -35,8 +35,7 @@ var evaluateCmd = &cobra.Command{
 		// Access the files and evaluate them
 		err := EvaluateAssessmentResults(opts.files)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			message.Fatal(err, err.Error())
 		}
 	},
 }
@@ -104,24 +103,27 @@ func EvaluateAssessmentResults(files []string) error {
 	}
 
 	if status {
-		fmt.Println("Evaluation Passing the established threshold")
+		message.Info("Evaluation Passing the established threshold")
 		if len(findings["new-findings"]) > 0 {
-			fmt.Println("New finding Target-Ids:")
+			message.Info("New finding Target-Ids:")
 			for _, finding := range findings["new-findings"] {
-				fmt.Printf("\t%s\n", finding.Target.TargetId)
+				message.Infof("%s", finding.Target.TargetId)
 			}
 		}
 		return nil
 	} else {
-		fmt.Println("Evaluation Failed the established threshold")
+		message.Warn("Evaluation Failed against the following findings:")
 		for _, finding := range findings["no-longer-satisfied"] {
-			fmt.Printf("\t%s\n", finding.Target.TargetId)
+			message.Warnf("%s", finding.Target.TargetId)
 		}
 		return fmt.Errorf("Failed to meet established threshold")
 	}
 }
 
 func EvaluateResults(thresholdResult oscalTypes.Result, newResult oscalTypes.Result) (bool, map[string][]oscalTypes.Finding, error) {
+	spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", newResult.UUID, thresholdResult.UUID)
+	defer spinner.Stop()
+
 	// Store unique findings for review here
 	findings := make(map[string][]oscalTypes.Finding, 0)
 	result := true
@@ -157,5 +159,6 @@ func EvaluateResults(thresholdResult oscalTypes.Result, newResult oscalTypes.Res
 		findings["new-findings"] = append(findings["new-findings"], finding)
 	}
 
+	spinner.Success()
 	return result, findings, nil
 }
