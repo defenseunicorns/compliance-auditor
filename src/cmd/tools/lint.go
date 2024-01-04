@@ -2,6 +2,7 @@ package tools
 
 import (
 	"github.com/defenseunicorns/go-oscal/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +19,11 @@ To lint an existing OSCAL file:
 
 func init() {
 	lintCmd := &cobra.Command{
-		Use:     "lint",
-		Short:   "Validate OSCAL against schema",
+		Use:   "lint",
+		Short: "Validate OSCAL against schema",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			config.SkipLogFile = true
+		},
 		Long:    "Validate an OSCAL document is properly configured against the OSCAL schema",
 		Example: lintHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {

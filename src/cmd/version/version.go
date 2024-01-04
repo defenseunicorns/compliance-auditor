@@ -13,7 +13,10 @@ Get the current Lula version:
 `
 
 var versionCmd = &cobra.Command{
-	Use:     "version",
+	Use: "version",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		config.SkipLogFile = true
+	},
 	Short:   "Shows the current version of the Lula binary",
 	Long:    "Shows the current version of the Lula binary",
 	Example: versionHelp,

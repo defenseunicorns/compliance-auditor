@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +19,11 @@ To create a deterministic UUID given some source:
 func init() {
 	// Kubectl stub command.
 	uuidCmd := &cobra.Command{
-		Use:     "uuidgen",
-		Short:   "Generate a UUID",
+		Use:   "uuidgen",
+		Short: "Generate a UUID",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			config.SkipLogFile = true
+		},
 		Long:    "Generate a UUID at random or deterministically with a provided input",
 		Example: uuidHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
