@@ -10,4 +10,7 @@ const (
 var (
 	// CLIVersion track the version of the CLI
 	CLIVersion = "unset"
+
+	// SkipLogFile is a flag to skip logging to a file
+	SkipLogFile bool
 )

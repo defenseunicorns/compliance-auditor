@@ -1,6 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2021-Present The Zarf Authors
-
 // Package message provides a rich set of functions for displaying messages to the user.
 package message
 
@@ -92,7 +89,7 @@ func UseLogFile() {
 		pterm.SetDefaultOutput(LogWriter)
 	} else {
 		// Try to create a temp log file if one hasn't been made already
-		if logFile, err = os.CreateTemp("", fmt.Sprintf("zarf-%s-*.log", ts)); err != nil {
+		if logFile, err = os.CreateTemp("", fmt.Sprintf("lula-%s-*.log", ts)); err != nil {
 			WarnErr(err, "Error saving a log file to a temporary directory")
 		} else {
 			useLogFile = true
@@ -120,17 +117,6 @@ func GetLogLevel() LogLevel {
 // DisableColor disables color in output
 func DisableColor() {
 	pterm.DisableColor()
-}
-
-// ZarfCommand prints a zarf terminal command.
-func ZarfCommand(format string, a ...any) {
-	Command("zarf "+format, a...)
-}
-
-// Command prints a zarf terminal command.
-func Command(format string, a ...any) {
-	style := pterm.NewStyle(pterm.FgWhite, pterm.BgBlack)
-	style.Printfln("$ "+format, a...)
 }
 
 // Debug prints a debug message.

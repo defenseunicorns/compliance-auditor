@@ -7,15 +7,13 @@ import (
 
 type flags struct {
 	InputFile string // -f --input-file
-	LogFile   string // -l --logger-file
-
 }
 
 var opts = &flags{}
 
 var lintHelp = `
 To lint an existing OSCAL file:
-	lula tools lint <path to oscal>
+	lula tools lint -f <path to oscal>
 `
 
 func init() {
@@ -26,7 +24,7 @@ func init() {
 		Example: lintHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			validate.ValidateCommand(opts.InputFile, opts.LogFile)
+			validate.ValidateCommand(opts.InputFile, "")
 
 			return nil
 		},
@@ -35,5 +33,4 @@ func init() {
 	toolsCmd.AddCommand(lintCmd)
 
 	lintCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to a oscal json schema file")
-	lintCmd.Flags().StringVarP(&opts.LogFile, "logger-file", "l", "", "the name of the file to write logs to (outputs to STDERR by default)")
 }
