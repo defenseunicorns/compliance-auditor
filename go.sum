@@ -38,8 +38,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/daviddengcn/go-colortext v1.0.0 h1:ANqDyC0ys6qCSvuEK7l3g5RaehL/Xck9EX8ATG8oKsE=
 github.com/daviddengcn/go-colortext v1.0.0/go.mod h1:zDqEI5NVUop5QPpVJUxE9UO10hRnmkD5G4Pmri9+m4c=
-github.com/defenseunicorns/go-oscal v0.0.1 h1:FuzkOCNfExipUVGpuQYSrk1/jL04CfqWTZCii13Kt5I=
-github.com/defenseunicorns/go-oscal v0.0.1/go.mod h1:WnHq9vtRwSyVpUKFlZW/BSRaZFGWRjzY3Z0pD4dQ32c=
+github.com/defenseunicorns/go-oscal v0.1.0 h1:X3EOjEyQ5XvdD6xjIyhrtBhhg/bPgYdEXRjXjK6sd4s=
+github.com/defenseunicorns/go-oscal v0.1.0/go.mod h1:y1esWKT2qg77jVwGHYjOy0mcjPQinujj3UAVbnq2xxI=
 github.com/dgraph-io/badger/v3 v3.2103.5 h1:ylPa6qzbjYRQMU6jokoj4wzcaweHylt//CH0AKt0akg=
 github.com/dgraph-io/badger/v3 v3.2103.5/go.mod h1:4MPiseMeDQ3FNCYwRbbcBOGJLf5jsE0PPFzRiKjtcdw=
 github.com/dgraph-io/ristretto v0.1.1 h1:6CWw5tJNgpegArSHpNHJKldNeq03FQCwYvfMVWajOK8=
