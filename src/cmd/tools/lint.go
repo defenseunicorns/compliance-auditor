@@ -1,8 +1,11 @@
 package tools
 
 import (
+	"fmt"
+
 	"github.com/defenseunicorns/go-oscal/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
 
@@ -26,11 +29,16 @@ func init() {
 		},
 		Long:    "Validate an OSCAL document is properly configured against the OSCAL schema",
 		Example: lintHelp,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
+			spinner := message.NewProgressSpinner("Linting %s", opts.InputFile)
+			defer spinner.Stop()
 
-			validate.ValidateCommand(opts.InputFile, "")
-
-			return nil
+			validator, err := validate.ValidateCommand(opts.InputFile)
+			if err != nil {
+				fmt.Println(err)
+				message.Fatalf(err, "Failed to lint %s", opts.InputFile)
+			}
+			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", opts.InputFile, validator.GetSchemaVersion(), validator.GetModelType())
 		},
 	}
 

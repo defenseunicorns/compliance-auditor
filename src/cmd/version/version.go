@@ -20,9 +20,8 @@ var versionCmd = &cobra.Command{
 	Short:   "Shows the current version of the Lula binary",
 	Long:    "Shows the current version of the Lula binary",
 	Example: versionHelp,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(config.CLIVersion)
-		return nil
 	},
 }
 
