@@ -13,6 +13,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
@@ -21,17 +22,17 @@ import (
 
 type flags struct {
 	AssessmentFile string // -a --assessment-file
-
+	InputFile      string // -f --input-file
 }
 
 var opts = &flags{}
 
 var validateHelp = `
 To validate on a cluster:
-	lula validate ./oscal-component.yaml
+	lula validate -f ./oscal-component.yaml
 
 To indicate a specific Assessment Results file to create or append to:
-	lula validate ./oscal-component.yaml -a assessment-results.yaml
+	lula validate -f ./oscal-component.yaml -a assessment-results.yaml
 `
 
 var validateCmd = &cobra.Command{
@@ -39,31 +40,23 @@ var validateCmd = &cobra.Command{
 	Short:   "validate an OSCAL component definition",
 	Long:    "Lula Validation of an OSCAL component definition",
 	Example: validateHelp,
-	RunE: func(cmd *cobra.Command, componentDefinitionPath []string) error {
-		// Conduct further error checking here (IE flags/arguments)
-		// TODO: Change input to use a -f flag
-		if len(componentDefinitionPath) == 0 {
-			fmt.Println(cmd.Long)
-			return errors.New("Path to OSCAL component definition(s) required")
-		}
-
+	Run: func(cmd *cobra.Command, componentDefinitionPath []string) {
 		// Primary expected path for validation of OSCAL documents
-		findings, observations, err := ValidateOnPath(componentDefinitionPath[0])
+		findings, observations, err := ValidateOnPath(opts.InputFile)
 		if err != nil {
-			return fmt.Errorf("Validation error: %w\n", err)
+			message.Fatalf(err, "Validation error")
 		}
 
 		report, err := oscal.GenerateAssessmentResults(findings, observations)
 		if err != nil {
-			return fmt.Errorf("Generate error: %w\n", err)
+			message.Fatalf(err, "Generate error")
 		}
 
 		// Write report(s) to file
 		err = WriteReport(report, opts.AssessmentFile)
 		if err != nil {
-			return fmt.Errorf("Write error: %w\n", err)
+			message.Fatalf(err, "Write error")
 		}
-		return nil
 	},
 }
 
@@ -71,6 +64,7 @@ func ValidateCommand() *cobra.Command {
 
 	// insert flag options here
 	validateCmd.Flags().StringVarP(&opts.AssessmentFile, "assessment-file", "a", "", "the path to write assessment results. Creates a new file or appends to existing files")
+	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
 	return validateCmd
 }
 
@@ -99,25 +93,25 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPath(path string) (map[string]oscalTypes.Finding, []oscalTypes.Observation, error) {
+func ValidateOnPath(path string) (findingMap map[string]oscalTypes.Finding, observations []oscalTypes.Observation, err error) {
 
-	_, err := os.Stat(path)
+	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		fmt.Printf("Path: %v does not exist - unable to digest document\n", path)
+		return findingMap, observations, fmt.Errorf("Path: %v does not exist - unable to digest document\n", path)
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
+		return findingMap, observations, err
 	}
 
 	compDef, err := oscal.NewOscalComponentDefinition(data)
 	if err != nil {
-		return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
+		return findingMap, observations, err
 	}
 
-	findingMap, observations, err := ValidateOnCompDef(compDef)
+	findingMap, observations, err = ValidateOnCompDef(compDef)
 	if err != nil {
-		return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
+		return findingMap, observations, err
 	}
 
 	return findingMap, observations, err
@@ -142,6 +136,8 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 		for _, controlImplementation := range component.ControlImplementations {
 			rfc3339Time := time.Now().Format(time.RFC3339)
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
+				spinner := message.NewProgressSpinner("Validating Implemented Requirement - %s", implementedRequirement.UUID)
+				defer spinner.Stop()
 
 				// This should produce a finding - check if an existing finding for the control-id has been processed
 				var finding oscalTypes.Finding
@@ -181,7 +177,7 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 							if val.Evaluated {
 								result = val.Result
 							} else {
-								result, err = ValidateOnTarget(ctx, val.Description)
+								result, err = ValidateOnTarget(ctx, id, val.Description)
 								if err != nil {
 									return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
 								}
@@ -231,8 +227,8 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 					state = "not-satisfied"
 				}
 
-				// TODO: convert to logging
-				fmt.Printf("UUID: %v\n\tStatus: %v\n", finding.UUID, state)
+				message.Infof("UUID: %v", finding.UUID)
+				message.Infof("    Status: %v", state)
 
 				finding.Target = oscalTypes.FindingTarget{
 					Status: oscalTypes.Status{
@@ -246,6 +242,7 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 
 				findings[implementedRequirement.ControlId] = finding
 				observations = append(observations, tempObservations...)
+				spinner.Success()
 			}
 		}
 	}
@@ -255,10 +252,10 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 
 // ValidateOnTarget takes a map[string]interface{}
 // It will return a single Result
-func ValidateOnTarget(ctx context.Context, target map[string]interface{}) (types.Result, error) {
+func ValidateOnTarget(ctx context.Context, id string, target map[string]interface{}) (types.Result, error) {
 	// simple conditional until more providers are introduced
 	if provider, ok := target["provider"].(string); ok && provider == "opa" {
-		fmt.Println("OPA provider validating...")
+		message.Debugf("OPA provider validating %s", id)
 		results, err := opa.Validate(ctx, target["domain"].(string), target["payload"].(map[string]interface{}))
 		if err != nil {
 			return types.Result{}, err
