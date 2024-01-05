@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
@@ -29,6 +30,7 @@ func TestPodWaitValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/wait-field/oscal-component.yaml"
+			message.NoProgress = true
 
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {

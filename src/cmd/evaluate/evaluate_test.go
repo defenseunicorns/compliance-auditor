@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 // Given two results - evaluate for passing
 func TestEvaluateResultsPassing(t *testing.T) {
+	message.NoProgress = true
 
 	mockThresholdResult := oscalTypes.Result{
 		Findings: []oscalTypes.Finding{
@@ -48,7 +50,7 @@ func TestEvaluateResultsPassing(t *testing.T) {
 }
 
 func TestEvaluateResultsFailed(t *testing.T) {
-
+	message.NoProgress = true
 	mockThresholdResult := oscalTypes.Result{
 		Findings: []oscalTypes.Finding{
 			{
@@ -92,7 +94,7 @@ func TestEvaluateResultsFailed(t *testing.T) {
 }
 
 func TestEvaluateResultsNewFindings(t *testing.T) {
-
+	message.NoProgress = true
 	mockThresholdResult := oscalTypes.Result{
 		Findings: []oscalTypes.Finding{
 			{

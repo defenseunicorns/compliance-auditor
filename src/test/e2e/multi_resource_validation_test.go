@@ -2,15 +2,17 @@ package test
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
-	"testing"
-	"time"
 )
 
 func TestMultiResourceValidation(t *testing.T) {
@@ -99,6 +101,7 @@ func TestMultiResourceValidation(t *testing.T) {
 		}).
 		Assess("Validate Multi-Resource Collections", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/multi-resource/oscal-component.yaml"
+			message.NoProgress = true
 
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {

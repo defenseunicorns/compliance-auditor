@@ -2,17 +2,21 @@ package test
 
 import (
 	"context"
+
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
+
 	// netv1 "k8s.io/api/networking/v1"
 	// "sigs.k8s.io/e2e-framework/klient/k8s"
+	"testing"
+	"time"
+
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
-	"testing"
-	"time"
 )
 
 func TestApiValidation(t *testing.T) {
@@ -49,6 +53,7 @@ func TestApiValidation(t *testing.T) {
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
+			message.NoProgress = true
 
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
@@ -122,6 +127,7 @@ func TestApiValidation(t *testing.T) {
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
+			message.NoProgress = true
 
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
