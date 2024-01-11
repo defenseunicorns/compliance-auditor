@@ -41,6 +41,10 @@ var validateCmd = &cobra.Command{
 	Long:    "Lula Validation of an OSCAL component definition",
 	Example: validateHelp,
 	Run: func(cmd *cobra.Command, componentDefinitionPath []string) {
+		if opts.InputFile == "" {
+			message.Fatal(errors.New("flag input-file is not set"),
+				"Please specify an input file with the -f flag")
+		}
 		// Primary expected path for validation of OSCAL documents
 		findings, observations, err := ValidateOnPath(opts.InputFile)
 		if err != nil {
