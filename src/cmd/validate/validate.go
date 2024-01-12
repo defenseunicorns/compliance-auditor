@@ -318,9 +318,15 @@ func WriteReport(report oscalTypes.AssessmentResults, assessmentFilePath string)
 
 	var b bytes.Buffer
 
+	var sar = oscalTypes.OscalModels{
+		AssessmentResults: tempAssessment,
+	}
+
 	yamlEncoder := yaml.NewEncoder(&b)
 	yamlEncoder.SetIndent(2)
-	yamlEncoder.Encode(tempAssessment)
+	yamlEncoder.Encode(sar)
+
+	message.Infof("Writing Security Assessment Results to: %s", fileName)
 
 	err := os.WriteFile(fileName, b.Bytes(), 0644)
 	if err != nil {

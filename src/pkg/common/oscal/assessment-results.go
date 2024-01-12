@@ -13,15 +13,15 @@ import (
 const OSCAL_VERSION = "1.1.1"
 
 func NewAssessmentResults(data []byte) (oscalTypes.AssessmentResults, error) {
-	var assessmentResults oscalTypes.AssessmentResults
+	var oscalModels oscalTypes.OscalModels
 
-	err := yaml.Unmarshal(data, &assessmentResults)
+	err := yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
 		return oscalTypes.AssessmentResults{}, err
 	}
 
-	return assessmentResults, nil
+	return oscalModels.AssessmentResults, nil
 }
 
 func GenerateAssessmentResults(findingMap map[string]oscalTypes.Finding, observations []oscalTypes.Observation) (oscalTypes.AssessmentResults, error) {
