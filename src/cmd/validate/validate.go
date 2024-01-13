@@ -48,7 +48,7 @@ var validateCmd = &cobra.Command{
 		// Primary expected path for validation of OSCAL documents
 		findings, observations, err := ValidateOnPath(opts.InputFile)
 		if err != nil {
-			message.Fatalf(err, "Validation error")
+			message.Fatalf(err, "Validation error: %s", err)
 		}
 
 		report, err := oscal.GenerateAssessmentResults(findings, observations)

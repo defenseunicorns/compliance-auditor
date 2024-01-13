@@ -65,7 +65,10 @@ func GetResourcesDynamically(ctx context.Context,
 	group string, version string, resource string, namespace string) (
 	[]unstructured.Unstructured, error) {
 
-	config := ctrl.GetConfigOrDie()
+	config, err := ctrl.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("Error with connection to the Cluster")
+	}
 	dynamic := dynamic.NewForConfigOrDie(config)
 
 	resourceId := schema.GroupVersionResource{
@@ -85,7 +88,10 @@ func GetResourcesDynamically(ctx context.Context,
 }
 
 func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
-	config := ctrl.GetConfigOrDie()
+	config, err := ctrl.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("Error with connection to the Cluster")
+	}
 	name := strings.Split(kind, "/")[0]
 
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
