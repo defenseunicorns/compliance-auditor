@@ -78,41 +78,44 @@ In the standard CLI workflow:
 5. Run the following command in the `lula` directory:
 
     ```shell
-    ./bin/lula validate ./demo/oscal-component.yaml
+    ./bin/lula validate -f ./demo/oscal-component.yaml
     ```
 
     The output in your terminal should inform you that the control validated is `not-satisfied`:
 
     ```shell
-    OPA provider validating...
-    UUID: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
-            Status: not-satisfied
+     NOTE  Saving log file to
+       /var/folders/f7/8csz3jj97lb8nqp_zv9kh07m0000gn/T/lula-2024-01-24-13-51-58-2247835644.log
+      •  UUID: c759a19b-d408-424c-8342-298f45e18b68                                                                                                                                                                                                                   
+      •  Status: not-satisfied                                                                                                                                                                                                                                        
+      ✔  Validating Implemented Requirement - 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD                                                                                                                                                                                    
+      •  Writing Security Assessment Results to: assessment-results-01-24-2024-13:51:58.yaml
     ```
 
     This will also produce an assessment-results file with timestamp - review the findings and observations:
 
     ```yaml
-    findings:
-    - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit....
-      related-observations:
-        - observation-uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
-      target:
-        status:
-            state: not-satisfied
-        target-id: ID-1
-        type: objective-id
-      title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
-      uuid: 32ad2bce-e2f6-4445-a96e-a3b693b942f1
-    observations:
-    - collected: "2023-12-01T13:22:09-08:00"
-      description: |
-        [TEST] ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
-      methods:
-        - TEST
-      relevant-evidence:
-        - description: |
-            Result: not-satisfied - Passing Resources: 0 - Failing Resources 1
-      uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
+      findings:
+        - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: ef12a3bb-fd86-4336-9d28-98d00c7dc26d
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: c759a19b-d408-424c-8342-298f45e18b68
+      observations:
+        - collected: "2024-01-24T13:51:58-08:00"
+          description: |
+            [TEST] ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied - Passing Resources: 0 - Failing Resources 1
+          uuid: ef12a3bb-fd86-4336-9d28-98d00c7dc26d
     ```
 
 6. Now, apply the `./demo/pod.pass.yaml` file to your cluster to configure the pod to pass compliance validation:
@@ -124,41 +127,44 @@ In the standard CLI workflow:
 7. Run the following command in the `lula` directory:
 
     ```shell
-    ./bin/lula validate ./demo/oscal-component.yaml
+    ./bin/lula validate -f ./demo/oscal-component.yaml
     ```
 
     The output should now show the pod as passing the compliance requirement:
 
     ```shell
-    OPA provider validating...
-    UUID: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
-            Status: satisfied
+     NOTE  Saving log file to
+       /var/folders/f7/8csz3jj97lb8nqp_zv9kh07m0000gn/T/lula-2024-01-24-13-54-19-2423960428.log
+      •  UUID: c3e4ccb2-6843-4ec2-a500-559cdd7918d5                                                                                                                                                                                                                   
+      •  Status: satisfied                                                                                                                                                                                                                                            
+      ✔  Validating Implemented Requirement - 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD                                                                                                                                                                                    
+      •  Writing Security Assessment Results to: assessment-results-01-24-2024-13:54:19.yaml
     ```
 
     This will produce a new assessment-results file with timestamp - review the findings and observations:
 
     ```yaml
-    findings:
-    - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-      related-observations:
-        - observation-uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
-      target:
-        status:
-            state: not-satisfied
-        target-id: ID-1
-        type: objective-id
-      title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
-      uuid: 32ad2bce-e2f6-4445-a96e-a3b693b942f1
-    observations:
-    - collected: "2023-12-01T13:22:09-08:00"
-      description: |
-        [TEST] ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
-      methods:
-        - TEST
-      relevant-evidence:
-        - description: |
-            Result: not-satisfied - Passing Resources: 0 - Failing Resources 1
-      uuid: 51fe298d-16b9-4efb-9a0f-f3ab54da50af
+      findings:
+        - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: 84a169a1-74d6-4e26-bbfb-4dfc474c7790
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: c3e4ccb2-6843-4ec2-a500-559cdd7918d5
+      observations:
+        - collected: "2024-01-24T13:54:19-08:00"
+          description: |
+            [TEST] ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied - Passing Resources: 1 - Failing Resources 0
+          uuid: 84a169a1-74d6-4e26-bbfb-4dfc474c7790
     ```
 
 ## Future Extensibility
