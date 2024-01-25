@@ -6,7 +6,7 @@ require (
 	github.com/defenseunicorns/go-oscal v0.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v0.61.0
-	github.com/pterm/pterm v0.12.75
+	github.com/pterm/pterm v0.12.76
 	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/cobra v1.8.0
 	gopkg.in/yaml.v3 v3.0.1
