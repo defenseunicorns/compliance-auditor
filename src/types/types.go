@@ -63,3 +63,56 @@ type ResourceRule struct {
 	Resource   string   `json:"resource" yaml:"resource"`
 	Namespaces []string `json:"namespaces" yaml:"namespaces"`
 }
+
+// generate manifest types
+type Manifest struct {
+	Kind                string              `json:"kind" yaml:"kind"`
+	Metadata            Metadata            `json:"metadata" yaml:"metadata"`
+	ComponentDefinition ComponentDefinition `json:"component-definition" yaml:"component-definition"`
+	SSP                 SSP                 `json:"system-security-plan" yaml:"system-security-plan"`
+	SAP                 SAP                 `json:"system-assessment-plan" yaml:"system-assessment-plan"`
+	POAM                POAM                `json:"plan-of-action-and-milestones" yaml:"plan-of-action-and-milestones"`
+}
+
+type Metadata struct {
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+}
+
+type ComponentDefinition struct {
+	Name       string     `json:"name" yaml:"name"`
+	Catalogs   []Catalog  `json:"catalogs" yaml:"catalogs"`
+	Components []Artifact `json:"components" yaml:"components"`
+}
+
+type Catalog struct {
+	Path     string    `json:"path" yaml:"path"`
+	Url      string    `json:"url" yaml:"url"`
+	Git      string    `json:"git" yaml:"git"`
+	GitPath  string    `json:"gitPath" yaml:"gitPath"`
+	Controls []Control `json:"controls" yaml:"controls"`
+}
+
+type Control struct {
+	Id      string `json:"id" yaml:"id"`
+	Remarks string `json:"remarks" yaml:"remarks"`
+}
+
+type SSP struct {
+	Components []Artifact `json:"components" yaml:"components"`
+}
+
+type SAP struct {
+	AssessmentResults []Artifact `json:"assessment-results" yaml:"assessment-results"`
+}
+
+type POAM struct {
+	AssessmentResults []Artifact `json:"assessment-results" yaml:"assessment-results"`
+}
+
+type Artifact struct {
+	Path    string `json:"path" yaml:"path"`
+	Url     string `json:"url" yaml:"url"`
+	Git     string `json:"git" yaml:"git"`
+	GitPath string `json:"gitPath" yaml:"gitPath"`
+}
