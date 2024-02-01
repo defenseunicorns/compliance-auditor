@@ -18,7 +18,7 @@
     "update": "hugo mod get -u ./... && hugo mod tidy && npx npm-check-updates -u && npm install"
   },
   "devDependencies": {
-    "@taplo/cli": "^0.5.2",
+    "@taplo/cli": "^0.7.0",
     "autoprefixer": "^10.4.16",
     "hugo-extended": "^0.122.0",
     "linkinator": "^6.0.2",
