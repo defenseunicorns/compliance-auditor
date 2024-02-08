@@ -7,7 +7,6 @@ import (
 
 	"github.com/defenseunicorns/lula/src/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
@@ -62,8 +61,8 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []unstructured.Unstructured
 // This function is used to query the cluster for specific subset of resources required for processing
 func GetResourcesDynamically(ctx context.Context,
-	group string, version string, resource string, namespace string) (
-	[]unstructured.Unstructured, error) {
+	resource types.ResourceRule) (
+	[]map[string]interface{}, error) {
 
 	config, err := ctrl.GetConfig()
 	if err != nil {
@@ -72,19 +71,44 @@ func GetResourcesDynamically(ctx context.Context,
 	dynamic := dynamic.NewForConfigOrDie(config)
 
 	resourceId := schema.GroupVersionResource{
-		Group:    group,
-		Version:  version,
-		Resource: resource,
+		Group:    resource.Group,
+		Version:  resource.Version,
+		Resource: resource.Resource,
+	}
+	collection := make([]map[string]interface{}, 0)
+	// Query all namespaces in one execution
+	if len(resource.Namespaces) == 0 {
+		list, err := dynamic.Resource(resourceId).Namespace("").
+			List(ctx, metav1.ListOptions{})
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Reduce if named resource
+
+		for _, item := range list.Items {
+			collection = append(collection, item.Object)
+		}
+		// Query multiple namespaces
+	} else {
+		for _, namespace := range resource.Namespaces {
+			list, err := dynamic.Resource(resourceId).Namespace(namespace).
+				List(ctx, metav1.ListOptions{})
+
+			if err != nil {
+				return nil, err
+			}
+
+			// Reduce if named resource
+
+			for _, item := range list.Items {
+				collection = append(collection, item.Object)
+			}
+		}
 	}
 
-	list, err := dynamic.Resource(resourceId).Namespace(namespace).
-		List(ctx, metav1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return list.Items, nil
+	return collection, nil
 }
 
 func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
