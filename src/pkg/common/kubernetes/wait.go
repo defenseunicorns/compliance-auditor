@@ -85,16 +85,22 @@ func WaitForExistence(kind string, namespace string, timeout time.Duration) (err
 				return err
 			}
 
-			resources, err := GetResourcesDynamically(context.TODO(), gvr.Group, gvr.Version, gvr.Resource, namespace)
+			resourceRule := types.ResourceRule{
+				Group:      gvr.Group,
+				Version:    gvr.Version,
+				Resource:   gvr.Resource,
+				Namespaces: []string{namespace},
+				Name:       name,
+			}
+
+			resources, err := GetResourcesDynamically(context.TODO(), resourceRule)
 			if err != nil {
 				return err
 			}
 
-			for _, resource := range resources {
-				if resource.GetName() == name {
-					// Success
-					return nil
-				}
+			if len(resources) > 0 {
+				// success
+				return nil
 			}
 		}
 	}

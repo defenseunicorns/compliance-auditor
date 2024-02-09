@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -203,7 +202,7 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 
 						observation.RelevantEvidence = []oscalTypes.RelevantEvidence{
 							{
-								Description: fmt.Sprintf("Result: %s - Passing Resources: %s - Failing Resources %s\n", result.State, strconv.Itoa(result.Passing), strconv.Itoa(result.Failing)),
+								Description: fmt.Sprintf("Result: %s\n", result.State),
 							},
 						}
 

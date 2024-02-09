@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
@@ -22,30 +24,10 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 	collections := make(map[string]interface{}, 0)
 
 	for _, resource := range resources {
-		collection := make([]map[string]interface{}, 0)
-		rule := resource.ResourceRule
-		if len(rule.Namespaces) == 0 {
-			items, err := GetResourcesDynamically(ctx,
-				rule.Group, rule.Version, rule.Resource, "")
-			if err != nil {
-				return nil, err
-			}
-
-			for _, item := range items {
-				collection = append(collection, item.Object)
-			}
-		} else {
-			for _, namespace := range rule.Namespaces {
-				items, err := GetResourcesDynamically(ctx,
-					rule.Group, rule.Version, rule.Resource, namespace)
-				if err != nil {
-					return nil, err
-				}
-
-				for _, item := range items {
-					collection = append(collection, item.Object)
-				}
-			}
+		collection, err := GetResourcesDynamically(ctx, resource.ResourceRule)
+		// log error but continue with other resources
+		if err != nil {
+			return nil, err
 		}
 
 		if len(collection) > 0 {
@@ -58,7 +40,7 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 	return collections, nil
 }
 
-// GetResourcesDynamically() requires a dynamic interface and processes GVR to return []unstructured.Unstructured
+// GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}
 // This function is used to query the cluster for specific subset of resources required for processing
 func GetResourcesDynamically(ctx context.Context,
 	resource types.ResourceRule) (
@@ -86,9 +68,18 @@ func GetResourcesDynamically(ctx context.Context,
 		}
 
 		// Reduce if named resource
-
-		for _, item := range list.Items {
-			collection = append(collection, item.Object)
+		if resource.Name != "" {
+			items, err := reduceByName(resource.Name, list.Items)
+			if err != nil {
+				return nil, err
+			}
+			for _, item := range items {
+				collection = append(collection, item)
+			}
+		} else {
+			for _, item := range list.Items {
+				collection = append(collection, item.Object)
+			}
 		}
 		// Query multiple namespaces
 	} else {
@@ -101,9 +92,18 @@ func GetResourcesDynamically(ctx context.Context,
 			}
 
 			// Reduce if named resource
-
-			for _, item := range list.Items {
-				collection = append(collection, item.Object)
+			if resource.Name != "" {
+				items, err := reduceByName(resource.Name, list.Items)
+				if err != nil {
+					return nil, err
+				}
+				for _, item := range items {
+					collection = append(collection, item)
+				}
+			} else {
+				for _, item := range list.Items {
+					collection = append(collection, item.Object)
+				}
 			}
 		}
 	}
@@ -142,4 +142,20 @@ func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err
 	}
 
 	return nil, fmt.Errorf("kind %s not found", kind)
+}
+
+// reduceByName takes a name and loops over objects to return all matches
+// TODO: investigate supporting wildcard matching?
+func reduceByName(name string, items []unstructured.Unstructured) ([]map[string]interface{}, error) {
+	reducedItems := make([]map[string]interface{}, 0)
+	for _, item := range items {
+		if item.GetName() == name {
+			reducedItems = append(reducedItems, item.Object)
+		}
+	}
+	// TODO: Determine if this is an error or simply a log message
+	if len(reducedItems) == 0 {
+		message.Debugf("No resource found with Name %s \n", name)
+	}
+	return reducedItems, nil
 }
