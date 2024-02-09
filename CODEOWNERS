@@ -1,6 +1,24 @@
-* @brandtkeller @CloudBeard @mike-winberry @Alvin-zzz
+* @defenseunicorns/lula-dev
 
-/website/ @brandtkeller @bdfinst
+# Docs & examples
+/adr/ @brandtkeller @mike-winberry @CloudBeard
+/docs/ @brandtkeller @mike-winberry @CloudBeard
+*.md @brandtkeller @mike-winberry @CloudBeard
+
+# Docs website
+/website/ @brandtkeller @CloudBeard @mike-winberry
+
+# Core code
+/src/ @brandtkeller @mike-winberry @CloudBeard
+/go.* @brandtkeller @mike-winberry @CloudBeard
+main.go @brandtkeller @mike-winberry @CloudBeard
+
+# Privileged pipeline files
+/.github/ @brandtkeller @mike-winberry @CloudBeard
+/.gitignore @brandtkeller @mike-winberry @CloudBeard
+/.goreleaser.yaml @brandtkeller @mike-winberry @CloudBeard
+/renovate.json @brandtkeller @mike-winberry @CloudBeard
+/Makefile @brandtkeller @mike-winberry @CloudBeard
 
 # Additional privileged files
 /CODEOWNERS @jeff-mccoy @brandtkeller
