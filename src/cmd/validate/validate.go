@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
@@ -201,9 +201,18 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 							result.State = "not-satisfied"
 						}
 
+						// Add remarks if Result has Observations
+						var remarks string
+						if len(result.Observations) > 0 {
+							for k, v := range result.Observations {
+								remarks += fmt.Sprintf("%s: %s\n", k, v)
+							}
+						}
+
 						observation.RelevantEvidence = []oscalTypes.RelevantEvidence{
 							{
 								Description: fmt.Sprintf("Result: %s - Passing Resources: %s - Failing Resources %s\n", result.State, strconv.Itoa(result.Passing), strconv.Itoa(result.Failing)),
+								Remarks:     remarks,
 							},
 						}
 
