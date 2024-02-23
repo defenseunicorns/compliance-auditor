@@ -8,8 +8,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"reflect"
 
 	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/mitchellh/mapstructure"
 
@@ -144,6 +146,7 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 			matchResult.Passing += 1
 		} else {
 			matchResult.Failing += 1
+			message.Debugf("Validation field expected bool and got %s", reflect.TypeOf(resultValid[0].Expressions[0].Value))
 		}
 	} else {
 		matchResult.Failing += 1
@@ -163,8 +166,14 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 			return matchResult, fmt.Errorf("failed to evaluate rego policy: %w", err)
 		}
 		// To do: check if resultObv is empty - basically some extra error handling if a user defines an output but it's not coming out of the rego
-		if matched, ok := resultObv[0].Expressions[0].Value.(string); ok {
-			observations[obv] = matched
+		if len(resultObv) != 0 {
+			if matched, ok := resultObv[0].Expressions[0].Value.(string); ok {
+				observations[obv] = matched
+			} else {
+				message.Debugf("Observation field %s expected string and got %s", obv, reflect.TypeOf(resultObv[0].Expressions[0].Value))
+			}
+		} else {
+			message.Debugf("Observation field %s not output from rego", obv)
 		}
 	}
 	matchResult.Observations = observations

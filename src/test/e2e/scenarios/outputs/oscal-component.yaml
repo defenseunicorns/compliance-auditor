@@ -44,6 +44,9 @@ component-definition:
         - href: '#17c5f855-4f7b-4545-aa1c-cd01f416c290'
           rel: reference
           text: Lula Validation
+        - href: '#67993bda-95e2-431e-8384-0cf34dd7ce49'
+          rel: reference
+          text: Lula Validation
   back-matter: 
     resources:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
@@ -105,3 +108,29 @@ component-definition:
               validate: validate.validate
               observations:
               - validate.test
+    - uuid: 67993bda-95e2-431e-8384-0cf34dd7ce49
+      title: Lula Validation
+      remarks: >-
+        With bad outputs in payload
+      description: >-
+        target:
+          provider: opa
+          domain: kubernetes
+          payload:
+            resources:
+            - name: podsvt
+              resourceRule:
+                Group:
+                Version: v1
+                Resource: pods
+                Namespaces: [validation-test]
+            rego: |
+              package validate
+
+              validate := "random string"
+              test := false
+            output:
+              validation: validate.validate
+              observations:
+              - validate.test
+              - validate.missing

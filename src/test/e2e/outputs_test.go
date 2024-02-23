@@ -41,20 +41,12 @@ func TestOutputs(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			for _, finding := range findingMap {
-				state := finding.Target.Status.State
-				if state != "satisfied" {
-					t.Fatal("State should be satisfied, but got :", state)
-				}
-			}
-
-			// Test report generation
+			// Write report(s) to file to examine remarks
 			report, err := oscal.GenerateAssessmentResults(findingMap, observations)
 			if err != nil {
 				t.Fatal("Failed generation of Assessment Results object with: ", err)
 			}
 
-			// Write report(s) to file
 			err = validate.WriteReport(report, "assessment-results-outputs.yaml")
 			if err != nil {
 				t.Fatal("Failed to write report to file: ", err)
