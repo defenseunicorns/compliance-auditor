@@ -42,7 +42,7 @@ jobs:
         uses: ./.github/actions/golang
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@e2e140ad1441662206e8f97754b166877dfa1c73 # v3.24.4
+        uses: github/codeql-action/init@47b3d888fe66b639e431abf22ebca059152f1eea # v3.24.5
         with:
           languages: ${{ matrix.language }}
           # config-file: ./.github/codeql.yaml #Uncomment once config file is needed.
@@ -52,7 +52,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         id: scan
-        uses: github/codeql-action/analyze@e2e140ad1441662206e8f97754b166877dfa1c73 # v3.24.4
+        uses: github/codeql-action/analyze@47b3d888fe66b639e431abf22ebca059152f1eea # v3.24.5
         with:
           category: "/language:${{matrix.language}}"
 
