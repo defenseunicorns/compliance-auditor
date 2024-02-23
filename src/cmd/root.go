@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/evaluate"
+	"github.com/defenseunicorns/lula/src/cmd/generate"
 	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/cmd/version"
@@ -59,6 +60,7 @@ func init() {
 	commands := []*cobra.Command{
 		validate.ValidateCommand(),
 		evaluate.EvaluateCommand(),
+		generate.GenerateCommand(),
 	}
 
 	rootCmd.AddCommand(commands...)
