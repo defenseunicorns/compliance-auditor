@@ -1,0 +1,76 @@
+assessment-results:
+  import-ap:
+    href: ""
+  metadata:
+    last-modified: 2024-02-29T11:24:24.301624885-08:00
+    oscal-version: 1.1.2
+    published: 2024-02-29T11:24:24.301624885-08:00
+    remarks: Assessment Results generated from Lula
+    title: '[System Name] Security Assessment Results (SAR)'
+    version: 0.0.1
+  results:
+    - description: Assessment results for performing Validations with Lula version unset
+      findings:
+        - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: ea389817-a522-4efc-9b9b-a080cb520e14
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: ecf5c7b3-7de6-4ee5-86db-fc83bcbd238c
+      observations:
+        - collected: 2024-02-29T11:24:24.294432098-08:00
+          description: |
+            [TEST] ID-1 - 88AB3470-B96B-4D7C-BC36-02BF9563C46C
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied - Passing Resources: 1 - Failing Resources 0
+          uuid: ea389817-a522-4efc-9b9b-a080cb520e14
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-02-29T11:24:24.302709841-08:00
+      title: Lula Validation Result
+      uuid: 22ae3869-d09f-4c02-9116-7640415ba832
+    - description: Assessment results for performing Validations with Lula version unset
+      findings:
+        - description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: ea389817-a522-4efc-9b9b-a080cb520e14
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: ecf5c7b3-7de6-4ee5-86db-fc83bcbd238c
+      observations:
+        - collected: 2024-02-29T11:24:24.294432098-08:00
+          description: |
+            [TEST] ID-1 - 88AB3470-B96B-4D7C-BC36-02BF9563C46C
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied - Passing Resources: 1 - Failing Resources 0
+          uuid: ea389817-a522-4efc-9b9b-a080cb520e14
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-02-29T11:24:24.301624885-08:00
+      title: Lula Validation Result
+      uuid: 35a6dfbd-23de-49a3-a920-7a8a970c4928
+  uuid: 3df8ed53-090c-45b4-9bf1-5e8dd895d1bc

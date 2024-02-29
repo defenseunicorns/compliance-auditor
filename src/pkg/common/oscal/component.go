@@ -3,15 +3,15 @@ package oscal
 import (
 	"fmt"
 
-	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
 
 // NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
 // Standard use is to read a file from the filesystem and pass the []byte to this function
-func NewOscalComponentDefinition(data []byte) (oscalTypes.ComponentDefinition, error) {
-	var oscalModels oscalTypes.OscalModels
+func NewOscalComponentDefinition(data []byte) (oscalTypes_1_1_2.ComponentDefinition, error) {
+	var oscalModels oscalTypes_1_1_2.OscalModels
 
 	err := yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
@@ -23,7 +23,7 @@ func NewOscalComponentDefinition(data []byte) (oscalTypes.ComponentDefinition, e
 }
 
 // Map an array of resources to a map of UUID to validation object
-func BackMatterToMap(backMatter oscalTypes.BackMatter) map[string]types.Validation {
+func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Validation {
 	resourceMap := make(map[string]types.Validation)
 
 	for _, resource := range backMatter.Resources {
