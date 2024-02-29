@@ -1,6 +1,0 @@
-{
-    "go.alternateTools": {
-        "go.gopath": "/home/tripplesixactual/.gvm/pkgsets/go1.21.3/global",
-        "go.goroot": "/home/tripplesixactual/.gvm/gos/go1.21.3",
-    }
-}
