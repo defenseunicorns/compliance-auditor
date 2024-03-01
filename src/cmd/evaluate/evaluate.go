@@ -3,7 +3,7 @@ package evaluate
 import (
 	"fmt"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -49,7 +49,7 @@ func EvaluateCommand() *cobra.Command {
 
 func EvaluateAssessmentResults(files []string) error {
 	var status bool
-	var findings map[string][]oscalTypes.Finding
+	var findings map[string][]oscalTypes_1_1_2.Finding
 	// Read in files - establish the results to
 	if len(files) == 0 {
 		// TODO: Determine if we will handle a default location/name for assessment files
@@ -120,12 +120,12 @@ func EvaluateAssessmentResults(files []string) error {
 	}
 }
 
-func EvaluateResults(thresholdResult oscalTypes.Result, newResult oscalTypes.Result) (bool, map[string][]oscalTypes.Finding, error) {
+func EvaluateResults(thresholdResult oscalTypes_1_1_2.Result, newResult oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
 	spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", newResult.UUID, thresholdResult.UUID)
 	defer spinner.Stop()
 
 	// Store unique findings for review here
-	findings := make(map[string][]oscalTypes.Finding, 0)
+	findings := make(map[string][]oscalTypes_1_1_2.Finding, 0)
 	result := true
 
 	findingMapThreshold := oscal.GenerateFindingsMap(thresholdResult.Findings)

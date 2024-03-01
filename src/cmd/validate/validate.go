@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	"github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
@@ -97,7 +97,7 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPath(path string) (findingMap map[string]oscalTypes.Finding, observations []oscalTypes.Observation, err error) {
+func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation, err error) {
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
@@ -124,7 +124,7 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes.Finding, obse
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
-func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscalTypes.Finding, []oscalTypes.Observation, error) {
+func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 
 	// Populate a map[uuid]Validation into the validations
 	validations := oscal.BackMatterToMap(compDef.BackMatter)
@@ -133,25 +133,25 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 	ctx := context.Background()
 	// Loops all the way down
 
-	findings := make(map[string]oscalTypes.Finding)
-	observations := make([]oscalTypes.Observation, 0)
+	findings := make(map[string]oscalTypes_1_1_2.Finding)
+	observations := make([]oscalTypes_1_1_2.Observation, 0)
 
 	for _, component := range compDef.Components {
 		for _, controlImplementation := range component.ControlImplementations {
-			rfc3339Time := time.Now().Format(time.RFC3339)
+			rfc3339Time := time.Now()
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
 				spinner := message.NewProgressSpinner("Validating Implemented Requirement - %s", implementedRequirement.UUID)
 				defer spinner.Stop()
 
 				// This should produce a finding - check if an existing finding for the control-id has been processed
-				var finding oscalTypes.Finding
-				tempObservations := make([]oscalTypes.Observation, 0)
-				relatedObservations := make([]oscalTypes.RelatedObservation, 0)
+				var finding oscalTypes_1_1_2.Finding
+				tempObservations := make([]oscalTypes_1_1_2.Observation, 0)
+				relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0)
 
 				if _, ok := findings[implementedRequirement.ControlId]; ok {
 					finding = findings[implementedRequirement.ControlId]
 				} else {
-					finding = oscalTypes.Finding{
+					finding = oscalTypes_1_1_2.Finding{
 						UUID:        uuid.NewUUID(),
 						Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", component.UUID, controlImplementation.UUID, implementedRequirement.ControlId),
 						Description: implementedRequirement.Description,
@@ -167,7 +167,7 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 					// Current identifier is the link text
 					if link.Text == "Lula Validation" {
 						sharedUuid := uuid.NewUUID()
-						observation := oscalTypes.Observation{
+						observation := oscalTypes_1_1_2.Observation{
 							Collected: rfc3339Time,
 							Methods:   []string{"TEST"},
 							UUID:      sharedUuid,
@@ -183,7 +183,7 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 							} else {
 								result, err = ValidateOnTarget(ctx, id, val.Description)
 								if err != nil {
-									return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, err
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 								}
 								// Store the result in the validation object
 								val.Result = result
@@ -191,7 +191,7 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 								validations[id] = val
 							}
 						} else {
-							return map[string]oscalTypes.Finding{}, []oscalTypes.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
+							return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
 						}
 
 						// Individual result state
@@ -201,13 +201,13 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 							result.State = "not-satisfied"
 						}
 
-						observation.RelevantEvidence = []oscalTypes.RelevantEvidence{
+						observation.RelevantEvidence = []oscalTypes_1_1_2.RelevantEvidence{
 							{
 								Description: fmt.Sprintf("Result: %s - Passing Resources: %s - Failing Resources %s\n", result.State, strconv.Itoa(result.Passing), strconv.Itoa(result.Failing)),
 							},
 						}
 
-						relatedObservation := oscalTypes.RelatedObservation{
+						relatedObservation := oscalTypes_1_1_2.RelatedObservation{
 							ObservationUuid: sharedUuid,
 						}
 
@@ -234,8 +234,8 @@ func ValidateOnCompDef(compDef oscalTypes.ComponentDefinition) (map[string]oscal
 				message.Infof("UUID: %v", finding.UUID)
 				message.Infof("    Status: %v", state)
 
-				finding.Target = oscalTypes.FindingTarget{
-					Status: oscalTypes.Status{
+				finding.Target = oscalTypes_1_1_2.FindingTarget{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: state,
 					},
 					TargetId: implementedRequirement.ControlId,
@@ -274,10 +274,10 @@ func ValidateOnTarget(ctx context.Context, id string, target map[string]interfac
 // This is the OSCAL document generation for final output.
 // This should include some ability to consolidate controls met in multiple input documents under single control entries
 // This should include fields that reference the source of the control to the original document ingested
-func WriteReport(report oscalTypes.AssessmentResults, assessmentFilePath string) error {
+func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath string) error {
 
 	var fileName string
-	var tempAssessment oscalTypes.AssessmentResults
+	var tempAssessment oscalTypes_1_1_2.AssessmentResults
 
 	if assessmentFilePath != "" {
 
@@ -294,7 +294,7 @@ func WriteReport(report oscalTypes.AssessmentResults, assessmentFilePath string)
 				return err
 			}
 
-			results := make([]oscalTypes.Result, 0)
+			results := make([]oscalTypes_1_1_2.Result, 0)
 			// append new results first - unfurl so as to allow multiple results in the future
 			results = append(results, report.Results...)
 			results = append(results, tempAssessment.Results...)
@@ -318,7 +318,7 @@ func WriteReport(report oscalTypes.AssessmentResults, assessmentFilePath string)
 
 	var b bytes.Buffer
 
-	var sar = oscalTypes.OscalModels{
+	var sar = oscalTypes_1_1_2.OscalModels{
 		AssessmentResults: tempAssessment,
 	}
 
