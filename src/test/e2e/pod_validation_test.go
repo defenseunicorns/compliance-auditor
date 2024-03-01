@@ -104,6 +104,11 @@ func TestPodLabelValidation(t *testing.T) {
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
+			err := os.Remove("sar-test.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			return ctx
 		}).Feature()
 
