@@ -48,7 +48,7 @@ func GetResourcesDynamically(ctx context.Context,
 
 	config, err := ctrl.GetConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error with connection to the Cluster")
+		return nil, fmt.Errorf("error with connection to the Cluster")
 	}
 	dynamic := dynamic.NewForConfigOrDie(config)
 
@@ -73,9 +73,7 @@ func GetResourcesDynamically(ctx context.Context,
 			if err != nil {
 				return nil, err
 			}
-			for _, item := range items {
-				collection = append(collection, item)
-			}
+			collection = append(collection, items...)
 		} else {
 			for _, item := range list.Items {
 				collection = append(collection, item.Object)
@@ -97,9 +95,7 @@ func GetResourcesDynamically(ctx context.Context,
 				if err != nil {
 					return nil, err
 				}
-				for _, item := range items {
-					collection = append(collection, item)
-				}
+				collection = append(collection, items...)
 			} else {
 				for _, item := range list.Items {
 					collection = append(collection, item.Object)
@@ -114,7 +110,7 @@ func GetResourcesDynamically(ctx context.Context,
 func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
 	config, err := ctrl.GetConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error with connection to the Cluster")
+		return nil, fmt.Errorf("error with connection to the Cluster")
 	}
 	name := strings.Split(kind, "/")[0]
 
@@ -145,7 +141,6 @@ func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err
 }
 
 // reduceByName takes a name and loops over objects to return all matches
-// TODO: investigate supporting wildcard matching?
 func reduceByName(name string, items []unstructured.Unstructured) ([]map[string]interface{}, error) {
 	reducedItems := make([]map[string]interface{}, 0)
 	for _, item := range items {
