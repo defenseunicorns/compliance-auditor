@@ -29,13 +29,14 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 			return nil, err
 		}
 
-		// TODO: perform a check here to modify the collection to a single object if named resource
-
 		if len(collection) > 0 {
 			// Append to collections if not empty collection
-			// Adding the collection to the map when empty will result in a false positive for the validation in OPA?
-			// TODO: add warning log here
-			collections[resource.Name] = collection
+			// convert to object if named resource
+			if resource.ResourceRule.Name != "" {
+				collections[resource.Name] = collection[0]
+			} else {
+				collections[resource.Name] = collection
+			}
 		}
 	}
 	return collections, nil
@@ -127,7 +128,7 @@ func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err
 	return nil, fmt.Errorf("kind %s not found", kind)
 }
 
-// reduceByName takes a name and loops over all items to return the first match
+// reduceByName() takes a name and loops over all items to return the first match
 func reduceByName(name string, items []unstructured.Unstructured) (map[string]interface{}, error) {
 
 	for _, item := range items {
