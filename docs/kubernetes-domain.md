@@ -48,12 +48,12 @@ target:
   domain: kubernetes
   payload:
     resources:
-    - name: podsvt                      # Identifier for use in the rego below
-      resourceRule:                     # Mandatory, resource selection criteria, at least one resource rule is required
-        Group:                          # empty or "" for core group
-        Version: v1                     # Version of resource
-        Resource: pods                  # Resource type
-        Namespaces: [validation-test]   # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+    - name: podsvt
+      resourceRule:
+        Group:
+        Version: v1
+        Resource: pods
+        Namespaces: [validation-test]
     rego: |
       package validate
 
