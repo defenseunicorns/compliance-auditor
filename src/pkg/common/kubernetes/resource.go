@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -29,6 +28,8 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 		if err != nil {
 			return nil, err
 		}
+
+		// TODO: perform a check here to modify the collection to a single object if named resource
 
 		if len(collection) > 0 {
 			// Append to collections if not empty collection
@@ -58,9 +59,13 @@ func GetResourcesDynamically(ctx context.Context,
 		Resource: resource.Resource,
 	}
 	collection := make([]map[string]interface{}, 0)
-	// Query all namespaces in one execution
-	if len(resource.Namespaces) == 0 {
-		list, err := dynamic.Resource(resourceId).Namespace("").
+
+	namespaces := []string{""}
+	if len(resource.Namespaces) != 0 {
+		namespaces = resource.Namespaces
+	}
+	for _, namespace := range namespaces {
+		list, err := dynamic.Resource(resourceId).Namespace(namespace).
 			List(ctx, metav1.ListOptions{})
 
 		if err != nil {
@@ -69,37 +74,19 @@ func GetResourcesDynamically(ctx context.Context,
 
 		// Reduce if named resource
 		if resource.Name != "" {
-			items, err := reduceByName(resource.Name, list.Items)
-			if err != nil {
-				return nil, err
-			}
-			collection = append(collection, items...)
-		} else {
-			for _, item := range list.Items {
-				collection = append(collection, item.Object)
-			}
-		}
-		// Query multiple namespaces
-	} else {
-		for _, namespace := range resource.Namespaces {
-			list, err := dynamic.Resource(resourceId).Namespace(namespace).
-				List(ctx, metav1.ListOptions{})
-
-			if err != nil {
-				return nil, err
-			}
-
-			// Reduce if named resource
-			if resource.Name != "" {
-				items, err := reduceByName(resource.Name, list.Items)
+			// requires single specified namespace
+			if len(resource.Namespaces) == 1 {
+				item, err := reduceByName(resource.Name, list.Items)
 				if err != nil {
 					return nil, err
 				}
-				collection = append(collection, items...)
-			} else {
-				for _, item := range list.Items {
-					collection = append(collection, item.Object)
-				}
+				collection = append(collection, item)
+				return collection, nil
+			}
+
+		} else {
+			for _, item := range list.Items {
+				collection = append(collection, item.Object)
 			}
 		}
 	}
@@ -140,17 +127,14 @@ func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err
 	return nil, fmt.Errorf("kind %s not found", kind)
 }
 
-// reduceByName takes a name and loops over objects to return all matches
-func reduceByName(name string, items []unstructured.Unstructured) ([]map[string]interface{}, error) {
-	reducedItems := make([]map[string]interface{}, 0)
+// reduceByName takes a name and loops over all items to return the first match
+func reduceByName(name string, items []unstructured.Unstructured) (map[string]interface{}, error) {
+
 	for _, item := range items {
 		if item.GetName() == name {
-			reducedItems = append(reducedItems, item.Object)
+			return item.Object, nil
 		}
 	}
-	// TODO: Determine if this is an error or simply a log message
-	if len(reducedItems) == 0 {
-		message.Debugf("No resource found with Name %s \n", name)
-	}
-	return reducedItems, nil
+
+	return nil, fmt.Errorf("no resource found with name %s", name)
 }
