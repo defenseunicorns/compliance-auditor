@@ -28,7 +28,7 @@ func TestPodLabelValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
-			err = wait.For(conditions.New(config.Client().Resources()).PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*5))
+			err = wait.For(conditions.New(config.Client().Resources()).PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*1))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -104,7 +104,13 @@ func TestPodLabelValidation(t *testing.T) {
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
-			err := os.Remove("sar-test.yaml")
+
+			err := wait.For(conditions.New(config.Client().Resources()).ResourceDeleted(pod), wait.WithTimeout(time.Minute*1))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = os.Remove("sar-test.yaml")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -150,6 +156,11 @@ func TestPodLabelValidation(t *testing.T) {
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
+			err := wait.For(conditions.New(config.Client().Resources()).ResourceDeleted(pod), wait.WithTimeout(time.Minute*1))
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			return ctx
 		}).Feature()
 

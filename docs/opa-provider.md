@@ -2,28 +2,34 @@
 
 The OPA provider provides Lula with the capability to evaluate the `domain` in target against a rego policy. 
 
-# Payload Expectation
+## Payload Expectation
 
 The validation performed should be in the form of provider, domain, and payload.
 
 Example:
 ```yaml
-  - provider: "opa"
-    domain: "kubernetes"
-    payload:
-      resourceRules:      # Mandatory, resource selection criteria, at least one resource rule is required
-      - Group:            # empty or "" for core group
-        Version: v1       # Version of resource
-        Resource: pods    # Resource type
-        Namespaces: [validation-test]  # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
-      rego: |
-        package validate 
+target:
+  provider: opa
+  domain: kubernetes
+  payload:
+    resources:
+    - name: podsvt
+      resourceRule:
+        Group:
+        Version: v1
+        Resource: pods
+        Namespaces: [validation-test]
+    rego: |                                   # Required - Rego policy used for data validation
+      package validate                        # Required - Package name
 
-        validate {
-          input.kind == "Pod"
-          podLabel := input.metadata.labels.foo
+      import future.keywords.every            # Optional - Any imported keywords
+
+      validate {                              # Required - Rule Name for evaluation - "validate" is the only supported rule
+        every pod in input.podsvt {
+          podLabel := pod.metadata.labels.foo
           podLabel == "bar"
         }
+      }
 ```
 
 
@@ -69,3 +75,6 @@ rego: |
     foolabel
   }
 ```
+
+> [!IMPORTANT]
+> `package validate` and `validate` are required package and rule for Lula use currently. 
