@@ -33,6 +33,7 @@ func init() {
 			spinner := message.NewProgressSpinner("Linting %s", opts.InputFile)
 			defer spinner.Stop()
 
+			// The ValidateCommand has some logging behavior that is not ideal for lula.
 			validator, err := validate.ValidateCommand(opts.InputFile)
 			if err != nil {
 				fmt.Println(err)
