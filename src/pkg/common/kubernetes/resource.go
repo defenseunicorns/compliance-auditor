@@ -23,74 +23,82 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 	collections := make(map[string]interface{}, 0)
 
 	for _, resource := range resources {
-		collection := make([]map[string]interface{}, 0)
-		rule := resource.ResourceRule
-		if len(rule.Namespaces) == 0 {
-			items, err := GetResourcesDynamically(ctx,
-				rule.Group, rule.Version, rule.Resource, "")
-			if err != nil {
-				return nil, err
-			}
-
-			for _, item := range items {
-				collection = append(collection, item.Object)
-			}
-		} else {
-			for _, namespace := range rule.Namespaces {
-				items, err := GetResourcesDynamically(ctx,
-					rule.Group, rule.Version, rule.Resource, namespace)
-				if err != nil {
-					return nil, err
-				}
-
-				for _, item := range items {
-					collection = append(collection, item.Object)
-				}
-			}
+		collection, err := GetResourcesDynamically(ctx, resource.ResourceRule)
+		// log error but continue with other resources
+		if err != nil {
+			return nil, err
 		}
 
 		if len(collection) > 0 {
 			// Append to collections if not empty collection
-			// Adding the collection to the map when empty will result in a false positive for the validation in OPA?
-			// TODO: add warning log here
-			collections[resource.Name] = collection
+			// convert to object if named resource
+			if resource.ResourceRule.Name != "" {
+				collections[resource.Name] = collection[0]
+			} else {
+				collections[resource.Name] = collection
+			}
 		}
 	}
 	return collections, nil
 }
 
-// GetResourcesDynamically() requires a dynamic interface and processes GVR to return []unstructured.Unstructured
+// GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}
 // This function is used to query the cluster for specific subset of resources required for processing
 func GetResourcesDynamically(ctx context.Context,
-	group string, version string, resource string, namespace string) (
-	[]unstructured.Unstructured, error) {
+	resource types.ResourceRule) (
+	[]map[string]interface{}, error) {
 
 	config, err := ctrl.GetConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error with connection to the Cluster")
+		return nil, fmt.Errorf("error with connection to the Cluster")
 	}
 	dynamic := dynamic.NewForConfigOrDie(config)
 
 	resourceId := schema.GroupVersionResource{
-		Group:    group,
-		Version:  version,
-		Resource: resource,
+		Group:    resource.Group,
+		Version:  resource.Version,
+		Resource: resource.Resource,
+	}
+	collection := make([]map[string]interface{}, 0)
+
+	namespaces := []string{""}
+	if len(resource.Namespaces) != 0 {
+		namespaces = resource.Namespaces
+	}
+	for _, namespace := range namespaces {
+		list, err := dynamic.Resource(resourceId).Namespace(namespace).
+			List(ctx, metav1.ListOptions{})
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Reduce if named resource
+		if resource.Name != "" {
+			// requires single specified namespace
+			if len(resource.Namespaces) == 1 {
+				item, err := reduceByName(resource.Name, list.Items)
+				if err != nil {
+					return nil, err
+				}
+				collection = append(collection, item)
+				return collection, nil
+			}
+
+		} else {
+			for _, item := range list.Items {
+				collection = append(collection, item.Object)
+			}
+		}
 	}
 
-	list, err := dynamic.Resource(resourceId).Namespace(namespace).
-		List(ctx, metav1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return list.Items, nil
+	return collection, nil
 }
 
 func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
 	config, err := ctrl.GetConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error with connection to the Cluster")
+		return nil, fmt.Errorf("error with connection to the Cluster")
 	}
 	name := strings.Split(kind, "/")[0]
 
@@ -118,4 +126,16 @@ func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err
 	}
 
 	return nil, fmt.Errorf("kind %s not found", kind)
+}
+
+// reduceByName() takes a name and loops over all items to return the first match
+func reduceByName(name string, items []unstructured.Unstructured) (map[string]interface{}, error) {
+
+	for _, item := range items {
+		if item.GetName() == name {
+			return item.Object, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no resource found with name %s", name)
 }
