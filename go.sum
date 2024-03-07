@@ -63,6 +63,8 @@ github.com/defenseunicorns/go-oscal v0.2.0 h1:hyRMUoQT2RFk/VIxz19yZKngobjdIuI+si
 github.com/defenseunicorns/go-oscal v0.2.0/go.mod h1:4JXNIFmWK1VBHpmXicW/g65MizUEHKUexy3Lb2lH2/I=
 github.com/defenseunicorns/go-oscal v0.2.2 h1:JEXhNNRoVseDcH+Tlagf+MM8Y9nv5r7mPEHrAQIW7I0=
 github.com/defenseunicorns/go-oscal v0.2.2/go.mod h1:4JXNIFmWK1VBHpmXicW/g65MizUEHKUexy3Lb2lH2/I=
+github.com/defenseunicorns/go-oscal v0.2.3 h1:3ZaP956g4Eh+SlthopUBAMglFmWKSMPdbkIhHqeoz+s=
+github.com/defenseunicorns/go-oscal v0.2.3/go.mod h1:4JXNIFmWK1VBHpmXicW/g65MizUEHKUexy3Lb2lH2/I=
 github.com/dgraph-io/badger/v3 v3.2103.5 h1:ylPa6qzbjYRQMU6jokoj4wzcaweHylt//CH0AKt0akg=
 github.com/dgraph-io/badger/v3 v3.2103.5/go.mod h1:4MPiseMeDQ3FNCYwRbbcBOGJLf5jsE0PPFzRiKjtcdw=
 github.com/dgraph-io/ristretto v0.1.1 h1:6CWw5tJNgpegArSHpNHJKldNeq03FQCwYvfMVWajOK8=
@@ -309,6 +311,8 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/swaggest/jsonschema-go v0.3.67 h1:09tIfjZdeJW5ijK6ahkSpfVZv8Rj7tG3SLi/C/knj4c=
 github.com/swaggest/jsonschema-go v0.3.67/go.mod h1:7N43/CwdaWgPUDfYV70K7Qm79tRqe/al7gLSt9YeGIE=
+github.com/swaggest/jsonschema-go v0.3.69 h1:BNEajhoQjnEQzxZqPmjD1Pcs1pxnjx/X9L5KWllLHxo=
+github.com/swaggest/jsonschema-go v0.3.69/go.mod h1:7N43/CwdaWgPUDfYV70K7Qm79tRqe/al7gLSt9YeGIE=
 github.com/swaggest/refl v1.3.0 h1:PEUWIku+ZznYfsoyheF97ypSduvMApYyGkYF3nabS0I=
 github.com/swaggest/refl v1.3.0/go.mod h1:3Ujvbmh1pfSbDYjC6JGG7nMgPvpG0ehQL4iNonnLNbg=
 github.com/tchap/go-patricia/v2 v2.3.1 h1:6rQp39lgIYZ+MHmdEq4xzuk1t7OdC35z/xm0BGhTkes=
