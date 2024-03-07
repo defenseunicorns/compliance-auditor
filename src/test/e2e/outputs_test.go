@@ -2,11 +2,11 @@ package test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
@@ -41,15 +41,28 @@ func TestOutputs(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// Write report(s) to file to examine remarks
-			report, err := oscal.GenerateAssessmentResults(findingMap, observations)
-			if err != nil {
-				t.Fatal("Failed generation of Assessment Results object with: ", err)
+			// Check validation results are expected
+			if findingMap["ID-1"].Target.Status.State != "satisfied" {
+				t.Fatal("Failed to validate payload.output validation for ID-1")
+			}
+			if findingMap["ID-2"].Target.Status.State != "not-satisfied" {
+				t.Fatal("Failed to validate payload.output validation for ID-2")
 			}
 
-			err = validate.WriteReport(report, "assessment-results-outputs.yaml")
-			if err != nil {
-				t.Fatal("Failed to write report to file: ", err)
+			// Check that remarks are valid
+			for _, o := range observations {
+				if strings.Contains(o.Description, "ID-1") {
+					// Check remarks have printed the correct observation value
+					if o.RelevantEvidence[0].Remarks != "validate.test: hello world\n" {
+						t.Fatal("Failed to validate payload.output observations for ID-1")
+					}
+				}
+				if strings.Contains(o.Description, "ID-2") {
+					// Check remarks are empty due to incorrect observation formats
+					if o.RelevantEvidence[0].Remarks != "" {
+						t.Fatal("Failed to validate payload.output observations for ID-2")
+					}
+				}
 			}
 
 			message.Infof("Successfully validated payload.output structure")
