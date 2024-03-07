@@ -32,7 +32,7 @@ func init() {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			config.SkipLogFile = true
 		},
-		Long:    "Validate an OSCAL document against the OSCAL schema version provided. If the document is valid, upgrade it to the provided OSCAL version. Otherwise, return an ValidationError.",
+		Long:    "Validate an OSCAL document against the OSCAL schema version provided. If the document is valid, upgrade it to the provided OSCAL version. Otherwise, return or write as ValidationError.",
 		Example: upgradeHelp,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Check if the input file is specified and is a json or yaml file
