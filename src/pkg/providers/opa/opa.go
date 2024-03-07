@@ -121,6 +121,17 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 		return matchResult, fmt.Errorf("failed to compile rego policy: %w", err)
 	}
 
+	// Debugging
+	jsonData, err := json.MarshalIndent(dataset, "", "    ")
+	if err != nil {
+		log.Fatalf("Error marshaling to JSON: %v", err)
+	}
+
+	// Print JSON string
+	fmt.Printf("Dataset: %s\n", string(jsonData))
+	fmt.Printf("Rego Policy: %+v\n", regoPolicy)
+	// Debugging end
+
 	regoCalc := rego.New(
 		rego.Query("data.validate"),
 		rego.Compiler(compiler),
