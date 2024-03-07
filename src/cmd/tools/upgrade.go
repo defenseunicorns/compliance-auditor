@@ -68,25 +68,25 @@ func init() {
 			}
 
 			// Create Upgrader
-			reviser, err := revision.NewReviser(bytes, upgradeOpts.Version)
+			upgrader, err := revision.NewReviser(bytes, upgradeOpts.Version)
 			if err != nil {
 				message.Fatalf(err, "Failed to create reviser")
 			}
 
 			// Warn if the version is not the latest
-			version := reviser.GetSchemaVersion()
+			version := upgrader.GetSchemaVersion()
 			warning := utils.VersionWarning(version)
 			if warning != nil {
 				message.Warn(warning.Error())
 			}
 
-			reviser.SetDocumentPath(upgradeOpts.InputFile)
+			upgrader.SetDocumentPath(upgradeOpts.InputFile)
 
 			// Upgrade the document
-			revisionError := reviser.Revise()
+			revisionError := upgrader.Revise()
 
 			// Write the validation result if it was specified and exists before handling the revision error
-			result, err := reviser.GetValidationResult()
+			result, err := upgrader.GetValidationResult()
 			if err == nil && upgradeOpts.ValidationResult != "" {
 				err = validation.WriteValidationResult(result, upgradeOpts.ValidationResult)
 				if err != nil {
@@ -94,23 +94,24 @@ func init() {
 				}
 			}
 
+			// Handle the revision error
 			if revisionError != nil {
 				message.Fatalf(revisionError, "Failed to upgrade %s to OSCAL version %s", upgradeOpts.InputFile, upgradeOpts.Version)
 			}
 
 			// Get the upgraded bytes
-			upgradeBytes, err := reviser.GetRevisedBytes(outputExt)
+			upgradedBytes, err := upgrader.GetRevisedBytes(outputExt)
 			if err != nil {
 				message.Fatalf(err, "Failed to marshal the upgraded document")
 			}
 
 			// Write the upgraded document
-			err = goOscalUtils.WriteOutput(upgradeBytes, upgradeOpts.OutputFile)
+			err = goOscalUtils.WriteOutput(upgradedBytes, upgradeOpts.OutputFile)
 			if err != nil {
 				message.Fatalf(err, "Failed to write the upgraded document to %s", upgradeOpts.OutputFile)
 			}
 
-			message.Infof("Successfully upgraded %s to OSCAL version %s %s\n", upgradeOpts.InputFile, reviser.GetSchemaVersion(), reviser.GetModelType())
+			message.Infof("Successfully upgraded %s to OSCAL version %s %s\n", upgradeOpts.InputFile, upgrader.GetSchemaVersion(), upgrader.GetModelType())
 			spinner.Success()
 		},
 	}
