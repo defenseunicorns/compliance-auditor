@@ -171,18 +171,6 @@ func getFieldValue(item map[string]interface{}, field types.Field) (map[string]i
 			}
 
 		}
-
-		// if i == len(pathParts)-1 { // If it's the last part, try to print the value
-		// 	if value, ok := current[part].(string); ok {
-		// 		fieldValue = value
-		// 	}
-		// } else { // Not the last part, navigate deeper
-		// 	if next, ok := current[part].(map[string]interface{}); ok {
-		// 		current = next
-		// 	} else {
-		// 		return nil, fmt.Errorf("path not found: %s", strings.Join(pathParts[:i+1], "."))
-		// 	}
-		// }
 	}
 
 	// If base64 encoded, decode the data first
