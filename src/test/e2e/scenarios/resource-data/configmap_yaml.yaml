@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-yaml
+  namespace: validation-test
+data:
+  app-config.yaml: |
+    logging:
+      level: INFO
+      format: text

@@ -41,96 +41,68 @@ component-definition:
         - href: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
           rel: reference
           text: Lula Validation
-        - href: '#17c5f855-4f7b-4545-aa1c-cd01f416c290'
-          rel: reference
-          text: Lula Validation
-        - href: '#67993bda-95e2-431e-8384-0cf34dd7ce49'
-          rel: reference
-          text: Lula Validation
   back-matter: 
     resources:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
       title: Lula Validation
       remarks: >-
-        No outputs in payload
+        Get data for all resources fields specified
       description: >-
         target:
           provider: opa
           domain: kubernetes
           payload:
             resources:
-            - name: podsvt
+            - name: jsoncm
               resourceRule:
+                Name: configmap-json
+                Group:
+                Version: v1
+                Resource: configmaps
+                Namespaces: [validation-test]
+                Field:
+                  jsonpath: .data.person.json
+                  type: yaml
+            - name: yamlcm
+              resourceRule:
+                Name: configmap-yaml
+                Group:
+                Version: v1
+                Resource: configmaps
+                Namespaces: [validation-test]
+                Field:
+                  jsonpath: .data.app-config.yaml
+                  type: yaml
+            - name: secret
+              resourceRule:
+                Name: example-secret
+                Group:
+                Version: v1
+                Resource: secrets
+                Namespaces: [validation-test]
+                Field:
+                  jsonpath: .data.auth
+                  type: yaml
+                  base64: true
+            - name: pod
+              resourceRule:
+                Name: example-pod
                 Group:
                 Version: v1
                 Resource: pods
                 Namespaces: [validation-test]
+                Field:
+                  jsonpath: .metadata.annotations.annotation.io/simple
+                  type: json
             rego: |
               package validate
 
               import future.keywords.every
 
               validate {
-                every pod in input.podsvt {
-                  podLabel := pod.metadata.labels.foo
-                  podLabel == "bar"
-                }
+                input.jsoncm.name == "bob"
+                input.yamlcm.logging.level == "INFO"
+                input.secret.username == "username"
+                "item1" in input.pod.items
               }
-    - uuid: 17c5f855-4f7b-4545-aa1c-cd01f416c290
-      title: Lula Validation
-      remarks: >-
-        With outputs in payload
-      description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
-            resources:
-            - name: podsvt
-              resourceRule:
-                Group:
-                Version: v1
-                Resource: pods
-                Namespaces: [validation-test]
-            rego: |
-              package validate
-
-              import future.keywords.every
-
-              validate {
-                every pod in input.podsvt {
-                  podLabel := pod.metadata.labels.foo
-                  podLabel == "bar"
-                }
-              }
-              test := "hello world"
-            output:
-              validate: validate.validate
-              observations:
-              - validate.test
-    - uuid: 67993bda-95e2-431e-8384-0cf34dd7ce49
-      title: Lula Validation
-      remarks: >-
-        With bad outputs in payload
-      description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
-            resources:
-            - name: podsvt
-              resourceRule:
-                Group:
-                Version: v1
-                Resource: pods
-                Namespaces: [validation-test]
-            rego: |
-              package validate
-
-              validate := "random string"
-              test := false
-            output:
-              validation: validate.validate
-              observations:
-              - validate.test
-              - validate.missing
+    

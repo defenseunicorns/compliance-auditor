@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
@@ -16,53 +15,131 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/features"
 )
 
-func TestResourceData(t *testing.T) {
-	featureTrueOutputs := features.New("Check Outputs").
+func TestResourceDataValidation(t *testing.T) {
+	featureTrueDataValidation := features.New("Check Resource Data Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod, err := util.GetPod("./scenarios/resource-data/manifests.yaml")
+			// Create the json configmap
+			configMapJson, err := util.GetConfigMap("./scenarios/resource-data/configmap_json.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, configMapJson); err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "configmap-json", configMapJson)
+
+			// Create the configmap with yaml data
+			configMapYaml, err := util.GetConfigMap("./scenarios/resource-data/configmap_yaml.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, configMapYaml); err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "configmap-yaml", configMapYaml)
+
+			// Create the secret
+			secret, err := util.GetSecret("./scenarios/resource-data/secret.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, secret); err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "secret", secret)
+
+			// Create the pod
+			pod, err := util.GetPod("./scenarios/resource-data/pod.yaml")
 			if err != nil {
 				t.Fatal(err)
 			}
 			if err = config.Client().Resources().Create(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
-			err = wait.For(conditions.New(config.Client().Resources()).PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*5))
+			err = wait.
+				For(conditions.New(config.Client().Resources()).
+					PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue),
+					wait.WithTimeout(time.Minute*5))
 			if err != nil {
 				t.Fatal(err)
 			}
-			return context.WithValue(ctx, "test-pod-outputs", pod)
+			ctx = context.WithValue(ctx, "pod", pod)
+
+			return ctx
 		}).
-		Assess("Validate Outputs", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			oscalPath := "./scenarios/outputs/oscal-component.yaml"
+		Assess("Validate Resource Data Collections", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/resource-data/oscal-component.yaml"
 			message.NoProgress = true
 
-			findingMap, observations, err := validate.ValidateOnPath(oscalPath)
+			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			// Write report(s) to file to examine remarks
-			report, err := oscal.GenerateAssessmentResults(findingMap, observations)
-			if err != nil {
-				t.Fatal("Failed generation of Assessment Results object with: ", err)
+			for _, finding := range findingMap {
+				state := finding.Target.Status.State
+				if state != "satisfied" {
+					t.Fatal("State should be satisfied, but got :", state)
+				}
 			}
-
-			err = validate.WriteReport(report, "assessment-results-outputs.yaml")
-			if err != nil {
-				t.Fatal("Failed to write report to file: ", err)
-			}
-
-			message.Infof("Successfully validated payload.output structure")
-
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-outputs").(*corev1.Pod)
+			// Delete the json configmap
+			configMapJson := ctx.Value("configmap-json").(*corev1.ConfigMap)
+			if err := config.Client().Resources().Delete(ctx, configMapJson); err != nil {
+				t.Fatal(err)
+			}
+			err := wait.
+				For(conditions.New(config.Client().Resources()).
+					ResourceDeleted(configMapJson),
+					wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Delete the yaml configmap
+			configMapYaml := ctx.Value("configmap-yaml").(*corev1.ConfigMap)
+			if err := config.Client().Resources().Delete(ctx, configMapYaml); err != nil {
+				t.Fatal(err)
+			}
+			err = wait.
+				For(conditions.New(config.Client().Resources()).
+					ResourceDeleted(configMapYaml),
+					wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Delete the secret
+			secret := ctx.Value("secret").(*corev1.Secret)
+			if err := config.Client().Resources().Delete(ctx, secret); err != nil {
+				t.Fatal(err)
+			}
+			err = wait.
+				For(conditions.New(config.Client().Resources()).
+					ResourceDeleted(secret),
+					wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Delete the pod
+			pod := ctx.Value("pod").(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
+			err = wait.
+				For(conditions.New(config.Client().Resources()).
+					ResourceDeleted(pod),
+					wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			return ctx
+
 		}).Feature()
 
-	testEnv.Test(t, featureTrueOutputs)
+	testEnv.Test(t, featureTrueDataValidation)
 }
