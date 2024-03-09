@@ -9,12 +9,13 @@ type Validation struct {
 
 // native type for conversion to targeted report format
 type Result struct {
-	UUID        string `json:"uuid" yaml:"uuid"`
-	ControlId   string `json:"control-id" yaml:"control-id"`
-	Description string `json:"description" yaml:"description"`
-	Passing     int    `json:"passing" yaml:"passing"`
-	Failing     int    `json:"failing" yaml:"failing"`
-	State       string `json:"state" yaml:"state"`
+	UUID         string            `json:"uuid" yaml:"uuid"`
+	ControlId    string            `json:"control-id" yaml:"control-id"`
+	Description  string            `json:"description" yaml:"description"`
+	Passing      int               `json:"passing" yaml:"passing"`
+	Failing      int               `json:"failing" yaml:"failing"`
+	State        string            `json:"state" yaml:"state"`
+	Observations map[string]string `json:"observations" yaml:"observations"`
 }
 
 // Current placeholder for all requisite data in the payload
@@ -24,6 +25,18 @@ type Payload struct {
 	Resources []Resource `json:"resources" yaml:"resources"`
 	Wait      Wait       `json:"wait" yaml:"wait"`
 	Rego      string     `json:"rego" yaml:"rego"`
+	Output    Output     `json:"output" yaml:"output"`
+}
+
+type PayloadAPI struct {
+	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
+	Rego     string    `json:"rego" yaml:"rego"`
+	Output   Output    `json:"output" yaml:"output"`
+}
+
+type Output struct {
+	Validation   string   `json:"validation" yaml:"validation"`
+	Observations []string `json:"observations" yaml:"observations"`
 }
 
 type Resource struct {
@@ -38,11 +51,6 @@ type Wait struct {
 	Kind      string `json:"kind" yaml:"kind"`
 	Namespace string `json:"namespace" yaml:"namespace"`
 	Timeout   string `json:"timeout" yaml:"timeout"`
-}
-
-type PayloadAPI struct {
-	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
-	Rego     string    `json:"rego" yaml:"rego"`
 }
 
 type Request struct {
