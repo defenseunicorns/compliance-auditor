@@ -3,7 +3,7 @@ package tools
 import (
 	"fmt"
 
-	"github.com/defenseunicorns/go-oscal/src/cmd/validate"
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -34,12 +34,12 @@ func init() {
 			defer spinner.Stop()
 
 			// The ValidateCommand has some logging behavior that is not ideal for lula.
-			validator, err := validate.ValidateCommand(opts.InputFile)
+			validationResp, err := validation.ValidationCommand(opts.InputFile)
 			if err != nil {
 				fmt.Println(err)
 				message.Fatalf(err, "Failed to lint %s", opts.InputFile)
 			}
-			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", opts.InputFile, validator.GetSchemaVersion(), validator.GetModelType())
+			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", opts.InputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
 			spinner.Success()
 		},
 	}

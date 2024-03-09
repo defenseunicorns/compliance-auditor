@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	validator "github.com/defenseunicorns/go-oscal/src/cmd/validate"
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -91,11 +91,11 @@ func TestPodLabelValidation(t *testing.T) {
 				t.Fatal("Failed to append results to existing report")
 			}
 
-			validator, err := validator.ValidateCommand("sar-test.yaml")
+			validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
 			if err != nil {
 				t.Fatal("File failed linting")
 			}
-			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validator.GetSchemaVersion(), validator.GetModelType())
+			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validatorResponse.Validator.GetSchemaVersion(), validatorResponse.Validator.GetModelType())
 
 			return ctx
 		}).

@@ -3,7 +3,7 @@ module github.com/defenseunicorns/lula
 go 1.22.0
 
 require (
-	github.com/defenseunicorns/go-oscal v0.2.3
+	github.com/defenseunicorns/go-oscal v0.2.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/open-policy-agent/opa v0.62.0
 	github.com/pterm/pterm v0.12.79

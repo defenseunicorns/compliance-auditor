@@ -65,6 +65,8 @@ github.com/defenseunicorns/go-oscal v0.2.2 h1:JEXhNNRoVseDcH+Tlagf+MM8Y9nv5r7mPE
 github.com/defenseunicorns/go-oscal v0.2.2/go.mod h1:4JXNIFmWK1VBHpmXicW/g65MizUEHKUexy3Lb2lH2/I=
 github.com/defenseunicorns/go-oscal v0.2.3 h1:3ZaP956g4Eh+SlthopUBAMglFmWKSMPdbkIhHqeoz+s=
 github.com/defenseunicorns/go-oscal v0.2.3/go.mod h1:4JXNIFmWK1VBHpmXicW/g65MizUEHKUexy3Lb2lH2/I=
+github.com/defenseunicorns/go-oscal v0.2.5 h1:r8A2sXz/VTjVIf4Er/WyDSTyqUteek5AHeKEAT2XzTU=
+github.com/defenseunicorns/go-oscal v0.2.5/go.mod h1:4JXNIFmWK1VBHpmXicW/g65MizUEHKUexy3Lb2lH2/I=
 github.com/dgraph-io/badger/v3 v3.2103.5 h1:ylPa6qzbjYRQMU6jokoj4wzcaweHylt//CH0AKt0akg=
 github.com/dgraph-io/badger/v3 v3.2103.5/go.mod h1:4MPiseMeDQ3FNCYwRbbcBOGJLf5jsE0PPFzRiKjtcdw=
 github.com/dgraph-io/ristretto v0.1.1 h1:6CWw5tJNgpegArSHpNHJKldNeq03FQCwYvfMVWajOK8=
