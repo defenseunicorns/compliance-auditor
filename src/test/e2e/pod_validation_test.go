@@ -17,6 +17,8 @@ import (
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 )
 
 func TestPodLabelValidation(t *testing.T) {
@@ -93,7 +95,9 @@ func TestPodLabelValidation(t *testing.T) {
 			}
 
 			revisionOptions := revision.RevisionOptions{
-				InputFile: "sar-test.yaml",
+				InputFile:  "sar-test.yaml",
+				OutputFile: "sar-test.yaml",
+				Version:    gooscalUtils.GetLatestSupportedVersion(),
 			}
 			revisionResponse, err := revision.RevisionCommand(&revisionOptions)
 			if err != nil {
