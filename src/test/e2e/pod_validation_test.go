@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -90,6 +91,15 @@ func TestPodLabelValidation(t *testing.T) {
 			if len(tempAssessment.Results) <= initialResultCount {
 				t.Fatal("Failed to append results to existing report")
 			}
+
+			revisionOptions := revision.RevisionOptions{
+				InputFile: "sar-test.yaml",
+			}
+			revisionResponse, err := revision.RevisionCommand(&revisionOptions)
+			if err != nil {
+				t.Fatal("file failed to upgrade")
+			}
+			message.Infof("Successfully upgraded %s to OSCAL version %s %s\n", "sar-test.yaml", revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
 			validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
 			if err != nil {
