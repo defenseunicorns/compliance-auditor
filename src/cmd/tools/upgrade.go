@@ -23,11 +23,11 @@ var upgradeOpts upgradeOptions = upgradeOptions{}
 func init() {
 	upgradeCmd := &cobra.Command{
 		Use:   "upgrade",
-		Short: "Upgrade OSCAL document to a new version if possible",
+		Short: "Upgrade OSCAL document to a new version if possible.",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			config.SkipLogFile = true
 		},
-		Long:    "Validate an OSCAL document against the OSCAL schema version provided. If the document is valid, upgrade it to the provided OSCAL version. Otherwise, return or write as ValidationError.",
+		Long:    "Validate an OSCAL document against the OSCAL schema version provided. If the document is valid, upgrade it to the provided OSCAL version. Otherwise, return or write as ValidationError. Yaml formatting handled by gopkg/yaml.v3 and while objects will maintain deep equality, visual representation may be different than the input file.",
 		Example: upgradeHelp,
 		Run: func(cmd *cobra.Command, args []string) {
 			spinner := message.NewProgressSpinner("Upgrading %s to version %s", upgradeOpts.InputFile, upgradeOpts.Version)
