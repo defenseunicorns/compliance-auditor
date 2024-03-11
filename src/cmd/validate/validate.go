@@ -200,9 +200,18 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							result.State = "not-satisfied"
 						}
 
+						// Add remarks if Result has Observations
+						var remarks string
+						if len(result.Observations) > 0 {
+							for k, v := range result.Observations {
+								remarks += fmt.Sprintf("%s: %s\n", k, v)
+							}
+						}
+
 						observation.RelevantEvidence = []oscalTypes_1_1_2.RelevantEvidence{
 							{
 								Description: fmt.Sprintf("Result: %s\n", result.State),
+								Remarks:     remarks,
 							},
 						}
 
