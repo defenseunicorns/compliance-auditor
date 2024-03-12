@@ -50,6 +50,11 @@ func init() {
 				}
 			}
 
+			err = goOscalUtils.WriteOutput(revisionResponse.RevisedBytes, upgradeOpts.OutputFile)
+			if err != nil {
+				message.Fatalf(err, "Failed to write upgraded %s with: %s", upgradeOpts.OutputFile, err)
+			}
+
 			if err != nil {
 				message.Fatalf(err, "Failed to upgrade %s to OSCAL version %s %s", upgradeOpts.InputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 			}
