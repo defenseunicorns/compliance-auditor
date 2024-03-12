@@ -53,11 +53,12 @@ func TestPodLabelValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal("Failed to upgrade component definition with: ", err)
 			}
+			// Write the upgraded component definition to a temp file
 			err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
 			if err != nil {
 				t.Fatal("Failed to write upgraded component definition with: ", err)
 			}
-			message.Infof("Successfully upgraded %s to OSCAL version %s %s\n", oscalPath, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
+			message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
 			findingMap, observations, err := validate.ValidateOnPath(revisionOptions.OutputFile)
 			if err != nil {
