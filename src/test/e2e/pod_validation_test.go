@@ -41,7 +41,25 @@ func TestPodLabelValidation(t *testing.T) {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
 			message.NoProgress = true
 
-			findingMap, observations, err := validate.ValidateOnPath(oscalPath)
+			tempDir := t.TempDir()
+
+			// Upgrade the component definition to latest osscal version
+			revisionOptions := revision.RevisionOptions{
+				InputFile:  oscalPath,
+				OutputFile: tempDir + "/oscal-component-upgraded.yaml",
+				Version:    gooscalUtils.GetLatestSupportedVersion(),
+			}
+			revisionResponse, err := revision.RevisionCommand(&revisionOptions)
+			if err != nil {
+				t.Fatal("Failed to upgrade component definition with: ", err)
+			}
+			err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
+			if err != nil {
+				t.Fatal("Failed to write upgraded component definition with: ", err)
+			}
+			message.Infof("Successfully upgraded %s to OSCAL version %s %s\n", oscalPath, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
+
+			findingMap, observations, err := validate.ValidateOnPath(revisionOptions.OutputFile)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -93,17 +111,6 @@ func TestPodLabelValidation(t *testing.T) {
 			if len(tempAssessment.Results) <= initialResultCount {
 				t.Fatal("Failed to append results to existing report")
 			}
-
-			revisionOptions := revision.RevisionOptions{
-				InputFile:  "sar-test.yaml",
-				OutputFile: "sar-test.yaml",
-				Version:    gooscalUtils.GetLatestSupportedVersion(),
-			}
-			revisionResponse, err := revision.RevisionCommand(&revisionOptions)
-			if err != nil {
-				t.Fatal("file failed to upgrade")
-			}
-			message.Infof("Successfully upgraded %s to OSCAL version %s %s\n", "sar-test.yaml", revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
 			validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
 			if err != nil {
