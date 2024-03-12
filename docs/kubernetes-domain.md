@@ -15,6 +15,11 @@ resources:
     Version: v1                     # Required - Version of resource
     Resource: pods                  # Required - Resource type
     Namespaces: [validation-test]   # Required - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
+    Field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
+      jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
+      type:                         # Optional - Accepts "json" or "yaml". Default is "json".
+      base64:                       # Optional - Boolean whether field is base64 encoded
+
 ```
 
 > [!Tip]
@@ -96,3 +101,39 @@ target:
 
 > [!IMPORTANT]
 > Note how the payload now contains a single object called `podvt`. This is the name of the resource that is being validated.
+
+## Extracting Resource Field Data
+Many of the tool-specific configuration data is stored as json or yaml text inside configmaps and secrets. Some valuable data may also be stored in json or yaml strings in other resource locations, such as annotations. The "Field" parameter of the "ResourceRule" allows this data to be extracted and used by the Rego.
+
+Here's an example of extracting `config.yaml` from a test configmap:
+```yaml
+target:
+  provider: opa
+  domain: kubernetes
+  payload:
+    resources:
+    - name: configdata
+      resourceRule:
+        Name: test-configmap
+        Group:
+        Version: v1
+        Resource: pods
+        Namespaces: [validation-test]
+        Field:
+          jsonpath: .data.my-config.yaml
+          type: yaml
+    rego: |
+      package validate
+
+      validate {
+        configdata.configuration.foo == "bar"
+      }
+```
+
+Where the raw ConfigMap data would look as follows:
+```yaml
+configuration:
+  foo: bar
+  anotherValue:
+    subValue: ba
+```

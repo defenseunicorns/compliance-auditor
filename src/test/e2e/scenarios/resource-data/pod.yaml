@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+  namespace: validation-test
+  annotations:
+    annotation.io/simple: '{"key": "value", "items": ["item1", "item2"]}'
+  labels:
+    app: myapp
+spec:
+  containers:
+    - name: example-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80

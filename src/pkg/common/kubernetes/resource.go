@@ -2,10 +2,13 @@ package kube
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/defenseunicorns/lula/src/types"
+	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -81,6 +84,14 @@ func GetResourcesDynamically(ctx context.Context,
 				if err != nil {
 					return nil, err
 				}
+				// If field is specified, get the field data
+				if resource.Field.Jsonpath != "" {
+					item, err = getFieldValue(item, resource.Field)
+					if err != nil {
+						return nil, err
+					}
+				}
+
 				collection = append(collection, item)
 				return collection, nil
 			}
@@ -138,4 +149,67 @@ func reduceByName(name string, items []unstructured.Unstructured) (map[string]in
 	}
 
 	return nil, fmt.Errorf("no resource found with name %s", name)
+}
+
+// getFieldValue() looks up the field from a resource and returns a map[string]interface{} representation of the data
+func getFieldValue(item map[string]interface{}, field types.Field) (map[string]interface{}, error) {
+
+	// Identify the field in item
+	pathParts := strings.Split(field.Jsonpath, ".")[1:]
+	current := item
+	var fieldValue string
+	for i, part := range pathParts {
+		// Check if the first part is a valid key
+		if next, ok := current[part].(map[string]interface{}); ok {
+			current = next
+		} else {
+			if value, ok := current[strings.Join(pathParts[i:], ".")].(string); ok {
+				fieldValue = value
+				break
+			} else {
+				return nil, fmt.Errorf("path not found: %s", strings.Join(pathParts[:i+1], "."))
+			}
+
+		}
+	}
+
+	// If base64 encoded, decode the data first
+	if field.Base64 {
+		decoded, err := base64.StdEncoding.DecodeString(fieldValue)
+		if err != nil {
+			return nil, err
+		}
+		fieldValue = string(decoded)
+	}
+
+	// If field type is unset, set to default
+	if field.Type == "" {
+		field.Type = types.DefaultFieldType
+	}
+
+	var data interface{}
+	// Get the field data if json
+	if field.Type == types.FieldTypeJSON {
+		// Convert fieldValue to json
+		err := json.Unmarshal([]byte(fieldValue), &data)
+		if err != nil {
+			return nil, err
+		}
+		result, ok := data.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("expected JSON to decode for field %s", field.Jsonpath)
+		}
+		return result, nil
+	} else {
+		// Convert fieldValue to yaml
+		err := yaml.Unmarshal([]byte(fieldValue), &data)
+		if err != nil {
+			return nil, err
+		}
+		result, ok := data.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("expected YAML to decode field %s", field.Jsonpath)
+		}
+		return result, nil
+	}
 }

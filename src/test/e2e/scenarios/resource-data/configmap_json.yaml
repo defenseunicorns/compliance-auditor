@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-json
+  namespace: validation-test
+data:
+  person.json: |
+    {
+      "name": "bob",
+      "pet": "dog"
+    }

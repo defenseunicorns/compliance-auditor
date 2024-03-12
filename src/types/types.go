@@ -1,5 +1,7 @@
 package types
 
+import "errors"
+
 type Validation struct {
 	Title       string                 `json:"title" yaml:"title"`
 	Description map[string]interface{} `json:"description" yaml:"description"`
@@ -64,10 +66,35 @@ type Target struct {
 	Payload  Payload `json:"payload" yaml:"payload"`
 }
 
+type FieldType string
+
+const (
+	FieldTypeJSON    FieldType = "json"
+	FieldTypeYAML    FieldType = "yaml"
+	DefaultFieldType FieldType = FieldTypeJSON
+)
+
+type Field struct {
+	Jsonpath string    `json:"jsonpath" yaml:"jsonpath"`
+	Type     FieldType `json:"type" yaml:"type"`
+	Base64   bool      `json:"base64" yaml:"base64"`
+}
+
 type ResourceRule struct {
 	Name       string   `json:"name" yaml:"name"`
 	Group      string   `json:"group" yaml:"group"`
 	Version    string   `json:"version" yaml:"version"`
 	Resource   string   `json:"resource" yaml:"resource"`
 	Namespaces []string `json:"namespaces" yaml:"namespaces"`
+	Field      Field    `json:"field" yaml:"field"`
+}
+
+// Validate the Field type if valid
+func (f Field) Validate() error {
+	switch f.Type {
+	case FieldTypeJSON, FieldTypeYAML:
+		return nil
+	default:
+		return errors.New("field Type must be 'json' or 'yaml'")
+	}
 }
