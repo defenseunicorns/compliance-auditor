@@ -28,7 +28,7 @@ Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) to maintain a respectful
 
 - **Repository**: [https://github.com/defenseunicorns/lula/](https://github.com/defenseunicorns/lula/)
 - **Go Binaries**: [https://github.com/defenseunicorns/lula/releases](https://github.com/defenseunicorns/lula/releases)
-- **Required Go version**: `>=1.21.5`
+- **Required Go version**: `>=1.22.0`
 
 ### Setup
 
