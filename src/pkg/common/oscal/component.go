@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	// "github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
@@ -28,19 +30,41 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 
 	for _, resource := range backMatter.Resources {
 		if resource.Title == "Lula Validation" {
-			var lulaSelector map[string]interface{}
+			var description types.Description
 
-			err := yaml.Unmarshal([]byte(resource.Description), &lulaSelector)
+			err := yaml.Unmarshal([]byte(resource.Description), &description)
 			if err != nil {
 				fmt.Printf("Error marshalling yaml: %s\n", err.Error())
 				return nil
 			}
 
+			// Do version checking here to establish if the version is correct/acceptable
+			var result types.Result
+			var evaluated bool
+			currentVersion := "v0.0.2" //config.CLIVersion
+
+			versionConstraint := currentVersion
+			if description.LulaVersion != "" {
+				versionConstraint = description.LulaVersion
+			}
+
+			validVersion, versionErr := common.IsVersionValid(versionConstraint, currentVersion)
+			if versionErr != nil {
+				result.Failing = 1
+				result.Observations = map[string]string{"LulaVersion Error": versionErr.Error()}
+				evaluated = true
+			} else if !validVersion {
+				result.Failing = 1
+				result.Observations = map[string]string{"Version Constraint Incompatible": "Lula Version does not meet the constraint for this validation."}
+				evaluated = true
+			}
+
+			// Create validation
 			validation := types.Validation{
 				Title:       resource.Title,
-				Description: lulaSelector["target"].(map[string]interface{}),
-				Evaluated:   false,
-				Result:      types.Result{},
+				Description: description.Target,
+				Evaluated:   evaluated,
+				Result:      result,
 			}
 
 			resourceMap[resource.UUID] = validation

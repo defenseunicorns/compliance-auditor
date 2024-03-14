@@ -15,13 +15,14 @@ GIT_COMMIT = $(shell git rev-parse HEAD)
 GIT_SHA    = $(shell git rev-parse --short HEAD)
 GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 CLI_VERSION ?= $(if $(shell git describe --tags),$(shell git describe --tags),"UnknownVersion")
+NON_PRERELEASE_VERSION ?= $(if $(shell git describe --tags --abbrev=0),$(shell git describe --tags --abbrev=0),"UnknownVersion")
 
 # Go CLI options
 PKG         := ./...
 TAGS        :=
 TESTS       := .
 TESTFLAGS   := -race -v
-LDFLAGS     := -w -s -X 'github.com/defenseunicorns/lula/src/config.CLIVersion=$(GIT_SHA)'
+LDFLAGS     := -w -s -X 'github.com/defenseunicorns/lula/src/config.CLIVersion=$(NON_PRERELEASE_VERSION)'
 GOFLAGS     :=
 CGO_ENABLED ?= 0
 
