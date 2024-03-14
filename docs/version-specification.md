@@ -2,31 +2,32 @@
 In cases where a specific version of Lula is desired, either for typing constraints or desired functionality, a `lulaVersion` property is recognized in the `description` (component-definition.back-matter.resources[_]):
 ```yaml
 - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
-    title: Lula Validation
-    remarks: >-
+  title: Lula Validation
+  remarks: >-
     No outputs in payload
-    description: |
+  description: |
     lulaVersion: ">=0.0.2"
     target:
-        provider: opa
-        domain: kubernetes
-        payload:
+      provider: opa
+      domain: kubernetes
+      payload:
         resources:
-        - name: hc
-            resourceRule:
-            Name: helm-controller
-            Group: apps
+        - name: podsvt
+          resourceRule:
+            Group:
             Version: v1
-            Resource: deployments
-            Namespaces: [flux-system]
-        rego: |
-            package validate
+            Resource: pods
+            Namespaces: [validation-test]
+        rego: |                                   
+          package validate
 
-            import future.keywords.every
+          import future.keywords.every
 
-            validate {
-            true
+          validate { 
+            every pod in input.podsvt {
+              podLabel == "bar"
             }
+          }
 ```
 
 If included, the `lulaVersion` must be a string and should indicate the version constraints desired, if any. Our implementation uses Hashicorp's [go-version](https://pkg.go.dev/github.com/hashicorp/go-version) library, and constraints should follow their [conventions](https://developer.hashicorp.com/terraform/language/expressions/version-constraints). 

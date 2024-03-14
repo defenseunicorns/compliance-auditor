@@ -2,9 +2,10 @@ package oscal
 
 import (
 	"fmt"
+	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	// "github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
@@ -41,7 +42,7 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			// Do version checking here to establish if the version is correct/acceptable
 			var result types.Result
 			var evaluated bool
-			currentVersion := "v0.0.2" //config.CLIVersion
+			currentVersion := strings.Split(config.CLIVersion, "-")[0]
 
 			versionConstraint := currentVersion
 			if description.LulaVersion != "" {
