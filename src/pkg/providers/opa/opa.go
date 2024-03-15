@@ -21,7 +21,6 @@ import (
 // TODO: What is the new version of the information we are displaying on the command line?
 
 func Validate(ctx context.Context, domain string, data types.Target) (types.Result, error) {
-	message.Debug(data)
 	if domain == "kubernetes" {
 		payload := data.Payload
 

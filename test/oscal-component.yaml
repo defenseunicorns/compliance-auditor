@@ -67,7 +67,7 @@ component-definition:
           then they should author a RequestAuthentication policy specific to their own service in their own namespace.
           If you have a default in the root namespace, it will be overridden by the policy in the local namespace.
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: RequestAuthentication
           metadata:
           name: jwt-on-ingress
@@ -85,7 +85,7 @@ component-definition:
           Configuring external authorization is a bit more involved as it is assumed there's only a limited number per mesh deployment.
           You'll need to configure them as part of the Istio installation, in the global mesh options to know about your authorization service.
           ```
-          apiversion: install.istio.io/v1alpha1
+          apiVersion: install.istio.io/v1alpha1
           kind: IstioOperator
           metadata:
           name: controlplane
@@ -109,7 +109,7 @@ component-definition:
           Then you'll need to configure an AuthorizationPolicy to call your authorization service for every request.
           Istio's [detailed guide](https://istio.io/latest/docs/tasks/security/authorization/authz-custom/) covers this configuration well.
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: AuthorizationPolicy
           metadata:
           name: ext-authz
@@ -158,7 +158,7 @@ component-definition:
           ## Enable Authentication
           Within the mesh, encryption in transit is enforced with a PeerAuthentication resource. A single resource should be authored in the root config namespace (istio-system by default) which sets mTLS Mode to STRICT, enforcing mTLS for all workloads in the mesh.
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: PeerAuthentication
           metadata:
             name: enforce-mtls
@@ -171,7 +171,7 @@ component-definition:
           ## Configure Service-to-Service Authorization
           Each service should write an [AuthorizationPolicy](https://istio.io/latest/docs/reference/config/security/authorization-policy/) restricting communication to that service. At a minimum, the AuthorizationPolicy configuration should list a set of principals allowed to communicate with it via an Access Control List (ACL) in the "from" section of the policy. Ideally it should specify specific actions allowed by each group of principals in the "to" section of the policy. If you're using JWT-based user authentication, then the policy should additionally restrict access based on that user credential in the "when" section of the policy.
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: AuthorizationPolicy
           metadata:
             name: minimum-policy # an ACL
@@ -186,7 +186,7 @@ component-definition:
                 - "cluster.local/ns/backend/sa/backend"
           ```
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: AuthorizationPolicy
           metadata:
             name: good-policy
@@ -215,7 +215,7 @@ component-definition:
           Istio's documentation covers [controlling traffic to external services in detail](https://istio.io/latest/docs/tasks/traffic-management/egress/egress-control/).
           In short, we should configure the Istio installation to support only services in the registry at installation time. That way, when applications attempt to communicate with unknown services, Istio drops the traffic. This is configured in the mesh config at install time:
           ```
-          apiversion: install.istio.io/v1alpha1
+          apiVersion: install.istio.io/v1alpha1
           kind: IstioOperator
           metadata:
             name: controlplane
@@ -229,7 +229,7 @@ component-definition:
           ```
           To enable communication to those services again, we need to author a ServiceEntry - which defines the service in Istio's registry.
           ```
-          apiversion: networking.istio.io/v1alpha3
+          apiVersion: networking.istio.io/v1alpha3
           kind: ServiceEntry
           metadata:
             name: google
@@ -250,7 +250,7 @@ component-definition:
           To force traffic to an external service through the egress gateways, it's best to use a VirtualService combined with a slight modification to the ServiceEntry in the previous example. The service entry will force traffic in the mesh trying to reach the external service through the mesh's egress gateways. The updated ServiceEntry ensures that only the egress gateways are able to resolve the real address of the external service.
 
           ```
-          apiversion: networking.istio.io/v1alpha3
+          apiVersion: networking.istio.io/v1alpha3
           kind: ServiceEntry
           metadata:
             name: google-external
@@ -268,7 +268,7 @@ component-definition:
             resolution: DNS
             location: MESH_EXTERNAL
           ---
-          apiversion: networking.istio.io/v1alpha3
+          apiVersion: networking.istio.io/v1alpha3
           kind: VirtualService
           metadata:
             name: google-egress
@@ -428,7 +428,7 @@ component-definition:
           The access log file, encoding, and format (data logged) can be configured at installation time.
 
           ```
-          apiversion: install.istio.io/v1alpha1
+          apiVersion: install.istio.io/v1alpha1
           kind: IstioOperator
           metadata:
             name: controlplane
@@ -777,7 +777,7 @@ component-definition:
 
           The following Gateway configures an ingress proxy deployment to accept HTTPS traffic on port 443 for the server “example.com”, serving the provided certs to clients at runtime. Given this configuration, the ingress gateway will deny all traffic that is not HTTPS on port 443 for “example.com”.
           ```
-          apiversion: networking.istio.io/v1beta1
+          apiVersion: networking.istio.io/v1beta1
           kind: Gateway
           metadata:
             name: example-gateway
@@ -799,7 +799,7 @@ component-definition:
           ```
           Traffic can then be allowed into the information system by writing a VirtualService which routes traffic for “example.com” to specific applications in the system:
           ```
-          apiversion: networking.istio.io/v1beta1
+          apiVersion: networking.istio.io/v1beta1
           kind: VirtualService
           metadata:
             name: example-com-route
@@ -823,7 +823,7 @@ component-definition:
           ## Authorization Policy in the Mesh
           Within the mesh, we use AuthorizationPolicy resources to restrict what applications can communicate. All AuthorizationPolicy should be written in the “allow with positive matching” style. In that style, we write policies with the ALLOW action, using only positive matching fields (e.g. paths, principals, values) and never using negative matching fields (e.g. notPaths, notPrincipals, notValues).
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: AuthorizationPolicy
           metadata:
             name: allow-with-positive-path-matches
@@ -835,7 +835,7 @@ component-definition:
                   paths: ["/public"]
           ```
           ```
-          apiversion: security.istio.io/v1beta1
+          apiVersion: security.istio.io/v1beta1
           kind: AuthorizationPolicy
           metadata:
             name: allow-with-positive-principal-list
