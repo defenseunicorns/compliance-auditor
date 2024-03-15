@@ -21,7 +21,7 @@ PKG         := ./...
 TAGS        :=
 TESTS       := .
 TESTFLAGS   := -race -v
-LDFLAGS     := -w -s -X 'github.com/defenseunicorns/lula/src/config.CLIVersion=$(GIT_SHA)'
+LDFLAGS     := -w -s -X 'github.com/defenseunicorns/lula/src/config.CLIVersion=$(CLI_VERSION)'
 GOFLAGS     :=
 CGO_ENABLED ?= 0
 

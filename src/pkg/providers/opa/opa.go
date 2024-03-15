@@ -146,7 +146,9 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 			matchResult.Passing += 1
 		} else {
 			matchResult.Failing += 1
-			message.Debugf("Validation field expected bool and got %s", reflect.TypeOf(resultValid[0].Expressions[0].Value))
+			if !ok {
+				message.Debugf("Validation field expected bool and got %s", reflect.TypeOf(resultValid[0].Expressions[0].Value))
+			}
 		}
 	} else {
 		matchResult.Failing += 1
