@@ -1,24 +1,24 @@
 * @defenseunicorns/lula-dev
 
 # Docs & examples
-/adr/ @brandtkeller @mike-winberry @CloudBeard
-/docs/ @brandtkeller @mike-winberry @CloudBeard
-*.md @brandtkeller @mike-winberry @CloudBeard
+/adr/ @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+/docs/ @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+*.md @brandtkeller @mike-winberry @CloudBeard @meganwolf0
 
 # Docs website
-/website/ @brandtkeller @CloudBeard @mike-winberry
+/website/ @brandtkeller @CloudBeard @mike-winberry @meganwolf0
 
 # Core code
-/src/ @brandtkeller @mike-winberry @CloudBeard
-/go.* @brandtkeller @mike-winberry @CloudBeard
-main.go @brandtkeller @mike-winberry @CloudBeard
+/src/ @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+/go.* @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+main.go @brandtkeller @mike-winberry @CloudBeard @meganwolf0
 
 # Privileged pipeline files
-/.github/ @brandtkeller @mike-winberry @CloudBeard
-/.gitignore @brandtkeller @mike-winberry @CloudBeard
-/.goreleaser.yaml @brandtkeller @mike-winberry @CloudBeard
-/renovate.json @brandtkeller @mike-winberry @CloudBeard
-/Makefile @brandtkeller @mike-winberry @CloudBeard
+/.github/ @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+/.gitignore @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+/.goreleaser.yaml @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+/renovate.json @brandtkeller @mike-winberry @CloudBeard @meganwolf0
+/Makefile @brandtkeller @mike-winberry @CloudBeard @meganwolf0
 
 # Additional privileged files
 /CODEOWNERS @jeff-mccoy @brandtkeller

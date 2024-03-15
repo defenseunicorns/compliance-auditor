@@ -2,9 +2,15 @@ package types
 
 import "errors"
 
+// type Description struct {
+// 	LulaVersion string                 `json:"lula-version" yaml:"lula-version"`
+// 	Target      map[string]interface{} `json:"target" yaml:"target"`
+// }
+
 type Validation struct {
 	Title       string                 `json:"title" yaml:"title"`
 	Description map[string]interface{} `json:"description" yaml:"description"`
+	LulaVersion string                 `json:"lula-version" yaml:"lula-version"`
 	Target      Target                 `json:"target" yaml:"target"`
 	Evaluated   bool                   `json:"evaluated" yaml:"evaluated"`
 	Result      Result                 `json:"result" yaml:"result"`

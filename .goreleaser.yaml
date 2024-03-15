@@ -49,4 +49,4 @@ release:
     name: lula
   prerelease: auto
   mode: append
-  draft: false
+  draft: true
