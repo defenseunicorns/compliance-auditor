@@ -52,7 +52,7 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			validVersion, versionErr := common.IsVersionValid(versionConstraint, currentVersion)
 			if versionErr != nil {
 				result.Failing = 1
-				result.Observations = map[string]string{"LulaVersion Error": versionErr.Error()}
+				result.Observations = map[string]string{"Lula Version Error": versionErr.Error()}
 				evaluated = true
 			} else if !validVersion {
 				result.Failing = 1
