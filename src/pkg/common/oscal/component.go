@@ -28,7 +28,7 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 
 	for _, resource := range backMatter.Resources {
 		if resource.Title == "Lula Validation" {
-			var lulaSelector map[string]interface{}
+			var lulaSelector types.Validation
 
 			err := yaml.Unmarshal([]byte(resource.Description), &lulaSelector)
 			if err != nil {
@@ -36,14 +36,18 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 				return nil
 			}
 
-			validation := types.Validation{
-				Title:       resource.Title,
-				Description: lulaSelector["target"].(map[string]interface{}),
-				Evaluated:   false,
-				Result:      types.Result{},
-			}
+			// validation := types.Validation{
+			// 	Title:       resource.Title,
+			// 	Description: lulaSelector["target"].(map[string]interface{}),
+			// 	Evaluated:   false,
+			// 	Result:      types.Result{},
+			// }
 
-			resourceMap[resource.UUID] = validation
+			lulaSelector.Title = resource.Title
+			lulaSelector.Evaluated = false
+			lulaSelector.Result = types.Result{}
+
+			resourceMap[resource.UUID] = lulaSelector
 		}
 
 	}

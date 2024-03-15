@@ -54,44 +54,44 @@ component-definition:
           payload:
             resources:
             - name: jsoncm
-              resourceRule:
-                Name: configmap-json
-                Group:
-                Version: v1
-                Resource: configmaps
-                Namespaces: [validation-test]
-                Field:
+              resource-rule:
+                name: configmap-json
+                group:
+                version: v1
+                resource: configmaps
+                namespaces: [validation-test]
+                field:
                   jsonpath: .data.person.json
                   type: yaml
             - name: yamlcm
-              resourceRule:
-                Name: configmap-yaml
-                Group:
-                Version: v1
-                Resource: configmaps
-                Namespaces: [validation-test]
-                Field:
+              resource-rule:
+                name: configmap-yaml
+                group:
+                version: v1
+                resource: configmaps
+                namespaces: [validation-test]
+                field:
                   jsonpath: .data.app-config.yaml
                   type: yaml
             - name: secret
-              resourceRule:
-                Name: example-secret
-                Group:
-                Version: v1
-                Resource: secrets
-                Namespaces: [validation-test]
-                Field:
+              resource-rule:
+                name: example-secret
+                group:
+                version: v1
+                resource: secrets
+                namespaces: [validation-test]
+                field:
                   jsonpath: .data.auth
                   type: yaml
                   base64: true
             - name: pod
-              resourceRule:
-                Name: example-pod
-                Group:
-                Version: v1
-                Resource: pods
-                Namespaces: [validation-test]
-                Field:
+              resource-rule:
+                name: example-pod
+                group:
+                version: v1
+                resource: pods
+                namespaces: [validation-test]
+                field:
                   jsonpath: .metadata.annotations.annotation.io/simple
                   type: json
             rego: |

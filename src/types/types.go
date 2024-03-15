@@ -5,6 +5,7 @@ import "errors"
 type Validation struct {
 	Title       string                 `json:"title" yaml:"title"`
 	Description map[string]interface{} `json:"description" yaml:"description"`
+	Target      Target                 `json:"target" yaml:"target"`
 	Evaluated   bool                   `json:"evaluated" yaml:"evaluated"`
 	Result      Result                 `json:"result" yaml:"result"`
 }
@@ -25,15 +26,10 @@ type Result struct {
 // This could be expanded as providers add more fields
 type Payload struct {
 	Resources []Resource `json:"resources" yaml:"resources"`
+	Requests  []Request  `mapstructure:"requests" json:"requests" yaml:"requests"`
 	Wait      Wait       `json:"wait" yaml:"wait"`
 	Rego      string     `json:"rego" yaml:"rego"`
 	Output    Output     `json:"output" yaml:"output"`
-}
-
-type PayloadAPI struct {
-	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
-	Rego     string    `json:"rego" yaml:"rego"`
-	Output   Output    `json:"output" yaml:"output"`
 }
 
 type Output struct {

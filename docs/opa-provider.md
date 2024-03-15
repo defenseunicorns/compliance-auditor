@@ -14,11 +14,11 @@ target:
   payload:
     resources:
     - name: podsvt
-      resourceRule:
-        Group:
-        Version: v1
-        Resource: pods
-        Namespaces: [validation-test]
+      resource-rule:
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
     rego: |                                   # Required - Rego policy used for data validation
       package validate                        # Required - Package name
 
@@ -37,11 +37,11 @@ target:
   provider: "opa"
   domain: "kubernetes"
   payload:
-    resourceRules: 
-    - Group: 
-      Version: v1 
-      Resource: pods
-      Namespaces: [validation-test] 
+    resource-rules: 
+    - group: 
+      version: v1 
+      resource: pods
+      namespaces: [validation-test] 
     rego: |
       package mypackage 
 

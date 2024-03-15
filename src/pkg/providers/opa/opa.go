@@ -13,7 +13,6 @@ import (
 	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -21,15 +20,12 @@ import (
 
 // TODO: What is the new version of the information we are displaying on the command line?
 
-func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
+func Validate(ctx context.Context, domain string, data types.Target) (types.Result, error) {
+	message.Debug(data)
 	if domain == "kubernetes" {
-		var payload types.Payload
-		err := mapstructure.Decode(data, &payload)
-		if err != nil {
-			return types.Result{}, err
-		}
+		payload := data.Payload
 
-		err = kube.EvaluateWait(payload.Wait)
+		err := kube.EvaluateWait(payload.Wait)
 		if err != nil {
 			return types.Result{}, err
 		}
@@ -48,11 +44,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		return results, nil
 
 	} else if domain == "api" {
-		var payload types.PayloadAPI
-		err := mapstructure.Decode(data, &payload)
-		if err != nil {
-			return types.Result{}, err
-		}
+		payload := data.Payload
 
 		collection := make(map[string]interface{}, 0)
 

@@ -52,11 +52,11 @@ component-definition:
           payload:
             resources:
             - name: podsvt                      # Identifier for use in the rego below
-              resourceRule:                     # Mandatory, resource selection criteria, at least one resource rule is required
-                Group:                          # empty or "" for core group
-                Version: v1                     # Version of resource
-                Resource: pods                  # Resource type
-                Namespaces: [validation-test]   # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+              resource-rule:                     # Mandatory, resource selection criteria, at least one resource rule is required
+                group:                          # empty or "" for core group
+                version: v1                     # Version of resource
+                resource: pods                  # Resource type
+                namespaces: [validation-test]   # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
             rego: |
               package validate
 

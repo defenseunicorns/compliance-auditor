@@ -9,13 +9,13 @@ The validation performed when using the Kubernetes domain is as follows:
 ```yaml
 resources:
 - name: podsvt                      # Required - Identifier for use in the rego below
-  resourceRule:                     # Required - resource selection criteria, at least one resource rule is required
-    Name:                           # Optional - Used to retrieve a specific resource in a single namespace
-    Group:                          # Required - empty or "" for core group
-    Version: v1                     # Required - Version of resource
-    Resource: pods                  # Required - Resource type
-    Namespaces: [validation-test]   # Required - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
-    Field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
+  resource-rule:                     # Required - resource selection criteria, at least one resource rule is required
+    name:                           # Optional - Used to retrieve a specific resource in a single namespace
+    group:                          # Required - empty or "" for core group
+    version: v1                     # Required - Version of resource
+    resource: pods                  # Required - Resource type
+    namespaces: [validation-test]   # Required - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
+    field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
       jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
       type:                         # Optional - Accepts "json" or "yaml". Default is "json".
       base64:                       # Optional - Boolean whether field is base64 encoded
@@ -33,11 +33,11 @@ wait:
   timeout: 30s
 resources:
 - name: podsvt
-  resourceRule:
-    Group:
-    Version: v1
-    Resource: pods
-    Namespaces: [validation-test]
+  resource-rule:
+    group:
+    version: v1
+    resource: pods
+    namespaces: [validation-test]
 ```
 
 ## Lists vs Named Resource
@@ -54,11 +54,11 @@ target:
   payload:
     resources:
     - name: podsvt
-      resourceRule:
-        Group:
-        Version: v1
-        Resource: pods
-        Namespaces: [validation-test]
+      resource-rule:
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
     rego: |
       package validate
 
@@ -84,12 +84,12 @@ target:
   payload:
     resources:
     - name: podvt
-      resourceRule:
-        Name: test-pod-label
-        Group:
-        Version: v1
-        Resource: pods
-        Namespaces: [validation-test]
+      resource-rule:
+        name: test-pod-label
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
     rego: |
       package validate
 
@@ -113,13 +113,13 @@ target:
   payload:
     resources:
     - name: configdata
-      resourceRule:
-        Name: test-configmap
-        Group:
-        Version: v1
-        Resource: pods
-        Namespaces: [validation-test]
-        Field:
+      resource-rule:
+        name: test-configmap
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+        field:
           jsonpath: .data.my-config.yaml
           type: yaml
     rego: |

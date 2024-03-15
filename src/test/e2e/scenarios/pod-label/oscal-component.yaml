@@ -61,11 +61,11 @@ component-definition:
             payload:
               resources:
               - name: podsvt
-                resourceRule:
-                  Group:
-                  Version: v1
-                  Resource: pods
-                  Namespaces: [validation-test]
+                resource-rule:
+                  group:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test]
               rego: |
                 package validate
 
@@ -86,12 +86,12 @@ component-definition:
             payload:
               resources:
               - name: podvt
-                resourceRule:
-                  Name: test-pod-label
-                  Group:
-                  Version: v1
-                  Resource: pods
-                  Namespaces: [validation-test]
+                resource-rule:
+                  name: test-pod-label
+                  group:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test]
               rego: |
                 package validate
 

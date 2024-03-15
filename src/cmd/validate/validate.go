@@ -180,7 +180,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							if val.Evaluated {
 								result = val.Result
 							} else {
-								result, err = ValidateOnTarget(ctx, id, val.Description)
+								result, err = ValidateOnTarget(ctx, id, val.Target)
 								if err != nil {
 									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 								}
@@ -264,11 +264,11 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 // ValidateOnTarget takes a map[string]interface{}
 // It will return a single Result
-func ValidateOnTarget(ctx context.Context, id string, target map[string]interface{}) (types.Result, error) {
+func ValidateOnTarget(ctx context.Context, id string, target types.Target) (types.Result, error) {
 	// simple conditional until more providers are introduced
-	if provider, ok := target["provider"].(string); ok && provider == "opa" {
+	if target.Provider == "opa" {
 		message.Debugf("OPA provider validating %s", id)
-		results, err := opa.Validate(ctx, target["domain"].(string), target["payload"].(map[string]interface{}))
+		results, err := opa.Validate(ctx, target.Domain, target)
 		if err != nil {
 			return types.Result{}, err
 		}
