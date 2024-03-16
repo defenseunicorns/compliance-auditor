@@ -13,11 +13,11 @@ In cases where a specific version of Lula is desired, either for typing constrai
       payload:
         resources:
         - name: podsvt
-          resourceRule:
-            Group:
-            Version: v1
-            Resource: pods
-            Namespaces: [validation-test]
+          resource-rule:
+            group:
+            version: v1
+            resource: pods
+            namespaces: [validation-test]
         rego: |                                   
           package validate
 
