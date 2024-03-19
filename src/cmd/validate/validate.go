@@ -126,7 +126,7 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 
 	// Populate a map[uuid]Validation into the validations
-	validations := oscal.BackMatterToMap(compDef.BackMatter)
+	validations := oscal.BackMatterToMap(*compDef.BackMatter)
 
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
@@ -135,8 +135,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
 	observations := make([]oscalTypes_1_1_2.Observation, 0)
 
-	for _, component := range compDef.Components {
-		for _, controlImplementation := range component.ControlImplementations {
+	for _, component := range *compDef.Components {
+		for _, controlImplementation := range *component.ControlImplementations {
 			rfc3339Time := time.Now()
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
 				spinner := message.NewProgressSpinner("Validating Implemented Requirement - %s", implementedRequirement.UUID)
@@ -160,7 +160,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 				var pass, fail int
 				// IF the implemented requirement contains a link - check for Lula Validation
 
-				for _, link := range implementedRequirement.Links {
+				for _, link := range *implementedRequirement.Links {
 					var result types.Result
 					var err error
 					// Current identifier is the link text
@@ -208,7 +208,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							}
 						}
 
-						observation.RelevantEvidence = []oscalTypes_1_1_2.RelevantEvidence{
+						observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 							{
 								Description: fmt.Sprintf("Result: %s\n", result.State),
 								Remarks:     remarks,
@@ -250,7 +250,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 					Type:     "objective-id",
 				}
 
-				finding.RelatedObservations = relatedObservations
+				finding.RelatedObservations = &relatedObservations
 
 				findings[implementedRequirement.ControlId] = finding
 				observations = append(observations, tempObservations...)
@@ -327,7 +327,7 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	var b bytes.Buffer
 
 	var sar = oscalTypes_1_1_2.OscalModels{
-		AssessmentResults: tempAssessment,
+		AssessmentResults: &tempAssessment,
 	}
 
 	yamlEncoder := yaml.NewEncoder(&b)

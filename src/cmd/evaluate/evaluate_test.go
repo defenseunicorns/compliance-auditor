@@ -12,7 +12,7 @@ func TestEvaluateResultsPassing(t *testing.T) {
 	message.NoProgress = true
 
 	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: []oscalTypes_1_1_2.Finding{
+		Findings: &[]oscalTypes_1_1_2.Finding{
 			{
 				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
@@ -25,7 +25,7 @@ func TestEvaluateResultsPassing(t *testing.T) {
 	}
 
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: []oscalTypes_1_1_2.Finding{
+		Findings: &[]oscalTypes_1_1_2.Finding{
 			{
 				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
@@ -52,7 +52,7 @@ func TestEvaluateResultsPassing(t *testing.T) {
 func TestEvaluateResultsFailed(t *testing.T) {
 	message.NoProgress = true
 	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: []oscalTypes_1_1_2.Finding{
+		Findings: &[]oscalTypes_1_1_2.Finding{
 			{
 				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
@@ -65,7 +65,7 @@ func TestEvaluateResultsFailed(t *testing.T) {
 	}
 
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: []oscalTypes_1_1_2.Finding{
+		Findings: &[]oscalTypes_1_1_2.Finding{
 			{
 				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
@@ -96,7 +96,7 @@ func TestEvaluateResultsFailed(t *testing.T) {
 func TestEvaluateResultsNewFindings(t *testing.T) {
 	message.NoProgress = true
 	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: []oscalTypes_1_1_2.Finding{
+		Findings: &[]oscalTypes_1_1_2.Finding{
 			{
 				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
@@ -109,7 +109,7 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 	}
 	// Adding two new findings
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: []oscalTypes_1_1_2.Finding{
+		Findings: &[]oscalTypes_1_1_2.Finding{
 			{
 				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",

@@ -19,17 +19,17 @@ func NewOscalComponentDefinition(data []byte) (oscalTypes_1_1_2.ComponentDefinit
 	err := yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
-		return oscalModels.ComponentDefinition, err
+		return *oscalModels.ComponentDefinition, err
 	}
 
-	return oscalModels.ComponentDefinition, nil
+	return *oscalModels.ComponentDefinition, nil
 }
 
 // Map an array of resources to a map of UUID to validation object
 func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Validation {
 	resourceMap := make(map[string]types.Validation)
 
-	for _, resource := range backMatter.Resources {
+	for _, resource := range *backMatter.Resources {
 		if resource.Title == "Lula Validation" {
 			var validation types.Validation
 
