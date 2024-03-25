@@ -14,7 +14,7 @@ INSTALL_PATH ?= /usr/local/bin
 GIT_COMMIT = $(shell git rev-parse HEAD)
 GIT_SHA    = $(shell git rev-parse --short HEAD)
 GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
-CLI_VERSION ?= $(if $(shell git describe --tags),$(shell git describe --tags),"UnknownVersion")
+CLI_VERSION ?= $(if $(shell git describe --tags),$(shell git describe --tags),"unset")
 
 # Go CLI options
 PKG         := ./...
