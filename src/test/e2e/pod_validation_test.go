@@ -39,87 +39,11 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			message.NoProgress = true
-
-			tempDir := t.TempDir()
-
-			// Upgrade the component definition to latest osscal version
-			revisionOptions := revision.RevisionOptions{
-				InputFile:  oscalPath,
-				OutputFile: tempDir + "/oscal-component-upgraded.yaml",
-				Version:    gooscalUtils.GetLatestSupportedVersion(),
-			}
-			revisionResponse, err := revision.RevisionCommand(&revisionOptions)
-			if err != nil {
-				t.Fatal("Failed to upgrade component definition with: ", err)
-			}
-			// Write the upgraded component definition to a temp file
-			err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
-			if err != nil {
-				t.Fatal("Failed to write upgraded component definition with: ", err)
-			}
-			message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
-
-			findingMap, observations, err := validate.ValidateOnPath(revisionOptions.OutputFile)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			for _, finding := range findingMap {
-				state := finding.Target.Status.State
-				if state != "satisfied" {
-					t.Fatal("State should be satisfied, but got :", state)
-				}
-			}
-
-			// Test report generation
-			report, err := oscal.GenerateAssessmentResults(findingMap, observations)
-			if err != nil {
-				t.Fatal("Failed generation of Assessment Results object with: ", err)
-			}
-
-			// Write report(s) to file
-			err = validate.WriteReport(report, "sar-test.yaml")
-			if err != nil {
-				t.Fatal("Failed to write report to file: ", err)
-			}
-
-			initialResultCount := len(report.Results)
-
-			//Perform the write operation again and read the file to ensure result was appended
-			report, err = oscal.GenerateAssessmentResults(findingMap, observations)
-			if err != nil {
-				t.Fatal("Failed generation of Assessment Results object with: ", err)
-			}
-
-			// Write report(s) to file
-			err = validate.WriteReport(report, "sar-test.yaml")
-			if err != nil {
-				t.Fatal("Failed to write report to file: ", err)
-			}
-
-			data, err := os.ReadFile("sar-test.yaml")
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			tempAssessment, err := oscal.NewAssessmentResults(data)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// The number of results in the file should be more than initially
-			if len(tempAssessment.Results) <= initialResultCount {
-				t.Fatal("Failed to append results to existing report")
-			}
-
-			validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
-			if err != nil {
-				t.Fatal("File failed linting")
-			}
-			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validatorResponse.Validator.GetSchemaVersion(), validatorResponse.Validator.GetModelType())
-
-			return ctx
+			return validatePodLabelPass(ctx, t, config, oscalPath)
+		}).
+		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
+			return validatePodLabelPass(ctx, t, config, oscalPath)
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -157,21 +81,11 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			message.NoProgress = true
-
-			findingMap, _, err := validate.ValidateOnPath(oscalPath)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			for _, finding := range findingMap {
-				state := finding.Target.Status.State
-				if state != "not-satisfied" {
-					t.Fatal("State should be not-satisfied, but got :", state)
-				}
-			}
-
-			return ctx
+			return validatePodLabelFail(ctx, t, config, oscalPath)
+		}).
+		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
+			return validatePodLabelFail(ctx, t, config, oscalPath)
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -187,4 +101,106 @@ func TestPodLabelValidation(t *testing.T) {
 		}).Feature()
 
 	testEnv.Test(t, featureTrueValidation, featureFalseValidation)
+}
+
+func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
+	message.NoProgress = true
+
+	tempDir := t.TempDir()
+
+	// Upgrade the component definition to latest osscal version
+	revisionOptions := revision.RevisionOptions{
+		InputFile:  oscalPath,
+		OutputFile: tempDir + "/oscal-component-upgraded.yaml",
+		Version:    gooscalUtils.GetLatestSupportedVersion(),
+	}
+	revisionResponse, err := revision.RevisionCommand(&revisionOptions)
+	if err != nil {
+		t.Fatal("Failed to upgrade component definition with: ", err)
+	}
+	// Write the upgraded component definition to a temp file
+	err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
+	if err != nil {
+		t.Fatal("Failed to write upgraded component definition with: ", err)
+	}
+	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
+
+	findingMap, observations, err := validate.ValidateOnPath(revisionOptions.OutputFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, finding := range findingMap {
+		state := finding.Target.Status.State
+		if state != "satisfied" {
+			t.Fatal("State should be satisfied, but got :", state)
+		}
+	}
+
+	// Test report generation
+	report, err := oscal.GenerateAssessmentResults(findingMap, observations)
+	if err != nil {
+		t.Fatal("Failed generation of Assessment Results object with: ", err)
+	}
+
+	// Write report(s) to file
+	err = validate.WriteReport(report, "sar-test.yaml")
+	if err != nil {
+		t.Fatal("Failed to write report to file: ", err)
+	}
+
+	initialResultCount := len(report.Results)
+
+	//Perform the write operation again and read the file to ensure result was appended
+	report, err = oscal.GenerateAssessmentResults(findingMap, observations)
+	if err != nil {
+		t.Fatal("Failed generation of Assessment Results object with: ", err)
+	}
+
+	// Write report(s) to file
+	err = validate.WriteReport(report, "sar-test.yaml")
+	if err != nil {
+		t.Fatal("Failed to write report to file: ", err)
+	}
+
+	data, err := os.ReadFile("sar-test.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tempAssessment, err := oscal.NewAssessmentResults(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The number of results in the file should be more than initially
+	if len(tempAssessment.Results) <= initialResultCount {
+		t.Fatal("Failed to append results to existing report")
+	}
+
+	validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
+	if err != nil {
+		t.Fatal("File failed linting")
+	}
+	message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validatorResponse.Validator.GetSchemaVersion(), validatorResponse.Validator.GetModelType())
+
+	return ctx
+}
+
+func validatePodLabelFail(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
+	message.NoProgress = true
+
+	findingMap, _, err := validate.ValidateOnPath(oscalPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, finding := range findingMap {
+		state := finding.Target.Status.State
+		if state != "not-satisfied" {
+			t.Fatal("State should be not-satisfied, but got :", state)
+		}
+	}
+
+	return ctx
 }
