@@ -12,7 +12,7 @@ component-definition:
       type: organization
       name: Defense Unicorns
       links:
-      - href: https://github.com/defenseunicorns/lula
+      - href: <https://github.com/defenseunicorns/lula>
         rel: website
   components:
   - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
@@ -41,64 +41,68 @@ component-definition:
         - href: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
           rel: reference
           text: Lula Validation
-        - href: '#F9EC74AE-19A0-4822-8D7C-214AECCEB7C6'
-          rel: reference
-          text: Lula Validation
   back-matter: 
     resources:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
       title: Lula Validation
+      remarks: >-
+        Get data for all resources fields specified
       description: >-
         target:
           provider: opa
           domain: kubernetes
           payload:
             resources:
-            - name: podsvt1
+            - name: jsoncm
               resource-rule:
+                name: configmap-json
+                group:
+                version: v1
+                resource: configmaps
+                namespaces: [validation-test]
+                field:
+                  jsonpath: .data.person.json
+                  type: yaml
+            - name: yamlcm
+              resource-rule:
+                name: configmap-yaml
+                group:
+                version: v1
+                resource: configmaps
+                namespaces: [validation-test]
+                field:
+                  jsonpath: .data.app-config.yaml
+                  type: yaml
+            - name: secret
+              resource-rule:
+                name: example-secret
+                group:
+                version: v1
+                resource: secrets
+                namespaces: [validation-test]
+                field:
+                  jsonpath: .data.auth
+                  type: yaml
+                  base64: true
+            - name: pod
+              resource-rule:
+                name: example-pod
                 group:
                 version: v1
                 resource: pods
-                namespaces: [validation-test1]
-            - name: podsvt2
-              resource-rule:
-                group:
-                version: v1
-                resource: pods
-                namespaces: [validation-test2]
+                namespaces: [validation-test]
+                field:
+                  jsonpath: .metadata.annotations.annotation.io/simple
+                  type: json
             rego: |
               package validate
 
               import future.keywords.every
 
               validate {
-                every pod in input.podsvt1 {
-                  podLabel := pod.metadata.labels.locality
-                  podLabel == "vt1"
-                }
-
-                every pod in input.podsvt2 {
-                  podLabel := pod.metadata.labels.locality
-                  podLabel == "vt2"
-                }
+                input.jsoncm.name == "bob"
+                input.yamlcm.logging.level == "INFO"
+                input.secret.username == "username"
+                "item1" in input.pod.items
               }
-    - uuid: F9EC74AE-19A0-4822-8D7C-214AECCEB7C6
-      title: Lula Validation
-      description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
-            requests:
-              - name: local
-                url: "http://localhost"
-              - name: test
-                url: "http://localhost/test"  
-            rego: |
-              package validate
-
-              validate {
-                input.local.pass == true
-                input.test.pass == true
-                input.test.test == true
-              }
+    

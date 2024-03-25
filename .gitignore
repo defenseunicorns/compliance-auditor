@@ -3,3 +3,5 @@ compliance_report-*
 out/
 assessment-results-*.yaml
 .idea
+.vscode/settings.json
+.vscode/launch.json

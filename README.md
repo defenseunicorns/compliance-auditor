@@ -47,7 +47,7 @@ In the standard CLI workflow:
     - K3d
         - `k3d cluster create lula-test`
 - kubectl
-- GoLang version 1.21.x
+- GoLang version 1.22.x
 
 #### Steps
 
@@ -173,4 +173,4 @@ In the standard CLI workflow:
 
 ## Developing
 
-- Go 1.21
+- Go 1.22.x

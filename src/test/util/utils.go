@@ -76,6 +76,19 @@ func GetService(serviceFilePath string) (*v1.Service, error) {
 	return service, nil
 }
 
+func GetSecret(secretFilePath string) (*v1.Secret, error) {
+	bytes, err := os.ReadFile(secretFilePath)
+	if err != nil {
+		return nil, err
+	}
+	secret := &v1.Secret{}
+	err = yaml.Unmarshal(bytes, &secret)
+	if err != nil {
+		return nil, err
+	}
+	return secret, nil
+}
+
 func GetIngress(ingressFilePath string) (*netv1.Ingress, error) {
 	bytes, err := os.ReadFile(ingressFilePath)
 	if err != nil {

@@ -6,7 +6,8 @@ import (
 	"testing"
 	"time"
 
-	validator "github.com/defenseunicorns/go-oscal/src/cmd/validate"
+	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -16,6 +17,8 @@ import (
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 )
 
 func TestPodLabelValidation(t *testing.T) {
@@ -28,7 +31,7 @@ func TestPodLabelValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
-			err = wait.For(conditions.New(config.Client().Resources()).PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*5))
+			err = wait.For(conditions.New(config.Client().Resources()).PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*1))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -38,7 +41,26 @@ func TestPodLabelValidation(t *testing.T) {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
 			message.NoProgress = true
 
-			findingMap, observations, err := validate.ValidateOnPath(oscalPath)
+			tempDir := t.TempDir()
+
+			// Upgrade the component definition to latest osscal version
+			revisionOptions := revision.RevisionOptions{
+				InputFile:  oscalPath,
+				OutputFile: tempDir + "/oscal-component-upgraded.yaml",
+				Version:    gooscalUtils.GetLatestSupportedVersion(),
+			}
+			revisionResponse, err := revision.RevisionCommand(&revisionOptions)
+			if err != nil {
+				t.Fatal("Failed to upgrade component definition with: ", err)
+			}
+			// Write the upgraded component definition to a temp file
+			err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
+			if err != nil {
+				t.Fatal("Failed to write upgraded component definition with: ", err)
+			}
+			message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
+
+			findingMap, observations, err := validate.ValidateOnPath(revisionOptions.OutputFile)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -91,11 +113,11 @@ func TestPodLabelValidation(t *testing.T) {
 				t.Fatal("Failed to append results to existing report")
 			}
 
-			validator, err := validator.ValidateCommand("sar-test.yaml")
+			validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
 			if err != nil {
 				t.Fatal("File failed linting")
 			}
-			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validator.GetSchemaVersion(), validator.GetModelType())
+			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validatorResponse.Validator.GetSchemaVersion(), validatorResponse.Validator.GetModelType())
 
 			return ctx
 		}).
@@ -104,6 +126,17 @@ func TestPodLabelValidation(t *testing.T) {
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
+
+			err := wait.For(conditions.New(config.Client().Resources()).ResourceDeleted(pod), wait.WithTimeout(time.Minute*1))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = os.Remove("sar-test.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			return ctx
 		}).Feature()
 
@@ -145,6 +178,11 @@ func TestPodLabelValidation(t *testing.T) {
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
+			err := wait.For(conditions.New(config.Client().Resources()).ResourceDeleted(pod), wait.WithTimeout(time.Minute*1))
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			return ctx
 		}).Feature()
 

@@ -5,36 +5,36 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"gopkg.in/yaml.v3"
 )
 
-const OSCAL_VERSION = "1.1.1"
+const OSCAL_VERSION = "1.1.2"
 
-func NewAssessmentResults(data []byte) (oscalTypes.AssessmentResults, error) {
-	var oscalModels oscalTypes.OscalModels
+func NewAssessmentResults(data []byte) (oscalTypes_1_1_2.AssessmentResults, error) {
+	var oscalModels oscalTypes_1_1_2.OscalModels
 
 	err := yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
-		return oscalTypes.AssessmentResults{}, err
+		return oscalTypes_1_1_2.AssessmentResults{}, err
 	}
 
 	return oscalModels.AssessmentResults, nil
 }
 
-func GenerateAssessmentResults(findingMap map[string]oscalTypes.Finding, observations []oscalTypes.Observation) (oscalTypes.AssessmentResults, error) {
-	var assessmentResults oscalTypes.AssessmentResults
+func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (oscalTypes_1_1_2.AssessmentResults, error) {
+	var assessmentResults oscalTypes_1_1_2.AssessmentResults
 
 	// Single time used for all time related fields
-	rfc3339Time := time.Now().Format(time.RFC3339)
-	controlList := make([]oscalTypes.SelectControlById, 0)
-	findings := make([]oscalTypes.Finding, 0)
+	rfc3339Time := time.Now()
+	controlList := make([]oscalTypes_1_1_2.AssessedControlsSelectControlById, 0)
+	findings := make([]oscalTypes_1_1_2.Finding, 0)
 
 	// Convert control map to slice of SelectControlById
 	for controlId, finding := range findingMap {
-		control := oscalTypes.SelectControlById{
+		control := oscalTypes_1_1_2.AssessedControlsSelectControlById{
 			ControlId: controlId,
 		}
 		controlList = append(controlList, control)
@@ -46,7 +46,7 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes.Finding, observa
 
 	// Create metadata object with requires fields and a few extras
 	// Where do we establish what `version` should be?
-	assessmentResults.Metadata = oscalTypes.Metadata{
+	assessmentResults.Metadata = oscalTypes_1_1_2.Metadata{
 		Title:        "[System Name] Security Assessment Results (SAR)",
 		Version:      "0.0.1",
 		OscalVersion: OSCAL_VERSION,
@@ -56,16 +56,16 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes.Finding, observa
 	}
 
 	// Create results object
-	assessmentResults.Results = []oscalTypes.Result{
+	assessmentResults.Results = []oscalTypes_1_1_2.Result{
 		{
 			UUID:        uuid.NewUUID(),
 			Title:       "Lula Validation Result",
 			Start:       rfc3339Time,
 			Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
-			ReviewedControls: oscalTypes.ReviewedControls{
+			ReviewedControls: oscalTypes_1_1_2.ReviewedControls{
 				Description: "Controls validated",
 				Remarks:     "Validation performed may indicate full or partial satisfaction",
-				ControlSelections: []oscalTypes.AssessedControls{
+				ControlSelections: []oscalTypes_1_1_2.AssessedControls{
 					{
 						Description:     "Controls Assessed by Lula",
 						IncludeControls: controlList,
@@ -80,8 +80,8 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes.Finding, observa
 	return assessmentResults, nil
 }
 
-func GenerateFindingsMap(findings []oscalTypes.Finding) map[string]oscalTypes.Finding {
-	findingsMap := make(map[string]oscalTypes.Finding)
+func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTypes_1_1_2.Finding {
+	findingsMap := make(map[string]oscalTypes_1_1_2.Finding)
 	for _, finding := range findings {
 		findingsMap[finding.Target.TargetId] = finding
 	}

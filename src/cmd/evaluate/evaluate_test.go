@@ -3,7 +3,7 @@ package evaluate
 import (
 	"testing"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-1"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -11,12 +11,12 @@ import (
 func TestEvaluateResultsPassing(t *testing.T) {
 	message.NoProgress = true
 
-	mockThresholdResult := oscalTypes.Result{
-		Findings: []oscalTypes.Finding{
+	mockThresholdResult := oscalTypes_1_1_2.Result{
+		Findings: []oscalTypes_1_1_2.Finding{
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
@@ -24,12 +24,12 @@ func TestEvaluateResultsPassing(t *testing.T) {
 		},
 	}
 
-	mockEvaluationResult := oscalTypes.Result{
-		Findings: []oscalTypes.Finding{
+	mockEvaluationResult := oscalTypes_1_1_2.Result{
+		Findings: []oscalTypes_1_1_2.Finding{
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
@@ -51,12 +51,12 @@ func TestEvaluateResultsPassing(t *testing.T) {
 
 func TestEvaluateResultsFailed(t *testing.T) {
 	message.NoProgress = true
-	mockThresholdResult := oscalTypes.Result{
-		Findings: []oscalTypes.Finding{
+	mockThresholdResult := oscalTypes_1_1_2.Result{
+		Findings: []oscalTypes_1_1_2.Finding{
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
@@ -64,12 +64,12 @@ func TestEvaluateResultsFailed(t *testing.T) {
 		},
 	}
 
-	mockEvaluationResult := oscalTypes.Result{
-		Findings: []oscalTypes.Finding{
+	mockEvaluationResult := oscalTypes_1_1_2.Result{
+		Findings: []oscalTypes_1_1_2.Finding{
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "not-satisfied",
 					},
 				},
@@ -95,12 +95,12 @@ func TestEvaluateResultsFailed(t *testing.T) {
 
 func TestEvaluateResultsNewFindings(t *testing.T) {
 	message.NoProgress = true
-	mockThresholdResult := oscalTypes.Result{
-		Findings: []oscalTypes.Finding{
+	mockThresholdResult := oscalTypes_1_1_2.Result{
+		Findings: []oscalTypes_1_1_2.Finding{
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
@@ -108,28 +108,28 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		},
 	}
 	// Adding two new findings
-	mockEvaluationResult := oscalTypes.Result{
-		Findings: []oscalTypes.Finding{
+	mockEvaluationResult := oscalTypes_1_1_2.Result{
+		Findings: []oscalTypes_1_1_2.Finding{
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
 			},
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-2",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
 			},
 			{
-				Target: oscalTypes.FindingTarget{
+				Target: oscalTypes_1_1_2.FindingTarget{
 					TargetId: "ID-3",
-					Status: oscalTypes.Status{
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
 						State: "not-satisfied",
 					},
 				},

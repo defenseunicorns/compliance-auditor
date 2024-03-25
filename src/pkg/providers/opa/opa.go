@@ -8,10 +8,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"reflect"
 
 	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -19,15 +20,11 @@ import (
 
 // TODO: What is the new version of the information we are displaying on the command line?
 
-func Validate(ctx context.Context, domain string, data map[string]interface{}) (types.Result, error) {
+func Validate(ctx context.Context, domain string, data types.Target) (types.Result, error) {
 	if domain == "kubernetes" {
-		var payload types.Payload
-		err := mapstructure.Decode(data, &payload)
-		if err != nil {
-			return types.Result{}, err
-		}
+		payload := data.Payload
 
-		err = kube.EvaluateWait(payload.Wait)
+		err := kube.EvaluateWait(payload.Wait)
 		if err != nil {
 			return types.Result{}, err
 		}
@@ -38,7 +35,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		}
 
 		// TODO: Add logging optionality for understanding what resources are actually being validated
-		results, err := GetValidatedAssets(ctx, payload.Rego, collection)
+		results, err := GetValidatedAssets(ctx, payload.Rego, collection, payload.Output)
 		if err != nil {
 			return types.Result{}, err
 		}
@@ -46,11 +43,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 		return results, nil
 
 	} else if domain == "api" {
-		var payload types.PayloadAPI
-		err := mapstructure.Decode(data, &payload)
-		if err != nil {
-			return types.Result{}, err
-		}
+		payload := data.Payload
 
 		collection := make(map[string]interface{}, 0)
 
@@ -92,7 +85,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 			}
 		}
 
-		results, err := GetValidatedAssets(ctx, payload.Rego, collection)
+		results, err := GetValidatedAssets(ctx, payload.Rego, collection, payload.Output)
 		if err != nil {
 			return types.Result{}, err
 		}
@@ -104,7 +97,7 @@ func Validate(ctx context.Context, domain string, data map[string]interface{}) (
 }
 
 // GetValidatedAssets performs the validation of the dataset against the given rego policy
-func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}) (types.Result, error) {
+func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}, output types.Output) (types.Result, error) {
 	var matchResult types.Result
 
 	if len(dataset) == 0 {
@@ -121,39 +114,62 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 		return matchResult, fmt.Errorf("failed to compile rego policy: %w", err)
 	}
 
-	regoCalc := rego.New(
-		rego.Query("data.validate"),
+	// Get validation decision
+	validation := "validate.validate"
+	if output.Validation != "" {
+		validation = output.Validation
+	}
+
+	regoCalcValid := rego.New(
+		rego.Query(fmt.Sprintf("data.%s", validation)),
 		rego.Compiler(compiler),
 		rego.Input(dataset),
 	)
 
-	resultSet, err := regoCalc.Eval(ctx)
-
-	if err != nil || resultSet == nil || len(resultSet) == 0 {
+	resultValid, err := regoCalcValid.Eval(ctx)
+	if err != nil {
 		return matchResult, fmt.Errorf("failed to evaluate rego policy: %w", err)
 	}
-
-	for _, result := range resultSet {
-		for _, expression := range result.Expressions {
-			expressionBytes, err := json.Marshal(expression.Value)
-			if err != nil {
-				return matchResult, fmt.Errorf("failed to marshal expression: %w", err)
-			}
-
-			var expressionMap map[string]interface{}
-			err = json.Unmarshal(expressionBytes, &expressionMap)
-			if err != nil {
-				return matchResult, fmt.Errorf("failed to unmarshal expression: %w", err)
-			}
-			// TODO: add logging optionality here for developer experience
-			if matched, ok := expressionMap["validate"]; ok && matched.(bool) {
-				// TODO: Is there a way to determine how many resources failed?
-				matchResult.Passing += 1
-			} else {
-				matchResult.Failing += 1
+	// Checking result length is non-zero: will be zero if validation returns false
+	if len(resultValid) != 0 {
+		// Extra check on validation value = true, to ensure it's a boolean return since it could be anything
+		if matched, ok := resultValid[0].Expressions[0].Value.(bool); ok && matched {
+			matchResult.Passing += 1
+		} else {
+			matchResult.Failing += 1
+			if !ok {
+				message.Debugf("Validation field expected bool and got %s", reflect.TypeOf(resultValid[0].Expressions[0].Value))
 			}
 		}
+	} else {
+		matchResult.Failing += 1
 	}
+
+	// Get additional observations, if they exist - only supports string output
+	observations := make(map[string]string)
+	for _, obv := range output.Observations {
+		regoCalcObv := rego.New(
+			rego.Query(fmt.Sprintf("data.%s", obv)),
+			rego.Compiler(compiler),
+			rego.Input(dataset),
+		)
+
+		resultObv, err := regoCalcObv.Eval(ctx)
+		if err != nil {
+			return matchResult, fmt.Errorf("failed to evaluate rego policy: %w", err)
+		}
+		// To do: check if resultObv is empty - basically some extra error handling if a user defines an output but it's not coming out of the rego
+		if len(resultObv) != 0 {
+			if matched, ok := resultObv[0].Expressions[0].Value.(string); ok {
+				observations[obv] = matched
+			} else {
+				message.Debugf("Observation field %s expected string and got %s", obv, reflect.TypeOf(resultObv[0].Expressions[0].Value))
+			}
+		} else {
+			message.Debugf("Observation field %s not output from rego", obv)
+		}
+	}
+	matchResult.Observations = observations
 
 	return matchResult, nil
 }
