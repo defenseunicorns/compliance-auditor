@@ -15,7 +15,7 @@ import (
 
 type flags struct {
 	InputFile  string // -f --input-file
-	OutputFile string // -r --result-file
+	OutputFile string // -o --output-file
 }
 
 var opts = &flags{}
