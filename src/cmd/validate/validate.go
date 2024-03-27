@@ -135,16 +135,17 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
 	observations := make([]oscalTypes_1_1_2.Observation, 0)
 
-	components := *compDef.Components
-	if components == nil {
+	if *compDef.Components == nil {
 		return findings, observations, fmt.Errorf("no components found in component definition")
 	}
 
-	for _, component := range components {
+	for _, component := range *compDef.Components {
+		// If there are no control-implementations, skip to the next component
 		controlImplementations := *component.ControlImplementations
 		if controlImplementations == nil {
-			return findings, observations, fmt.Errorf("no control implementations found in component")
+			continue
 		}
+
 		for _, controlImplementation := range controlImplementations {
 			rfc3339Time := time.Now()
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
@@ -169,75 +170,76 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 				var pass, fail int
 				// IF the implemented requirement contains a link - check for Lula Validation
 
-				for _, link := range *implementedRequirement.Links {
-					var result types.Result
-					var err error
-					// Current identifier is the link text
-					if link.Text == "Lula Validation" {
-						sharedUuid := uuid.NewUUID()
-						observation := oscalTypes_1_1_2.Observation{
-							Collected: rfc3339Time,
-							Methods:   []string{"TEST"},
-							UUID:      sharedUuid,
-						}
-						// Remove the leading '#' from the UUID reference
-						id := strings.Replace(link.Href, "#", "", 1)
-						observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
-						// Check if the link exists in our pre-populated map of validations
-						if val, ok := validations[id]; ok {
-							// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
-							if val.Evaluated {
-								result = val.Result
-							} else {
-								result, err = ValidateOnTarget(ctx, id, val.Target)
-								if err != nil {
-									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+				if implementedRequirement.Links != nil {
+					for _, link := range *implementedRequirement.Links {
+						var result types.Result
+						var err error
+						// Current identifier is the link text
+						if link.Text == "Lula Validation" {
+							sharedUuid := uuid.NewUUID()
+							observation := oscalTypes_1_1_2.Observation{
+								Collected: rfc3339Time,
+								Methods:   []string{"TEST"},
+								UUID:      sharedUuid,
+							}
+							// Remove the leading '#' from the UUID reference
+							id := strings.Replace(link.Href, "#", "", 1)
+							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
+							// Check if the link exists in our pre-populated map of validations
+							if val, ok := validations[id]; ok {
+								// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
+								if val.Evaluated {
+									result = val.Result
+								} else {
+									result, err = ValidateOnTarget(ctx, id, val.Target)
+									if err != nil {
+										return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+									}
+									// Store the result in the validation object
+									val.Result = result
+									val.Evaluated = true
+									validations[id] = val
 								}
-								// Store the result in the validation object
-								val.Result = result
-								val.Evaluated = true
-								validations[id] = val
+							} else {
+								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
 							}
-						} else {
-							return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
-						}
 
-						// Individual result state
-						if result.Passing > 0 && result.Failing <= 0 {
-							result.State = "satisfied"
-						} else {
-							result.State = "not-satisfied"
-						}
-
-						// Add remarks if Result has Observations
-						var remarks string
-						if len(result.Observations) > 0 {
-							for k, v := range result.Observations {
-								remarks += fmt.Sprintf("%s: %s\n", k, v)
+							// Individual result state
+							if result.Passing > 0 && result.Failing <= 0 {
+								result.State = "satisfied"
+							} else {
+								result.State = "not-satisfied"
 							}
+
+							// Add remarks if Result has Observations
+							var remarks string
+							if len(result.Observations) > 0 {
+								for k, v := range result.Observations {
+									remarks += fmt.Sprintf("%s: %s\n", k, v)
+								}
+							}
+
+							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
+								{
+									Description: fmt.Sprintf("Result: %s\n", result.State),
+									Remarks:     remarks,
+								},
+							}
+
+							relatedObservation := oscalTypes_1_1_2.RelatedObservation{
+								ObservationUuid: sharedUuid,
+							}
+
+							pass += result.Passing
+							fail += result.Failing
+
+							// Coalesce slices and objects
+							relatedObservations = append(relatedObservations, relatedObservation)
+							tempObservations = append(tempObservations, observation)
 						}
 
-						observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-							{
-								Description: fmt.Sprintf("Result: %s\n", result.State),
-								Remarks:     remarks,
-							},
-						}
-
-						relatedObservation := oscalTypes_1_1_2.RelatedObservation{
-							ObservationUuid: sharedUuid,
-						}
-
-						pass += result.Passing
-						fail += result.Failing
-
-						// Coalesce slices and objects
-						relatedObservations = append(relatedObservations, relatedObservation)
-						tempObservations = append(tempObservations, observation)
 					}
-
 				}
-
 				// Using language from Assessment Results model for Target Objective Status State
 				var state string
 				if finding.Target.Status.State == "not-satisfied" {
