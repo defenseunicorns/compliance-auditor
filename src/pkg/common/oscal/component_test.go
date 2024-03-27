@@ -5,107 +5,111 @@ import (
 	"reflect"
 	"testing"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
 
-var (
-	validComponentPath = "../../../test/e2e/scenarios/resource-data/oscal-component.yaml"
-)
+const validComponentPath = "../../../test/e2e/scenarios/resource-data/oscal-component.yaml"
+
+// Helper function to load test data
+func loadTestData(t *testing.T, path string) []byte {
+	t.Helper() // Marks this function as a test helper
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("Failed to read file '%s': %v", path, err)
+	}
+	return data
+}
 
 func TestBackMatterToMap(t *testing.T) {
-	type args struct {
-		backMatter oscalTypes_1_1_2.BackMatter
+	validComponentBytes := loadTestData(t, validComponentPath)
+	validBackMatterMapBytes := loadTestData(t, "../../../../test/validBackMatterMap.yaml")
+
+	var validComponent oscalTypes.OscalCompleteSchema
+	if err := yaml.Unmarshal(validComponentBytes, &validComponent); err != nil {
+		t.Fatalf("yaml.Unmarshal failed: %v", err)
 	}
+	var validBackMatterMap map[string]types.Validation
+	if err := yaml.Unmarshal(validBackMatterMapBytes, &validBackMatterMap); err != nil {
+		t.Fatalf("yaml.Unmarshal failed: %v", err)
+	}
+
 	tests := []struct {
-		name string
-		args args
-		want map[string]types.Validation
+		name       string
+		backMatter oscalTypes.BackMatter
+		want       map[string]types.Validation
 	}{
 		{
-			name: "Test No Resources",
-			args: args{
-				backMatter: oscalTypes_1_1_2.BackMatter{},
-			},
+			name:       "Test No Resources",
+			backMatter: oscalTypes.BackMatter{},
 		},
-		// {
-		// 	name: "Test "
-		// }
+		{
+			name:       "Test Valid Component",
+			backMatter: *validComponent.ComponentDefinition.BackMatter,
+			want:       validBackMatterMap,
+		},
+		// Add more test cases as needed
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := oscal.BackMatterToMap(tt.args.backMatter); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("BackMatterToMap() = %v, want %v", got, tt.want)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := oscal.BackMatterToMap(tc.backMatter)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("BackMatterToMap() got = %v, want %v", got, tc.want)
 			}
 		})
 	}
 }
 
 func TestNewOscalComponentDefinition(t *testing.T) {
-	invalidConfig := oscalTypes_1_1_2.OscalCompleteSchema{}
+	validBytes := loadTestData(t, validComponentPath)
 
-	invalidBytes, err := yaml.Marshal(invalidConfig)
+	var validWantSchema oscalTypes.OscalCompleteSchema
+	if err := yaml.Unmarshal(validBytes, &validWantSchema); err != nil {
+		t.Fatalf("yaml.Unmarshal failed: %v", err)
+	}
+
+	invalidBytes, err := yaml.Marshal(oscalTypes.OscalCompleteSchema{})
 	if err != nil {
-		t.Error(err)
+		t.Fatalf("yaml.Marshal failed: %v", err)
 	}
 
-	validBytes, err := os.ReadFile(validComponentPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	var validWantSchema oscalTypes_1_1_2.OscalCompleteSchema
-	err = yaml.Unmarshal(validBytes, &validWantSchema)
-	if err != nil {
-		t.Error(err)
-	}
-
-	validWant := *validWantSchema.ComponentDefinition
-
-	type args struct {
-		data []byte
-	}
 	tests := []struct {
 		name    string
-		args    args
-		want    oscalTypes_1_1_2.ComponentDefinition
+		data    []byte
+		want    oscalTypes.ComponentDefinition
 		wantErr bool
 	}{
 		{
-			name: "Test NewOscalComponentDefinition",
-			args: args{
-				data: validBytes,
-			},
+			name:    "Valid OSCAL Component Definition",
+			data:    validBytes,
+			want:    *validWantSchema.ComponentDefinition,
 			wantErr: false,
-			want:    validWant,
 		},
 		{
-			name: "Test NewOscalComponentDefinition Invalid",
-			args: args{
-				data: invalidBytes,
-			},
+			name:    "Invalid OSCAL Component Definition",
+			data:    invalidBytes,
 			wantErr: true,
 		},
 		{
-			name: "Test NewOscalComponentDefinition Empty Data",
-			args: args{
-				data: []byte{},
-			},
+			name:    "Empty Data",
+			data:    []byte{},
 			wantErr: true,
 		},
-		// TODO: Add test cases.
+		// Additional test cases can be added here
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := oscal.NewOscalComponentDefinition(tt.args.data)
+			got, err := oscal.NewOscalComponentDefinition(tt.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewOscalComponentDefinition() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewOscalComponentDefinition() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.want) && !tt.wantErr {
+				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
