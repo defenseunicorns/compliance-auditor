@@ -29,4 +29,4 @@ Through the use of [Renovate](https://www.mend.io/renovate/), we can automate th
   - Include steps to validate the dependency updates
 
 ### Notes
-- Validation of the checksums is currently a manual process an a byproduct of not yet capturing the provenance of Renovates checksum process. Given that no single version of Renovate is being used (this is the non-self-hostedGitHub application), we do not track updates to the renovate runtime itself. 
+- Validation of the checksums is currently a manual process and a byproduct of not yet capturing the provenance of Renovates checksum process. Given that no single version of Renovate is being used (this is the non-self-hosted GitHub application), we do not track updates to the renovate runtime itself. 
