@@ -135,8 +135,17 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
 	observations := make([]oscalTypes_1_1_2.Observation, 0)
 
-	for _, component := range *compDef.Components {
-		for _, controlImplementation := range *component.ControlImplementations {
+	components := *compDef.Components
+	if components == nil {
+		return findings, observations, fmt.Errorf("no components found in component definition")
+	}
+
+	for _, component := range components {
+		controlImplementations := *component.ControlImplementations
+		if controlImplementations == nil {
+			return findings, observations, fmt.Errorf("no control implementations found in component")
+		}
+		for _, controlImplementation := range controlImplementations {
 			rfc3339Time := time.Now()
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
 				spinner := message.NewProgressSpinner("Validating Implemented Requirement - %s", implementedRequirement.UUID)
