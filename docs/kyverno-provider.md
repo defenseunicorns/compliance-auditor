@@ -59,22 +59,21 @@ target:
       version: v1 
       resource: pods
       namespaces: [validation-test] 
-    rego: |
-      kyverno: |
-        apiVersion: json.kyverno.io/v1alpha1
-        kind: ValidatingPolicy
-        metadata:
-          name: labels
-        spec:
-          rules:
-          - name: foo-label-exists
-            assert:
-              all:
-              - check:
-                  ~.podsvt:
-                    metadata:
-                      labels:
-                        foo: bar
+    kyverno: |
+      apiVersion: json.kyverno.io/v1alpha1
+      kind: ValidatingPolicy
+      metadata:
+        name: labels
+      spec:
+        rules:
+        - name: foo-label-exists
+          assert:
+            all:
+            - check:
+                ~.podsvt:
+                  metadata:
+                    labels:
+                      foo: bar
     output:
       validation: labels.foo-label-exists
       observations:
