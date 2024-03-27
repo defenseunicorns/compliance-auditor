@@ -62,7 +62,7 @@ func Validate(ctx context.Context, domain string, data types.Target) (types.Resu
 			}
 
 			contentType := resp.Header.Get("Content-Type")
-			if contentType == "application/json" {
+			if contentType == "application/json" || contentType == "application/yaml" {
 
 				var prettyBuff bytes.Buffer
 				json.Indent(&prettyBuff, body, "", "  ")
