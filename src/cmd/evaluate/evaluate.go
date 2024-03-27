@@ -128,6 +128,10 @@ func EvaluateResults(thresholdResult oscalTypes_1_1_2.Result, newResult oscalTyp
 	findings := make(map[string][]oscalTypes_1_1_2.Finding, 0)
 	result := true
 
+	if thresholdResult.Findings == nil || newResult.Findings == nil {
+		return false, nil, fmt.Errorf("Results must contain findings to evaluate")
+	}
+
 	findingMapThreshold := oscal.GenerateFindingsMap(*thresholdResult.Findings)
 	findingMapNew := oscal.GenerateFindingsMap(*newResult.Findings)
 

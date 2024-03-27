@@ -93,6 +93,51 @@ func TestEvaluateResultsFailed(t *testing.T) {
 
 }
 
+func TestEvaluateResultsNoFindings(t *testing.T) {
+	message.NoProgress = true
+	mockThresholdResult := oscalTypes_1_1_2.Result{
+		Findings: &[]oscalTypes_1_1_2.Finding{},
+	}
+
+	mockEvaluationResult := oscalTypes_1_1_2.Result{
+		Findings: &[]oscalTypes_1_1_2.Finding{},
+	}
+
+	status, _, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// If status is false - then something went wrong
+	if !status {
+		t.Fatal("error - evaluation failed")
+	}
+
+}
+
+func TestEvaluateResultsNoThreshold(t *testing.T) {
+	message.NoProgress = true
+	mockThresholdResult := oscalTypes_1_1_2.Result{}
+
+	mockEvaluationResult := oscalTypes_1_1_2.Result{
+		Findings: &[]oscalTypes_1_1_2.Finding{
+			{
+				Target: oscalTypes_1_1_2.FindingTarget{
+					TargetId: "ID-1",
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
+						State: "satisfied",
+					},
+				},
+			},
+		},
+	}
+
+	_, _, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	if err == nil {
+		t.Fatal("error - expected error, got nil")
+	}
+}
+
 func TestEvaluateResultsNewFindings(t *testing.T) {
 	message.NoProgress = true
 	mockThresholdResult := oscalTypes_1_1_2.Result{
