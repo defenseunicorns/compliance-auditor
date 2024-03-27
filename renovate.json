@@ -16,6 +16,7 @@
       "automergeType": "pr"
     }
   ],
+  "labels": ["dependencies"],
   "platformAutomerge": true,
   "platformCommit": true,
   "postUpdateOptions": ["gomodTidy"],
