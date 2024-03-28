@@ -107,7 +107,7 @@ component-definition:
                     assert:
                       all:
                       - check:
-                          ~.podsvt:
+                          podvt:
                             metadata:
                               labels:
                                 foo: bar
