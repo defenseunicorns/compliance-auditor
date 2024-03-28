@@ -168,7 +168,7 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 
 			if _, ok := observationSet[policy.Policy.Name][rule.Rule.Name]; len(output.Observations) == 0 || ok {
 				if len(rule.Violations) > 0 {
-					observations[fmt.Sprintf("%s,%s-%d,%d", policy.Policy.Name, rule.Rule.Name, i, j)] = rule.Violations[0].Message
+					observations[fmt.Sprintf("%s,%s-%d,%d", policy.Policy.Name, rule.Rule.Name, i, j)] = fmt.Sprintf("FAIL: %s", rule.Violations[0].Message)
 				} else {
 					observations[fmt.Sprintf("%s,%s-%d,%d", policy.Policy.Name, rule.Rule.Name, i, j)] = "PASS"
 				}
