@@ -104,7 +104,7 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 		return matchResult, fmt.Errorf("failed to parse Kyverno policy: %w", err)
 	}
 
-	validation := make(map[string]map[string]bool)
+	validationSet := make(map[string]map[string]bool)
 	if output.Validation != "" {
 		validationPairs := strings.Split(output.Validation, ",")
 
@@ -118,14 +118,14 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 
 			validationPolicy := strings.TrimSpace(pair[0])
 			validationRule := strings.TrimSpace(pair[1])
-			if _, ok := validation[validationPolicy]; !ok {
-				validation[validationPolicy] = make(map[string]bool)
+			if _, ok := validationSet[validationPolicy]; !ok {
+				validationSet[validationPolicy] = make(map[string]bool)
 			}
-			validation[validationPolicy][validationRule] = true
+			validationSet[validationPolicy][validationRule] = true
 		}
 	}
 
-	observation := make(map[string]map[string]bool)
+	observationSet := make(map[string]map[string]bool)
 	if len(output.Observations) > 0 {
 		for _, observationPair := range output.Observations {
 			pair := strings.Split(observationPair, ".")
@@ -137,10 +137,10 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 
 			observationPolicy := strings.TrimSpace(pair[0])
 			observationRule := strings.TrimSpace(pair[1])
-			if _, ok := observation[observationPolicy]; !ok {
-				observation[observationPolicy] = make(map[string]bool)
+			if _, ok := observationSet[observationPolicy]; !ok {
+				observationSet[observationPolicy] = make(map[string]bool)
 			}
-			observation[observationPolicy][observationRule] = true
+			observationSet[observationPolicy][observationRule] = true
 		}
 	}
 
@@ -150,7 +150,7 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 		Policies: policies,
 	})
 
-	observedViolations := make(map[string]string)
+	observations := make(map[string]string)
 	for i, policy := range response.Policies {
 		for j, rule := range policy.Rules {
 			if rule.Error != nil {
@@ -158,7 +158,7 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 				continue
 			}
 
-			if _, ok := validation[policy.Policy.Name][rule.Rule.Name]; output.Validation == "" || ok {
+			if _, ok := validationSet[policy.Policy.Name][rule.Rule.Name]; output.Validation == "" || ok {
 				if len(rule.Violations) > 0 {
 					matchResult.Failing += 1
 				} else {
@@ -166,14 +166,16 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 				}
 			}
 
-			if _, ok := observation[policy.Policy.Name][rule.Rule.Name]; len(output.Observations) == 0 || ok {
+			if _, ok := observationSet[policy.Policy.Name][rule.Rule.Name]; len(output.Observations) == 0 || ok {
 				if len(rule.Violations) > 0 {
-					observedViolations[fmt.Sprintf("%s,%s-%d,%d", policy.Policy.Name, rule.Rule.Name, i, j)] = rule.Violations[0].Message
+					observations[fmt.Sprintf("%s,%s-%d,%d", policy.Policy.Name, rule.Rule.Name, i, j)] = rule.Violations[0].Message
+				} else {
+					observations[fmt.Sprintf("%s,%s-%d,%d", policy.Policy.Name, rule.Rule.Name, i, j)] = "PASS"
 				}
 			}
 		}
 	}
 
-	matchResult.Observations = observedViolations
+	matchResult.Observations = observations
 	return matchResult, nil
 }
