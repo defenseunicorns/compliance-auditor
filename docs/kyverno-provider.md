@@ -54,11 +54,13 @@ target:
   provider: "kyverno"
   domain: "kubernetes"
   payload:
-    resource-rules: 
-    - group: 
-      version: v1 
-      resource: pods
-      namespaces: [validation-test] 
+    resources:
+    - name: podsvt
+      resource-rule: 
+        group: 
+        version: v1 
+        resource: pods
+        namespaces: [validation-test] 
     kyverno: |
       apiVersion: json.kyverno.io/v1alpha1
       kind: ValidatingPolicy
