@@ -116,7 +116,12 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 				continue
 			}
 
-			validation[strings.TrimSpace(pair[0])][strings.TrimSpace(pair[1])] = true
+			validationPolicy := strings.TrimSpace(pair[0])
+			validationRule := strings.TrimSpace(pair[1])
+			if _, ok := validation[validationPolicy]; !ok {
+				validation[validationPolicy] = make(map[string]bool)
+			}
+			validation[validationPolicy][validationRule] = true
 		}
 	}
 
@@ -130,7 +135,12 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 				continue
 			}
 
-			observation[strings.TrimSpace(pair[0])][strings.TrimSpace(pair[1])] = true
+			observationPolicy := strings.TrimSpace(pair[0])
+			observationRule := strings.TrimSpace(pair[1])
+			if _, ok := observation[observationPolicy]; !ok {
+				observation[observationPolicy] = make(map[string]bool)
+			}
+			observation[observationPolicy][observationRule] = true
 		}
 	}
 
