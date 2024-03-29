@@ -1,0 +1,88 @@
+package test
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/e2e-framework/klient/wait"
+	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
+	"sigs.k8s.io/e2e-framework/pkg/envconf"
+	"sigs.k8s.io/e2e-framework/pkg/features"
+)
+
+func TestDevValidation(t *testing.T) {
+	featureTrueDevValidate := features.New("Check dev validate").
+		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Create the pod
+			pod, err := util.GetPod("./scenarios/dev-get-resources/pod.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, pod); err != nil {
+				t.Fatal(err)
+			}
+			err = wait.For(conditions.New(config.Client().Resources()).PodConditionMatch(pod, corev1.PodReady, corev1.ConditionTrue), wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "pod-get-resources", pod)
+
+			// Create the configmap
+			configMap, err := util.GetConfigMap("./scenarios/dev-get-resources/configmap.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
+				t.Fatal(err)
+			}
+			ctx = context.WithValue(ctx, "configmap-get-resources", configMap)
+
+			return ctx
+		}).
+		Assess("Validate DevValidate", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			validationFile := "./scenarios/dev-get-resources/validation.yaml"
+			message.NoProgress = true
+
+			validation, err := dev.DevValidate(ctx, validationFile)
+			if err != nil {
+				t.Errorf("Error testing dev validate: %v", err)
+			}
+
+			// Check the validation result has been evaluated
+			if !validation.Evaluated {
+				t.Errorf("Validation result has not been evaluated")
+			}
+
+			message.Infof("Successfully validated dev validate command")
+
+			return ctx
+		}).
+		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Delete the configmap
+			configMap := ctx.Value("configmap-get-resources").(*corev1.ConfigMap)
+			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
+				t.Fatal(err)
+			}
+			err := wait.
+				For(conditions.New(config.Client().Resources()).
+					ResourceDeleted(configMap),
+					wait.WithTimeout(time.Minute*5))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Delete the pod
+			pod := ctx.Value("pod-get-resources").(*corev1.Pod)
+			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
+				t.Fatal(err)
+			}
+			return ctx
+		}).Feature()
+
+	testEnv.Test(t, featureTrueDevValidate)
+}
