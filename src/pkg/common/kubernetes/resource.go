@@ -93,13 +93,20 @@ func GetResourcesDynamically(ctx context.Context,
 				}
 
 				collection = append(collection, item)
-				return collection, nil
 			}
 
 		} else {
 			for _, item := range list.Items {
 				collection = append(collection, item.Object)
 			}
+		}
+	}
+
+	// Removes metadata.managedFields from each item in the collection
+	// Field is long and seemingly useless for our purposes, removing to reduce noise
+	for _, c := range collection {
+		if metadata, ok := c["metadata"].(map[string]interface{}); ok {
+			delete(metadata, "managedFields")
 		}
 	}
 

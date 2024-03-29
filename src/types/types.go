@@ -29,6 +29,7 @@ type Payload struct {
 	Requests  []Request  `mapstructure:"requests" json:"requests" yaml:"requests"`
 	Wait      Wait       `json:"wait" yaml:"wait"`
 	Rego      string     `json:"rego" yaml:"rego"`
+	Kyverno   string     `json:"kyverno" yaml:"kyverno"`
 	Output    Output     `json:"output" yaml:"output"`
 }
 
