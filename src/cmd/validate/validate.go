@@ -13,11 +13,14 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
+
+type ValidationFunc func(context.Context, string, types.Target) (types.Result, error)
 
 type flags struct {
 	AssessmentFile string // -a --assessment-file
@@ -262,21 +265,27 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	return findings, observations, nil
 }
 
+var validationFuncs = map[string]ValidationFunc{
+	"opa":     opa.Validate,
+	"kyverno": kyverno.Validate,
+}
+
 // ValidateOnTarget takes a map[string]interface{}
 // It will return a single Result
 func ValidateOnTarget(ctx context.Context, id string, target types.Target) (types.Result, error) {
-	// simple conditional until more providers are introduced
-	if target.Provider == "opa" {
-		message.Debugf("OPA provider validating %s", id)
-		results, err := opa.Validate(ctx, target.Domain, target)
-		if err != nil {
-			return types.Result{}, err
-		}
-		return results, nil
-	} else {
-		return types.Result{}, errors.New("Unsupported provider")
+	validate, ok := validationFuncs[target.Provider]
+	if !ok {
+		return types.Result{}, errors.New("unsupported provider")
 	}
 
+	message.Debugf("%s provider validating %s", target.Provider, id)
+
+	results, err := validate(ctx, target.Domain, target)
+	if err != nil {
+		return types.Result{}, err
+	}
+
+	return results, nil
 }
 
 // This is the OSCAL document generation for final output.
