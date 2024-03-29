@@ -98,6 +98,10 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicies *kjson.ValidatingPo
 		return matchResult, nil
 	}
 
+	if kyvernoPolicies == nil {
+		return matchResult, fmt.Errorf("kyverno policy is not provided")
+	}
+
 	validationSet := make(map[string]map[string]bool)
 	if output.Validation != "" {
 		validationPairs := strings.Split(output.Validation, ",")
