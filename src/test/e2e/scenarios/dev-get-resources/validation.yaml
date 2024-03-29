@@ -1,0 +1,22 @@
+target:
+  provider: opa
+  domain: kubernetes
+  payload:
+    resources:
+      - name: test-pod
+        resource-rule:
+          name: test-pod-name
+          group: 
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+      - name: configs
+        resource-rule:
+          group: 
+          version: v1
+          resource: configmaps
+          namespaces: [validation-test]
+    rego: |
+      package validate
+      
+      default validate = false

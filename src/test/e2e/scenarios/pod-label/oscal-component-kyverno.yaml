@@ -1,0 +1,113 @@
+# add the descriptions inline
+component-definition:
+  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
+  metadata:
+    title: OSCAL Demo Tool
+    last-modified: "2022-09-13T12:00:00Z"
+    version: "20220913"
+    oscal-version: 1.1.1
+    parties:
+      # Should be consistent across all of the packages, but where is ground truth?
+      - uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+        type: organization
+        name: Defense Unicorns
+        links:
+          - href: https://github.com/defenseunicorns/lula
+            rel: website
+  components:
+    - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+      type: software
+      title: lula
+      description: |
+        Defense Unicorns lula
+      purpose: Validate compliance controls
+      responsible-roles:
+        - role-id: provider
+          party-uuids:
+            - C18F4A9F-A402-415B-8D13-B51739D689FF # matches parties entry for Defense Unicorns
+      control-implementations:
+        - uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
+          source: https://github.com/defenseunicorns/lula # Link to generic security document
+          description: Validate generic security requirements
+          implemented-requirements:
+            - uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+              control-id: ID-1
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#88AB3470-B96B-4D7C-BC36-02BF9563C46C"
+                  rel: reference
+                  text: Lula Validation
+            - uuid: 86a0e8d9-0ce0-4304-afe7-4c000001e032
+              control-id: ID-2
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#01e21994-2cfc-45fb-ac84-d00f2e5912b0"
+                  rel: reference
+                  text: Lula Validation
+  back-matter:
+    resources:
+      - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
+        title: Lula Validation
+        description: >-
+          target:
+            provider: kyverno
+            domain: kubernetes
+            payload:
+              resources:
+              - name: podsvt
+                resource-rule:
+                  group:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test]
+              kyverno: |
+                apiVersion: json.kyverno.io/v1alpha1
+                kind: ValidatingPolicy
+                metadata:
+                  name: labels
+                spec:
+                  rules:
+                  - name: foo-label-exists
+                    assert:
+                      all:
+                      - check:
+                          ~.podsvt:
+                            metadata:
+                              labels:
+                                foo: bar
+      - uuid: 01e21994-2cfc-45fb-ac84-d00f2e5912b0
+        title: Lula Validation
+        description: >-
+          target:
+            provider: kyverno
+            domain: kubernetes
+            payload:
+              resources:
+              - name: podvt
+                resource-rule:
+                  name: test-pod-label
+                  group:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test]
+              kyverno: |
+                apiVersion: json.kyverno.io/v1alpha1
+                kind: ValidatingPolicy
+                metadata:
+                  name: labels
+                spec:
+                  rules:
+                  - name: foo-label-exists
+                    assert:
+                      all:
+                      - check:
+                          podvt:
+                            metadata:
+                              labels:
+                                foo: bar
