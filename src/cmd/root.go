@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/defenseunicorns/lula/src/cmd/dev"
 	"github.com/defenseunicorns/lula/src/cmd/evaluate"
 	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
@@ -64,6 +65,7 @@ func init() {
 	rootCmd.AddCommand(commands...)
 	tools.Include(rootCmd)
 	version.Include(rootCmd)
+	dev.Include(rootCmd)
 
 	rootCmd.PersistentFlags().StringVarP(&LogLevelCLI, "log-level", "l", "info", "Log level when running Lula. Valid options are: warn, info, debug, trace")
 }
