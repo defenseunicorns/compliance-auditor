@@ -66,7 +66,7 @@ component-definition:
                   version: v1
                   resource: pods
                   namespaces: [validation-test]
-              kyverno: |
+              kyverno:
                 apiVersion: json.kyverno.io/v1alpha1
                 kind: ValidatingPolicy
                 metadata:
@@ -96,7 +96,7 @@ component-definition:
                   version: v1
                   resource: pods
                   namespaces: [validation-test]
-              kyverno: |
+              kyverno:
                 apiVersion: json.kyverno.io/v1alpha1
                 kind: ValidatingPolicy
                 metadata:

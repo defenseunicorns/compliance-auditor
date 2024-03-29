@@ -19,7 +19,7 @@ target:
         version: v1
         resource: pods
         namespaces: [validation-test]
-    kyverno: |
+    kyverno:
       apiVersion: json.kyverno.io/v1alpha1          # Required
       kind: ValidatingPolicy                        # Required
       metadata:
@@ -61,7 +61,7 @@ target:
         version: v1 
         resource: pods
         namespaces: [validation-test] 
-    kyverno: |
+    kyverno:
       apiVersion: json.kyverno.io/v1alpha1
       kind: ValidatingPolicy
       metadata:
