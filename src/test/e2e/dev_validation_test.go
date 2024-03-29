@@ -19,7 +19,7 @@ func TestDevValidation(t *testing.T) {
 	featureTrueDevValidate := features.New("Check dev validate").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
-			pod, err := util.GetPod("./scenarios/dev-get-resources/pod.yaml")
+			pod, err := util.GetPod("./scenarios/dev-validate/pod.yaml")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -30,22 +30,22 @@ func TestDevValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod-get-resources", pod)
+			ctx = context.WithValue(ctx, "pod-dev-validate", pod)
 
 			// Create the configmap
-			configMap, err := util.GetConfigMap("./scenarios/dev-get-resources/configmap.yaml")
+			configMap, err := util.GetConfigMap("./scenarios/dev-validate/configmap.yaml")
 			if err != nil {
 				t.Fatal(err)
 			}
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "configmap-get-resources", configMap)
+			ctx = context.WithValue(ctx, "configmap-dev-validate", configMap)
 
 			return ctx
 		}).
 		Assess("Validate DevValidate", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			validationFile := "./scenarios/dev-get-resources/validation.yaml"
+			validationFile := "./scenarios/dev-validate/validation.yaml"
 			message.NoProgress = true
 
 			validation, err := dev.DevValidate(ctx, validationFile)
@@ -64,7 +64,7 @@ func TestDevValidation(t *testing.T) {
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Delete the configmap
-			configMap := ctx.Value("configmap-get-resources").(*corev1.ConfigMap)
+			configMap := ctx.Value("configmap-dev-validate").(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
@@ -77,7 +77,7 @@ func TestDevValidation(t *testing.T) {
 			}
 
 			// Delete the pod
-			pod := ctx.Value("pod-get-resources").(*corev1.Pod)
+			pod := ctx.Value("pod-dev-validate").(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
