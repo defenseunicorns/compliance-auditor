@@ -13,23 +13,30 @@ import (
 
 // NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
 // Standard use is to read a file from the filesystem and pass the []byte to this function
-func NewOscalComponentDefinition(data []byte) (oscalTypes_1_1_2.ComponentDefinition, error) {
+func NewOscalComponentDefinition(data []byte) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
 
-	err := yaml.Unmarshal(data, &oscalModels)
+	err = yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
-		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
-		return oscalModels.ComponentDefinition, err
+		return componentDefinition, err
 	}
 
-	return oscalModels.ComponentDefinition, nil
+	if oscalModels.ComponentDefinition == nil {
+		return componentDefinition, fmt.Errorf("No Component Definition found in the provided data")
+	}
+
+	return *oscalModels.ComponentDefinition, nil
 }
 
 // Map an array of resources to a map of UUID to validation object
 func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Validation {
 	resourceMap := make(map[string]types.Validation)
 
-	for _, resource := range backMatter.Resources {
+	if backMatter.Resources == nil {
+		return nil
+	}
+
+	for _, resource := range *backMatter.Resources {
 		if resource.Title == "Lula Validation" {
 			var validation types.Validation
 

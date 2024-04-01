@@ -21,7 +21,7 @@ func NewAssessmentResults(data []byte) (oscalTypes_1_1_2.AssessmentResults, erro
 		return oscalTypes_1_1_2.AssessmentResults{}, err
 	}
 
-	return oscalModels.AssessmentResults, nil
+	return *oscalModels.AssessmentResults, nil
 }
 
 func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (oscalTypes_1_1_2.AssessmentResults, error) {
@@ -51,7 +51,7 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 		Version:      "0.0.1",
 		OscalVersion: OSCAL_VERSION,
 		Remarks:      "Assessment Results generated from Lula",
-		Published:    rfc3339Time,
+		Published:    &rfc3339Time,
 		LastModified: rfc3339Time,
 	}
 
@@ -68,12 +68,12 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 				ControlSelections: []oscalTypes_1_1_2.AssessedControls{
 					{
 						Description:     "Controls Assessed by Lula",
-						IncludeControls: controlList,
+						IncludeControls: &controlList,
 					},
 				},
 			},
-			Findings:     findings,
-			Observations: observations,
+			Findings:     &findings,
+			Observations: &observations,
 		},
 	}
 

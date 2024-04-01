@@ -128,8 +128,12 @@ func EvaluateResults(thresholdResult oscalTypes_1_1_2.Result, newResult oscalTyp
 	findings := make(map[string][]oscalTypes_1_1_2.Finding, 0)
 	result := true
 
-	findingMapThreshold := oscal.GenerateFindingsMap(thresholdResult.Findings)
-	findingMapNew := oscal.GenerateFindingsMap(newResult.Findings)
+	if thresholdResult.Findings == nil || newResult.Findings == nil {
+		return false, nil, fmt.Errorf("Results must contain findings to evaluate")
+	}
+
+	findingMapThreshold := oscal.GenerateFindingsMap(*thresholdResult.Findings)
+	findingMapNew := oscal.GenerateFindingsMap(*newResult.Findings)
 
 	// For a given oldResult - we need to prove that the newResult implements all of the oldResult findings/controls
 	// We are explicitly iterating through the findings in order to collect a delta to display
