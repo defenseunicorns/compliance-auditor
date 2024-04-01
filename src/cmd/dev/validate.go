@@ -53,9 +53,9 @@ func init() {
 				message.Fatalf(err, "error writing result: %v", err)
 			}
 
-			failed := validation.Result.Failing > 0
-			if validateOpts.ExpectedResult != failed {
-				message.Info("did not meet expected result")
+			result := validation.Result.Failing == 0
+			if validateOpts.ExpectedResult != result {
+				message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
 			}
 			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
 		},
