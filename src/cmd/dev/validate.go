@@ -53,13 +53,11 @@ func init() {
 				message.Fatalf(err, "error writing result: %v", err)
 			}
 
-			if validation.Result.Failing > 0 {
-				message.Fatalf(nil, "Validation failed")
-				spinner.Stop()
-			} else {
-				message.Infof("Validation Passed")
-				spinner.Success()
+			failed := validation.Result.Failing > 0
+			if validateOpts.ExpectedResult != failed {
+				message.Info("did not meet expected result")
 			}
+			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
 		},
 	}
 
