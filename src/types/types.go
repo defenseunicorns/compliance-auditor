@@ -1,6 +1,9 @@
 package types
 
-import "errors"
+import (
+	"errors"
+	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
+)
 
 type Validation struct {
 	Title       string `json:"title" yaml:"title"`
@@ -25,12 +28,12 @@ type Result struct {
 // Fields will be populated as required otherwise left empty
 // This could be expanded as providers add more fields
 type Payload struct {
-	Resources []Resource `json:"resources" yaml:"resources"`
-	Requests  []Request  `mapstructure:"requests" json:"requests" yaml:"requests"`
-	Wait      Wait       `json:"wait" yaml:"wait"`
-	Rego      string     `json:"rego" yaml:"rego"`
-	Kyverno   string     `json:"kyverno" yaml:"kyverno"`
-	Output    Output     `json:"output" yaml:"output"`
+	Resources []Resource              `json:"resources" yaml:"resources"`
+	Requests  []Request               `mapstructure:"requests" json:"requests" yaml:"requests"`
+	Wait      Wait                    `json:"wait" yaml:"wait"`
+	Rego      string                  `json:"rego" yaml:"rego"`
+	Kyverno   *kjson.ValidatingPolicy `json:"kyverno" yaml:"kyverno"`
+	Output    Output                  `json:"output" yaml:"output"`
 }
 
 type Output struct {

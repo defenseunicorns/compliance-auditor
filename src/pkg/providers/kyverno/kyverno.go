@@ -12,9 +12,9 @@ import (
 	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
+	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
 
 	jsonengine "github.com/kyverno/kyverno-json/pkg/json-engine"
-	"github.com/kyverno/kyverno-json/pkg/policy"
 )
 
 func Validate(ctx context.Context, domain string, data types.Target) (types.Result, error) {
@@ -91,17 +91,15 @@ func Validate(ctx context.Context, domain string, data types.Target) (types.Resu
 	return types.Result{}, fmt.Errorf("domain %s is not supported", domain)
 }
 
-func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map[string]interface{}, output types.Output) (types.Result, error) {
+func GetValidatedAssets(ctx context.Context, kyvernoPolicies *kjson.ValidatingPolicy, resources map[string]interface{}, output types.Output) (types.Result, error) {
 	var matchResult types.Result
 
 	if len(resources) == 0 {
 		return matchResult, nil
 	}
 
-	policies, err := policy.Parse([]byte(kyvernoPolicy))
-	if err != nil {
-		message.Debugf("Failed to parse Kyverno policy: %v", err)
-		return matchResult, fmt.Errorf("failed to parse Kyverno policy: %w", err)
+	if kyvernoPolicies == nil {
+		return matchResult, fmt.Errorf("kyverno policy is not provided")
 	}
 
 	validationSet := make(map[string]map[string]bool)
@@ -144,10 +142,13 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicy string, resources map
 		}
 	}
 
+	policyarr := []*kjson.ValidatingPolicy{kyvernoPolicies}
+	message.Debug(*policyarr[0])
+
 	engine := jsonengine.New()
 	response := engine.Run(ctx, jsonengine.Request{
 		Resource: resources,
-		Policies: policies,
+		Policies: policyarr,
 	})
 
 	observations := make(map[string]string)
