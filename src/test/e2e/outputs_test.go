@@ -53,13 +53,13 @@ func TestOutputs(t *testing.T) {
 			for _, o := range observations {
 				if strings.Contains(o.Description, "ID-1") {
 					// Check remarks have printed the correct observation value
-					if o.RelevantEvidence[0].Remarks != "validate.test: hello world\n" {
+					if o.RelevantEvidence != nil && (*o.RelevantEvidence)[0].Remarks != "validate.test: hello world\n" {
 						t.Fatal("Failed to validate payload.output observations for ID-1")
 					}
 				}
 				if strings.Contains(o.Description, "ID-2") {
 					// Check remarks are empty due to incorrect observation formats
-					if o.RelevantEvidence[0].Remarks != "" {
+					if o.RelevantEvidence != nil && (*o.RelevantEvidence)[0].Remarks != "" {
 						t.Fatal("Failed to validate payload.output observations for ID-2")
 					}
 				}
