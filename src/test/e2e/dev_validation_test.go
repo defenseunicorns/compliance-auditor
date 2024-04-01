@@ -19,7 +19,7 @@ func TestDevValidation(t *testing.T) {
 	featureTrueDevValidate := features.New("Check dev validate").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
-			pod, err := util.GetPod("./scenarios/dev-validate/pod.yaml")
+			pod, err := util.GetPod("./scenarios/dev-validate/pod.pass.yaml")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -31,16 +31,6 @@ func TestDevValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 			ctx = context.WithValue(ctx, "pod-dev-validate", pod)
-
-			// Create the configmap
-			configMap, err := util.GetConfigMap("./scenarios/dev-validate/configmap.yaml")
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
-				t.Fatal(err)
-			}
-			ctx = context.WithValue(ctx, "configmap-dev-validate", configMap)
 
 			return ctx
 		}).
@@ -58,23 +48,15 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Validation result has not been evaluated")
 			}
 
+			if validation.Result.Failing > 0 {
+				t.Errorf("Validation failed")
+			}
+
 			message.Infof("Successfully validated dev validate command")
 
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			// Delete the configmap
-			configMap := ctx.Value("configmap-dev-validate").(*corev1.ConfigMap)
-			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
-				t.Fatal(err)
-			}
-			err := wait.
-				For(conditions.New(config.Client().Resources()).
-					ResourceDeleted(configMap),
-					wait.WithTimeout(time.Minute*5))
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			// Delete the pod
 			pod := ctx.Value("pod-dev-validate").(*corev1.Pod)
