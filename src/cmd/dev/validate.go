@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
@@ -84,21 +83,34 @@ func DevValidate(ctx context.Context, inputFile string) (validation types.Valida
 		return types.Validation{}, fmt.Errorf("input file must be a yaml file")
 	}
 
+	// Read the validation file
 	validationBytes, err := common.ReadFileToBytes(inputFile)
 	if err != nil {
 		return types.Validation{}, err
 	}
 
+	// Unmarshal the validation
 	err = yaml.Unmarshal(validationBytes, &validation)
 	if err != nil {
 		return types.Validation{}, err
 	}
 
+	// Lint the validation
+	err = validation.Lint()
+	if err != nil {
+		return types.Validation{}, err
+	}
+
+	// Run the validation
 	result, err := validate.ValidateOnTarget(ctx, validation.Title, validation.Target)
 	if err != nil {
 		return types.Validation{}, err
 	}
+
+	// Set the validation result
 	validation.Result = result
+
+	// Set the validation as evaluated
 	validation.Evaluated = true
 
 	return validation, nil
@@ -108,15 +120,18 @@ func writeValidation(result types.Validation, outputFile string) error {
 	var resultBytes []byte
 	var err error
 
+	// Marshal to json if the output file is empty or a json file
 	if outputFile == "" || strings.HasSuffix(outputFile, ".json") {
 		resultBytes, err = json.Marshal(result)
 	} else {
 		resultBytes, err = yaml.Marshal(result)
 	}
+	// Return an error if it fails to marshal the result
 	if err != nil {
 		return err
 	}
 
+	// Write the result to the output file if provided, otherwise print to the debug console
 	if outputFile == "" {
 		message.Debug(string(resultBytes))
 	} else {
@@ -126,54 +141,5 @@ func writeValidation(result types.Validation, outputFile string) error {
 		}
 	}
 
-	return nil
-}
-
-// LintValidation checks if a validation has all the required fields.
-func LintValidation(validation types.Validation) error {
-	if validation.Title == "" {
-		return fmt.Errorf("validation title is required")
-	}
-
-	// Requires a target
-	if reflect.DeepEqual(validation.Target, types.Target{}) {
-		return fmt.Errorf("validation target is required")
-	}
-
-	// Requires a payload
-	if reflect.DeepEqual(validation.Target.Payload, types.Payload{}) {
-		return fmt.Errorf("validation target payload is required")
-	}
-
-	// Requires resources
-	if len(validation.Target.Payload.Resources) == 0 {
-		return fmt.Errorf("validation target resources are required")
-	}
-
-	// Iterate through each resource and check if the rule has all the required fields
-	for _, resource := range validation.Target.Payload.Resources {
-		// get the resource rule
-		rule := resource.ResourceRule
-
-		// Requires a version
-		if rule.Version == "" {
-			return fmt.Errorf("resource %s has no version", rule.Name)
-		}
-
-		// Requires a resource
-		if rule.Resource == "" {
-			return fmt.Errorf("resource %s has no resource", rule.Name)
-		}
-
-		// Requires a namespace if the resource has a name
-		if rule.Name != "" && len(rule.Namespaces) == 0 {
-			return fmt.Errorf("resource %s has no namespaces", rule.Name)
-		}
-
-		// Requires a name if the resource has a field
-		if !reflect.DeepEqual(rule.Field, types.Field{}) && rule.Name == "" {
-			return fmt.Errorf("resource-rule with field must have a name")
-		}
-	}
 	return nil
 }

@@ -1,4 +1,4 @@
-package dev
+package types_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/defenseunicorns/lula/src/types"
 )
 
-func Test_lintValidation(t *testing.T) {
+func Test_Validation_Lint(t *testing.T) {
 
 	tests := []struct {
 		name       string
@@ -168,7 +168,7 @@ func Test_lintValidation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := LintValidation(tt.validation); (err != nil) != tt.wantErr {
+			if err := tt.validation.Lint(); (err != nil) != tt.wantErr {
 				t.Errorf("lintValidation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
