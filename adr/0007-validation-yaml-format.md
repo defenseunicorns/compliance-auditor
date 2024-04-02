@@ -87,7 +87,7 @@ target:
 ```
 
 ### Proposal
-The first yaml document attempts to create groups for domain and providers that can be extensible as new domains or providers are added, whereby the "spec" is the only thing that changes. The second yaml document is an attempt to look at doing "remote" validation, I'm not sure how we could consolidate the local and remote into one, so proposing simply using a different lula "type". The third is thinking about the logical composition of validation artifacts, it could enable some complex logic or even hierarchies.
+The first yaml document attempts to create groups for domain and providers that can be extensible as new domains or providers are added, whereby the "spec" is the only thing that changes. The second yaml document is an attempt to look at doing "remote" validation, I'm not sure how we could consolidate the local and remote into one, so proposing simply using a different lula "type". The third is thinking about the logical composition of validation artifacts, it could enable some complex logic or even hierarchies. The last document is for the use case where we'd want to write some kind of placeholder output in the 
 
 ```yaml
 lula-version: "1.0"                           # Optional (maintains backward compatilibity)
@@ -155,4 +155,15 @@ spec:
           path: https://github.com/defenseunicorns/lula-compliance-lib/blob/main/validation1.yaml
       - validation:
           path: https://github.com/defenseunicorns/lula-compliance-lib/blob/main/validation2.yaml                  
+```
+
+```yaml
+lula-version: "1.0"                           # Optional 
+metadata:                                     # Required
+  title: "title here"                         # Optional 
+  type: admin                                 # Required 
+  workflow: placeholder                       # Required
+spec:
+  guidance: "some guidance to to user on what they should do"
+  evaluation: INTERVIEW|EXAMINE
 ```
