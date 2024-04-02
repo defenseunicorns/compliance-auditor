@@ -34,8 +34,9 @@ func TestDevValidation(t *testing.T) {
 
 			return ctx
 		}).
-		Assess("Validate DevValidate", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+		Assess("Validate DevValidate Opa", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			validationFile := "./scenarios/dev-validate/validation.yaml"
+
 			message.NoProgress = true
 
 			validation, err := dev.DevValidate(ctx, validationFile)
@@ -52,7 +53,30 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Validation failed")
 			}
 
-			message.Infof("Successfully validated dev validate command")
+			message.Infof("Successfully validated dev validate command with OPA")
+
+			return ctx
+		}).
+		Assess("Validate DevValidate kyverno", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			validationFile := "./scenarios/dev-validate/validation.kyverno.yaml"
+
+			message.NoProgress = true
+
+			validation, err := dev.DevValidate(ctx, validationFile)
+			if err != nil {
+				t.Errorf("Error testing dev validate: %v", err)
+			}
+
+			// Check the validation result has been evaluated
+			if !validation.Evaluated {
+				t.Errorf("Validation result has not been evaluated")
+			}
+
+			if validation.Result.Failing > 0 {
+				t.Errorf("Validation failed")
+			}
+
+			message.Infof("Successfully validated dev validate comman with kyverno")
 
 			return ctx
 		}).

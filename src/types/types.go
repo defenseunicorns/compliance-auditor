@@ -104,10 +104,6 @@ func (f Field) Validate() error {
 
 // Lint the validation
 func (validation *Validation) Lint() error {
-	if validation.Title == "" {
-		return fmt.Errorf("validation title is required")
-	}
-
 	// Requires a target
 	if reflect.DeepEqual(validation.Target, Target{}) {
 		return fmt.Errorf("validation target is required")

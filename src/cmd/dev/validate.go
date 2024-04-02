@@ -13,7 +13,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
-	yaml "sigs.k8s.io/yaml/goyaml.v3"
+	"sigs.k8s.io/yaml"
 )
 
 var validateHelp = `
