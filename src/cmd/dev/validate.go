@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
@@ -125,5 +126,54 @@ func writeValidation(result types.Validation, outputFile string) error {
 		}
 	}
 
+	return nil
+}
+
+// LintValidation checks if a validation has all the required fields.
+func LintValidation(validation types.Validation) error {
+	if validation.Title == "" {
+		return fmt.Errorf("validation title is required")
+	}
+
+	// Requires a target
+	if reflect.DeepEqual(validation.Target, types.Target{}) {
+		return fmt.Errorf("validation target is required")
+	}
+
+	// Requires a payload
+	if reflect.DeepEqual(validation.Target.Payload, types.Payload{}) {
+		return fmt.Errorf("validation target payload is required")
+	}
+
+	// Requires resources
+	if len(validation.Target.Payload.Resources) == 0 {
+		return fmt.Errorf("validation target resources are required")
+	}
+
+	// Iterate through each resource and check if the rule has all the required fields
+	for _, resource := range validation.Target.Payload.Resources {
+		// get the resource rule
+		rule := resource.ResourceRule
+
+		// Requires a version
+		if rule.Version == "" {
+			return fmt.Errorf("resource %s has no version", rule.Name)
+		}
+
+		// Requires a resource
+		if rule.Resource == "" {
+			return fmt.Errorf("resource %s has no resource", rule.Name)
+		}
+
+		// Requires a namespace if the resource has a name
+		if rule.Name != "" && len(rule.Namespaces) == 0 {
+			return fmt.Errorf("resource %s has no namespaces", rule.Name)
+		}
+
+		// Requires a name if the resource has a field
+		if !reflect.DeepEqual(rule.Field, types.Field{}) && rule.Name == "" {
+			return fmt.Errorf("resource-rule with field must have a name")
+		}
+	}
 	return nil
 }
