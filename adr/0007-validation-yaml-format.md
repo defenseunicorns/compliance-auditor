@@ -93,16 +93,16 @@ target:
 ```
 
 ### Proposal
-The following yaml is the proposed high-level structure for the validation file. The x_spec field under domain and provider is intended to be optional but should be populated for the selected type. The rationale for having different specs all wrapped into a single definition is to make it easier to unmarshal the entire yaml document at once, as opposed to having to piecemeal it. The spec that get's used in the logic is what corresponds to the type chosen.
+The following yaml is the proposed high-level structure for the validation file. The x_spec field under domain and provider is intended to be optional but should be populated for the selected type. The rationale for having different specs all wrapped into a single definition is to make it easier to unmarshal the entire yaml document at once, as opposed to having to piecemeal it. The spec that gets used in the validation logic is that which corresponds to the type chosen.
 
 ```yaml
 lula-version: "1.0"                           # Optional (maintains backward compatilibity)
-metadata:                                     # Required
+metadata:                                     # Optional
   name: "title here"                          # Optional (short description to use in output of validations could be useful)
-  type: satisfaction                          # Required (enum:[satisfaction, healthcheck, ?]) - basically this indicates how the validation is reported in results
-spec:
+  type: satisfaction                          # Optional (enum:[satisfaction, healthcheck, ?]) - basically this indicates how the validation is reported in results, default is probably just satisfaction, but this could add some extensibility to having various workflows depending on "type" values
+target:
   domain: 
-    type: kubernetes                          # Required (enum:[kubernetes, human?])
+    type: kubernetes                          # Required (enum:[kubernetes, passthrough])
     kubernetes-spec:                          # Optional
       resources:                                  
       - name: podsvt                          # Required 
@@ -139,13 +139,9 @@ spec:
 Example for kyverno:
 
 ```yaml
-lula-version: "1.0"                           # Optional (maintains backward compatilibity)
-metadata:                                     # Required
-  name: "title here"                          # Optional (short description to use in output of validations could be useful)
-  type: satisfaction                          # Required (enum:[satisfaction, healthcheck, ?]) - basically this indicates how the validation is reported in results
-spec:
+target:
   domain: 
-    type: kubernetes                          # Required (enum:[kubernetes, human?])
+    type: kubernetes                          # Required (enum:[kubernetes, passthrough])
     kubernetes-spec:                          # Optional
       resources:                                  
       - name: podsvt                          # Required 
@@ -199,11 +195,7 @@ spec:
 Example for passthrough or placeholder validation: 
 
 ```yaml
-lula-version: "1.0"                           # Optional (maintains backward compatilibity)
-metadata:                                     # Required
-  name: "title here"                          # Optional (short description to use in output of validations could be useful)
-  type: satisfaction                          # Required (enum:[satisfaction, healthcheck, ?]) - basically this indicates how the validation is reported in results
-spec:
+target:
   domain: 
     type: passthrough                         # Required (enum:[kubernetes, passthrough])
     passthrough-spec:
