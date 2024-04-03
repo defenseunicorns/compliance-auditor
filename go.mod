@@ -6,7 +6,7 @@ require (
 	github.com/defenseunicorns/go-oscal v0.3.1
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kyverno/kyverno-json v0.0.3-alpha.2
-	github.com/open-policy-agent/opa v0.61.0
+	github.com/open-policy-agent/opa v0.63.0
 	github.com/pterm/pterm v0.12.79
 	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/cobra v1.8.0
@@ -93,9 +93,9 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.18.0 // indirect
+	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
-	github.com/prometheus/common v0.47.0 // indirect
+	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.4.6 // indirect
@@ -127,7 +127,6 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/grpc v1.62.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/evanphx/json-patch.v5 v5.9.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
