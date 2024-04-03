@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
@@ -39,7 +40,12 @@ func TestDevValidation(t *testing.T) {
 
 			message.NoProgress = true
 
-			validation, err := dev.DevValidate(ctx, validationFile)
+			validationBytes, err := common.ReadFileToBytes(validationFile)
+			if err != nil {
+				t.Errorf("Error reading file: %v", err)
+			}
+
+			validation, err := dev.DevValidate(ctx, validationBytes)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -62,7 +68,12 @@ func TestDevValidation(t *testing.T) {
 
 			message.NoProgress = true
 
-			validation, err := dev.DevValidate(ctx, validationFile)
+			validationBytes, err := common.ReadFileToBytes(validationFile)
+			if err != nil {
+				t.Errorf("Error reading file: %v", err)
+			}
+
+			validation, err := dev.DevValidate(ctx, validationBytes)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}

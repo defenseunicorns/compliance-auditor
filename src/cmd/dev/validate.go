@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
@@ -16,9 +17,13 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const STDIN = "0"
+
 var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
+To run validations using stdin:
+	cat <path to manifest> | lula dev validate
 `
 
 type ValidateFlags struct {
@@ -42,8 +47,27 @@ func init() {
 			defer spinner.Stop()
 
 			ctx := context.Background()
+			var validationBytes []byte
+			var err error
 
-			validation, err := DevValidate(ctx, validateOpts.InputFile)
+			if validateOpts.InputFile == STDIN {
+				var inputReader io.Reader = cmd.InOrStdin()
+				validationBytes, err = io.ReadAll(inputReader)
+				if err != nil {
+					message.Fatalf(err, "error reading from stdin: %v", err)
+				}
+
+			} else if !strings.HasSuffix(validateOpts.InputFile, ".yaml") {
+				message.Fatalf(fmt.Errorf("input file must be a yaml file"), "input file must be a yaml file")
+			} else {
+				// Read the validation file
+				validationBytes, err = common.ReadFileToBytes(validateOpts.InputFile)
+				if err != nil {
+					message.Fatalf(err, "error reading file: %v", err)
+				}
+			}
+
+			validation, err := DevValidate(ctx, validationBytes)
 			if err != nil {
 				message.Fatalf(err, "error running dev validate: %v", err)
 			}
@@ -67,28 +91,16 @@ func init() {
 
 	devCmd.AddCommand(validateCmd)
 
-	validateCmd.Flags().StringVarP(&validateOpts.InputFile, "input-file", "f", "", "the path to a validation manifest file")
+	validateCmd.Flags().StringVarP(&validateOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
 	validateCmd.Flags().StringVarP(&validateOpts.OutputFile, "output-file", "o", "", "the path to write the validation with results")
 	validateCmd.Flags().BoolVarP(&validateOpts.ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
 
-	validateCmd.MarkFlagRequired("input-file")
 }
 
 // DevValidate runs a validation using a lula validation manifest instead of an oscal file.
 // Successful if the validation is evaluated. Returns the validation result.
 // Returns an error if it fails to run the validation.
-func DevValidate(ctx context.Context, inputFile string) (validation types.Validation, err error) {
-	// Return an error if the input file is empty or not a yaml file
-	if inputFile == "" || !strings.HasSuffix(inputFile, ".yaml") {
-		return types.Validation{}, fmt.Errorf("input file must be a yaml file")
-	}
-
-	// Read the validation file
-	validationBytes, err := common.ReadFileToBytes(inputFile)
-	if err != nil {
-		return types.Validation{}, err
-	}
-
+func DevValidate(ctx context.Context, validationBytes []byte) (validation types.Validation, err error) {
 	// Unmarshal the validation
 	err = yaml.Unmarshal(validationBytes, &validation)
 	if err != nil {
