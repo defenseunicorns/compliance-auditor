@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
@@ -18,17 +19,24 @@ import (
 )
 
 const STDIN = "0"
+const NO_TIMEOUT = -1
+const DEFAULT_TIMEOUT = 1
 
 var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
 To run validations using stdin:
-	cat <path to manifest> | lula dev validate
+	cat <path to manifest> | lula dev validation
+To hang indefinitely for stdin:
+	lula dev validation -t -1
+To hang for timeout of 5 seconds:
+	lula dev validation -t 5
 `
 
 type ValidateFlags struct {
 	flags
 	ExpectedResult bool // -e --expected-result
+	Timeout        int  // -t --timeout
 }
 
 var validateOpts = &ValidateFlags{}
@@ -43,7 +51,8 @@ func init() {
 		Long:    "Run an individual Lula validation for quick testing and debugging of a Lula Validation. This command is intended for development purposes only.",
 		Example: validateHelp,
 		Run: func(cmd *cobra.Command, args []string) {
-			spinner := message.NewProgressSpinner("Validating %s", validateOpts.InputFile)
+			spinnerMessage := fmt.Sprintf("Validating %s", validateOpts.InputFile)
+			spinner := message.NewProgressSpinner(spinnerMessage)
 			defer spinner.Stop()
 
 			ctx := context.Background()
@@ -52,11 +61,24 @@ func init() {
 
 			if validateOpts.InputFile == STDIN {
 				var inputReader io.Reader = cmd.InOrStdin()
+
+				// If the timeout is not -1, wait for the timeout then close and return an error
+				go func() {
+					if validateOpts.Timeout != NO_TIMEOUT {
+						time.Sleep(time.Duration(validateOpts.Timeout) * time.Second)
+						message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
+					}
+				}()
+
+				// Update the spinner message
+				spinner.Updatef("reading from stdin...")
+				// Read from stdin
 				validationBytes, err = io.ReadAll(inputReader)
-				if err != nil {
+				if err != nil || len(validationBytes) == 0 {
 					message.Fatalf(err, "error reading from stdin: %v", err)
 				}
-
+				// Reset the spinner message
+				spinner.Updatef(spinnerMessage)
 			} else if !strings.HasSuffix(validateOpts.InputFile, ".yaml") {
 				message.Fatalf(fmt.Errorf("input file must be a yaml file"), "input file must be a yaml file")
 			} else {
@@ -93,6 +115,7 @@ func init() {
 
 	validateCmd.Flags().StringVarP(&validateOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
 	validateCmd.Flags().StringVarP(&validateOpts.OutputFile, "output-file", "o", "", "the path to write the validation with results")
+	validateCmd.Flags().IntVarP(&validateOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
 	validateCmd.Flags().BoolVarP(&validateOpts.ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
 
 }
