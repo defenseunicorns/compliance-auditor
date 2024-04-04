@@ -191,17 +191,3 @@ target:
                           # Check that the image tag is not `:latest`
                           (ends_with(@, ':latest')): false                       
 ```
-
-Example for passthrough or placeholder validation: 
-
-```yaml
-target:
-  domain: 
-    type: passthrough                         # Required (enum:[kubernetes, passthrough])
-    passthrough-spec:
-      evaluation: INTERVIEW                   # Required: INTERVIEW | EXAMINE
-  provider:
-    type: human
-    human-spec:
-      guidance: "some guidance for user"
-```
