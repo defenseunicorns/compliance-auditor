@@ -1,13 +1,16 @@
 package oscal
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
+
 	"sigs.k8s.io/yaml"
 )
 
@@ -37,12 +40,14 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 	}
 
 	for _, resource := range *backMatter.Resources {
+		// TODO: Possibly support different title values (e.g., "Placeholder", "Healthcheck")
 		if resource.Title == "Lula Validation" {
+			var validationYaml common.ValidationYaml
 			var validation types.Validation
 
-			err := yaml.Unmarshal([]byte(resource.Description), &validation)
+			err := yaml.Unmarshal([]byte(resource.Description), &validationYaml)
 			if err != nil {
-				fmt.Printf("Error marshalling yaml: %s\n", err.Error())
+				message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
 				return nil
 			}
 
@@ -52,8 +57,8 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			currentVersion := strings.Split(config.CLIVersion, "-")[0]
 
 			versionConstraint := currentVersion
-			if validation.LulaVersion != "" {
-				versionConstraint = validation.LulaVersion
+			if validationYaml.LulaVersion != "" {
+				versionConstraint = validationYaml.LulaVersion
 			}
 
 			validVersion, versionErr := common.IsVersionValid(versionConstraint, currentVersion)
@@ -67,7 +72,20 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 				evaluated = true
 			}
 
-			validation.Title = resource.Title
+			// Construct the validation object
+			// TODO: Is there a better location for context?
+			ctx := context.Background()
+			validation.Provider = common.GetProvider(validationYaml.Target.Provider.Type, ctx)
+			if validation.Provider == nil {
+				message.Fatalf(nil, "provider %s not found", validationYaml.Target.Provider.Type)
+				return nil
+			}
+			validation.Domain = common.GetDomain(validationYaml.Target.Domain.Type, ctx)
+			if validation.Domain == nil {
+				message.Fatalf(nil, "domain %s not found", validationYaml.Target.Domain.Type)
+				return nil
+			}
+			validation.LulaValidationType = types.DefaultLulaValidationType
 			validation.Evaluated = evaluated
 			validation.Result = result
 

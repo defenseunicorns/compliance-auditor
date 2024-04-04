@@ -1,9 +1,15 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/defenseunicorns/lula/src/pkg/domains/api"
+	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
+	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
+	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
 )
 
@@ -41,4 +47,33 @@ func IsVersionValid(versionConstraint string, version string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// Get the domain and providers
+func GetProvider(provider string, ctx context.Context) types.Provider {
+	switch provider {
+	case "opa":
+		return opa.OpaProvider{
+			Context: ctx,
+		}
+	case "kyverno":
+		return kyverno.KyvernoProvider{
+			Context: ctx,
+		}
+	default:
+		return nil
+	}
+}
+
+func GetDomain(domain string, ctx context.Context) types.Domain {
+	switch domain {
+	case "kubernetes":
+		return kube.KubernetesDomain{
+			Context: ctx,
+		}
+	case "api":
+		return api.ApiDomain{}
+	default:
+		return nil
+	}
 }
