@@ -47,15 +47,18 @@ component-definition:
       title: Lula Validation
       description: >-
         target:
-          provider: opa
-          domain: api
-          payload:
-            requests:
+          domain:
+            type: api
+            api-spec:
+              requests:
               - name: local
                 url: "http://localhost"
-            rego: |
-              package validate
+          provider: 
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
 
-              validate {
-                input.local.pass == true
-              }
+                validate {
+                  input.local.pass == true
+                }

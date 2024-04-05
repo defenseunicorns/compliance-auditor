@@ -42,10 +42,10 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 	for _, resource := range *backMatter.Resources {
 		// TODO: Possibly support different title values (e.g., "Placeholder", "Healthcheck")
 		if resource.Title == "Lula Validation" {
-			var validationYaml common.ValidationYaml
+			var validationData common.Validation
 			var validation types.Validation
 
-			err := yaml.Unmarshal([]byte(resource.Description), &validationYaml)
+			err := yaml.Unmarshal([]byte(resource.Description), &validationData)
 			if err != nil {
 				message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
 				return nil
@@ -57,8 +57,8 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			currentVersion := strings.Split(config.CLIVersion, "-")[0]
 
 			versionConstraint := currentVersion
-			if validationYaml.LulaVersion != "" {
-				versionConstraint = validationYaml.LulaVersion
+			if validationData.LulaVersion != "" {
+				versionConstraint = validationData.LulaVersion
 			}
 
 			validVersion, versionErr := common.IsVersionValid(versionConstraint, currentVersion)
@@ -75,17 +75,17 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			// Construct the validation object
 			// TODO: Is there a better location for context?
 			ctx := context.Background()
-			validation.Provider = common.GetProvider(validationYaml.Target.Provider, ctx)
+			validation.Provider = common.GetProvider(validationData.Target.Provider, ctx)
 			if validation.Provider == nil {
-				message.Fatalf(nil, "provider %s not found", validationYaml.Target.Provider.Type)
+				message.Fatalf(nil, "provider %s not found", validationData.Target.Provider.Type)
 				return nil
 			}
-			validation.Domain = common.GetDomain(validationYaml.Target.Domain, ctx)
+			validation.Domain = common.GetDomain(validationData.Target.Domain, ctx)
 			if validation.Domain == nil {
-				message.Fatalf(nil, "domain %s not found", validationYaml.Target.Domain.Type)
+				message.Fatalf(nil, "domain %s not found", validationData.Target.Domain.Type)
 				return nil
 			}
-			validation.LulaValidationType = types.DefaultLulaValidationType
+			validation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
 			validation.Evaluated = evaluated
 			validation.Result = result
 

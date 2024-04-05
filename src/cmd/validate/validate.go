@@ -172,7 +172,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 						var domainResources types.DomainResources
 						var err error
 						// Current identifier is the link text
-						// TODO: sync this up with the Lula Validation type? or some other workflow here...
+						// TODO: define workflow/purpose for this -> depending on link.Text, use different val.LulaValidationType?
 						if link.Text == "Lula Validation" {
 							sharedUuid := uuid.NewUUID()
 							observation := oscalTypes_1_1_2.Observation{

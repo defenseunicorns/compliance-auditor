@@ -56,46 +56,50 @@ component-definition:
         title: Lula Validation
         description: >-
           target:
-            provider: opa
-            domain: kubernetes
-            payload:
-              resources:
-              - name: podsvt
-                resource-rule:
-                  group:
-                  version: v1
-                  resource: pods
-                  namespaces: [validation-test]
-              rego: |
-                package validate
+            domain: 
+              type: kubernetes
+              kubernetes-spec:
+                resources:
+                  - name: podsvt 
+                    resource-rule:   
+                      version: v1
+                      resource: pods
+                      namespaces: [validation-test]
+            provider: 
+              type: opa
+              opa-spec: 
+                rego: |
+                  package validate
 
-                import future.keywords.every
+                  import future.keywords.every
 
-                validate {
-                  every pod in input.podsvt {
-                    podLabel := pod.metadata.labels.foo
-                    podLabel == "bar"
+                  validate {
+                    every pod in input.podsvt {
+                      podLabel := pod.metadata.labels.foo
+                      podLabel == "bar"
+                    }
                   }
-                }
       - uuid: 01e21994-2cfc-45fb-ac84-d00f2e5912b0
         title: Lula Validation
         description: >-
           target:
-            provider: opa
-            domain: kubernetes
-            payload:
-              resources:
-              - name: podvt
-                resource-rule:
-                  name: test-pod-label
-                  group:
-                  version: v1
-                  resource: pods
-                  namespaces: [validation-test]
-              rego: |
-                package validate
+            domain: 
+              type: kubernetes
+              kubernetes-spec:
+                resources:
+                  - name: podvt 
+                    resource-rule:
+                      name: test-pod-label 
+                      version: v1
+                      resource: pods
+                      namespaces: [validation-test]
+            provider: 
+              type: opa
+              opa-spec: 
+                rego: |
+                  package validate
 
-                validate {
-                  podLabel := input.podvt.metadata.labels.foo
-                  podLabel == "bar"
-                }
+                  validate {
+                    podLabel := input.podvt.metadata.labels.foo
+                    podLabel == "bar"
+                  }

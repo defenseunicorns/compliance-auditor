@@ -50,33 +50,33 @@ func IsVersionValid(versionConstraint string, version string) (bool, error) {
 }
 
 // Get the domain and providers
-func GetDomain(domainYaml DomainYaml, ctx context.Context) types.Domain {
-	switch domainYaml.Type {
+func GetDomain(domain Domain, ctx context.Context) types.Domain {
+	switch domain.Type {
 	case "kubernetes":
 		return kube.KubernetesDomain{
 			Context: ctx,
-			Spec:    domainYaml.KubernetesSpec,
+			Spec:    domain.KubernetesSpec,
 		}
 	case "api":
 		return api.ApiDomain{
-			Spec: domainYaml.ApiSpec,
+			Spec: domain.ApiSpec,
 		}
 	default:
 		return nil
 	}
 }
 
-func GetProvider(providerYaml ProviderYaml, ctx context.Context) types.Provider {
-	switch providerYaml.Type {
+func GetProvider(provider Provider, ctx context.Context) types.Provider {
+	switch provider.Type {
 	case "opa":
 		return opa.OpaProvider{
 			Context: ctx,
-			Spec:    providerYaml.OpaSpec,
+			Spec:    provider.OpaSpec,
 		}
 	case "kyverno":
 		return kyverno.KyvernoProvider{
 			Context: ctx,
-			Spec:    providerYaml.KyvernoSpec,
+			Spec:    provider.KyvernoSpec,
 		}
 	default:
 		return nil

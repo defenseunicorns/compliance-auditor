@@ -50,55 +50,59 @@ component-definition:
       title: Lula Validation
       description: >-
         target:
-          provider: opa
-          domain: kubernetes
-          payload:
-            resources:
-            - name: podsvt1
-              resource-rule:
-                group:
-                version: v1
-                resource: pods
-                namespaces: [validation-test1]
-            - name: podsvt2
-              resource-rule:
-                group:
-                version: v1
-                resource: pods
-                namespaces: [validation-test2]
-            rego: |
-              package validate
+          domain: 
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+              - name: podsvt1
+                resource-rule:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test1]
+              - name: podsvt2
+                resource-rule:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test2]
+          provider: 
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
 
-              import future.keywords.every
+                import future.keywords.every
 
-              validate {
-                every pod in input.podsvt1 {
-                  podLabel := pod.metadata.labels.locality
-                  podLabel == "vt1"
+                validate {
+                  every pod in input.podsvt1 {
+                    podLabel := pod.metadata.labels.locality
+                    podLabel == "vt1"
+                  }
+
+                  every pod in input.podsvt2 {
+                    podLabel := pod.metadata.labels.locality
+                    podLabel == "vt2"
+                  }
                 }
-
-                every pod in input.podsvt2 {
-                  podLabel := pod.metadata.labels.locality
-                  podLabel == "vt2"
-                }
-              }
     - uuid: F9EC74AE-19A0-4822-8D7C-214AECCEB7C6
       title: Lula Validation
       description: >-
         target:
-          provider: opa
-          domain: kubernetes
-          payload:
-            requests:
+          domain: 
+            type: api
+            api-spec:
+              requests:
               - name: local
                 url: "http://localhost"
               - name: test
                 url: "http://localhost/test"  
-            rego: |
-              package validate
+          provider: 
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
 
-              validate {
-                input.local.pass == true
-                input.test.pass == true
-                input.test.test == true
-              }
+                validate {
+                  input.local.pass == true
+                  input.test.pass == true
+                  input.test.test == true
+                }

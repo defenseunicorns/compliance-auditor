@@ -20,12 +20,12 @@ func (k KubernetesDomain) GetResources() (types.DomainResources, error) {
 
 	err := EvaluateWait(k.Spec.Wait)
 	if err != nil {
-		return resources, err
+		return nil, err
 	}
 
 	resources, err = QueryCluster(k.Context, k.Spec.Resources)
 	if err != nil {
-		return resources, err
+		return nil, err
 	}
 
 	return resources, nil

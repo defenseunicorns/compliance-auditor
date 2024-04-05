@@ -65,23 +65,21 @@ func DevGetResources(ctx context.Context, inputFile string) (map[string]interfac
 		return nil, fmt.Errorf("error reading YAML file: %v", err)
 	}
 
-	var validationYaml common.ValidationYaml
-	err = yaml.Unmarshal([]byte(validationFile), &validationYaml)
+	var validation common.Validation
+	err = yaml.Unmarshal([]byte(validationFile), &validation)
 	if err != nil {
-		message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
-		return nil, fmt.Errorf("error unmarshaling YAML: %v", err)
+		return nil, fmt.Errorf("error unmarshaling yaml: %v", err)
 	}
 
-	domain := common.GetDomain(validationYaml.Target.Domain, ctx)
+	domain := common.GetDomain(validation.Target.Domain, ctx)
 	if domain == nil {
-		message.Fatalf(nil, "domain %s not found", validationYaml.Target.Domain.Type)
-		return nil, fmt.Errorf("domain not found")
+		return nil, fmt.Errorf("domain %s not found", validation.Target.Domain.Type)
 	}
 
 	// Extract the resources from the domain
 	domainResources, err := domain.GetResources()
 	if err != nil {
-		message.Fatalf(err, "error getting domain resources: %s", err.Error())
+		return nil, fmt.Errorf("error getting domain resources: %s", err.Error())
 	}
 
 	return domainResources, nil
