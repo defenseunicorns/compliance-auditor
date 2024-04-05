@@ -6,10 +6,10 @@ component-definition:
             - control-id: ID-1
               description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
-                - href: ./validation.opa.yaml
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/70-add-cli-option-for-consuming-a-validation-statement-directly/src/test/e2e/scenarios/dev-validate/validation.yaml
                   rel: reference
                   text: Lula Validation
-                - href: ./validation.kyverno.yaml
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/70-add-cli-option-for-consuming-a-validation-statement-directly/src/test/e2e/scenarios/dev-validate/validation.kyverno.yaml
                   rel: reference
                   text: Lula Validation
               uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
