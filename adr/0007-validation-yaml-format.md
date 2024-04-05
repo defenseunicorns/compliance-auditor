@@ -16,8 +16,9 @@ The format for a Lula Validation object (i.e., the Lula Validation yaml document
 The use cases for the validation yaml should support
 - Local and remote validation files (this may be external to the validation yaml document itself)
 - Different domains and providers, as well as their different specifications for use
-- Validations that call to action human evaluators (perhaps an additional provider/domain?)
-- Logical validation compositions - saying that validations compose in an "OR" as opposed to default "AND" (this might also be external, more of a generation thing? Could be determined by the metadata.type?)
+- Validations that call to action human evaluators
+- Logical validation compositions - saying that validations compose as "OR" as opposed to default "AND" 
+- Validation overrides
 
 ### Current
 
@@ -29,7 +30,6 @@ target:
   provider: opa                               # Required (enum: [opa, kyverno])
   domain: kubernetes                          # Required (enum: [Kubernetes])
   payload:
-    # This is a Variable Structure...
     resources:
     - name: podsvt
       resource-rule:
@@ -55,7 +55,6 @@ target:
   provider: opa                               # Required (enum: [opa, kyverno])
   domain: kubernetes                          # Required (enum: [Kubernetes])
   payload:
-    # This is a Variable Structure...
     resources:
     - name: podsvt
       resource-rule:
@@ -93,13 +92,15 @@ target:
 ```
 
 ### Proposal
-The following yaml is the proposed high-level structure for the validation file. The x_spec field under domain and provider is intended to be optional but should be populated for the selected type. The rationale for having different specs all wrapped into a single definition is to make it easier to unmarshal the entire yaml document at once, as opposed to having to piecemeal it. The spec that gets used in the validation logic is that which corresponds to the type chosen.
+The following yaml is the proposed high-level structure for the validation file. The X-spec field under domain and provider should be populated for the selected `type`. 
+The rationale for having different specs in this format is to make it clear to the user which fields are relevant to the selected provider or domain. Previous impementation had them all more or less at the same level, so it might be confusing for a user to know which fields related to which domain or provider. Additionally, this allows for reusable property names across providers or domains.
+
+Unfortunately this proposed structure adds more nesting, but hopefully the nesting structure isn't confusing to the user and instead provides a more obvious delineation on domain/provider specifications.
 
 ```yaml
 lula-version: "1.0"                           # Optional (maintains backward compatilibity)
 metadata:                                     # Optional
   name: "title here"                          # Optional (short description to use in output of validations could be useful)
-  type: satisfaction                          # Optional (enum:[satisfaction, healthcheck, ?]) - basically this indicates how the validation is reported in results, default is probably just satisfaction, but this could add some extensibility to having various workflows depending on "type" values
 target:
   domain: 
     type: kubernetes                          # Required (enum:[kubernetes, passthrough])
@@ -146,48 +147,40 @@ target:
       resources:                                  
       - name: podsvt                          # Required 
         resource-rule:                        # Required
-          name:                               # Optional (Required with "field")
-          group:                              # Optional (not all k8s resources have a group, the main ones are "")
           version: v1                         # Required
           kind: pods                          # Required (formerly "resource" but "kind" seems to make more sense in a k8s context)
           namespaces: [validation-test]       # Optional (Required with "name")
-          field:                              # Optional 
-            jsonpath:                         # Required
-            type:                             # Optional 
-            base64:                           # Optional 
-      wait:                                   # Optional 
-        condition: Ready                      # Optional 
-        kind: pod/test-pod-wait               # Optional 
-        namespace: validation-test            # Optional 
-        timeout: 30s                          # Optional 
-
   provider: 
     type: kyverno                             # Required (enum:[opa, kyverno])
     kyverno-spec:                             # Optional
-      apiVersion: json.kyverno.io/v1alpha1    # Required
-      kind: ValidatingPolicy                  # Required
-      metadata:
-        name: pod-policy                      # Required
-      spec:
-        rules:
-          - name: no-latest                   # Required
-            # Match payloads corresponding to pods
-            match:                            # Optional
-              any:                            # Assertion Tree
-              - apiVersion: v1
-                kind: Pod
-            assert:                           # Required
-              all:                            # Assertion Tree
-              - message: Pod `{{ metadata.name }}` uses an image with tag `latest`
-                check:
-                  ~.podsvt:
-                    spec:
-                      # Iterate over pod containers
-                      # Note the `~.` modifier, it means we want to iterate over array elements in descendants
-                      ~.containers:
-                        image:
-                          # Check that an image tag is present
-                          (contains(@, ':')): true
-                          # Check that the image tag is not `:latest`
-                          (ends_with(@, ':latest')): false                       
+      kyverno:
+        apiVersion: json.kyverno.io/v1alpha1    # Required
+        kind: ValidatingPolicy                  # Required
+        metadata:
+          name: pod-policy                      # Required
+        spec:
+          rules:
+            - name: no-latest                   # Required
+              # Match payloads corresponding to pods
+              match:                            # Optional
+                any:                            # Assertion Tree
+                - apiVersion: v1
+                  kind: Pod
+              assert:                           # Required
+                all:                            # Assertion Tree
+                - message: Pod `{{ metadata.name }}` uses an image with tag `latest`
+                  check:
+                    ~.podsvt:
+                      spec:
+                        # Iterate over pod containers
+                        # Note the `~.` modifier, it means we want to iterate over array elements in descendants
+                        ~.containers:
+                          image:
+                            # Check that an image tag is present
+                            (contains(@, ':')): true
+                            # Check that the image tag is not `:latest`
+                            (ends_with(@, ':latest')): false                       
 ```
+
+### Consequences
+The intent of these changes is to decouple the domain and providers.This should result in is a architecture that supports variable domains and providers, such that they can be easily swapped out for one another. It may not be possible to *fully* decouple the two as, for instance, a rego policy will always need to have some notion of the structure of the inputs, however the idea is to make more defined interfaces at least.
