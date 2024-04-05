@@ -5,8 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
-	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -15,10 +14,10 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/features"
 )
 
-func TestDevValidation(t *testing.T) {
+func TestRemoteValidation(t *testing.T) {
 	featureRemoteValidation := features.New("Check dev validate").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			/ Create the pod
+			// Create the pod
 			pod, err := util.GetPod("./scenarios/remote-validations/pod.pass.yaml")
 			if err != nil {
 				t.Fatal(err)
@@ -35,13 +34,26 @@ func TestDevValidation(t *testing.T) {
 			return ctx
 		}).
 		Assess("Validate local validation file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			
+			compDefPath := "./scenarios/remote-validations/component-definition.yaml"
+
+			findings, observations, err := validate.ValidateOnPath(compDefPath)
+			if err != nil {
+				t.Errorf("Error validating component definition: %v", err)
+			}
+
+			if len(findings) == 0 {
+				t.Errorf("Expected to find findings")
+			}
+
+			if len(observations) == 0 {
+				t.Errorf("Expected to find observations")
+			}
 
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 
-			/ Delete the pod
+			// Delete the pod
 			pod := ctx.Value("pod-dev-validate").(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
