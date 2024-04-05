@@ -72,7 +72,7 @@ func DevGetResources(ctx context.Context, inputFile string) (map[string]interfac
 		return nil, fmt.Errorf("error unmarshaling YAML: %v", err)
 	}
 
-	domain := common.GetDomain(validationYaml.Target.Domain.Type, ctx)
+	domain := common.GetDomain(validationYaml.Target.Domain, ctx)
 	if domain == nil {
 		message.Fatalf(nil, "domain %s not found", validationYaml.Target.Domain.Type)
 		return nil, fmt.Errorf("domain not found")

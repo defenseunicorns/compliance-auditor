@@ -75,12 +75,12 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			// Construct the validation object
 			// TODO: Is there a better location for context?
 			ctx := context.Background()
-			validation.Provider = common.GetProvider(validationYaml.Target.Provider.Type, ctx)
+			validation.Provider = common.GetProvider(validationYaml.Target.Provider, ctx)
 			if validation.Provider == nil {
 				message.Fatalf(nil, "provider %s not found", validationYaml.Target.Provider.Type)
 				return nil
 			}
-			validation.Domain = common.GetDomain(validationYaml.Target.Domain.Type, ctx)
+			validation.Domain = common.GetDomain(validationYaml.Target.Domain, ctx)
 			if validation.Domain == nil {
 				message.Fatalf(nil, "domain %s not found", validationYaml.Target.Domain.Type)
 				return nil
