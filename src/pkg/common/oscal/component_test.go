@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/types"
-	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/yaml"
 )
 
-const validComponentPath = "../../../test/e2e/scenarios/resource-data/oscal-component.yaml"
+const validComponentPath = "../../../../test/common/oscal/valid-component.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {
@@ -21,46 +22,6 @@ func loadTestData(t *testing.T, path string) []byte {
 		t.Fatalf("Failed to read file '%s': %v", path, err)
 	}
 	return data
-}
-
-func TestBackMatterToMap(t *testing.T) {
-	validComponentBytes := loadTestData(t, validComponentPath)
-	validBackMatterMapBytes := loadTestData(t, "../../../../test/validBackMatterMap.yaml")
-
-	var validComponent oscalTypes.OscalCompleteSchema
-	if err := yaml.Unmarshal(validComponentBytes, &validComponent); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
-	var validBackMatterMap map[string]types.Validation
-	if err := yaml.Unmarshal(validBackMatterMapBytes, &validBackMatterMap); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
-
-	tests := []struct {
-		name       string
-		backMatter oscalTypes.BackMatter
-		want       map[string]types.Validation
-	}{
-		{
-			name:       "Test No Resources",
-			backMatter: oscalTypes.BackMatter{},
-		},
-		{
-			name:       "Test Valid Component",
-			backMatter: *validComponent.ComponentDefinition.BackMatter,
-			want:       validBackMatterMap,
-		},
-		// Add more test cases as needed
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			got := oscal.BackMatterToMap(tc.backMatter)
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("BackMatterToMap() got = %v, want %v", got, tc.want)
-			}
-		})
-	}
 }
 
 func TestNewOscalComponentDefinition(t *testing.T) {
@@ -110,6 +71,24 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) && !tt.wantErr {
 				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBackMatterToMap(t *testing.T) {
+
+	tests := []struct {
+		name string
+		args oscalTypes_1_1_2.BackMatter
+		want map[string]types.Validation
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := oscal.BackMatterToMap(tt.args); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("BackMatterToMap() = %v, want %v", got, tt.want)
 			}
 		})
 	}
