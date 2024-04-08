@@ -8,8 +8,7 @@ import (
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/types"
-	"sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 const validComponentPath = "../../../../test/common/oscal/valid-component.yaml"
@@ -22,6 +21,24 @@ func loadTestData(t *testing.T, path string) []byte {
 		t.Fatalf("Failed to read file '%s': %v", path, err)
 	}
 	return data
+}
+
+func TestBackMatterToMap(t *testing.T) {
+	data := loadTestData(t, validComponentPath)
+	var component oscalTypes_1_1_2.OscalCompleteSchema
+	err := yaml.Unmarshal(data, &component)
+	if err != nil {
+		t.Fatalf("yaml.Unmarshal failed: %v", err)
+	}
+
+	got := oscal.BackMatterToMap(*component.ComponentDefinition.BackMatter)
+	if got == nil {
+		t.Fatalf("BackMatterToMap returned nil")
+	}
+
+	if len(got) == 0 {
+		t.Fatalf("BackMatterToMap returned empty map")
+	}
 }
 
 func TestNewOscalComponentDefinition(t *testing.T) {
@@ -71,24 +88,6 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) && !tt.wantErr {
 				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestBackMatterToMap(t *testing.T) {
-
-	tests := []struct {
-		name string
-		args oscalTypes_1_1_2.BackMatter
-		want map[string]types.Validation
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := oscal.BackMatterToMap(tt.args); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("BackMatterToMap() = %v, want %v", got, tt.want)
 			}
 		})
 	}
