@@ -97,7 +97,7 @@ target:
           name:                               # Optional (Required with "field")
           group:                              # Optional (not all k8s resources have a group, the main ones are "")
           version: v1                         # Required
-          kind: pods                          # Required (formerly "resource" but "kind" seems to make more sense in a k8s context)
+          resource: pods                      # Required
           namespaces: [validation-test]       # Optional (Required with "name")
           field:                              # Optional 
             jsonpath:                         # Required
@@ -137,7 +137,7 @@ target:
       - name: podsvt                          # Required 
         resource-rule:                        # Required
           version: v1                         # Required
-          kind: pods                          # Required (formerly "resource" but "kind" seems to make more sense in a k8s context)
+          resource: pods                      # Required 
           namespaces: [validation-test]       # Optional (Required with "name")
   provider: 
     type: kyverno                             # Required (enum:[opa, kyverno])
