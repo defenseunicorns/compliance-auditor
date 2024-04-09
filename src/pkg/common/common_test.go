@@ -13,10 +13,10 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const validKubernetesPath = "../../test/test_data/valid-kubernetes-spec.yaml"
-const validApiPath = "../../test/test_data/valid-api-spec.yaml"
-const validOpaPath = "../../test/test_data/valid-opa-spec.yaml"
-const validKyvernoPath = "../../test/test_data/valid-kyverno-spec.yaml"
+const validKubernetesPath = "../../test/unit/common/valid-kubernetes-spec.yaml"
+const validApiPath = "../../test/unit/common/valid-api-spec.yaml"
+const validOpaPath = "../../test/unit/common/valid-opa-spec.yaml"
+const validKyvernoPath = "../../test/unit/common/valid-kyverno-spec.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {

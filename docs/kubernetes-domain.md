@@ -48,31 +48,30 @@ When Lula retrieves all targeted resources (bounded by namespace when applicable
 
 Let's get all pods in the `validation-test` namespace and evaluate them with the OPA provider:
 ```yaml
-target:
-  domain: 
-    type: kubernetes
-    kubernetes-spec:
-      resources:
-      - name: podsvt
-        resource-rule:
-          group:
-          version: v1
-          resource: pods
-          namespaces: [validation-test]
-  provider: 
-    type: opa
-    opa-spec:
-      rego: |
-        package validate
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: podsvt
+      resource-rule:
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
 
-        import future.keywords.every
+      import future.keywords.every
 
-        validate {
-          every pod in input.podsvt {
-            podLabel := pod.metadata.labels.foo
-            podLabel == "bar"
-          }
+      validate {
+        every pod in input.podsvt {
+          podLabel := pod.metadata.labels.foo
+          podLabel == "bar"
         }
+      }
 ```
 
 > [!IMPORTANT]
@@ -81,28 +80,27 @@ target:
 Now let's retrieve a single pod from the `validation-test` namespace:
 
 ```yaml
-target:
-  domain: 
-    type: kubernetes
-    kubernetes-spec:
-      resources:
-      - name: podvt
-        resource-rule:
-          name: test-pod-label
-          group:
-          version: v1
-          resource: pods
-          namespaces: [validation-test]
-  provider: 
-    type: opa
-    opa-spec:  
-      rego: |
-        package validate
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: podvt
+      resource-rule:
+        name: test-pod-label
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+provider: 
+  type: opa
+  opa-spec:  
+    rego: |
+      package validate
 
-        validate {
-          podLabel := input.podvt.metadata.labels.foo
-          podLabel == "bar"
-        }
+      validate {
+        podLabel := input.podvt.metadata.labels.foo
+        podLabel == "bar"
+      }
 ```
 
 > [!IMPORTANT]
@@ -113,30 +111,29 @@ Many of the tool-specific configuration data is stored as json or yaml text insi
 
 Here's an example of extracting `config.yaml` from a test configmap:
 ```yaml
-target:
-  domain: 
-    type: kubernetes
-    kubernetes-spec:
-      resources:
-      - name: configdata
-        resource-rule:
-          name: test-configmap
-          group:
-          version: v1
-          resource: pods
-          namespaces: [validation-test]
-          field:
-            jsonpath: .data.my-config.yaml
-            type: yaml
-  provider: 
-    type: opa
-    opa-spec:
-      rego: |
-        package validate
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: configdata
+      resource-rule:
+        name: test-configmap
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+        field:
+          jsonpath: .data.my-config.yaml
+          type: yaml
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
 
-        validate {
-          configdata.configuration.foo == "bar"
-        }
+      validate {
+        configdata.configuration.foo == "bar"
+      }
 ```
 
 Where the raw ConfigMap data would look as follows:

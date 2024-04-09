@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const validComponentPath = "../../../../test/common/oscal/valid-component.yaml"
+const validComponentPath = "../../../test/unit/common/oscal/valid-component.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {

@@ -7,7 +7,7 @@ const (
 	DefaultLulaValidationType LulaValidationType = LulaValidationTypeNormal
 )
 
-type Validation struct {
+type LulaValidation struct {
 	// Provider is the provider that is evaluating the validation
 	Provider Provider
 

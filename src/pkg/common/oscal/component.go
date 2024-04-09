@@ -31,9 +31,9 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition oscalTypes_1_
 	return *oscalModels.ComponentDefinition, nil
 }
 
-// Map an array of resources to a map of UUID to validation object
-func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Validation {
-	resourceMap := make(map[string]types.Validation)
+// Map an array of resources to a map of UUID to lulaValidation object
+func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.LulaValidation {
+	resourceMap := make(map[string]types.LulaValidation)
 
 	if backMatter.Resources == nil {
 		return nil
@@ -42,10 +42,10 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 	for _, resource := range *backMatter.Resources {
 		// TODO: Possibly support different title values (e.g., "Placeholder", "Healthcheck")
 		if resource.Title == "Lula Validation" {
-			var validationData common.Validation
-			var validation types.Validation
+			var validation common.Validation
+			var lulaValidation types.LulaValidation
 
-			err := yaml.Unmarshal([]byte(resource.Description), &validationData)
+			err := yaml.Unmarshal([]byte(resource.Description), &validation)
 			if err != nil {
 				message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
 				return nil
@@ -57,8 +57,8 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 			currentVersion := strings.Split(config.CLIVersion, "-")[0]
 
 			versionConstraint := currentVersion
-			if validationData.LulaVersion != "" {
-				versionConstraint = validationData.LulaVersion
+			if validation.LulaVersion != "" {
+				versionConstraint = validation.LulaVersion
 			}
 
 			validVersion, versionErr := common.IsVersionValid(versionConstraint, currentVersion)
@@ -72,24 +72,24 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 				evaluated = true
 			}
 
-			// Construct the validation object
+			// Construct the lulaValidation object
 			// TODO: Is there a better location for context?
 			ctx := context.Background()
-			validation.Provider = common.GetProvider(validationData.Target.Provider, ctx)
-			if validation.Provider == nil {
-				message.Fatalf(nil, "provider %s not found", validationData.Target.Provider.Type)
+			lulaValidation.Provider = common.GetProvider(validation.Provider, ctx)
+			if lulaValidation.Provider == nil {
+				message.Fatalf(nil, "provider %s not found", validation.Provider.Type)
 				return nil
 			}
-			validation.Domain = common.GetDomain(validationData.Target.Domain, ctx)
-			if validation.Domain == nil {
-				message.Fatalf(nil, "domain %s not found", validationData.Target.Domain.Type)
+			lulaValidation.Domain = common.GetDomain(validation.Domain, ctx)
+			if lulaValidation.Domain == nil {
+				message.Fatalf(nil, "domain %s not found", validation.Domain.Type)
 				return nil
 			}
-			validation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
-			validation.Evaluated = evaluated
-			validation.Result = result
+			lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
+			lulaValidation.Evaluated = evaluated
+			lulaValidation.Result = result
 
-			resourceMap[resource.UUID] = validation
+			resourceMap[resource.UUID] = lulaValidation
 		}
 
 	}

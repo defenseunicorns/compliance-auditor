@@ -16,7 +16,7 @@ type KyvernoProvider struct {
 }
 
 func (k KyvernoProvider) Evaluate(resources types.DomainResources) (types.Result, error) {
-	results, err := GetValidatedAssets(k.Context, k.Spec.Kyverno, resources, k.Spec.Output)
+	results, err := GetValidatedAssets(k.Context, k.Spec.Policy, resources, k.Spec.Output)
 	if err != nil {
 		return types.Result{}, err
 	}
@@ -24,8 +24,8 @@ func (k KyvernoProvider) Evaluate(resources types.DomainResources) (types.Result
 }
 
 type KyvernoSpec struct {
-	Kyverno *kjson.ValidatingPolicy `json:"kyverno" yaml:"kyverno"`
-	Output  KyvernoOutput           `json:"output" yaml:"output"`
+	Policy *kjson.ValidatingPolicy `json:"policy" yaml:"policy"`
+	Output KyvernoOutput           `json:"output" yaml:"output"`
 }
 
 type KyvernoOutput struct {

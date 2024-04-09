@@ -11,17 +11,13 @@ import (
 type Validation struct {
 	LulaVersion string   `json:"lula-version" yaml:"lula-version"`
 	Metadata    Metadata `json:"metadata" yaml:"metadata"`
-	Target      Target   `json:"target" yaml:"target"`
+	Provider    Provider `json:"provider" yaml:"provider"`
+	Domain      Domain   `json:"domain" yaml:"domain"`
 }
 
 // TODO: Perhaps extend this structure with other needed information, such as UUID or type of validation if workflow is needed
 type Metadata struct {
 	Name string `json:"name" yaml:"name"`
-}
-
-type Target struct {
-	Provider Provider `json:"provider" yaml:"provider"`
-	Domain   Domain   `json:"domain" yaml:"domain"`
 }
 
 type Domain struct {

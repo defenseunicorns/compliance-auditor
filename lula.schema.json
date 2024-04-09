@@ -16,122 +16,130 @@
         },
         "additionalProperties": false
       },
-      "target": {
+      "domain": {
         "type": "object",
         "properties": {
-          "domain": {
+          "type": {
+            "type": "string",
+            "enum": ["kubernetes", "api"],
+            "description": "Required"
+          },
+          "kubernetes-spec": {
             "type": "object",
             "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["kubernetes", "api"],
-                "description": "Required"
-              },
-              "kubernetes-spec": {
-                "type": "object",
-                "properties": {
-                  "resources": {
-                    "type": "array",
-                    "items": {
+              "resources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "resource-rule": {
                       "type": "object",
                       "properties": {
                         "name": { "type": "string" },
-                        "resource-rule": {
+                        "group": { "type": "string" },
+                        "version": { "type": "string" },
+                        "resource": { "type": "string" },
+                        "namespaces": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "field": {
                           "type": "object",
                           "properties": {
-                            "name": { "type": "string" },
-                            "group": { "type": "string" },
-                            "version": { "type": "string" },
-                            "resource": { "type": "string" },
-                            "namespaces": {
-                              "type": "array",
-                              "items": { "type": "string" }
-                            },
-                            "field": {
-                              "type": "object",
-                              "properties": {
-                                "jsonpath": { "type": "string" },
-                                "type": { "type": "string" },
-                                "base64": { "type": "boolean" }
-                              },
-                              "required": ["jsonpath"]
-                            }
+                            "jsonpath": { "type": "string" },
+                            "type": { "type": "string" },
+                            "base64": { "type": "boolean" }
                           },
-                          "required": ["version", "resource"]
+                          "required": ["jsonpath"]
                         }
                       },
-                      "required": ["name", "resource-rule"]
+                      "required": ["version", "resource"]
                     }
                   },
-                  "wait": {
-                    "type": "object",
-                    "properties": {
-                      "condition": { "type": "string" },
-                      "kind": { "type": "string" },
-                      "namespace": { "type": "string" },
-                      "timeout": { "type": "string" }
-                    }
-                  }
-                },
-                "additionalProperties": false
+                  "required": ["name", "resource-rule"]
+                }
               },
-              "api-spec": {
+              "wait": {
                 "type": "object",
                 "properties": {
-                  "requests": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": { "type": "string" },
-                        "url": { "type": "string" }
-                      },
-                      "required": ["name", "url"]
-                    }
-                  }
-                },
-                "additionalProperties": false
+                  "condition": { "type": "string" },
+                  "kind": { "type": "string" },
+                  "namespace": { "type": "string" },
+                  "timeout": { "type": "string" }
+                }
               }
             },
-            "required": ["type"]
+            "additionalProperties": false
           },
-          "provider": {
+          "api-spec": {
             "type": "object",
             "properties": {
-              "type": {
+              "requests": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "url": { "type": "string" }
+                  },
+                  "required": ["name", "url"]
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["type"]
+      },
+      "provider": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["opa", "kyverno"],
+            "description": "Required"
+          },
+          "opa-spec": {
+            "type": "object",
+            "properties": {
+              "rego": {
                 "type": "string",
-                "enum": ["opa", "kyverno"],
                 "description": "Required"
               },
-              "opa-spec": {
+              "output": {
                 "type": "object",
                 "properties": {
-                  "rego": {
-                    "type": "string",
-                    "description": "Required"
-                  },
-                  "output": {
-                    "type": "object",
-                    "properties": {
-                      "validation": { "type": "string" },
-                      "observations": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                      }
-                    }
+                  "validation": { "type": "string" },
+                  "observations": {
+                    "type": "array",
+                    "items": { "type": "string" }
                   }
-                },
-                "additionalProperties": false
-              },
-              "kyverno-spec": {
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "kyverno-spec": {
+            "type": "object",
+            "properties": {
+              "policy": {
                 "type": "object",
                 "properties": {
-                  "apiVersion": { "type": "string" },
-                  "kind": { "type": "string" },
+                  "apiVersion": {
+                    "type": "string",
+                    "pattern": "^json\\.kyverno\\.io/v1alpha1$"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": ["ValidatingPolicy"]
+                  },
                   "metadata": {
                     "type": "object",
                     "properties": {
-                      "name": { "type": "string" }
+                      "name": {
+                        "type": "string"
+                      }
                     },
                     "required": ["name"]
                   },
@@ -143,26 +151,55 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "name": { "type": "string" },
-                            "match": { "type": "object" },
-                            "assert": { "type": "object" }
+                            "name": {
+                              "type": "string"
+                            },
+                            "assert": {
+                              "type": "object",
+                              "properties": {
+                                "all": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "check": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                      }
+                                    },
+                                    "required": ["check"]
+                                  }
+                                }
+                              },
+                              "required": ["all"]
+                            }
                           },
                           "required": ["name", "assert"]
                         }
                       }
-                    }
+                    },
+                    "required": ["rules"]
                   }
                 },
-                "required": ["apiVersion", "kind", "metadata", "spec"],
-                "additionalProperties": false
+                "required": ["apiVersion", "kind", "metadata", "spec"]
               }
             },
-            "required": ["type"]
+            "output":{
+              "type": "object",
+              "properties": {
+                "validation": { "type": "string" },
+                "observations": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            },
+            "required": ["policy"]
           }
         },
-        "required": ["domain", "provider"]
+        "required": ["type"]
       }
     },
     "additionalProperties": false,
-    "required": ["target"]
+    "required": ["domain", "provider"]
   }
