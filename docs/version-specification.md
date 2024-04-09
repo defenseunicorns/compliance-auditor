@@ -8,26 +8,29 @@ In cases where a specific version of Lula is desired, either for typing constrai
   description: |
     lula-version: ">=0.0.2"
     target:
-      provider: opa
-      domain: kubernetes
-      payload:
-        resources:
-        - name: podsvt
-          resource-rule:
-            group:
-            version: v1
-            resource: pods
-            namespaces: [validation-test]
-        rego: |                                   
-          package validate
+      domain: 
+        type: kubernetes
+        kubernetes-spec:
+          resources:
+          - name: podsvt
+            resource-rule:
+              group:
+              version: v1
+              resource: pods
+              namespaces: [validation-test]
+      provider:
+        type: opa
+        opa-spec:
+          rego: |                                   
+            package validate
 
-          import future.keywords.every
+            import future.keywords.every
 
-          validate { 
-            every pod in input.podsvt {
-              podLabel == "bar"
+            validate { 
+              every pod in input.podsvt {
+                podLabel == "bar"
+              }
             }
-          }
 ```
 
 If included, the `lula-version` must be a string and should indicate the version constraints desired, if any. Our implementation uses Hashicorp's [go-version](https://pkg.go.dev/github.com/hashicorp/go-version) library, and constraints should follow their [conventions](https://developer.hashicorp.com/terraform/language/expressions/version-constraints). 

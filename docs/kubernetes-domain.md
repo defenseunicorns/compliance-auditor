@@ -9,7 +9,7 @@ The validation performed when using the Kubernetes domain is as follows:
 ```yaml
 resources:
 - name: podsvt                      # Required - Identifier for use in the rego below
-  resource-rule:                     # Required - resource selection criteria, at least one resource rule is required
+  resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
     name:                           # Optional - Used to retrieve a specific resource in a single namespace
     group:                          # Required - empty or "" for core group
     version: v1                     # Required - Version of resource
@@ -49,58 +49,64 @@ When Lula retrieves all targeted resources (bounded by namespace when applicable
 Let's get all pods in the `validation-test` namespace and evaluate them with the OPA provider:
 ```yaml
 target:
-  provider: opa
-  domain: kubernetes
-  payload:
-    resources:
-    - name: podsvt
-      resource-rule:
-        group:
-        version: v1
-        resource: pods
-        namespaces: [validation-test]
-    rego: |
-      package validate
+  domain: 
+    type: kubernetes
+    kubernetes-spec:
+      resources:
+      - name: podsvt
+        resource-rule:
+          group:
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+  provider: 
+    type: opa
+    opa-spec:
+      rego: |
+        package validate
 
-      import future.keywords.every
+        import future.keywords.every
 
-      validate {
-        every pod in input.podsvt {
-          podLabel := pod.metadata.labels.foo
-          podLabel == "bar"
+        validate {
+          every pod in input.podsvt {
+            podLabel := pod.metadata.labels.foo
+            podLabel == "bar"
+          }
         }
-      }
 ```
 
 > [!IMPORTANT]
-> Note how the payload contains a list of items that can be iterated over. The `podsvt` field is the name of the field in the payload that contains the list of items.
+> Note how the rego evaluates a list of items that can be iterated over. The `podsvt` field is the name of the field in the kubernetes-spec.resources that contains the list of items.
 
 Now let's retrieve a single pod from the `validation-test` namespace:
 
 ```yaml
 target:
-  provider: opa
-  domain: kubernetes
-  payload:
-    resources:
-    - name: podvt
-      resource-rule:
-        name: test-pod-label
-        group:
-        version: v1
-        resource: pods
-        namespaces: [validation-test]
-    rego: |
-      package validate
+  domain: 
+    type: kubernetes
+    kubernetes-spec:
+      resources:
+      - name: podvt
+        resource-rule:
+          name: test-pod-label
+          group:
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+  provider: 
+    type: opa
+    opa-spec:  
+      rego: |
+        package validate
 
-      validate {
-        podLabel := input.podvt.metadata.labels.foo
-        podLabel == "bar"
-      }
+        validate {
+          podLabel := input.podvt.metadata.labels.foo
+          podLabel == "bar"
+        }
 ```
 
 > [!IMPORTANT]
-> Note how the payload now contains a single object called `podvt`. This is the name of the resource that is being validated.
+> Note how the rego now evaluates a single object called `podvt`. This is the name of the resource that is being validated.
 
 ## Extracting Resource Field Data
 Many of the tool-specific configuration data is stored as json or yaml text inside configmaps and secrets. Some valuable data may also be stored in json or yaml strings in other resource locations, such as annotations. The "Field" parameter of the "ResourceRule" allows this data to be extracted and used by the Rego.
@@ -108,26 +114,29 @@ Many of the tool-specific configuration data is stored as json or yaml text insi
 Here's an example of extracting `config.yaml` from a test configmap:
 ```yaml
 target:
-  provider: opa
-  domain: kubernetes
-  payload:
-    resources:
-    - name: configdata
-      resource-rule:
-        name: test-configmap
-        group:
-        version: v1
-        resource: pods
-        namespaces: [validation-test]
-        field:
-          jsonpath: .data.my-config.yaml
-          type: yaml
-    rego: |
-      package validate
+  domain: 
+    type: kubernetes
+    kubernetes-spec:
+      resources:
+      - name: configdata
+        resource-rule:
+          name: test-configmap
+          group:
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+          field:
+            jsonpath: .data.my-config.yaml
+            type: yaml
+  provider: 
+    type: opa
+    opa-spec:
+      rego: |
+        package validate
 
-      validate {
-        configdata.configuration.foo == "bar"
-      }
+        validate {
+          configdata.configuration.foo == "bar"
+        }
 ```
 
 Where the raw ConfigMap data would look as follows:
