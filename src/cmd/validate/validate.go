@@ -6,11 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -107,6 +109,8 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 	if os.IsNotExist(err) {
 		return findingMap, observations, fmt.Errorf("Path: %v does not exist - unable to digest document\n", path)
 	}
+	dir := filepath.Dir(path)
+	config.ComponentDefinitionDir = dir
 
 	data, err := os.ReadFile(path)
 	if err != nil {
