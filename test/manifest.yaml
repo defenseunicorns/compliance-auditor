@@ -1,0 +1,30 @@
+## Value Statement: How can Lula provide reproducible results for all applicable OSCAL artifacts?
+## Needs to include the following:
+## - Not overwriting manual changes if present
+
+component-definition:
+  catalogs:
+    - url: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+      controls:
+        - id: ac-1
+          remarks: This control is partially implemented. 
+        - id: ac-2
+        - id: ac-3
+  ## Can we replace component-generator here?
+  components:
+    - path: ./components/component_1.yaml
+    - path: ./components/component_2.yaml
+    - path: ./components/component_3.yaml
+
+system-security-plan:
+  components:
+    - path: ./components/component.yaml
+
+assessment-plan:
+  assessment-results:
+    - path: ./assessment-results/assessment-results.yaml
+
+poam:
+  assessment-results:
+    - path: ./assessment-results/assessment-results.yaml
+
