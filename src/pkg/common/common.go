@@ -90,6 +90,10 @@ func GetProvider(provider Provider, ctx context.Context) types.Provider {
 
 // Converts a raw string to a Validation object (string -> common.Validation -> types.Validation)
 func ValidationFromString(raw string) (validation types.LulaValidation, err error) {
+	if raw == "" {
+		return validation, fmt.Errorf("validation string is empty")
+	}
+
 	var validationData Validation
 
 	err = yaml.Unmarshal([]byte(raw), &validationData)
@@ -124,11 +128,11 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 	validation.Provider = GetProvider(validationData.Provider, ctx)
 	if validation.Provider == nil {
 		// Use of Fatalf() here will exit the runtime - do we want to log this instead?
-		message.Fatalf(nil, "provider %s not found", validationData.Provider.Type)
+		return validation, fmt.Errorf("provider %s not found", validationData.Provider.Type)
 	}
 	validation.Domain = GetDomain(validationData.Domain, ctx)
 	if validation.Domain == nil {
-		message.Fatalf(nil, "domain %s not found", validationData.Domain.Type)
+		return validation, fmt.Errorf("domain %s not found", validationData.Domain.Type)
 	}
 	validation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
 	validation.Evaluated = evaluated
