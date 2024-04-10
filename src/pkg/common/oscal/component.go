@@ -2,6 +2,7 @@ package oscal
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -41,6 +42,9 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition oscalTypes_1_
 
 func ComponentFromCatalog(catalog oscalTypes_1_1_2.Catalog, targetControls []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 
+	// store all of the implemented requirements
+	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirement, 0)
+
 	// How will we identify a control based on the array of controls passed?
 	controlMap := make(map[string][]string)
 	for _, control := range targetControls {
@@ -55,8 +59,13 @@ func ComponentFromCatalog(catalog oscalTypes_1_1_2.Catalog, targetControls []str
 		if controlArray, ok := controlMap[group.ID]; !ok {
 			for _, control := range *group.Controls {
 				id := strings.Split(control.ID, "-")
+				// If this is a control we have identified
 				if contains(controlArray, id[1]) {
-
+					newRequirement, err := ControlToImplementedRequirement(control)
+					if err != nil {
+						return componentDefinition, err
+					}
+					implmentedRequirements = append(implmentedRequirements, newRequirement)
 				}
 
 				// Identify if this is a control we are targeting
@@ -72,6 +81,7 @@ func ComponentFromCatalog(catalog oscalTypes_1_1_2.Catalog, targetControls []str
 
 }
 
+// Consume a control - Identify statements - iterate through parts in order to create a description
 func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirement, err error) {
 
 	var controlDescription string
@@ -101,7 +111,7 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implemen
 		// let's just start with name == "statement" for now
 		if part.Name == "statement" {
 			if part.Parts != nil {
-				controlDescription = addPart(part.Parts, paramMap)
+				controlDescription += addPart(part.Parts, paramMap)
 			}
 
 		}
@@ -177,10 +187,37 @@ func contains(s []string, e string) bool {
 // Function to allow for recursively adding prose to the description string
 func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter) string {
 
-	prose := part.Prose
+	var result string
+
+	for _, part := range *part {
+		prose := part.Prose
+		if strings.Contains(prose, "{{ insert: param,") {
+			result = replaceParams(prose, paramMap)
+		} else {
+			result = prose
+		}
+
+	}
 
 	// Check for parameter insertion
+	// First does it contain  {{ insert: param
 
 	// Perform a replace on the prose
+	return result
+}
 
+func replaceParams(input string, params map[string]parameter) string {
+	re := regexp.MustCompile(`{{\s*insert:\s*param,\s*([^}\s]+)\s*}}`)
+	result := re.ReplaceAllStringFunc(input, func(match string) string {
+		paramName := strings.TrimSpace(re.FindStringSubmatch(match)[1])
+		if param, ok := params[paramName]; ok {
+			if param.Select == nil {
+				return fmt.Sprintf("[Assignment: organization-defined %s]", param.Label)
+			} else {
+				// work through the selection string building
+			}
+		}
+		return match
+	})
+	return result
 }
