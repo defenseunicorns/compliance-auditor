@@ -49,23 +49,23 @@ component-definition:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
       title: Lula Validation
       description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
+        domain: 
+          type: kubernetes
+          kubernetes-spec:
             resources:
             - name: podsvt1
               resource-rule:
-                group:
                 version: v1
                 resource: pods
                 namespaces: [validation-test1]
             - name: podsvt2
               resource-rule:
-                group:
                 version: v1
                 resource: pods
                 namespaces: [validation-test2]
+        provider: 
+          type: opa
+          opa-spec:
             rego: |
               package validate
 
@@ -85,15 +85,17 @@ component-definition:
     - uuid: F9EC74AE-19A0-4822-8D7C-214AECCEB7C6
       title: Lula Validation
       description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
+        domain: 
+          type: api
+          api-spec:
             requests:
-              - name: local
-                url: "http://localhost"
-              - name: test
-                url: "http://localhost/test"  
+            - name: local
+              url: "http://localhost"
+            - name: test
+              url: "http://localhost/test"  
+        provider: 
+          type: opa
+          opa-spec:
             rego: |
               package validate
 

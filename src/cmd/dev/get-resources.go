@@ -6,9 +6,8 @@ import (
 	"os"
 
 	"github.com/defenseunicorns/lula/src/config"
-	kube "github.com/defenseunicorns/lula/src/pkg/common/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -66,18 +65,24 @@ func DevGetResources(ctx context.Context, inputFile string) (map[string]interfac
 		return nil, fmt.Errorf("error reading YAML file: %v", err)
 	}
 
-	var validation types.Validation
-	err = yaml.Unmarshal(validationFile, &validation)
+	var validation common.Validation
+	err = yaml.Unmarshal([]byte(validationFile), &validation)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling YAML: %v", err)
+		return nil, fmt.Errorf("error unmarshaling yaml: %v", err)
 	}
 
-	collection, err := GetResources(ctx, validation.Target)
-	if err != nil {
-		return nil, fmt.Errorf("error getting resources: %v", err)
+	domain := common.GetDomain(validation.Domain, ctx)
+	if domain == nil {
+		return nil, fmt.Errorf("domain %s not found", validation.Domain.Type)
 	}
 
-	return collection, nil
+	// Extract the resources from the domain
+	domainResources, err := domain.GetResources()
+	if err != nil {
+		return nil, fmt.Errorf("error getting domain resources: %s", err.Error())
+	}
+
+	return domainResources, nil
 }
 
 func PrintJSON(data map[string]interface{}, filepath string) {
@@ -93,25 +98,4 @@ func PrintJSON(data map[string]interface{}, filepath string) {
 		// Else print to stdout
 		fmt.Println(jsonData)
 	}
-}
-
-// TODO: refactor this to a common package
-func GetResources(ctx context.Context, data types.Target) (map[string]interface{}, error) {
-	if data.Domain == "kubernetes" {
-		payload := data.Payload
-
-		err := kube.EvaluateWait(payload.Wait)
-		if err != nil {
-			return nil, err
-		}
-
-		collection, err := kube.QueryCluster(ctx, payload.Resources)
-		if err != nil {
-			return nil, err
-		}
-
-		return collection, nil
-	}
-
-	return nil, fmt.Errorf("domain not supported: %s", data.Domain)
 }

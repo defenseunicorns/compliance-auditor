@@ -9,7 +9,7 @@ The validation performed when using the Kubernetes domain is as follows:
 ```yaml
 resources:
 - name: podsvt                      # Required - Identifier for use in the rego below
-  resource-rule:                     # Required - resource selection criteria, at least one resource rule is required
+  resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
     name:                           # Optional - Used to retrieve a specific resource in a single namespace
     group:                          # Required - empty or "" for core group
     version: v1                     # Required - Version of resource
@@ -48,10 +48,9 @@ When Lula retrieves all targeted resources (bounded by namespace when applicable
 
 Let's get all pods in the `validation-test` namespace and evaluate them with the OPA provider:
 ```yaml
-target:
-  provider: opa
-  domain: kubernetes
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resources:
     - name: podsvt
       resource-rule:
@@ -59,6 +58,9 @@ target:
         version: v1
         resource: pods
         namespaces: [validation-test]
+provider: 
+  type: opa
+  opa-spec:
     rego: |
       package validate
 
@@ -73,15 +75,14 @@ target:
 ```
 
 > [!IMPORTANT]
-> Note how the payload contains a list of items that can be iterated over. The `podsvt` field is the name of the field in the payload that contains the list of items.
+> Note how the rego evaluates a list of items that can be iterated over. The `podsvt` field is the name of the field in the kubernetes-spec.resources that contains the list of items.
 
 Now let's retrieve a single pod from the `validation-test` namespace:
 
 ```yaml
-target:
-  provider: opa
-  domain: kubernetes
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resources:
     - name: podvt
       resource-rule:
@@ -90,6 +91,9 @@ target:
         version: v1
         resource: pods
         namespaces: [validation-test]
+provider: 
+  type: opa
+  opa-spec:  
     rego: |
       package validate
 
@@ -100,17 +104,16 @@ target:
 ```
 
 > [!IMPORTANT]
-> Note how the payload now contains a single object called `podvt`. This is the name of the resource that is being validated.
+> Note how the rego now evaluates a single object called `podvt`. This is the name of the resource that is being validated.
 
 ## Extracting Resource Field Data
 Many of the tool-specific configuration data is stored as json or yaml text inside configmaps and secrets. Some valuable data may also be stored in json or yaml strings in other resource locations, such as annotations. The "Field" parameter of the "ResourceRule" allows this data to be extracted and used by the Rego.
 
 Here's an example of extracting `config.yaml` from a test configmap:
 ```yaml
-target:
-  provider: opa
-  domain: kubernetes
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resources:
     - name: configdata
       resource-rule:
@@ -122,6 +125,9 @@ target:
         field:
           jsonpath: .data.my-config.yaml
           type: yaml
+provider: 
+  type: opa
+  opa-spec:
     rego: |
       package validate
 

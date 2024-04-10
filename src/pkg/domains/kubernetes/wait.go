@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/cmd"
@@ -16,7 +15,7 @@ import (
 )
 
 // This is specific to Lula - Check if we need to execute any wait operations.
-func EvaluateWait(waitPayload types.Wait) error {
+func EvaluateWait(waitPayload Wait) error {
 	var forCondition string
 	waitCmd := false
 	if waitPayload.Condition != "" {
@@ -85,7 +84,7 @@ func WaitForExistence(kind string, namespace string, timeout time.Duration) (err
 				return err
 			}
 
-			resourceRule := types.ResourceRule{
+			resourceRule := ResourceRule{
 				Group:      gvr.Group,
 				Version:    gvr.Version,
 				Resource:   gvr.Resource,

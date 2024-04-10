@@ -48,15 +48,13 @@ component-definition:
       remarks: >-
         Get data for all resources fields specified
       description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
+        domain: 
+          type: kubernetes
+          kubernetes-spec:
             resources:
             - name: jsoncm
               resource-rule:
                 name: configmap-json
-                group:
                 version: v1
                 resource: configmaps
                 namespaces: [validation-test]
@@ -66,7 +64,6 @@ component-definition:
             - name: yamlcm
               resource-rule:
                 name: configmap-yaml
-                group:
                 version: v1
                 resource: configmaps
                 namespaces: [validation-test]
@@ -76,7 +73,6 @@ component-definition:
             - name: secret
               resource-rule:
                 name: example-secret
-                group:
                 version: v1
                 resource: secrets
                 namespaces: [validation-test]
@@ -87,13 +83,15 @@ component-definition:
             - name: pod
               resource-rule:
                 name: example-pod
-                group:
                 version: v1
                 resource: pods
                 namespaces: [validation-test]
                 field:
                   jsonpath: .metadata.annotations.annotation.io/simple
                   type: json
+        provider: 
+          type: opa
+          opa-spec:
             rego: |
               package validate
 
@@ -105,4 +103,4 @@ component-definition:
                 input.secret.username == "username"
                 "item1" in input.pod.items
               }
-    
+  

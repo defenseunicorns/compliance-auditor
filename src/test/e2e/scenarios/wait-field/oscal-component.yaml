@@ -46,22 +46,23 @@ component-definition:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
       title: Lula Validation
       description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
+        domain: 
+          type: kubernetes
+          kubernetes-spec:
+            resources:
+            - name: podsvt
+              resource-rule:
+                version: v1
+                resource: pods
+                namespaces: [validation-test]
             wait:
               condition: Ready
               kind: pod/test-pod-wait
               namespace: validation-test
               timeout: 30s
-            resources:
-            - name: podsvt
-              resource-rule:
-                group:
-                version: v1
-                resource: pods
-                namespaces: [validation-test]
+        provider: 
+          type: opa
+          opa-spec:
             rego: |
               package validate
 

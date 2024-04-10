@@ -46,13 +46,15 @@ component-definition:
     - uuid: C30E849E-C262-42DF-8C84-EA1B62A6AD90
       title: Lula Validation
       description: >-
-        target:
-          provider: opa
-          domain: api
-          payload:
+        domain:
+          type: api
+          api-spec:
             requests:
-              - name: local
-                url: "http://localhost"
+            - name: local
+              url: "http://localhost"
+        provider: 
+          type: opa
+          opa-spec:
             rego: |
               package validate
 

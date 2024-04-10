@@ -2,7 +2,6 @@ package validate
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -13,14 +12,10 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
-	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
-
-type ValidationFunc func(context.Context, string, types.Target) (types.Result, error)
 
 type flags struct {
 	AssessmentFile string // -a --assessment-file
@@ -131,8 +126,6 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	// Populate a map[uuid]Validation into the validations
 	validations := oscal.BackMatterToMap(*compDef.BackMatter)
 
-	// TODO: Is there a better location for context?
-	ctx := context.Background()
 	// Loops all the way down
 
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
@@ -176,8 +169,10 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
 						var result types.Result
+						var domainResources types.DomainResources
 						var err error
 						// Current identifier is the link text
+						// TODO: define workflow/purpose for this -> depending on link.Text, use different val.LulaValidationType?
 						if link.Text == "Lula Validation" {
 							sharedUuid := uuid.NewUUID()
 							observation := oscalTypes_1_1_2.Observation{
@@ -194,7 +189,13 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								if val.Evaluated {
 									result = val.Result
 								} else {
-									result, err = ValidateOnTarget(ctx, id, val.Target)
+									// Extract the resources from the domain
+									domainResources, err = val.Domain.GetResources()
+									if err != nil {
+										message.Fatalf(err, "error getting domain resources: %s", err.Error())
+									}
+									// Perform the evaluation using the provider
+									result, err = val.Provider.Evaluate(domainResources)
 									if err != nil {
 										return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 									}
@@ -274,29 +275,6 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	}
 
 	return findings, observations, nil
-}
-
-var validationFuncs = map[string]ValidationFunc{
-	"opa":     opa.Validate,
-	"kyverno": kyverno.Validate,
-}
-
-// ValidateOnTarget takes a map[string]interface{}
-// It will return a single Result
-func ValidateOnTarget(ctx context.Context, id string, target types.Target) (types.Result, error) {
-	validate, ok := validationFuncs[target.Provider]
-	if !ok {
-		return types.Result{}, errors.New("unsupported provider")
-	}
-
-	message.Debugf("%s provider validating %s", target.Provider, id)
-
-	results, err := validate(ctx, target.Domain, target)
-	if err != nil {
-		return types.Result{}, err
-	}
-
-	return results, nil
 }
 
 // This is the OSCAL document generation for final output.

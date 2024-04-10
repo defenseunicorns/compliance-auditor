@@ -1,13 +1,16 @@
 package oscal
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
+
 	"sigs.k8s.io/yaml"
 )
 
@@ -28,21 +31,23 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition oscalTypes_1_
 	return *oscalModels.ComponentDefinition, nil
 }
 
-// Map an array of resources to a map of UUID to validation object
-func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Validation {
-	resourceMap := make(map[string]types.Validation)
+// Map an array of resources to a map of UUID to lulaValidation object
+func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.LulaValidation {
+	resourceMap := make(map[string]types.LulaValidation)
 
 	if backMatter.Resources == nil {
 		return nil
 	}
 
 	for _, resource := range *backMatter.Resources {
+		// TODO: Possibly support different title values (e.g., "Placeholder", "Healthcheck")
 		if resource.Title == "Lula Validation" {
-			var validation types.Validation
+			var validation common.Validation
+			var lulaValidation types.LulaValidation
 
 			err := yaml.Unmarshal([]byte(resource.Description), &validation)
 			if err != nil {
-				fmt.Printf("Error marshalling yaml: %s\n", err.Error())
+				message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
 				return nil
 			}
 
@@ -67,11 +72,24 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) map[string]types.Va
 				evaluated = true
 			}
 
-			validation.Title = resource.Title
-			validation.Evaluated = evaluated
-			validation.Result = result
+			// Construct the lulaValidation object
+			// TODO: Is there a better location for context?
+			ctx := context.Background()
+			lulaValidation.Provider = common.GetProvider(validation.Provider, ctx)
+			if lulaValidation.Provider == nil {
+				message.Fatalf(nil, "provider %s not found", validation.Provider.Type)
+				return nil
+			}
+			lulaValidation.Domain = common.GetDomain(validation.Domain, ctx)
+			if lulaValidation.Domain == nil {
+				message.Fatalf(nil, "domain %s not found", validation.Domain.Type)
+				return nil
+			}
+			lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
+			lulaValidation.Evaluated = evaluated
+			lulaValidation.Result = result
 
-			resourceMap[resource.UUID] = validation
+			resourceMap[resource.UUID] = lulaValidation
 		}
 
 	}
