@@ -25,11 +25,11 @@ var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
 To run validations using stdin:
-	cat <path to manifest> | lula dev validation
+	cat <path to manifest> | lula dev validate
 To hang indefinitely for stdin:
-	lula dev validation -t -1
+	lula dev validate -t -1
 To hang for timeout of 5 seconds:
-	lula dev validation -t 5
+	lula dev validate -t 5
 `
 
 type ValidateFlags struct {
