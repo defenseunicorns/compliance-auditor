@@ -4,6 +4,10 @@ import (
 	"fmt"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+<<<<<<< HEAD
+=======
+	"github.com/defenseunicorns/lula/src/pkg/common"
+>>>>>>> 5c2eb651e0cd4dcbdf545a5617bab9d35f7a7b97
 	"github.com/defenseunicorns/lula/src/pkg/message"
 
 	"sigs.k8s.io/yaml"

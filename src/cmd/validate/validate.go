@@ -13,7 +13,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -173,7 +172,10 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
+<<<<<<< HEAD
 						var result types.Result
+=======
+>>>>>>> 5c2eb651e0cd4dcbdf545a5617bab9d35f7a7b97
 						var err error
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						rel := strings.Split(link.Rel, ".")
@@ -224,23 +226,23 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							}
 
 							// Individual result state
-							if result.Passing > 0 && result.Failing <= 0 {
-								result.State = "satisfied"
+							if val.Result.Passing > 0 && val.Result.Failing <= 0 {
+								val.Result.State = "satisfied"
 							} else {
-								result.State = "not-satisfied"
+								val.Result.State = "not-satisfied"
 							}
 
 							// Add remarks if Result has Observations
 							var remarks string
-							if len(result.Observations) > 0 {
-								for k, v := range result.Observations {
+							if len(val.Result.Observations) > 0 {
+								for k, v := range val.Result.Observations {
 									remarks += fmt.Sprintf("%s: %s\n", k, v)
 								}
 							}
 
 							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 								{
-									Description: fmt.Sprintf("Result: %s\n", result.State),
+									Description: fmt.Sprintf("Result: %s\n", val.Result.State),
 									Remarks:     remarks,
 								},
 							}
@@ -249,8 +251,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								ObservationUuid: sharedUuid,
 							}
 
-							pass += result.Passing
-							fail += result.Failing
+							pass += val.Result.Passing
+							fail += val.Result.Failing
 
 							// Coalesce slices and objects
 							relatedObservations = append(relatedObservations, relatedObservation)

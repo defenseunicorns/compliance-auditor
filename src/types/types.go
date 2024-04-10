@@ -1,9 +1,5 @@
 package types
 
-import (
-	"github.com/defenseunicorns/lula/src/pkg/message"
-)
-
 type LulaValidationType string
 
 const (
@@ -31,22 +27,25 @@ type LulaValidation struct {
 	Result Result
 }
 
+// Perform the validation, and store the result in the LulaValidation struct
 func (val *LulaValidation) Validate() error {
-	domainResources, err := val.Domain.GetResources()
-	if err != nil {
-		message.Fatalf(err, "error getting domain resources: %s", err.Error())
+	if !val.Evaluated {
+		// Extract the resources from the domain
+		domainResources, err := val.Domain.GetResources()
+		if err != nil {
+			return err
+		}
+		// Bookkeeping of the domain resources for use elsewhere
+		val.DomainResources = domainResources
+		// Perform the evaluation using the provider
+		result, err := val.Provider.Evaluate(domainResources)
+		if err != nil {
+			return err
+		}
+		// Store the result in the validation object
+		val.Result = result
+		val.Evaluated = true
 	}
-	// Bookkeeping of the domain resources for use elsewhere
-	val.DomainResources = domainResources
-	// Perform the evaluation using the provider
-	result, err := val.Provider.Evaluate(domainResources)
-	if err != nil {
-		return err
-	}
-	// Store the result in the validation object
-	val.Result = result
-	val.Evaluated = true
-
 	return nil
 }
 
