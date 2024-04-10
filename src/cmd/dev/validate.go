@@ -25,11 +25,11 @@ var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
 To run validations using stdin:
-	cat <path to manifest> | lula dev validation
+	cat <path to manifest> | lula dev validate
 To hang indefinitely for stdin:
-	lula dev validation -t -1
+	lula dev validate -t -1
 To hang for timeout of 5 seconds:
-	lula dev validation -t 5
+	lula dev validate -t 5
 `
 
 type ValidateFlags struct {
@@ -65,6 +65,7 @@ func init() {
 				go func() {
 					if validateOpts.Timeout != NO_TIMEOUT {
 						time.Sleep(time.Duration(validateOpts.Timeout) * time.Second)
+						cmd.Help()
 						message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
 					}
 				}()
@@ -95,7 +96,7 @@ func init() {
 
 			// Write the validation result to a file if an output file is provided
 			// Otherwise, print the result to the debug console
-			err = writeValidationResult(validation, validateOpts.OutputFile)
+			err = writeValidation(validation, validateOpts.OutputFile)
 			if err != nil {
 				message.Fatalf(err, "error writing result: %v", err)
 			}
@@ -142,15 +143,15 @@ func DevValidate(ctx context.Context, validationBytes []byte) (lulaValidation ty
 	return lulaValidation, nil
 }
 
-func writeValidationResult(lulaValidation types.LulaValidation, outputFile string) error {
+func writeValidation(result types.LulaValidation, outputFile string) error {
 	var resultBytes []byte
 	var err error
 
 	// Marshal to json if the output file is empty or a json file
 	if outputFile == "" || strings.HasSuffix(outputFile, ".json") {
-		resultBytes, err = json.Marshal(lulaValidation.Result)
+		resultBytes, err = json.Marshal(result)
 	} else {
-		resultBytes, err = yaml.Marshal(lulaValidation.Result)
+		resultBytes, err = yaml.Marshal(result)
 	}
 	// Return an error if it fails to marshal the result
 	if err != nil {
