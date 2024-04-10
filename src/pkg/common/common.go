@@ -102,41 +102,10 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 		return validation, err
 	}
 
-	// Do version checking here to establish if the version is correct/acceptable
-	var result types.Result
-	var evaluated bool
-	currentVersion := strings.Split(config.CLIVersion, "-")[0]
-
-	versionConstraint := currentVersion
-	if validationData.LulaVersion != "" {
-		versionConstraint = validationData.LulaVersion
+	validation, err = validationData.ToLulaValidation()
+	if err != nil {
+		return validation, err
 	}
-
-	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)
-	if versionErr != nil {
-		result.Failing = 1
-		result.Observations = map[string]string{"Lula Version Error": versionErr.Error()}
-		evaluated = true
-	} else if !validVersion {
-		result.Failing = 1
-		result.Observations = map[string]string{"Version Constraint Incompatible": "Lula Version does not meet the constraint for this validation."}
-		evaluated = true
-	}
-
-	// Construct the validation object
-	ctx := context.Background()
-	validation.Provider = GetProvider(validationData.Provider, ctx)
-	if validation.Provider == nil {
-		// Use of Fatalf() here will exit the runtime - do we want to log this instead?
-		return validation, fmt.Errorf("provider %s not found", validationData.Provider.Type)
-	}
-	validation.Domain = GetDomain(validationData.Domain, ctx)
-	if validation.Domain == nil {
-		return validation, fmt.Errorf("domain %s not found", validationData.Domain.Type)
-	}
-	validation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
-	validation.Evaluated = evaluated
-	validation.Result = result
 
 	return validation, nil
 }
