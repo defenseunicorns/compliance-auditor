@@ -24,9 +24,6 @@ This is accomplished by adding a new `resource` to the `back-matter` as shown be
 back-matter:
   resources:
   - uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
-    title: Lula Validation
-    rlinks:
-      - href: lula.dev
     description: >-
       domain:
         type: kubernetes
