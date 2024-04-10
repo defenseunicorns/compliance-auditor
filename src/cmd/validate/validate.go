@@ -13,6 +13,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -172,10 +173,6 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
-<<<<<<< HEAD
-						var result types.Result
-=======
->>>>>>> 5c2eb651e0cd4dcbdf545a5617bab9d35f7a7b97
 						var err error
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						rel := strings.Split(link.Rel, ".")
@@ -193,19 +190,14 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							id := strings.Replace(link.Href, "#", "", 1)
 							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
 							// Check if the link exists in our pre-populated map of validations
-							if val, ok := validationMap[id]; ok {
-								// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
-								if val.Evaluated {
-									result = val.Result
-								} else {
-									err = val.Validate()
-									if err != nil {
-										// TODO: we should probably create an error string and add that to the result instead of returning
-										return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-									}
-									result = val.Result
-									validationMap[id] = val
+							val, ok := validationMap[id]
+							if ok {
+								err = val.Validate()
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 								}
+								validationMap[id] = val
 							} else if description, ok := backMatterMap[id]; ok {
 								// Resource is in the backmatter - create a validation
 								val, err := common.ValidationFromString(description)
@@ -219,12 +211,10 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 									// TODO: we should probably create an error string and add that to the result instead of returning
 									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 								}
-								result = val.Result
 								validationMap[id] = val
 							} else {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("back matter Validation %v not found", id)
 							}
-
 							// Individual result state
 							if val.Result.Passing > 0 && val.Result.Failing <= 0 {
 								val.Result.State = "satisfied"
