@@ -95,7 +95,7 @@ func init() {
 
 			// Write the validation result to a file if an output file is provided
 			// Otherwise, print the result to the debug console
-			err = writeValidation(validation, validateOpts.OutputFile)
+			err = writeValidationResult(validation, validateOpts.OutputFile)
 			if err != nil {
 				message.Fatalf(err, "error writing result: %v", err)
 			}
@@ -142,15 +142,15 @@ func DevValidate(ctx context.Context, validationBytes []byte) (lulaValidation ty
 	return lulaValidation, nil
 }
 
-func writeValidation(result types.LulaValidation, outputFile string) error {
+func writeValidationResult(lulaValidation types.LulaValidation, outputFile string) error {
 	var resultBytes []byte
 	var err error
 
 	// Marshal to json if the output file is empty or a json file
 	if outputFile == "" || strings.HasSuffix(outputFile, ".json") {
-		resultBytes, err = json.Marshal(result)
+		resultBytes, err = json.Marshal(lulaValidation.Result)
 	} else {
-		resultBytes, err = yaml.Marshal(result)
+		resultBytes, err = yaml.Marshal(lulaValidation.Result)
 	}
 	// Return an error if it fails to marshal the result
 	if err != nil {
