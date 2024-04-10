@@ -4,13 +4,18 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
+
+	"sigs.k8s.io/yaml"
 )
 
 func ReadFileToBytes(path string) ([]byte, error) {
@@ -81,4 +86,53 @@ func GetProvider(provider Provider, ctx context.Context) types.Provider {
 	default:
 		return nil
 	}
+}
+
+// Converts a raw string to a Validation object (string -> common.Validation -> types.Validation)
+func ValidationFromString(raw string) (validation types.LulaValidation, err error) {
+	var validationData Validation
+
+	err = yaml.Unmarshal([]byte(raw), &validationData)
+	if err != nil {
+		message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
+		return validation, err
+	}
+
+	// Do version checking here to establish if the version is correct/acceptable
+	var result types.Result
+	var evaluated bool
+	currentVersion := strings.Split(config.CLIVersion, "-")[0]
+
+	versionConstraint := currentVersion
+	if validationData.LulaVersion != "" {
+		versionConstraint = validationData.LulaVersion
+	}
+
+	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)
+	if versionErr != nil {
+		result.Failing = 1
+		result.Observations = map[string]string{"Lula Version Error": versionErr.Error()}
+		evaluated = true
+	} else if !validVersion {
+		result.Failing = 1
+		result.Observations = map[string]string{"Version Constraint Incompatible": "Lula Version does not meet the constraint for this validation."}
+		evaluated = true
+	}
+
+	// Construct the validation object
+	ctx := context.Background()
+	validation.Provider = GetProvider(validationData.Provider, ctx)
+	if validation.Provider == nil {
+		// Use of Fatalf() here will exit the runtime - do we want to log this instead?
+		message.Fatalf(nil, "provider %s not found", validationData.Provider.Type)
+	}
+	validation.Domain = GetDomain(validationData.Domain, ctx)
+	if validation.Domain == nil {
+		message.Fatalf(nil, "domain %s not found", validationData.Domain.Type)
+	}
+	validation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
+	validation.Evaluated = evaluated
+	validation.Result = result
+
+	return validation, nil
 }
