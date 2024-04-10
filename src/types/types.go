@@ -24,6 +24,26 @@ type LulaValidation struct {
 	Result Result
 }
 
+// Perform the validation, and store the result in the LulaValidation struct
+func (val *LulaValidation) Validate() error {
+	if !val.Evaluated {
+		// Extract the resources from the domain
+		domainResources, err := val.Domain.GetResources()
+		if err != nil {
+			return err
+		}
+		// Perform the evaluation using the provider
+		result, err := val.Provider.Evaluate(domainResources)
+		if err != nil {
+			return err
+		}
+		// Store the result in the validation object
+		val.Result = result
+		val.Evaluated = true
+	}
+	return nil
+}
+
 type DomainResources map[string]interface{}
 
 type Domain interface {

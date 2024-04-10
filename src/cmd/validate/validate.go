@@ -12,7 +12,6 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -168,8 +167,6 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
-						var result types.Result
-						var domainResources types.DomainResources
 						var err error
 						// Current identifier is the link text
 						// TODO: define workflow/purpose for this -> depending on link.Text, use different val.LulaValidationType?
@@ -184,48 +181,35 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							id := strings.Replace(link.Href, "#", "", 1)
 							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
 							// Check if the link exists in our pre-populated map of validations
-							if val, ok := validations[id]; ok {
+							val, ok := validations[id]
+							if ok {
 								// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
-								if val.Evaluated {
-									result = val.Result
-								} else {
-									// Extract the resources from the domain
-									domainResources, err = val.Domain.GetResources()
-									if err != nil {
-										message.Fatalf(err, "error getting domain resources: %s", err.Error())
-									}
-									// Perform the evaluation using the provider
-									result, err = val.Provider.Evaluate(domainResources)
-									if err != nil {
-										return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-									}
-									// Store the result in the validation object
-									val.Result = result
-									val.Evaluated = true
-									validations[id] = val
+								err = val.Validate()
+								if err != nil {
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("error validating %v: %s", id, err.Error())
 								}
 							} else {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
 							}
 
 							// Individual result state
-							if result.Passing > 0 && result.Failing <= 0 {
-								result.State = "satisfied"
+							if val.Result.Passing > 0 && val.Result.Failing <= 0 {
+								val.Result.State = "satisfied"
 							} else {
-								result.State = "not-satisfied"
+								val.Result.State = "not-satisfied"
 							}
 
 							// Add remarks if Result has Observations
 							var remarks string
-							if len(result.Observations) > 0 {
-								for k, v := range result.Observations {
+							if len(val.Result.Observations) > 0 {
+								for k, v := range val.Result.Observations {
 									remarks += fmt.Sprintf("%s: %s\n", k, v)
 								}
 							}
 
 							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 								{
-									Description: fmt.Sprintf("Result: %s\n", result.State),
+									Description: fmt.Sprintf("Result: %s\n", val.Result.State),
 									Remarks:     remarks,
 								},
 							}
@@ -234,8 +218,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								ObservationUuid: sharedUuid,
 							}
 
-							pass += result.Passing
-							fail += result.Failing
+							pass += val.Result.Passing
+							fail += val.Result.Failing
 
 							// Coalesce slices and objects
 							relatedObservations = append(relatedObservations, relatedObservation)
