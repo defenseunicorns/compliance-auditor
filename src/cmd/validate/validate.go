@@ -200,7 +200,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								validationMap[id] = val
 							} else if description, ok := backMatterMap[id]; ok {
 								// Resource is in the backmatter - create a validation
-								val, err := common.ValidationFromString(description)
+								val, err = common.ValidationFromString(description)
 								if err != nil {
 									// TODO: we should probably create an error string and add that to the result instead of returning
 									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
