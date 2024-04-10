@@ -65,6 +65,7 @@ func init() {
 				go func() {
 					if validateOpts.Timeout != NO_TIMEOUT {
 						time.Sleep(time.Duration(validateOpts.Timeout) * time.Second)
+						cmd.Help()
 						message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
 					}
 				}()
