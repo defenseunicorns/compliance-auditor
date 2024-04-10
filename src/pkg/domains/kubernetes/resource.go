@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -19,7 +18,7 @@ import (
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
 // This function is used to query the cluster for all resources required for processing
-func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]interface{}, error) {
+func QueryCluster(ctx context.Context, resources []Resource) (map[string]interface{}, error) {
 
 	// We may need a new type here to hold groups of resources
 
@@ -48,7 +47,7 @@ func QueryCluster(ctx context.Context, resources []types.Resource) (map[string]i
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}
 // This function is used to query the cluster for specific subset of resources required for processing
 func GetResourcesDynamically(ctx context.Context,
-	resource types.ResourceRule) (
+	resource ResourceRule) (
 	[]map[string]interface{}, error) {
 
 	config, err := ctrl.GetConfig()
@@ -159,7 +158,7 @@ func reduceByName(name string, items []unstructured.Unstructured) (map[string]in
 }
 
 // getFieldValue() looks up the field from a resource and returns a map[string]interface{} representation of the data
-func getFieldValue(item map[string]interface{}, field types.Field) (map[string]interface{}, error) {
+func getFieldValue(item map[string]interface{}, field Field) (map[string]interface{}, error) {
 
 	// Identify the field in item
 	pathParts := strings.Split(field.Jsonpath, ".")[1:]
@@ -191,12 +190,12 @@ func getFieldValue(item map[string]interface{}, field types.Field) (map[string]i
 
 	// If field type is unset, set to default
 	if field.Type == "" {
-		field.Type = types.DefaultFieldType
+		field.Type = DefaultFieldType
 	}
 
 	var data interface{}
 	// Get the field data if json
-	if field.Type == types.FieldTypeJSON {
+	if field.Type == FieldTypeJSON {
 		// Convert fieldValue to json
 		err := json.Unmarshal([]byte(fieldValue), &data)
 		if err != nil {

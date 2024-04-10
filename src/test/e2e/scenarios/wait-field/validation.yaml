@@ -1,0 +1,29 @@
+target:
+  domain: 
+    type: kubernetes
+    kubernetes-spec:
+      resources:
+      - name: podsvt
+        resource-rule:
+          version: v1
+          kind: pods
+          namespaces: [validation-test]
+      wait:
+        condition: Ready
+        kind: pod/test-pod-wait
+        namespace: validation-test
+        timeout: 30s
+  provider: 
+    type: opa
+    opa-spec:
+      rego: |
+        package validate
+
+        import future.keywords.every
+
+        validate {
+          every pod in input.podsvt {
+            podLabel := pod.metadata.labels.foo
+            podLabel == "bar"
+          }
+        }

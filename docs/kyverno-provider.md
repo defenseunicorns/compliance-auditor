@@ -1,17 +1,16 @@
 # Kyverno Provider
 
-The Kyverno provider provides Lula with the capability to evaluate the `domain` in target against a rego policy. 
+The Kyverno provider provides Lula with the capability to evaluate the `domain` in against a Kyverno policy. 
 
 ## Payload Expectation
 
-The validation performed should be in the form of provider, domain, and payload.
+The validation performed should use the form of provider with the `type` of `kyverno` and using the `kyverno-spec`, along with a valid domain.
 
 Example:
 ```yaml
-target:
-  provider: kyverno
-  domain: kubernetes
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resources:
     - name: podsvt
       resource-rule:
@@ -19,7 +18,10 @@ target:
         version: v1
         resource: pods
         namespaces: [validation-test]
-    kyverno:
+provider: 
+  type: kyverno
+  kyverno-spec:
+    policy:
       apiVersion: json.kyverno.io/v1alpha1          # Required
       kind: ValidatingPolicy                        # Required
       metadata:
@@ -48,12 +50,11 @@ target:
                           (ends_with(@, ':latest')): false
 ```
 
-You can have mutiple policies defined. Optionally, `output.validation` can be specified in the `payload` to control which (Policy, Rule) pair control validation allowance/denial, which is in the structure of a comma separated list of rules: `policy-name1.rule-name-1,policy-name-1.rule-name-2`. If you have a desired observation to include, `output.observations` can be added to payload to observe violations by a certain (Policy, Rule) pair such as:
+You can have mutiple policies defined. Optionally, `output.validation` can be specified in the `kyverno-spec` to control which (Policy, Rule) pair control validation allowance/denial, which is in the structure of a comma separated list of rules: `policy-name1.rule-name-1,policy-name-1.rule-name-2`. If you have a desired observation to include, `output.observations` can be added to payload to observe violations by a certain (Policy, Rule) pair such as:
 ```yaml
-target:
-  provider: "kyverno"
-  domain: "kubernetes"
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resources:
     - name: podsvt
       resource-rule: 
@@ -61,7 +62,10 @@ target:
         version: v1 
         resource: pods
         namespaces: [validation-test] 
-    kyverno:
+provider: 
+  type: kyverno
+  kyverno-spec:
+    policy:
       apiVersion: json.kyverno.io/v1alpha1
       kind: ValidatingPolicy
       metadata:

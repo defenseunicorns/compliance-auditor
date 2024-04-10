@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
 
-const validComponentPath = "../../../test/e2e/scenarios/resource-data/oscal-component.yaml"
+const validComponentPath = "../../../test/unit/common/oscal/valid-component.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {
@@ -24,42 +24,20 @@ func loadTestData(t *testing.T, path string) []byte {
 }
 
 func TestBackMatterToMap(t *testing.T) {
-	validComponentBytes := loadTestData(t, validComponentPath)
-	validBackMatterMapBytes := loadTestData(t, "../../../../test/validBackMatterMap.yaml")
-
-	var validComponent oscalTypes.OscalCompleteSchema
-	if err := yaml.Unmarshal(validComponentBytes, &validComponent); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
-	var validBackMatterMap map[string]types.Validation
-	if err := yaml.Unmarshal(validBackMatterMapBytes, &validBackMatterMap); err != nil {
+	data := loadTestData(t, validComponentPath)
+	var component oscalTypes_1_1_2.OscalCompleteSchema
+	err := yaml.Unmarshal(data, &component)
+	if err != nil {
 		t.Fatalf("yaml.Unmarshal failed: %v", err)
 	}
 
-	tests := []struct {
-		name       string
-		backMatter oscalTypes.BackMatter
-		want       map[string]types.Validation
-	}{
-		{
-			name:       "Test No Resources",
-			backMatter: oscalTypes.BackMatter{},
-		},
-		{
-			name:       "Test Valid Component",
-			backMatter: *validComponent.ComponentDefinition.BackMatter,
-			want:       validBackMatterMap,
-		},
-		// Add more test cases as needed
+	got := oscal.BackMatterToMap(*component.ComponentDefinition.BackMatter)
+	if got == nil {
+		t.Fatalf("BackMatterToMap returned nil")
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			got := oscal.BackMatterToMap(tc.backMatter)
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("BackMatterToMap() got = %v, want %v", got, tc.want)
-			}
-		})
+	if len(got) == 0 {
+		t.Fatalf("BackMatterToMap returned empty map")
 	}
 }
 

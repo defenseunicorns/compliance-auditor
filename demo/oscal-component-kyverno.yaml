@@ -1,4 +1,3 @@
-# add the descriptions inline
 component-definition:
   uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
   metadata:
@@ -46,10 +45,9 @@ component-definition:
       rlinks:
         - href: lula.dev
       description: >-
-        target:
-          provider: kyverno
-          domain: kubernetes
-          payload:
+        domain:
+          type: kubernetes
+          kubernetes-spec:
             resources:
             - name: podsvt                      # Identifier for use in the rego below
               resource-rule:                     # Mandatory, resource selection criteria, at least one resource rule is required
@@ -57,7 +55,10 @@ component-definition:
                 version: v1                     # Version of resource
                 resource: pods                  # Resource type
                 namespaces: [validation-test]   # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
-            kyverno:
+        provider:
+          type: kyverno
+          kyverno-spec:
+            policy:
               apiVersion: json.kyverno.io/v1alpha1
               kind: ValidatingPolicy
               metadata:

@@ -2,7 +2,6 @@ package validate
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -15,15 +14,11 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
-	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 	k8sYaml "sigs.k8s.io/yaml"
 )
-
-type ValidationFunc func(context.Context, string, types.Target) (types.Result, error)
 
 type flags struct {
 	AssessmentFile string // -a --assessment-file
@@ -139,14 +134,12 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	var validations map[string]types.Validation = make(map[string]types.Validation)
+	var validations map[string]types.LulaValidation = make(map[string]types.LulaValidation)
 	// Populate a map[uuid]Validation into the validations
 	if compDef.BackMatter != nil {
 		validations = oscal.BackMatterToMap(*compDef.BackMatter)
 	}
 
-	// TODO: Is there a better location for context?
-	ctx := context.Background()
 	// Loops all the way down
 
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
@@ -189,8 +182,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
-						var result types.Result
 						// Current identifier is the link text
+						// TODO: define workflow/purpose for this -> depending on link.Text, use different val.LulaValidationType?
 						if link.Text == "Lula Validation" {
 							sharedUuid := uuid.NewUUID()
 							observation := oscalTypes_1_1_2.Observation{
@@ -201,43 +194,37 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 							// Remove the leading '#' from the UUID reference
 							id := strings.Replace(link.Href, "#", "", 1)
 							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
-							// Check if the link exists in our pre-populated map of validations
-							if val, err := getValidation(link, validations); err == nil {
-								// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
-								if val.Evaluated {
-									result = val.Result
-								} else {
-									result, err = ValidateOnTarget(ctx, id, val.Target)
-									if err != nil {
-										return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-									}
-									// Store the result in the validation object
-									val.Result = result
-									val.Evaluated = true
-									validations[id] = val
-								}
-							} else {
+
+							// getValidation will check if the validation is in the map, if not it will try to fetch it
+							lulaValidation, err := getValidation(link, validations)
+							if err != nil {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 							}
 
+							// run validation
+							err = lulaValidation.Validate()
+							if err != nil {
+								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("error validating %v: %s", id, err.Error())
+							}
+
 							// Individual result state
-							if result.Passing > 0 && result.Failing <= 0 {
-								result.State = "satisfied"
+							if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
+								lulaValidation.Result.State = "satisfied"
 							} else {
-								result.State = "not-satisfied"
+								lulaValidation.Result.State = "not-satisfied"
 							}
 
 							// Add remarks if Result has Observations
 							var remarks string
-							if len(result.Observations) > 0 {
-								for k, v := range result.Observations {
+							if len(lulaValidation.Result.Observations) > 0 {
+								for k, v := range lulaValidation.Result.Observations {
 									remarks += fmt.Sprintf("%s: %s\n", k, v)
 								}
 							}
 
 							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 								{
-									Description: fmt.Sprintf("Result: %s\n", result.State),
+									Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
 									Remarks:     remarks,
 								},
 							}
@@ -246,8 +233,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								ObservationUuid: sharedUuid,
 							}
 
-							pass += result.Passing
-							fail += result.Failing
+							pass += lulaValidation.Result.Passing
+							fail += lulaValidation.Result.Failing
 
 							// Coalesce slices and objects
 							relatedObservations = append(relatedObservations, relatedObservation)
@@ -287,29 +274,6 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	}
 
 	return findings, observations, nil
-}
-
-var validationFuncs = map[string]ValidationFunc{
-	"opa":     opa.Validate,
-	"kyverno": kyverno.Validate,
-}
-
-// ValidateOnTarget takes a map[string]interface{}
-// It will return a single Result
-func ValidateOnTarget(ctx context.Context, id string, target types.Target) (types.Result, error) {
-	validate, ok := validationFuncs[target.Provider]
-	if !ok {
-		return types.Result{}, errors.New("unsupported provider")
-	}
-
-	message.Debugf("%s provider validating %s", target.Provider, id)
-
-	results, err := validate(ctx, target.Domain, target)
-	if err != nil {
-		return types.Result{}, err
-	}
-
-	return results, nil
 }
 
 // This is the OSCAL document generation for final output.
@@ -377,8 +341,9 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	return nil
 }
 
-func getValidation(link oscalTypes_1_1_2.Link, validationMap map[string]types.Validation) (val types.Validation, err error) {
+func getValidation(link oscalTypes_1_1_2.Link, validationMap map[string]types.LulaValidation) (lulaValidation types.LulaValidation, err error) {
 	var validationBytes []byte
+	var validation common.Validation
 	href := strings.TrimPrefix(link.Href, "#")
 
 	// If the validation is already in the map, return it
@@ -388,19 +353,19 @@ func getValidation(link oscalTypes_1_1_2.Link, validationMap map[string]types.Va
 
 	validationBytes, err = network.Fetch(link.Href)
 	if err != nil {
-		return types.Validation{}, err
+		return lulaValidation, err
 	}
 
-	if err = k8sYaml.Unmarshal(validationBytes, &val); err != nil {
-		return types.Validation{}, err
+	if err = k8sYaml.Unmarshal(validationBytes, &validation); err != nil {
+		return lulaValidation, err
 	}
 
-	err = val.Lint()
+	lulaValidation, err = validation.ToLulaValidation()
 	if err != nil {
-		return types.Validation{}, err
+		return lulaValidation, err
 	}
 
-	validationMap[link.Href] = val
+	validationMap[link.Href] = lulaValidation
 
-	return val, nil
+	return lulaValidation, nil
 }

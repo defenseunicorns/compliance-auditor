@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -11,7 +12,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/defenseunicorns/lula/src/pkg/domains/api"
+	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
+	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
+	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
 )
 
@@ -106,4 +112,38 @@ func ValidateChecksum(data []byte, expectedChecksum string) error {
 	}
 
 	return nil
+}
+
+// Get the domain and providers
+func GetDomain(domain Domain, ctx context.Context) types.Domain {
+	switch domain.Type {
+	case "kubernetes":
+		return kube.KubernetesDomain{
+			Context: ctx,
+			Spec:    domain.KubernetesSpec,
+		}
+	case "api":
+		return api.ApiDomain{
+			Spec: domain.ApiSpec,
+		}
+	default:
+		return nil
+	}
+}
+
+func GetProvider(provider Provider, ctx context.Context) types.Provider {
+	switch provider.Type {
+	case "opa":
+		return opa.OpaProvider{
+			Context: ctx,
+			Spec:    provider.OpaSpec,
+		}
+	case "kyverno":
+		return kyverno.KyvernoProvider{
+			Context: ctx,
+			Spec:    provider.KyvernoSpec,
+		}
+	default:
+		return nil
+	}
 }

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
-	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -120,38 +119,30 @@ func init() {
 
 }
 
-// DevValidate runs a validation using a lula validation manifest instead of an oscal file.
-// Successful if the validation is evaluated. Returns the validation result.
-// Returns an error if it fails to run the validation.
-func DevValidate(ctx context.Context, validationBytes []byte) (validation types.Validation, err error) {
-	// Unmarshal the validation
+// DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it
+// Returns the LulaValidation struct and any error encountered
+func DevValidate(ctx context.Context, validationBytes []byte) (lulaValidation types.LulaValidation, err error) {
+	var validation common.Validation
+
 	err = yaml.Unmarshal(validationBytes, &validation)
 	if err != nil {
-		return types.Validation{}, err
+		return lulaValidation, err
 	}
 
-	// Lint the validation
-	err = validation.Lint()
+	lulaValidation, err = validation.ToLulaValidation()
 	if err != nil {
-		return types.Validation{}, err
+		return lulaValidation, err
 	}
 
-	// Run the validation
-	result, err := validate.ValidateOnTarget(ctx, validation.Title, validation.Target)
+	err = lulaValidation.Validate()
 	if err != nil {
-		return types.Validation{}, err
+		return lulaValidation, err
 	}
 
-	// Set the validation result
-	validation.Result = result
-
-	// Set the validation as evaluated
-	validation.Evaluated = true
-
-	return validation, nil
+	return lulaValidation, nil
 }
 
-func writeValidation(result types.Validation, outputFile string) error {
+func writeValidation(result types.LulaValidation, outputFile string) error {
 	var resultBytes []byte
 	var err error
 

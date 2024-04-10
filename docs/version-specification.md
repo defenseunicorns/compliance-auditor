@@ -7,10 +7,9 @@ In cases where a specific version of Lula is desired, either for typing constrai
     No outputs in payload
   description: |
     lula-version: ">=0.0.2"
-    target:
-      provider: opa
-      domain: kubernetes
-      payload:
+    domain: 
+      type: kubernetes
+      kubernetes-spec:
         resources:
         - name: podsvt
           resource-rule:
@@ -18,6 +17,9 @@ In cases where a specific version of Lula is desired, either for typing constrai
             version: v1
             resource: pods
             namespaces: [validation-test]
+    provider:
+      type: opa
+      opa-spec:
         rego: |                                   
           package validate
 
