@@ -1,17 +1,19 @@
----
-title: Validate pods with label foo=bar
 lula-version: ">= v0.1.0"
-target:
-  provider: opa
-  domain: kubernetes
-  payload:
+metadata:
+  name: Validate pods with label foo=bar
+domain:
+  type: kubernetes
+  kubernetes-spec:
     resources:
-      - name: podsvt # Identifier for use in the rego below
-        resource-rule: # Mandatory, resource selection criteria, at least one resource rule is required
-          group: # empty or "" for core group
-          version: v1 # Version of resource
-          resource: pods # Resource type
-          namespaces: [validation-test] # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+    - name: podsvt 
+      resource-rule:   
+        group: 
+        version: v1
+        resource: pods
+        namespaces: [validation-test] 
+provider: 
+  type: opa
+  opa-spec:
     rego: |
       package validate
 

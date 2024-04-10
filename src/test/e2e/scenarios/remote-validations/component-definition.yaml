@@ -12,7 +12,7 @@ component-definition:
                 - href: https://raw.githubusercontent.com/defenseunicorns/lula/70-add-cli-option-for-consuming-a-validation-statement-directly/src/test/e2e/scenarios/dev-validate/validation.kyverno.yaml
                   rel: reference
                   text: Lula Validation
-                - href: file:validation.opa.yaml@b4f8a0a22df7bb2053b3b3c6da6d773cfece4def
+                - href: file:validation.opa.yaml@d8a6ba5ebccde299ecef1e54352e0eded97a6738
                   rel: reference
                   text: Lula Validation
               uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
