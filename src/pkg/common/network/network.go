@@ -1,11 +1,6 @@
 package network
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -16,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 )
 
 var HttpClient = &http.Client{
@@ -25,11 +20,11 @@ var HttpClient = &http.Client{
 
 // parseUrl parses a URL string into a url.URL object.
 func parseUrl(inputURL string) (*url.URL, error) {
-	url, err := url.ParseRequestURI(inputURL)
-	if err != nil {
+	parsedUrl, err := url.ParseRequestURI(inputURL)
+	if err != nil || parsedUrl.Scheme == "" || (parsedUrl.Scheme != "file" && parsedUrl.Host == "") {
 		return nil, errors.New("invalid URL")
 	}
-	return url, nil
+	return parsedUrl, nil
 }
 
 // ParseChecksum parses a URL string into a url.URL object.
@@ -95,7 +90,7 @@ func Fetch(inputURL string) (bytes []byte, err error) {
 
 	if checksum != "" {
 		// Validate the bytes against the SHA
-		err = ValidateChecksum(bytes, checksum)
+		err = common.ValidateChecksum(bytes, checksum)
 		if err != nil {
 			return bytes, err
 		}
@@ -115,48 +110,14 @@ func FetchLocalFile(url *url.URL) ([]byte, error) {
 
 	// If the request uri is absolute, use it directly
 	if _, err := os.Stat(requestUri); err != nil {
-		// if relative prepend component definition dir if set
-		if config.ComponentDefinitionDir != "" {
-			requestUri = filepath.Join(config.ComponentDefinitionDir, requestUri)
-		} else {
-			// if relative and no component definition dir, prepend current working directory
-			cwd, err := os.Getwd()
-			if err != nil {
-				return nil, err
-			}
-			requestUri = filepath.Join(cwd, requestUri)
+		// if relative pre-pend cwd
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
 		}
+		requestUri = filepath.Join(cwd, requestUri)
 	}
 
 	bytes, err := os.ReadFile(requestUri)
 	return bytes, err
-}
-
-// ValidateChecksum validates a given checksum against a given []bytes.
-// Supports MD5, SHA-1, SHA-256, and SHA-512.
-// Returns an error if the hash does not match.
-func ValidateChecksum(data []byte, expectedChecksum string) error {
-	var actualChecksum string
-	switch len(expectedChecksum) {
-	case md5.Size * 2:
-		hash := md5.Sum(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	case sha1.Size * 2:
-		hash := sha1.Sum(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	case sha256.Size * 2:
-		hash := sha256.Sum256(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	case sha512.Size * 2:
-		hash := sha512.Sum512(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	default:
-		return errors.New("unsupported checksum type")
-	}
-
-	if actualChecksum != expectedChecksum {
-		return errors.New("checksum validation failed")
-	}
-
-	return nil
 }

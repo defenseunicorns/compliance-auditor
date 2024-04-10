@@ -13,7 +13,4 @@ var (
 
 	// SkipLogFile is a flag to skip logging to a file
 	SkipLogFile bool
-
-	// ComponentDefinitionDir is the directory for the current component definition
-	ComponentDefinitionDir = ""
 )
