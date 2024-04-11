@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -40,10 +41,10 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition oscalTypes_1_
 	return *oscalModels.ComponentDefinition, nil
 }
 
-func ComponentFromCatalog(catalog oscalTypes_1_1_2.Catalog, targetControls []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targetControls []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 
 	// store all of the implemented requirements
-	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirement, 0)
+	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 
 	// How will we identify a control based on the array of controls passed?
 	controlMap := make(map[string][]string)
@@ -82,7 +83,7 @@ func ComponentFromCatalog(catalog oscalTypes_1_1_2.Catalog, targetControls []str
 }
 
 // Consume a control - Identify statements - iterate through parts in order to create a description
-func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirement, err error) {
+func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
 
 	var controlDescription string
 	paramMap := make(map[string]parameter)
@@ -113,15 +114,14 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implemen
 			if part.Parts != nil {
 				controlDescription += addPart(part.Parts, paramMap)
 			}
-
 		}
-
-		// Check for parts != nil
-		// if not nil, recurse
-		// if nil, return the above string
-		// add a tab as necessary
-
 	}
+
+	// assemble implemented-requirements object
+	implementedRequirement.Description = controlDescription
+	implementedRequirement.ControlId = control.ID
+	implementedRequirement.UUID = uuid.NewUUID()
+
 	return implementedRequirement, nil
 }
 
@@ -187,22 +187,27 @@ func contains(s []string, e string) bool {
 // Function to allow for recursively adding prose to the description string
 func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter) string {
 
-	var result string
+	var result, label string
 
 	for _, part := range *part {
+		// need to get the label first - unsure if there will ever be more than one?
+		for _, prop := range *part.Props {
+			if prop.Name == "label" {
+				label = prop.Value
+			}
+		}
 		prose := part.Prose
 		if strings.Contains(prose, "{{ insert: param,") {
-			result = replaceParams(prose, paramMap)
+			result += fmt.Sprintf("%s %s\n", label, replaceParams(prose, paramMap))
 		} else {
-			result = prose
+			result += fmt.Sprintf("%s %s\n", label, prose)
+		}
+		if part.Parts != nil {
+			result += "\t" + addPart(part.Parts, paramMap)
 		}
 
 	}
 
-	// Check for parameter insertion
-	// First does it contain  {{ insert: param
-
-	// Perform a replace on the prose
 	return result
 }
 
