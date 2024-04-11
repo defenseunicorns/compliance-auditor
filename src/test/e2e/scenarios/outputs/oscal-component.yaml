@@ -36,19 +36,17 @@ component-definition:
         description: Test
         links:
         - href: '#17c5f855-4f7b-4545-aa1c-cd01f416c290'
-          rel: reference
+          rel: lula
           text: Lula Validation
       - uuid: 18800e54-517b-4078-85c4-847e4977b82c
         control-id: ID-2
         description: Test
         links:
         - href: '#67993bda-95e2-431e-8384-0cf34dd7ce49'
-          rel: reference
-          text: Lula Validation
+          rel: lula
   back-matter: 
     resources:
     - uuid: 17c5f855-4f7b-4545-aa1c-cd01f416c290
-      title: Lula Validation
       remarks: >-
         Validate that outputs in are tied to the validation evaluation and post to remarks
       description: >-
@@ -81,7 +79,6 @@ component-definition:
               observations:
               - validate.test
     - uuid: 67993bda-95e2-431e-8384-0cf34dd7ce49
-      title: Lula Validation
       remarks: >-
         Validate that bad outputs are handled and result in not satisfied result
       description: >-
