@@ -9,8 +9,11 @@ assignees: ''
 ### Environment
 Device and OS:
 App version:
-Kubernetes distro being used:
-Other:
+Kubernetes distro:
+Kubernetes version:
+provider:
+- [ ] kyverno
+- [ ] opa
 
 ### Steps to reproduce
 1.
