@@ -1,10 +1,16 @@
 package generate
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
+
+	"gopkg.in/yaml.v3"
 )
 
 // The generate command is expected to have multiple different use-cases based upon
@@ -16,7 +22,7 @@ var inputFile, outputFile string // Used to capture a future/potential manifest 
 type flags struct {
 	AssessmentFile string   // -a --assessment-file
 	InputFile      string   // -f --input-file
-	Catalog        string   // -c --catalog
+	CatalogSource  string   // -c --catalog
 	Profile        string   // -p --profile
 	Requirements   []string // -r --requirements
 }
@@ -26,7 +32,7 @@ var opts = &flags{}
 var generateCmd = &cobra.Command{
 	Use:     "generate",
 	Hidden:  false, // Hidden for now until fully implemented
-	Aliases: []string{"g"},
+	Aliases: []string{"g", "gen"},
 	Short:   "Generate a specified compliance artifact template",
 }
 
@@ -39,17 +45,49 @@ var generateComponentCmd = &cobra.Command{
 		message.Info("generate component executed")
 
 		// check for inputFile flag content
-		if opts.Catalog == "" {
-			message.Fatal(fmt.Errorf("No catalog source provided"), "generate component requires a catalog input source")
+		if opts.CatalogSource == "" {
+			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
 		}
-		// Locate catalog -> read and unmarshall to object
-		// Locate profile -> read and unmarshall to object
-		// overlay profile if required
 
-		// Retrieve requirement control and control objective?
+		path := "test/NIST_SP-800-53_rev5_catalog.json"
 
-		// Create component-definition object
-		// Write to file
+		_, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			message.Fatalf(fmt.Errorf("catalog source file not found"), "generate component requires a valid catalog path")
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error reading file"), "error reading file")
+		}
+
+		catalog, err := oscal.NewCatalog(data)
+
+		comp, err := oscal.ComponentFromCatalog(opts.CatalogSource, catalog, opts.Requirements)
+
+		// marshall to yaml
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
+		}
+
+		fileName := "new-catalog.yaml"
+
+		var b bytes.Buffer
+
+		var component = oscalTypes_1_1_2.OscalModels{
+			ComponentDefinition: &comp,
+		}
+
+		yamlEncoder := yaml.NewEncoder(&b)
+		yamlEncoder.SetIndent(2)
+		yamlEncoder.Encode(component)
+
+		message.Infof("Writing Security Assessment Results to: %s", fileName)
+
+		err = os.WriteFile(fileName, b.Bytes(), 0644)
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error writing Security Assessment Results to: %s", fileName), "error writing Security Assessment Results to: %s", fileName)
+		}
+
 	},
 }
 
@@ -124,7 +162,7 @@ func generateFlags() {
 func generateComponentFlags() {
 	componentFlags := generateComponentCmd.Flags()
 
-	componentFlags.StringVarP(&catalog, "catalog", "c", "", "Catalog source location (local or remote)")
-	componentFlags.StringVarP(&profile, "profile", "p", "", "Profile source location (local or remote)")
-	componentFlags.StringSliceVarP(&requirements, "requirements", "r", []string{}, "List of requirements to capture")
+	componentFlags.StringVarP(&opts.CatalogSource, "catalog-source", "c", "", "Catalog source location (local or remote)")
+	componentFlags.StringVarP(&opts.Profile, "profile", "p", "", "Profile source location (local or remote)")
+	componentFlags.StringSliceVarP(&opts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
 }

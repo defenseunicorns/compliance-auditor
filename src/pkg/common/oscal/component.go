@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"sigs.k8s.io/yaml"
 )
@@ -43,6 +45,7 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition oscalTypes_1_
 
 func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targetControls []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 
+	message.Debugf("target controls %v", targetControls)
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 
@@ -57,7 +60,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 
 	for _, group := range *catalog.Groups {
 		// Is this a group of controls that we are targeting
-		if controlArray, ok := controlMap[group.ID]; !ok {
+		if controlArray, ok := controlMap[group.ID]; ok {
 			for _, control := range *group.Controls {
 				id := strings.Split(control.ID, "-")
 				// If this is a control we have identified
@@ -69,13 +72,36 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 					implmentedRequirements = append(implmentedRequirements, newRequirement)
 				}
 
-				// Identify if this is a control we are targeting
-
-				// We need to assemble the implemented requirement description from the
-
 			}
 		}
 
+	}
+
+	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
+		{
+			UUID:  uuid.NewUUID(),
+			Type:  "software",
+			Title: "Software Title",
+			ControlImplementations: &[]oscalTypes_1_1_2.ControlImplementationSet{
+				{
+					UUID:                    uuid.NewUUID(),
+					Source:                  source,
+					ImplementedRequirements: implmentedRequirements,
+				},
+			},
+		},
+	}
+	rfc3339Time := time.Now()
+
+	componentDefinition.UUID = uuid.NewUUID()
+
+	componentDefinition.Metadata = oscalTypes_1_1_2.Metadata{
+		OscalVersion: OSCAL_VERSION,
+		LastModified: rfc3339Time,
+		Published:    &rfc3339Time,
+		Remarks:      "Lula Generated Component Definition",
+		Title:        "Component Title",
+		Version:      "0.0.1",
 	}
 
 	return componentDefinition, nil
@@ -112,7 +138,7 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implemen
 		// let's just start with name == "statement" for now
 		if part.Name == "statement" {
 			if part.Parts != nil {
-				controlDescription += addPart(part.Parts, paramMap)
+				controlDescription += addPart(part.Parts, paramMap, 0)
 			}
 		}
 	}
@@ -185,7 +211,7 @@ func contains(s []string, e string) bool {
 }
 
 // Function to allow for recursively adding prose to the description string
-func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter) string {
+func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level int) string {
 
 	var result, label string
 
@@ -196,14 +222,18 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter) strin
 				label = prop.Value
 			}
 		}
+		var tabs string
+		for range level {
+			tabs += "\t"
+		}
 		prose := part.Prose
 		if strings.Contains(prose, "{{ insert: param,") {
-			result += fmt.Sprintf("%s %s\n", label, replaceParams(prose, paramMap))
+			result += fmt.Sprintf("%s%s %s\n", tabs, label, replaceParams(prose, paramMap))
 		} else {
-			result += fmt.Sprintf("%s %s\n", label, prose)
+			result += fmt.Sprintf("%s%s %s\n", tabs, label, prose)
 		}
 		if part.Parts != nil {
-			result += "\t" + addPart(part.Parts, paramMap)
+			result += addPart(part.Parts, paramMap, level+1)
 		}
 
 	}
@@ -219,7 +249,7 @@ func replaceParams(input string, params map[string]parameter) string {
 			if param.Select == nil {
 				return fmt.Sprintf("[Assignment: organization-defined %s]", param.Label)
 			} else {
-				// work through the selection string building
+				return fmt.Sprintf("[Selection: (%s) organization-defined %s]", param.Select.HowMany, strings.Join(param.Select.Choice, "; "))
 			}
 		}
 		return match

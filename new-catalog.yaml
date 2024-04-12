@@ -1,0 +1,55 @@
+component-definition:
+  components:
+    - control-implementations:
+        - description: ""
+          implemented-requirements:
+            - control-id: ac-1
+              description: |
+                a. Develop, document, and disseminate to [Assignment: organization-defined organization-defined personnel or roles]:
+                	1. [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy that:
+                		(a) Addresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and
+                		(b) Is consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and
+                	2. Procedures to facilitate the implementation of the access control policy and the associated access controls;
+                b. Designate an [Assignment: organization-defined official] to manage the development, documentation, and dissemination of the access control policy and procedures; and
+                c. Review and update the current access control:
+                	1. Policy [Assignment: organization-defined frequency] and following [Assignment: organization-defined events] ; and
+                	2. Procedures [Assignment: organization-defined frequency] and following [Assignment: organization-defined events].
+              uuid: 74b0c50b-4602-4526-8245-1e087ada8853
+            - control-id: ac-2
+              description: |
+                a. Define and document the types of accounts allowed and specifically prohibited for use within the system;
+                b. Assign account managers;
+                c. Require [Assignment: organization-defined prerequisites and criteria] for group and role membership;
+                d. Specify:
+                	1. Authorized users of the system;
+                	2. Group and role membership; and
+                	3. Access authorizations (i.e., privileges) and [Assignment: organization-defined attributes (as required)] for each account;
+                e. Require approvals by [Assignment: organization-defined personnel or roles] for requests to create accounts;
+                f. Create, enable, modify, disable, and remove accounts in accordance with [Assignment: organization-defined policy, procedures, prerequisites, and criteria];
+                g. Monitor the use of accounts;
+                h. Notify account managers and [Assignment: organization-defined personnel or roles] within:
+                	1. [Assignment: organization-defined time period] when accounts are no longer required;
+                	2. [Assignment: organization-defined time period] when users are terminated or transferred; and
+                	3. [Assignment: organization-defined time period] when system usage or need-to-know changes for an individual;
+                i. Authorize access to the system based on:
+                	1. A valid access authorization;
+                	2. Intended system usage; and
+                	3. [Assignment: organization-defined attributes (as required)];
+                j. Review accounts for compliance with account management requirements [Assignment: organization-defined frequency];
+                k. Establish and implement a process for changing shared or group account authenticators (if deployed) when individuals are removed from the group; and
+                l. Align account management processes with personnel termination and transfer processes.
+              uuid: 0316af9f-bd44-4ec4-afeb-c676c0f00807
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: 97e5d15e-97d9-4244-b19e-418c0dcdd524
+      description: ""
+      title: Software Title
+      type: software
+      uuid: 172f9e4b-8131-4807-af8e-c35ef8a64f73
+  metadata:
+    last-modified: 2024-04-12T20:48:31.432847551Z
+    oscal-version: 1.1.2
+    published: 2024-04-12T20:48:31.432847551Z
+    remarks: Lula Generated Component Definition
+    title: Component Title
+    version: 0.0.1
+  uuid: 0634744c-d879-4237-b472-c7f0c61a0bbf
