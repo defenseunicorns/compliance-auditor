@@ -39,15 +39,12 @@ component-definition:
           dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         links:
         - href: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
-          rel: reference
-          text: Lula Validation
+          rel: lula
         - href: '#F9EC74AE-19A0-4822-8D7C-214AECCEB7C6'
-          rel: reference
-          text: Lula Validation
+          rel: lula
   back-matter: 
     resources:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
-      title: Lula Validation
       description: >-
         domain: 
           type: kubernetes
@@ -83,7 +80,6 @@ component-definition:
                 }
               }
     - uuid: F9EC74AE-19A0-4822-8D7C-214AECCEB7C6
-      title: Lula Validation
       description: >-
         domain: 
           type: api

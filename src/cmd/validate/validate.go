@@ -101,7 +101,7 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		return findingMap, observations, fmt.Errorf("Path: %v does not exist - unable to digest document\n", path)
+		return findingMap, observations, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
 	data, err := os.ReadFile(path)
@@ -134,11 +134,12 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	var validations map[string]types.LulaValidation = make(map[string]types.LulaValidation)
-	// Populate a map[uuid]Validation into the validations
-	if compDef.BackMatter != nil {
-		validations = oscal.BackMatterToMap(*compDef.BackMatter)
-	}
+	// Populate a map[uuid]string for back-matter.resources
+	// This is pre-poulated for on-demand use when referencing the back-matter from a link
+	backMatterMap := oscal.BackMatterToMap(*compDef.BackMatter)
+
+	// Populate a map for storing validations
+	validationMap := make(map[string]types.LulaValidation)
 
 	// Loops all the way down
 
@@ -182,9 +183,10 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
-						// Current identifier is the link text
-						// TODO: define workflow/purpose for this -> depending on link.Text, use different val.LulaValidationType?
-						if link.Text == "Lula Validation" {
+						var err error
+						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
+						rel := strings.Split(link.Rel, ".")
+						if link.Text == "Lula Validation" || rel[0] == "lula" {
 							sharedUuid := uuid.NewUUID()
 							observation := oscalTypes_1_1_2.Observation{
 								Collected: rfc3339Time,
@@ -192,39 +194,55 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								UUID:      sharedUuid,
 							}
 							// Remove the leading '#' from the UUID reference
+							// TODO: add the ability to process Href for entries other than UUID
+							// If this is an external validations document - Check the validationMap for the UUID first
+							// If the validation uuid doesn't exist - read the external document and add all validations within to the validationMap
 							id := strings.Replace(link.Href, "#", "", 1)
 							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
+							// Check if the link exists in our pre-populated map of validations
+							val, ok := validationMap[id]
+							if ok {
+								err = val.Validate()
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
+								validationMap[id] = val
+							} else if description, ok := backMatterMap[id]; ok {
+								// Resource is in the backmatter - create a validation
+								val, err = common.ValidationFromString(description)
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
 
-							// getValidation will check if the validation is in the map, if not it will try to fetch it
-							lulaValidation, err := getValidation(link, validations)
-							if err != nil {
-								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-							}
-
-							// run validation
-							err = lulaValidation.Validate()
-							if err != nil {
-								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("error validating %v: %s", id, err.Error())
-							}
-
-							// Individual result state
-							if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
-								lulaValidation.Result.State = "satisfied"
+								err = val.Validate()
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
+								validationMap[id] = val
 							} else {
-								lulaValidation.Result.State = "not-satisfied"
+								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("back matter Validation %v not found", id)
+							}
+							// Individual result state
+							if val.Result.Passing > 0 && val.Result.Failing <= 0 {
+								val.Result.State = "satisfied"
+							} else {
+								val.Result.State = "not-satisfied"
 							}
 
 							// Add remarks if Result has Observations
 							var remarks string
-							if len(lulaValidation.Result.Observations) > 0 {
-								for k, v := range lulaValidation.Result.Observations {
+							if len(val.Result.Observations) > 0 {
+								for k, v := range val.Result.Observations {
 									remarks += fmt.Sprintf("%s: %s\n", k, v)
 								}
 							}
 
 							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 								{
-									Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
+									Description: fmt.Sprintf("Result: %s\n", val.Result.State),
 									Remarks:     remarks,
 								},
 							}
@@ -233,8 +251,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								ObservationUuid: sharedUuid,
 							}
 
-							pass += lulaValidation.Result.Passing
-							fail += lulaValidation.Result.Failing
+							pass += val.Result.Passing
+							fail += val.Result.Failing
 
 							// Coalesce slices and objects
 							relatedObservations = append(relatedObservations, relatedObservation)

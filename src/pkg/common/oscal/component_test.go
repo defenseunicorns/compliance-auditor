@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"gopkg.in/yaml.v3"
 )
@@ -24,20 +23,42 @@ func loadTestData(t *testing.T, path string) []byte {
 }
 
 func TestBackMatterToMap(t *testing.T) {
-	data := loadTestData(t, validComponentPath)
-	var component oscalTypes_1_1_2.OscalCompleteSchema
-	err := yaml.Unmarshal(data, &component)
-	if err != nil {
+	validComponentBytes := loadTestData(t, validComponentPath)
+	validBackMatterMapBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-back-matter-map.yaml")
+
+	var validComponent oscalTypes.OscalCompleteSchema
+	if err := yaml.Unmarshal(validComponentBytes, &validComponent); err != nil {
+		t.Fatalf("yaml.Unmarshal failed: %v", err)
+	}
+	var validBackMatterMap map[string]string
+	if err := yaml.Unmarshal(validBackMatterMapBytes, &validBackMatterMap); err != nil {
 		t.Fatalf("yaml.Unmarshal failed: %v", err)
 	}
 
-	got := oscal.BackMatterToMap(*component.ComponentDefinition.BackMatter)
-	if got == nil {
-		t.Fatalf("BackMatterToMap returned nil")
+	tests := []struct {
+		name       string
+		backMatter oscalTypes.BackMatter
+		want       map[string]string
+	}{
+		{
+			name:       "Test No Resources",
+			backMatter: oscalTypes.BackMatter{},
+		},
+		{
+			name:       "Test Valid Component",
+			backMatter: *validComponent.ComponentDefinition.BackMatter,
+			want:       validBackMatterMap,
+		},
+		// Add more test cases as needed
 	}
 
-	if len(got) == 0 {
-		t.Fatalf("BackMatterToMap returned empty map")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := oscal.BackMatterToMap(tc.backMatter)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("BackMatterToMap() got = %v, want %v", got, tc.want)
+			}
+		})
 	}
 }
 

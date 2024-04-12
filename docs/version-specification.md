@@ -2,7 +2,6 @@
 In cases where a specific version of Lula is desired, either for typing constraints or desired functionality, a `lula-version` property is recognized in the `description` (component-definition.back-matter.resources[_]):
 ```yaml
 - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
-  title: Lula Validation
   remarks: >-
     No outputs in payload
   description: |
