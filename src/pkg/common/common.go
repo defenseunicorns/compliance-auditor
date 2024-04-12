@@ -7,10 +7,13 @@ import (
 
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
+
+	"sigs.k8s.io/yaml"
 )
 
 func ReadFileToBytes(path string) ([]byte, error) {
@@ -81,4 +84,26 @@ func GetProvider(provider Provider, ctx context.Context) types.Provider {
 	default:
 		return nil
 	}
+}
+
+// Converts a raw string to a Validation object (string -> common.Validation -> types.Validation)
+func ValidationFromString(raw string) (validation types.LulaValidation, err error) {
+	if raw == "" {
+		return validation, fmt.Errorf("validation string is empty")
+	}
+
+	var validationData Validation
+
+	err = yaml.Unmarshal([]byte(raw), &validationData)
+	if err != nil {
+		message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
+		return validation, err
+	}
+
+	validation, err = validationData.ToLulaValidation()
+	if err != nil {
+		return validation, err
+	}
+
+	return validation, nil
 }

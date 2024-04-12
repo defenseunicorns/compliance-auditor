@@ -164,3 +164,51 @@ func TestGetProvider(t *testing.T) {
 		})
 	}
 }
+
+func TestValidationFromString(t *testing.T) {
+	validBackMatterMapBytes := loadTestData(t, "../../test/unit/common/oscal/valid-back-matter-map.yaml")
+
+	var validBackMatterMap map[string]string
+	if err := yaml.Unmarshal(validBackMatterMapBytes, &validBackMatterMap); err != nil {
+		t.Fatalf("yaml.Unmarshal failed: %v", err)
+	}
+
+	validationStrings := make([]string, 0)
+	for _, v := range validBackMatterMap {
+		validationStrings = append(validationStrings, v)
+	}
+
+	tests := []struct {
+		name    string
+		data    string
+		wantErr bool
+	}{
+		{
+			name:    "Valid Validation string",
+			data:    validationStrings[0],
+			wantErr: false,
+		},
+		{
+			name:    "Invalid Validation string",
+			data:    "Test: test",
+			wantErr: true,
+		},
+		{
+			name:    "Empty Data",
+			data:    "",
+			wantErr: true,
+		},
+		// Additional test cases can be added here
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := common.ValidationFromString(tt.data)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidationFromString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+
+}

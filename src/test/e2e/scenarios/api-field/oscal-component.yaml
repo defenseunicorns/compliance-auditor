@@ -39,12 +39,10 @@ component-definition:
           dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         links:
         - href: '#C30E849E-C262-42DF-8C84-EA1B62A6AD90'
-          rel: reference
-          text: Lula Validation
+          rel: lula
   back-matter: 
     resources:
     - uuid: C30E849E-C262-42DF-8C84-EA1B62A6AD90
-      title: Lula Validation
       description: >-
         domain:
           type: api
