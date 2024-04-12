@@ -171,3 +171,41 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 
 	return validation, nil
 }
+
+func NewValidationMap(bytes []byte) (ValidationMap, error) {
+	validationMap, err := UnmarshalValidationMap(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return validationMap, nil
+}
+
+// UnmarshalValidationMap unmarshals a validation map from a yaml file
+func UnmarshalValidationMap(data []byte) (ValidationMap, error) {
+	var validationMap ValidationMap
+	err := yaml.Unmarshal(data, &validationMap)
+	if err != nil {
+		return nil, err
+	}
+	return validationMap, nil
+}
+
+// ValidationsToLulaValidations converts a map of validations to a map of lula validations
+func ValidationsToLulaValidations(validations map[string]Validation) (map[string]types.LulaValidation, error) {
+	lulaValidations := make(map[string]types.LulaValidation)
+	for k, v := range validations {
+		lulaValidation, err := v.ToLulaValidation()
+		if err != nil {
+			return nil, err
+		}
+		lulaValidations[k] = lulaValidation
+	}
+	return lulaValidations, nil
+}
+
+// MergeLulaValidationMaps merges two maps of lula validations
+func MergeLulaValidationMaps(to map[string]types.LulaValidation, from map[string]types.LulaValidation) {
+	for k, v := range from {
+		to[k] = v
+	}
+}

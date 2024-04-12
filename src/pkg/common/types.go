@@ -11,6 +11,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
+	"sigs.k8s.io/yaml"
 )
 
 // Data structures for ingesting validation data
@@ -20,6 +21,18 @@ type Validation struct {
 	Provider    Provider `json:"provider" yaml:"provider"`
 	Domain      Domain   `json:"domain" yaml:"domain"`
 }
+
+// UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
+func (v *Validation) UnmarshalYaml(data []byte) error {
+	return yaml.Unmarshal(data, v)
+}
+
+// MarshalYaml is a convenience method to marshal a Validation object to a YAML byte array
+func (v *Validation) MarshalYaml() ([]byte, error) {
+	return yaml.Marshal(v)
+}
+
+type ValidationMap = map[string]Validation
 
 // TODO: Perhaps extend this structure with other needed information, such as UUID or type of validation if workflow is needed
 type Metadata struct {
