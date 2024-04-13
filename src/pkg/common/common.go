@@ -2,12 +2,6 @@ package common
 
 import (
 	"context"
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
-	"encoding/hex"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,6 +17,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// ReadFileToBytes reads a file to bytes
 func ReadFileToBytes(path string) ([]byte, error) {
 	var data []byte
 	_, err := os.Stat(path)
@@ -59,10 +54,22 @@ func IsVersionValid(versionConstraint string, version string) (bool, error) {
 	return false, nil
 }
 
-// SwitchCwd takes a path and changes the current working directory to the directory of the path
-// It returns a function to change the current working directory back to the original directory
-func SwitchCwd(path string) (resetFunc func(), err error) {
-	dir := filepath.Dir(path)
+// SetCwdToFileDir takes a path and changes the current working directory to the directory of the path
+func SetCwdToFileDir(dirPath string) (resetFunc func(), err error) {
+	// Bail if empty
+	if dirPath == "" {
+		return resetFunc, fmt.Errorf("dirPath is empty")
+	}
+	info, err := os.Stat(dirPath)
+	// Bail if the path does not exist
+	if err != nil {
+		return resetFunc, os.ErrClosed
+	}
+	// Get the directory of the path if it is not a directory
+	if !info.IsDir() {
+		dirPath = filepath.Dir(dirPath)
+	}
+
 	// Save the current working directory
 	originalDir, err := os.Getwd()
 	if err != nil {
@@ -70,12 +77,12 @@ func SwitchCwd(path string) (resetFunc func(), err error) {
 	}
 
 	// Change the current working directory
-	message.Infof("changing cwd to %s", dir)
-	err = os.Chdir(dir)
+	err = os.Chdir(dirPath)
 	if err != nil {
 		return resetFunc, err
 	}
 
+	// Return a function to change the current working directory back to the original directory
 	resetFunc = func() {
 		err = os.Chdir(originalDir)
 		if err != nil {
@@ -85,35 +92,6 @@ func SwitchCwd(path string) (resetFunc func(), err error) {
 
 	// Change back to the original working directory when done
 	return resetFunc, err
-}
-
-// ValidateChecksum validates a given checksum against a given []bytes.
-// Supports MD5, SHA-1, SHA-256, and SHA-512.
-// Returns an error if the hash does not match.
-func ValidateChecksum(data []byte, expectedChecksum string) error {
-	var actualChecksum string
-	switch len(expectedChecksum) {
-	case md5.Size * 2:
-		hash := md5.Sum(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	case sha1.Size * 2:
-		hash := sha1.Sum(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	case sha256.Size * 2:
-		hash := sha256.Sum256(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	case sha512.Size * 2:
-		hash := sha512.Sum512(data)
-		actualChecksum = hex.EncodeToString(hash[:])
-	default:
-		return errors.New("unsupported checksum type")
-	}
-
-	if actualChecksum != expectedChecksum {
-		return errors.New("checksum validation failed")
-	}
-
-	return nil
 }
 
 // Get the domain and providers
@@ -172,6 +150,7 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 	return validation, nil
 }
 
+// NewValidationMap creates a new validation map from a yaml file as []byte
 func NewValidationMap(bytes []byte) (ValidationMap, error) {
 	validationMap, err := UnmarshalValidationMap(bytes)
 	if err != nil {

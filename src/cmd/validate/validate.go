@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -108,12 +109,13 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 		return findingMap, observations, err
 	}
 
-	// Change Cwd to the directory of the path for relative validations
-	resetCwd, err := common.SwitchCwd(path)
+	// Change Cwd to the directory of the component definition
+	dirPath := filepath.Dir(path)
+	message.Infof("changing cwd to %s", dirPath)
+	resetCwd, err := common.SetCwdToFileDir(dirPath)
 	if err != nil {
 		return findingMap, observations, err
 	}
-
 	defer resetCwd()
 
 	compDef, err := oscal.NewOscalComponentDefinition(data)
