@@ -49,7 +49,7 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
 		}
 
-		path := "test/NIST_SP-800-53_rev5_catalog.json"
+		path := "test/FedRAMP_rev5_HIGH-baseline-resolved-profile_catalog.json"
 
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
@@ -61,10 +61,11 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		catalog, err := oscal.NewCatalog(data)
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error creating catalog"), "error creating catalog")
+		}
 
 		comp, err := oscal.ComponentFromCatalog(opts.CatalogSource, catalog, opts.Requirements)
-
-		// marshall to yaml
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
