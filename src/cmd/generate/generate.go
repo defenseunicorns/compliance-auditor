@@ -6,6 +6,7 @@ import (
 	"os"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -49,15 +50,9 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
 		}
 
-		path := "test/FedRAMP_rev5_HIGH-baseline-resolved-profile_catalog.json"
-
-		_, err := os.Stat(path)
-		if os.IsNotExist(err) {
-			message.Fatalf(fmt.Errorf("catalog source file not found"), "generate component requires a valid catalog path")
-		}
-		data, err := os.ReadFile(path)
+		data, err := network.Fetch(opts.CatalogSource)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error reading file"), "error reading file")
+			message.Fatalf(fmt.Errorf("error fetching catalog source"), "error fetching catalog source")
 		}
 
 		catalog, err := oscal.NewCatalog(data)
