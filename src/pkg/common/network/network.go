@@ -67,13 +67,13 @@ func Fetch(inputURL string) (bytes []byte, err error) {
 		return bytes, err
 	}
 
+	// If the URL is a file, fetch the file from the local filesystem
 	if url.Scheme == "file" {
 		bytes, err = FetchLocalFile(url)
 		if err != nil {
 			return bytes, err
 		}
 	} else {
-
 		// Make the HTTP GET request
 		resp, err := HttpClient.Get(inputURL)
 		if err != nil {

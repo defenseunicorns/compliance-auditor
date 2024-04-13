@@ -63,7 +63,7 @@ func SetCwdToFileDir(dirPath string) (resetFunc func(), err error) {
 	info, err := os.Stat(dirPath)
 	// Bail if the path does not exist
 	if err != nil {
-		return resetFunc, os.ErrClosed
+		return resetFunc, err
 	}
 	// Get the directory of the path if it is not a directory
 	if !info.IsDir() {
