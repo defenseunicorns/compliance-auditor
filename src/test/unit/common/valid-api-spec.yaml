@@ -1,0 +1,3 @@
+requests:
+- name: local
+  url: "http://localhost"

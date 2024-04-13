@@ -2,7 +2,6 @@ package validate
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -11,16 +10,13 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
-	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
-
-type ValidationFunc func(context.Context, string, types.Target) (types.Result, error)
 
 type flags struct {
 	AssessmentFile string // -a --assessment-file
@@ -103,7 +99,7 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		return findingMap, observations, fmt.Errorf("Path: %v does not exist - unable to digest document\n", path)
+		return findingMap, observations, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -128,11 +124,13 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 
-	// Populate a map[uuid]Validation into the validations
-	validations := oscal.BackMatterToMap(*compDef.BackMatter)
+	// Populate a map[uuid]string for back-matter.resources
+	// This is pre-poulated for on-demand use when referencing the back-matter from a link
+	backMatterMap := oscal.BackMatterToMap(*compDef.BackMatter)
 
-	// TODO: Is there a better location for context?
-	ctx := context.Background()
+	// Populate a map for storing validations
+	validationMap := make(map[string]types.LulaValidation)
+
 	// Loops all the way down
 
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
@@ -175,10 +173,10 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
-						var result types.Result
 						var err error
-						// Current identifier is the link text
-						if link.Text == "Lula Validation" {
+						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
+						rel := strings.Split(link.Rel, ".")
+						if link.Text == "Lula Validation" || rel[0] == "lula" {
 							sharedUuid := uuid.NewUUID()
 							observation := oscalTypes_1_1_2.Observation{
 								Collected: rfc3339Time,
@@ -186,45 +184,55 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								UUID:      sharedUuid,
 							}
 							// Remove the leading '#' from the UUID reference
+							// TODO: add the ability to process Href for entries other than UUID
+							// If this is an external validations document - Check the validationMap for the UUID first
+							// If the validation uuid doesn't exist - read the external document and add all validations within to the validationMap
 							id := strings.Replace(link.Href, "#", "", 1)
 							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
 							// Check if the link exists in our pre-populated map of validations
-							if val, ok := validations[id]; ok {
-								// If the validation has already been evaluated, use the result from the evaluation - otherwise perform the validation
-								if val.Evaluated {
-									result = val.Result
-								} else {
-									result, err = ValidateOnTarget(ctx, id, val.Target)
-									if err != nil {
-										return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-									}
-									// Store the result in the validation object
-									val.Result = result
-									val.Evaluated = true
-									validations[id] = val
+							val, ok := validationMap[id]
+							if ok {
+								err = val.Validate()
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 								}
-							} else {
-								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("Back matter Validation %v not found", id)
-							}
+								validationMap[id] = val
+							} else if description, ok := backMatterMap[id]; ok {
+								// Resource is in the backmatter - create a validation
+								val, err = common.ValidationFromString(description)
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
 
-							// Individual result state
-							if result.Passing > 0 && result.Failing <= 0 {
-								result.State = "satisfied"
+								err = val.Validate()
+								if err != nil {
+									// TODO: we should probably create an error string and add that to the result instead of returning
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
+								validationMap[id] = val
 							} else {
-								result.State = "not-satisfied"
+								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, fmt.Errorf("back matter Validation %v not found", id)
+							}
+							// Individual result state
+							if val.Result.Passing > 0 && val.Result.Failing <= 0 {
+								val.Result.State = "satisfied"
+							} else {
+								val.Result.State = "not-satisfied"
 							}
 
 							// Add remarks if Result has Observations
 							var remarks string
-							if len(result.Observations) > 0 {
-								for k, v := range result.Observations {
+							if len(val.Result.Observations) > 0 {
+								for k, v := range val.Result.Observations {
 									remarks += fmt.Sprintf("%s: %s\n", k, v)
 								}
 							}
 
 							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 								{
-									Description: fmt.Sprintf("Result: %s\n", result.State),
+									Description: fmt.Sprintf("Result: %s\n", val.Result.State),
 									Remarks:     remarks,
 								},
 							}
@@ -233,8 +241,8 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								ObservationUuid: sharedUuid,
 							}
 
-							pass += result.Passing
-							fail += result.Failing
+							pass += val.Result.Passing
+							fail += val.Result.Failing
 
 							// Coalesce slices and objects
 							relatedObservations = append(relatedObservations, relatedObservation)
@@ -274,29 +282,6 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	}
 
 	return findings, observations, nil
-}
-
-var validationFuncs = map[string]ValidationFunc{
-	"opa":     opa.Validate,
-	"kyverno": kyverno.Validate,
-}
-
-// ValidateOnTarget takes a map[string]interface{}
-// It will return a single Result
-func ValidateOnTarget(ctx context.Context, id string, target types.Target) (types.Result, error) {
-	validate, ok := validationFuncs[target.Provider]
-	if !ok {
-		return types.Result{}, errors.New("unsupported provider")
-	}
-
-	message.Debugf("%s provider validating %s", target.Provider, id)
-
-	results, err := validate(ctx, target.Domain, target)
-	if err != nil {
-		return types.Result{}, err
-	}
-
-	return results, nil
 }
 
 // This is the OSCAL document generation for final output.

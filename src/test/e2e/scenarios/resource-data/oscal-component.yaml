@@ -39,24 +39,20 @@ component-definition:
           dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         links:
         - href: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
-          rel: reference
-          text: Lula Validation
+          rel: lula
   back-matter: 
     resources:
     - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
-      title: Lula Validation
       remarks: >-
         Get data for all resources fields specified
       description: >-
-        target:
-          provider: opa
-          domain: kubernetes
-          payload:
+        domain: 
+          type: kubernetes
+          kubernetes-spec:
             resources:
             - name: jsoncm
               resource-rule:
                 name: configmap-json
-                group:
                 version: v1
                 resource: configmaps
                 namespaces: [validation-test]
@@ -66,7 +62,6 @@ component-definition:
             - name: yamlcm
               resource-rule:
                 name: configmap-yaml
-                group:
                 version: v1
                 resource: configmaps
                 namespaces: [validation-test]
@@ -76,7 +71,6 @@ component-definition:
             - name: secret
               resource-rule:
                 name: example-secret
-                group:
                 version: v1
                 resource: secrets
                 namespaces: [validation-test]
@@ -87,13 +81,15 @@ component-definition:
             - name: pod
               resource-rule:
                 name: example-pod
-                group:
                 version: v1
                 resource: pods
                 namespaces: [validation-test]
                 field:
                   jsonpath: .metadata.annotations.annotation.io/simple
                   type: json
+        provider: 
+          type: opa
+          opa-spec:
             rego: |
               package validate
 
@@ -105,4 +101,4 @@ component-definition:
                 input.secret.username == "username"
                 "item1" in input.pod.items
               }
-    
+  

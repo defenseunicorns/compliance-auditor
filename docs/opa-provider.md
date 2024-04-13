@@ -1,17 +1,16 @@
 # OPA Provider
 
-The OPA provider provides Lula with the capability to evaluate the `domain` in target against a rego policy. 
+The OPA provider provides Lula with the capability to evaluate the `domain` against a rego policy. 
 
 ## Payload Expectation
 
-The validation performed should be in the form of provider, domain, and payload.
+The validation performed should use the form of provider with the `type` of `opa` and using the `opa-spec`, along with a valid domain.
 
 Example:
 ```yaml
-target:
-  provider: opa
-  domain: kubernetes
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resources:
     - name: podsvt
       resource-rule:
@@ -19,6 +18,9 @@ target:
         version: v1
         resource: pods
         namespaces: [validation-test]
+provider:
+  type: opa
+  opa-spec:
     rego: |                                   # Required - Rego policy used for data validation
       package validate                        # Required - Package name
 
@@ -31,17 +33,19 @@ target:
       }
 ```
 
-Optionally, an `output` can be specified in the `payload`. Currently, the default validation allowance/denial is given by `validate.validate`, which is really of the structure `<package-name>.<json-path-to-boolean-variable>`. If you have a desired alternative validation boolean variable, as well as additional observations to include, an output can be added to payload such as:
+Optionally, an `output` can be specified in the `opa-spec`. Currently, the default validation allowance/denial is given by `validate.validate`, which is really of the structure `<package-name>.<json-path-to-boolean-variable>`. If you have a desired alternative validation boolean variable, as well as additional observations to include, an output can be added such as:
 ```yaml
-target:
-  provider: "opa"
-  domain: "kubernetes"
-  payload:
+domain: 
+  type: kubernetes
+  kubernetes-spec:
     resource-rules: 
     - group: 
       version: v1 
       resource: pods
       namespaces: [validation-test] 
+provider:
+  type: opa
+  opa-spec:
     rego: |
       package mypackage 
 
@@ -102,4 +106,4 @@ rego: |
 ```
 
 > [!IMPORTANT]
-> `package validate` and `validate` are required package and rule for Lula use currently. 
+> `package validate` and `validate` are required package and rule for Lula use currently when an output.validation value has not been set. 

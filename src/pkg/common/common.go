@@ -1,10 +1,19 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/defenseunicorns/lula/src/pkg/domains/api"
+	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
+	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
+	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
+
+	"sigs.k8s.io/yaml"
 )
 
 func ReadFileToBytes(path string) ([]byte, error) {
@@ -41,4 +50,60 @@ func IsVersionValid(versionConstraint string, version string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// Get the domain and providers
+func GetDomain(domain Domain, ctx context.Context) types.Domain {
+	switch domain.Type {
+	case "kubernetes":
+		return kube.KubernetesDomain{
+			Context: ctx,
+			Spec:    domain.KubernetesSpec,
+		}
+	case "api":
+		return api.ApiDomain{
+			Spec: domain.ApiSpec,
+		}
+	default:
+		return nil
+	}
+}
+
+func GetProvider(provider Provider, ctx context.Context) types.Provider {
+	switch provider.Type {
+	case "opa":
+		return opa.OpaProvider{
+			Context: ctx,
+			Spec:    provider.OpaSpec,
+		}
+	case "kyverno":
+		return kyverno.KyvernoProvider{
+			Context: ctx,
+			Spec:    provider.KyvernoSpec,
+		}
+	default:
+		return nil
+	}
+}
+
+// Converts a raw string to a Validation object (string -> common.Validation -> types.Validation)
+func ValidationFromString(raw string) (validation types.LulaValidation, err error) {
+	if raw == "" {
+		return validation, fmt.Errorf("validation string is empty")
+	}
+
+	var validationData Validation
+
+	err = yaml.Unmarshal([]byte(raw), &validationData)
+	if err != nil {
+		message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
+		return validation, err
+	}
+
+	validation, err = validationData.ToLulaValidation()
+	if err != nil {
+		return validation, err
+	}
+
+	return validation, nil
 }

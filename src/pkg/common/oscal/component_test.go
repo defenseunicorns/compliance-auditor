@@ -7,11 +7,10 @@ import (
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
 
-const validComponentPath = "../../../test/e2e/scenarios/resource-data/oscal-component.yaml"
+const validComponentPath = "../../../test/unit/common/oscal/valid-component.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {
@@ -25,13 +24,13 @@ func loadTestData(t *testing.T, path string) []byte {
 
 func TestBackMatterToMap(t *testing.T) {
 	validComponentBytes := loadTestData(t, validComponentPath)
-	validBackMatterMapBytes := loadTestData(t, "../../../../test/validBackMatterMap.yaml")
+	validBackMatterMapBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-back-matter-map.yaml")
 
 	var validComponent oscalTypes.OscalCompleteSchema
 	if err := yaml.Unmarshal(validComponentBytes, &validComponent); err != nil {
 		t.Fatalf("yaml.Unmarshal failed: %v", err)
 	}
-	var validBackMatterMap map[string]types.Validation
+	var validBackMatterMap map[string]string
 	if err := yaml.Unmarshal(validBackMatterMapBytes, &validBackMatterMap); err != nil {
 		t.Fatalf("yaml.Unmarshal failed: %v", err)
 	}
@@ -39,7 +38,7 @@ func TestBackMatterToMap(t *testing.T) {
 	tests := []struct {
 		name       string
 		backMatter oscalTypes.BackMatter
-		want       map[string]types.Validation
+		want       map[string]string
 	}{
 		{
 			name:       "Test No Resources",
