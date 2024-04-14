@@ -59,6 +59,22 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
 		}
 
+		var existingComponent oscalTypes_1_1_2.ComponentDefinition
+		if componentOpts.OutputFile != "" {
+			// We meed tp check if the file exists
+			if _, err := os.Stat(componentOpts.OutputFile); err == nil {
+				// if the file exists, we need to read it into bytes
+				existingFileBytes, err := os.ReadFile(componentOpts.OutputFile)
+				if err != nil {
+					message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
+				}
+				existingComponent, err = oscal.NewOscalComponentDefinition(componentOpts.OutputFile, existingFileBytes)
+			}
+		}
+
+		// Existing component has now potentially been identified - do something with it.
+		// TODO: start here
+
 		source := componentOpts.CatalogSource
 
 		data, err := network.Fetch(source)

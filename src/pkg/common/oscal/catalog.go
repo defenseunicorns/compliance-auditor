@@ -25,7 +25,7 @@ func NewCatalog(source string, data []byte) (catalog oscalTypes_1_1_2.Catalog, e
 			return catalog, err
 		}
 	} else {
-		return catalog, fmt.Errorf("Unsupported file type: %s\n", source)
+		return catalog, fmt.Errorf("unsupported file type: %s", source)
 	}
 
 	return *oscalModels.Catalog, nil
