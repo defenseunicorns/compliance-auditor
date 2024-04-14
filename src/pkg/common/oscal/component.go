@@ -91,7 +91,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 	}
 	rfc3339Time := time.Now()
 
-	componentDefinition.UUID = uuid.NewUUID()
+	componentDefinition.UUID = uuid.NewUUIDWithSource(source)
 
 	componentDefinition.Metadata = oscalTypes_1_1_2.Metadata{
 		OscalVersion: OSCAL_VERSION,

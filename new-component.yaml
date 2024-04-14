@@ -14,7 +14,7 @@ component-definition:
                 c. Review and update the current access control:
                 	1. Policy [Assignment: organization-defined frequency] and following [Assignment: organization-defined events] ; and
                 	2. Procedures [Assignment: organization-defined frequency] and following [Assignment: organization-defined events].
-              uuid: 32856759-3d89-4c94-a065-daacc890f5df
+              uuid: db054356-8ef7-4750-a4d4-ef39bf4cd34e
             - control-id: ac-2
               description: |
                 a. Define and document the types of accounts allowed and specifically prohibited for use within the system;
@@ -38,18 +38,18 @@ component-definition:
                 j. Review accounts for compliance with account management requirements [Assignment: organization-defined frequency];
                 k. Establish and implement a process for changing shared or group account authenticators (if deployed) when individuals are removed from the group; and
                 l. Align account management processes with personnel termination and transfer processes.
-              uuid: 99fb9d6b-0633-4f6a-80f8-641dd7464446
+              uuid: 6c6b4b66-dafb-425a-abd1-4732257181d9
           source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
-          uuid: 66ba91a7-0d7b-451a-b77a-66496a93b376
+          uuid: 8d589059-d8f7-4003-a19c-87179562f9af
       description: ""
       title: Software Title
       type: software
-      uuid: 0465952d-07fb-418e-b2cf-926dd04f8298
+      uuid: 760e18fb-8ab4-40fb-8ea1-e83a67615ae1
   metadata:
-    last-modified: 2024-04-13T22:22:36.782943647Z
+    last-modified: 2024-04-14T04:21:53.29546857Z
     oscal-version: 1.1.2
-    published: 2024-04-13T22:22:36.782943647Z
+    published: 2024-04-14T04:21:53.29546857Z
     remarks: Lula Generated Component Definition
     title: Component Title
     version: 0.0.1
-  uuid: 0f9dc52d-e0c0-4db6-ac14-723aa03f1210
+  uuid: bac3275e-96b3-4a75-be31-2572143cd6ba

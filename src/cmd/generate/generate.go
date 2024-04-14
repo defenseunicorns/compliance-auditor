@@ -19,17 +19,24 @@ import (
 // for the supported OSCAL models. This leaves generate open to generating other
 // artifacts in the future that support assessment and accreditation processes.
 
-var inputFile, outputFile string // Used to capture a future/potential manifest file for input
 type flags struct {
-	AssessmentFile string   // -a --assessment-file
-	InputFile      string   // -f --input-file
-	CatalogSource  string   // -c --catalog
-	Profile        string   // -p --profile
-	Requirements   []string // -r --requirements
+	InputFile  string // -f --input-file
+	OutputFile string // -o --output-file
+}
+
+type componentFlags struct {
+	flags
+	CatalogSource string   // -c --catalog
+	Profile       string   // -p --profile
+	Requirements  []string // -r --requirements
 }
 
 var opts = &flags{}
+var componentOpts = &componentFlags{}
 
+// Base generate command will handle a large E2E focused generation that is driven from various artifacts.
+// This will include some prerequisites such as component-definitions - but will ultimately lead to generation
+// of the SSP / SAP / POAM / and maybe SAR in a maintainable way.
 var generateCmd = &cobra.Command{
 	Use:     "generate",
 	Hidden:  false, // Hidden for now until fully implemented
@@ -37,6 +44,8 @@ var generateCmd = &cobra.Command{
 	Short:   "Generate a specified compliance artifact template",
 }
 
+// Component-Definition generation will generate an OSCAL file that can be used both as the basis for Lula validations
+// as well as required components for SSP/SAP/SAR/POAM.
 var generateComponentCmd = &cobra.Command{
 	Use:     "component",
 	Aliases: []string{"c"},
@@ -46,26 +55,28 @@ var generateComponentCmd = &cobra.Command{
 		message.Info("generate component executed")
 
 		// check for inputFile flag content
-		if opts.CatalogSource == "" {
+		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
 		}
 
-		data, err := network.Fetch(opts.CatalogSource)
+		source := componentOpts.CatalogSource
+
+		data, err := network.Fetch(source)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error fetching catalog source"), "error fetching catalog source")
 		}
 
-		catalog, err := oscal.NewCatalog(data)
+		catalog, err := oscal.NewCatalog(source, data)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating catalog"), "error creating catalog")
 		}
 
-		comp, err := oscal.ComponentFromCatalog(opts.CatalogSource, catalog, opts.Requirements)
+		comp, err := oscal.ComponentFromCatalog(source, catalog, componentOpts.Requirements)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
 
-		fileName := "new-catalog.yaml"
+		fileName := "new-component.yaml"
 
 		var b bytes.Buffer
 
@@ -150,15 +161,15 @@ func GenerateCommand() *cobra.Command {
 func generateFlags() {
 	generateFlags := generateCmd.PersistentFlags()
 
-	generateFlags.StringVarP(&inputFile, "input-file", "f", "", "Path to a manifest file")
-	generateFlags.StringVarP(&outputFile, "output-file", "o", "", "Path and Name to an output file")
+	generateFlags.StringVarP(&opts.InputFile, "input-file", "f", "", "Path to a manifest file")
+	generateFlags.StringVarP(&opts.OutputFile, "output-file", "o", "", "Path and Name to an output file")
 
 }
 
 func generateComponentFlags() {
 	componentFlags := generateComponentCmd.Flags()
 
-	componentFlags.StringVarP(&opts.CatalogSource, "catalog-source", "c", "", "Catalog source location (local or remote)")
-	componentFlags.StringVarP(&opts.Profile, "profile", "p", "", "Profile source location (local or remote)")
-	componentFlags.StringSliceVarP(&opts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
+	componentFlags.StringVarP(&componentOpts.CatalogSource, "catalog-source", "c", "", "Catalog source location (local or remote)")
+	componentFlags.StringVarP(&componentOpts.Profile, "profile", "p", "", "Profile source location (local or remote)")
+	componentFlags.StringSliceVarP(&componentOpts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
 }

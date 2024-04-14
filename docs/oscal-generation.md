@@ -11,8 +11,9 @@ The generation process for OSCAL artifacts created and maintained by Lula should
 ## Component Definition Generation
 
 Current TODO:
-- Ability to fetch a catalog from source at some external location (IE CatalogSource flag)
-  - Detection of file type (json/yaml)
+- Detect file type for catalog unmarshall
 - Ability to detect an existing output file (IE OutputFile flag)
 - Ability to retain data in an existing OutputFile on re-generation
+  - Easier said than done - check if the control-implementation exists
+  - then find the delta of the controls
 - Ability to detect an OSCAL manifest file (IE InputFile flag)
