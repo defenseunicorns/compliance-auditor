@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -48,6 +49,9 @@ func TestRemoteValidation(t *testing.T) {
 			if len(observations) == 0 {
 				t.Errorf("Expected to find observations")
 			}
+
+			message.Infof("Number of observations: %d", len(observations))
+			message.Infof("Number of findings: %d", len(findings))
 
 			return ctx
 		}).

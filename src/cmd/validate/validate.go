@@ -190,57 +190,64 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						rel := strings.Split(link.Rel, ".")
 						if link.Text == "Lula Validation" || rel[0] == "lula" {
-							sharedUuid := uuid.NewUUID()
-							observation := oscalTypes_1_1_2.Observation{
-								Collected: rfc3339Time,
-								Methods:   []string{"TEST"},
-								UUID:      sharedUuid,
-							}
-
-							lulaValidation, id, err := getLulaValidation(link, validationMap, backMatterMap)
+							ids, err := getValidationIds(link, validationMap, backMatterMap)
 							if err != nil {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 							}
 
-							// Add the description of the validation now that we have the ID
-							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
-
-							err = lulaValidation.Validate()
-							if err != nil {
-								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-							}
-							// Individual result state
-							if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
-								lulaValidation.Result.State = "satisfied"
-							} else {
-								lulaValidation.Result.State = "not-satisfied"
-							}
-
-							// Add remarks if Result has Observations
-							var remarks string
-							if len(lulaValidation.Result.Observations) > 0 {
-								for k, v := range lulaValidation.Result.Observations {
-									remarks += fmt.Sprintf("%s: %s\n", k, v)
+							for _, id := range ids {
+								sharedUuid := uuid.NewUUID()
+								observation := oscalTypes_1_1_2.Observation{
+									Collected: rfc3339Time,
+									Methods:   []string{"TEST"},
+									UUID:      sharedUuid,
 								}
+								lulaValidation, err := getLulaValidation(id, validationMap, backMatterMap)
+								if err != nil {
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
+
+								// Add the description of the validation now that we have the ID
+								observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
+
+								err = lulaValidation.Validate()
+								if err != nil {
+									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
+								}
+								// Individual result state
+								if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
+									lulaValidation.Result.State = "satisfied"
+								} else {
+									lulaValidation.Result.State = "not-satisfied"
+								}
+
+								// Add remarks if Result has Observations
+								var remarks string
+								if len(lulaValidation.Result.Observations) > 0 {
+									for k, v := range lulaValidation.Result.Observations {
+										remarks += fmt.Sprintf("%s: %s\n", k, v)
+									}
+								}
+
+								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
+									{
+										Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
+										Remarks:     remarks,
+									},
+								}
+
+								relatedObservation := oscalTypes_1_1_2.RelatedObservation{
+									ObservationUuid: sharedUuid,
+								}
+
+								pass += lulaValidation.Result.Passing
+								fail += lulaValidation.Result.Failing
+
+								// Coalesce slices and objects
+								relatedObservations = append(relatedObservations, relatedObservation)
+								tempObservations = append(tempObservations, observation)
 							}
 
-							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-								{
-									Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
-									Remarks:     remarks,
-								},
-							}
-
-							relatedObservation := oscalTypes_1_1_2.RelatedObservation{
-								ObservationUuid: sharedUuid,
-							}
-
-							pass += lulaValidation.Result.Passing
-							fail += lulaValidation.Result.Failing
-
-							// Coalesce slices and objects
-							relatedObservations = append(relatedObservations, relatedObservation)
-							tempObservations = append(tempObservations, observation)
 						}
 
 					}
@@ -343,59 +350,71 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	return nil
 }
 
-func getLulaValidation(link oscalTypes_1_1_2.Link, validationMap types.LulaValidationMap, backMatterMap map[string]string) (lulaValidation types.LulaValidation, id string, err error) {
-	var validationBytes []byte
-	var validation common.Validation
-
-	id = strings.TrimPrefix(link.Href, "#")
-
-	// If the validation is already in the map, return it
+func getLulaValidation(id string, validationMap types.LulaValidationMap, backMatterMap map[string]string) (lulaValidation types.LulaValidation, err error) {
 	if lulaValidation, ok := validationMap[id]; ok {
-		return lulaValidation, id, nil
+		return lulaValidation, nil
 	}
 
 	// If the validation is in the backmatter, add it to the map and return
 	if description, ok := backMatterMap[id]; ok {
 		lulaValidation, err = common.ValidationFromString(description)
 		if err != nil {
-			return lulaValidation, id, err
+			return lulaValidation, err
 		}
 		validationMap[id] = lulaValidation
-		return lulaValidation, id, nil
+		return lulaValidation, nil
 	}
 
-	// Try to fetch the validation from the link
+	return lulaValidation, fmt.Errorf("validation #%s not found", id)
+}
+
+func getValidationIds(link oscalTypes_1_1_2.Link, validationMap types.LulaValidationMap, backMatterMap map[string]string) (ids []string, err error) {
+	var validationBytes []byte
+
+	if strings.HasPrefix(link.Href, "#") {
+		id := strings.TrimPrefix(link.Href, "#")
+		if _, err := getLulaValidation(id, validationMap, backMatterMap); err != nil {
+			return ids, err
+		}
+		return []string{id}, nil
+	}
+
+	if link.ResourceFragment != "" {
+		id := strings.TrimPrefix(link.ResourceFragment, "#")
+		if _, err := getLulaValidation(id, validationMap, backMatterMap); err == nil {
+			return []string{id}, err
+		}
+		ids = append(ids, id)
+	}
+
 	validationBytes, err = network.Fetch(link.Href)
 	if err != nil {
-		return lulaValidation, id, err
+		return ids, err
 	}
 
-	// If the link has a resource fragment, it is a map of validations
-	if link.ResourceFragment != "" {
-		id = strings.TrimPrefix(link.ResourceFragment, "#")
-		inValidationMap, err := common.NewValidationMap(validationBytes)
-		if err != nil {
-			return lulaValidation, id, err
-		}
-		inLulaValidations, err := common.ValidationsToLulaValidations(inValidationMap)
-		if err != nil {
-			return lulaValidation, id, err
-		}
-		common.MergeLulaValidationMaps(validationMap, inLulaValidations)
-	} else {
+	validationBytesArr := bytes.Split(validationBytes, []byte("---"))
+
+	for _, validationBytes := range validationBytesArr {
+		var validation common.Validation
+		var UUID string
 		if err = validation.UnmarshalYaml(validationBytes); err != nil {
-			return lulaValidation, id, err
+			return ids, err
 		}
-		validationMap[id], err = validation.ToLulaValidation()
+		if validation.Metadata.UUID == "" {
+			UUID = uuid.NewUUID()
+			validation.Metadata.UUID = UUID
+		} else {
+			UUID = validation.Metadata.UUID
+		}
+		// If the link does not have a resource fragment, add the UUID to the ids
+		if link.ResourceFragment == "" {
+			ids = append(ids, UUID)
+		}
+		validationMap[UUID], err = validation.ToLulaValidation()
 		if err != nil {
-			return lulaValidation, id, err
+			return ids, err
 		}
 	}
 
-	lulaValidation, ok := validationMap[id]
-	if !ok {
-		return lulaValidation, id, fmt.Errorf("validation #%s not found in %s", id, link.Href)
-	}
-
-	return lulaValidation, id, nil
+	return ids, nil
 }

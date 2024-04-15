@@ -6,15 +6,22 @@ component-definition:
             - control-id: ID-1
               description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
+                # remote opa validation
                 - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.yaml
                   rel: lula
+                # remote kyverno validation
                 - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.kyverno.yaml
                   rel: lula
+                # single validation w/ checksum
                 - href: file:validation.opa.yaml@d8a6ba5ebccde299ecef1e54352e0eded97a6738
                   rel: lula
-                - href: file:validation.map.yaml
+                # Single validation from multi-validations.yaml
+                - href: file:multi-validations.yaml
                   rel: lula
                   resource-fragment: "9d09b4fc-1a82-4434-9fbe-392935347a84"
+                # All validations from multi-validations.yaml
+                - href: file:multi-validations.yaml
+                  rel: lula
               uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
           source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
           uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
