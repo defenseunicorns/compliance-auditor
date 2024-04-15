@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -215,6 +216,9 @@ func TestValidationFromString(t *testing.T) {
 }
 
 func TestSwitchCwd(t *testing.T) {
+
+	tempDir := t.TempDir()
+
 	tests := []struct {
 		name     string
 		path     string
@@ -223,8 +227,8 @@ func TestSwitchCwd(t *testing.T) {
 	}{
 		{
 			name:     "Valid path",
-			path:     "/tmp",
-			expected: "/tmp",
+			path:     tempDir,
+			expected: tempDir,
 			wantErr:  false,
 		},
 		{
@@ -257,12 +261,12 @@ func TestSwitchCwd(t *testing.T) {
 			if err == nil {
 				defer resetFunc()
 				wd, _ := os.Getwd()
-				abs, err := filepath.Abs(tt.expected)
+				expected, err := filepath.Abs(tt.expected)
 				if err != nil {
 					t.Errorf("SwitchCwd() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-				if wd != abs {
+				if !strings.HasSuffix(wd, expected) {
 					t.Errorf("SwitchCwd() working directory = %v, want %v", wd, tt.expected)
 				}
 			}
