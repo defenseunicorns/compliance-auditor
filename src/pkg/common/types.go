@@ -37,6 +37,7 @@ type ValidationMap = map[string]Validation
 // TODO: Perhaps extend this structure with other needed information, such as UUID or type of validation if workflow is needed
 type Metadata struct {
 	Name string `json:"name" yaml:"name"`
+	UUID string `json:"uuid,omitempty" yaml:"uuid,omitempty"`
 }
 
 type Domain struct {
