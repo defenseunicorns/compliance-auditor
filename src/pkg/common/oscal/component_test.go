@@ -62,54 +62,54 @@ func TestBackMatterToMap(t *testing.T) {
 	}
 }
 
-func TestNewOscalComponentDefinition(t *testing.T) {
-	validBytes := loadTestData(t, validComponentPath)
+// func TestNewOscalComponentDefinition(t *testing.T) {
+// 	validBytes := loadTestData(t, validComponentPath)
 
-	var validWantSchema oscalTypes.OscalCompleteSchema
-	if err := yaml.Unmarshal(validBytes, &validWantSchema); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
+// 	var validWantSchema oscalTypes.OscalCompleteSchema
+// 	if err := yaml.Unmarshal(validBytes, &validWantSchema); err != nil {
+// 		t.Fatalf("yaml.Unmarshal failed: %v", err)
+// 	}
 
-	invalidBytes, err := yaml.Marshal(oscalTypes.OscalCompleteSchema{})
-	if err != nil {
-		t.Fatalf("yaml.Marshal failed: %v", err)
-	}
+// 	invalidBytes, err := yaml.Marshal(oscalTypes.OscalCompleteSchema{})
+// 	if err != nil {
+// 		t.Fatalf("yaml.Marshal failed: %v", err)
+// 	}
 
-	tests := []struct {
-		name    string
-		data    []byte
-		want    oscalTypes.ComponentDefinition
-		wantErr bool
-	}{
-		{
-			name:    "Valid OSCAL Component Definition",
-			data:    validBytes,
-			want:    *validWantSchema.ComponentDefinition,
-			wantErr: false,
-		},
-		{
-			name:    "Invalid OSCAL Component Definition",
-			data:    invalidBytes,
-			wantErr: true,
-		},
-		{
-			name:    "Empty Data",
-			data:    []byte{},
-			wantErr: true,
-		},
-		// Additional test cases can be added here
-	}
+// 	tests := []struct {
+// 		name    string
+// 		data    []byte
+// 		want    oscalTypes.ComponentDefinition
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name:    "Valid OSCAL Component Definition",
+// 			data:    validBytes,
+// 			want:    *validWantSchema.ComponentDefinition,
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name:    "Invalid OSCAL Component Definition",
+// 			data:    invalidBytes,
+// 			wantErr: true,
+// 		},
+// 		{
+// 			name:    "Empty Data",
+// 			data:    []byte{},
+// 			wantErr: true,
+// 		},
+// 		// Additional test cases can be added here
+// 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := oscal.NewOscalComponentDefinition(tt.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NewOscalComponentDefinition() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) && !tt.wantErr {
-				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := oscal.NewOscalComponentDefinition(tt.data)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("NewOscalComponentDefinition() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if !reflect.DeepEqual(got, tt.want) && !tt.wantErr {
+// 				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }

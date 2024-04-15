@@ -90,7 +90,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 			Title: "Software Title",
 			ControlImplementations: &[]oscalTypes_1_1_2.ControlImplementationSet{
 				{
-					UUID:                    uuid.NewUUID(),
+					UUID:                    uuid.NewUUIDWithSource(source),
 					Source:                  source,
 					ImplementedRequirements: implmentedRequirements,
 				},
@@ -99,7 +99,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 	}
 	rfc3339Time := time.Now()
 
-	componentDefinition.UUID = uuid.NewUUIDWithSource(source)
+	componentDefinition.UUID = uuid.NewUUID()
 
 	componentDefinition.Metadata = oscalTypes_1_1_2.Metadata{
 		OscalVersion: OSCAL_VERSION,
@@ -150,7 +150,8 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implemen
 	}
 
 	// assemble implemented-requirements object
-	implementedRequirement.Description = controlDescription
+	implementedRequirement.Remarks = controlDescription
+	implementedRequirement.Description = "<how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>"
 	implementedRequirement.ControlId = control.ID
 	implementedRequirement.UUID = uuid.NewUUID()
 
