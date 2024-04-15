@@ -12,9 +12,6 @@ component-definition:
                   rel: lula
                 - href: file:validation.opa.yaml@d8a6ba5ebccde299ecef1e54352e0eded97a6738
                   rel: lula
-                # - href: file:validation.map.yaml
-                #   rel: lula
-                #   resource-fragment: "9d09b4fc-1a82-4434-9fbe-392935347a84"
                 - href: file:multi-validations.yaml
                   rel: lula
                   resource-fragment: "9d09b4fc-1a82-4434-9fbe-392935347a84"

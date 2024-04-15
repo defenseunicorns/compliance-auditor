@@ -7,7 +7,7 @@
     - [Local Validations](#local-validations)
     - [Remote Validations](#remote-validations)
     - [Checksums](#checksums)
-    - [Validation Maps](#validation-maps)
+    - [Multiple Validations](#multiple-validations)
 ___
 In OSCAL - `links` contains the following fields:
 ```yaml
@@ -111,15 +111,20 @@ links:
     rel: lula
 ```
 
-### Validation Maps
-- A validation map may be provided in the href
-- A validation map is a YAML file that contains a map of uuids to validations [example](../src/test/e2e/scenarios/remote-validations/validation.map.yaml)
-- The `resource-fragment` attribute is used to reference a specific validation in the map
+### Multiple Validations 
+- A file with multiple validation may be provided in the link.
+- Validations must be separated by `---` per yaml syntax
+- Specific validations can be referenced by adding the `UUID` to the `resource-fragment` field.
+- If no `resource-fragment` is provided, all validations will be run.
 ```yaml
+// Only runs the validation with the UUID of a7377430-2328-4dc4-a9e2-b3f31dc1dff9
 links:
-  - href: https://example.com/validation.map.yaml
+  - href: https://example.com/multi-validations.yaml
     rel: lula
     resource-fragment: '#a7377430-2328-4dc4-a9e2-b3f31dc1dff9'
+// All validations
+  - href: file:./multi-validations.yaml
+    rel: lula
 ```
 ___ 
 > [!NOTE]
