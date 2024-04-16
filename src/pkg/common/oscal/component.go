@@ -67,10 +67,12 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 	for _, group := range *catalog.Groups {
 		// Is this a group of controls that we are targeting
 		if controlArray, ok := controlMap[group.ID]; ok {
+			message.Debugf("Target group %s identified\n", group.ID)
 			for _, control := range *group.Controls {
 				id := strings.Split(control.ID, "-")
 				// If this is a control we have identified
 				if contains(controlArray, id[1]) {
+					message.Debugf("Target control %s identified", control.ID)
 					newRequirement, err := ControlToImplementedRequirement(control)
 					if err != nil {
 						return componentDefinition, err
@@ -85,14 +87,16 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 
 	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
 		{
-			UUID:  uuid.NewUUID(),
-			Type:  "software",
-			Title: "Software Title",
+			UUID:        uuid.NewUUID(),
+			Type:        "software",
+			Title:       "Software Title",
+			Description: "Component Description",
 			ControlImplementations: &[]oscalTypes_1_1_2.ControlImplementationSet{
 				{
 					UUID:                    uuid.NewUUIDWithSource(source),
 					Source:                  source,
 					ImplementedRequirements: implmentedRequirements,
+					Description:             "Control Implementation Description",
 				},
 			},
 		},
@@ -120,29 +124,39 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implemen
 	var controlDescription string
 	paramMap := make(map[string]parameter)
 
-	for _, param := range *control.Params {
+	if control.Params != nil {
+		for _, param := range *control.Params {
 
-		if param.Select == nil {
-			paramMap[param.ID] = parameter{
-				ID:    param.ID,
-				Label: param.Label,
-			}
-		} else {
-			sel := *param.Select
-			paramMap[param.ID] = parameter{
-				ID: param.ID,
-				Select: &selection{
-					HowMany: sel.HowMany,
-					Choice:  *sel.Choice,
-				},
+			if param.Select == nil {
+				paramMap[param.ID] = parameter{
+					ID:    param.ID,
+					Label: param.Label,
+				}
+			} else {
+				sel := *param.Select
+				paramMap[param.ID] = parameter{
+					ID: param.ID,
+					Select: &selection{
+						HowMany: sel.HowMany,
+						Choice:  *sel.Choice,
+					},
+				}
 			}
 		}
+	} else {
+		message.Debug("No parameters found")
 	}
 
 	for _, part := range *control.Parts {
 		// I feel like we need recursion here
 		// let's just start with name == "statement" for now
 		if part.Name == "statement" {
+
+			if part.Prose != "" && strings.Contains(part.Prose, "{{ insert: param,") {
+				controlDescription += replaceParams(part.Prose, paramMap)
+			} else {
+				controlDescription += part.Prose
+			}
 			if part.Parts != nil {
 				controlDescription += addPart(part.Parts, paramMap, 0)
 			}
