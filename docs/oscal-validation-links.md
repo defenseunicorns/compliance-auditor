@@ -112,10 +112,10 @@ links:
 ```
 
 ### Multiple Validations 
-- A file with multiple validation may be provided in the link.
-- Validations must be separated by `---` per yaml syntax
-- Specific validations can be referenced by adding the `UUID` to the `resource-fragment` field.
-- If no `resource-fragment` is provided, all validations will be run.
+- A file with multiple validations may be provided in the link.
+- `---` should be used to separate each validation
+- `resource-fragment: <UUID>` will run the validation with the UUID specified
+- `resource-fragment: *` will run all validations
 ```yaml
 // Only runs the validation with the UUID of a7377430-2328-4dc4-a9e2-b3f31dc1dff9
 links:
@@ -125,6 +125,7 @@ links:
 // All validations
   - href: file:./multi-validations.yaml
     rel: lula
+    resource-fragment: *
 ```
 ___ 
 > [!NOTE]

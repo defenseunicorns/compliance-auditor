@@ -22,6 +22,7 @@ component-definition:
                 # All validations from multi-validations.yaml
                 - href: file:multi-validations.yaml
                   rel: lula
+                  resource-fragment: "*"
               uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
           source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
           uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
