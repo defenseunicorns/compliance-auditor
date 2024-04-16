@@ -421,5 +421,9 @@ func getValidationIds(link oscalTypes_1_1_2.Link, validationMap types.LulaValida
 		}
 	}
 
+	if len(ids) == 0 {
+		return ids, fmt.Errorf("no validations found for %s", link.Href)
+	}
+
 	return ids, nil
 }
