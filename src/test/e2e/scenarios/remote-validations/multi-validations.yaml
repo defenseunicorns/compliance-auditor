@@ -1,0 +1,61 @@
+lula-version: ">= v0.2.0"
+metadata:
+  name: Validate pods with label foo=bar
+  uuid: 9d09b4fc-1a82-4434-9fbe-392935347a84
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podsvt
+        resource-rule:
+          group:
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+
+      import future.keywords.every
+
+      validate {
+        every pod in input.podsvt {
+          podLabel := pod.metadata.labels.foo
+          podLabel == "bar"
+        }
+      }
+---
+lula-version: ">= v0.2.0"
+metadata:
+  name: Kyverno validate pods with label foo=bar
+  uuid: 88ea1e4c-c1a6-4e55-87c0-ba17c1b7c288
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podsvt # Identifier for use in the rego below
+        resource-rule: # Mandatory, resource selection criteria, at least one resource rule is required
+          group: # empty or "" for core group
+          version: v1 # Version of resource
+          resource: pods # Resource type
+          namespaces: [validation-test] # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+provider:
+  type: kyverno
+  kyverno-spec:
+    policy:
+      apiVersion: json.kyverno.io/v1alpha1
+      kind: ValidatingPolicy
+      metadata:
+        name: labels
+      spec:
+        rules:
+          - name: foo-label-exists
+            assert:
+              all:
+                - check:
+                    ~.podsvt:
+                      metadata:
+                        labels:
+                          foo: bar

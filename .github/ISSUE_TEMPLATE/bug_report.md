@@ -7,10 +7,10 @@ assignees: ''
 ---
 
 ### Environment
-Device and OS:
-App version:
-Kubernetes distro:
-Kubernetes version:
+Device and OS:  
+App version:    
+Kubernetes distro:  
+Kubernetes version:  
 provider:
 - [ ] kyverno
 - [ ] opa

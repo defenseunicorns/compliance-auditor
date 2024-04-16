@@ -27,6 +27,9 @@ type LulaValidation struct {
 	Result Result
 }
 
+// LulaValidationMap is a map of LulaValidation objects
+type LulaValidationMap = map[string]LulaValidation
+
 // Perform the validation, and store the result in the LulaValidation struct
 func (val *LulaValidation) Validate() error {
 	if !val.Evaluated {
