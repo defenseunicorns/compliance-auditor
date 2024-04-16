@@ -1,4 +1,4 @@
-lula-version: ">= v0.1.0"
+lula-version: ">= v0.2.0"
 metadata:
   name: Validate pods with label foo=bar
   uuid: 9d09b4fc-1a82-4434-9fbe-392935347a84
@@ -27,7 +27,7 @@ provider:
         }
       }
 ---
-lula-version: ">= v0.1.0"
+lula-version: ">= v0.2.0"
 metadata:
   name: Kyverno validate pods with label foo=bar
   uuid: 88ea1e4c-c1a6-4e55-87c0-ba17c1b7c288
