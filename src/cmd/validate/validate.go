@@ -369,18 +369,21 @@ func getLulaValidation(id string, validationMap types.LulaValidationMap, backMat
 }
 
 func getValidationIds(link oscalTypes_1_1_2.Link, validationMap types.LulaValidationMap, backMatterMap map[string]string) (ids []string, err error) {
+	const WILDCARD = "*"
+	const UUID_PREFIX = "#"
+	const YAML_DELIMITER = "---"
 	var validationBytes []byte
 
-	if strings.HasPrefix(link.Href, "#") {
-		id := strings.TrimPrefix(link.Href, "#")
+	if strings.HasPrefix(link.Href, UUID_PREFIX) {
+		id := strings.TrimPrefix(link.Href, UUID_PREFIX)
 		if _, err := getLulaValidation(id, validationMap, backMatterMap); err != nil {
 			return ids, err
 		}
 		return []string{id}, nil
 	}
 
-	if link.ResourceFragment != "" {
-		id := strings.TrimPrefix(link.ResourceFragment, "#")
+	if link.ResourceFragment != WILDCARD && link.ResourceFragment != "" {
+		id := strings.TrimPrefix(link.ResourceFragment, UUID_PREFIX)
 		if _, err := getLulaValidation(id, validationMap, backMatterMap); err == nil {
 			return []string{id}, err
 		}
@@ -392,7 +395,8 @@ func getValidationIds(link oscalTypes_1_1_2.Link, validationMap types.LulaValida
 		return ids, err
 	}
 
-	validationBytesArr := bytes.Split(validationBytes, []byte("---"))
+	validationBytesArr := bytes.Split(validationBytes, []byte(YAML_DELIMITER))
+	isSingleValidation := len(validationBytesArr) == 1
 
 	for _, validationBytes := range validationBytesArr {
 		var validation common.Validation
@@ -400,14 +404,15 @@ func getValidationIds(link oscalTypes_1_1_2.Link, validationMap types.LulaValida
 		if err = validation.UnmarshalYaml(validationBytes); err != nil {
 			return ids, err
 		}
+		// If the validation does not have a UUID, create a new one
 		if validation.Metadata.UUID == "" {
 			UUID = uuid.NewUUID()
 			validation.Metadata.UUID = UUID
 		} else {
 			UUID = validation.Metadata.UUID
 		}
-		// If the link does not have a resource fragment, add the UUID to the ids
-		if link.ResourceFragment == "" {
+		// If WILDCARD or single validation, add the UUID to the ids
+		if link.ResourceFragment == WILDCARD || isSingleValidation {
 			ids = append(ids, UUID)
 		}
 		validationMap[UUID], err = validation.ToLulaValidation()
