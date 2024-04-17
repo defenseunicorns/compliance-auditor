@@ -12,30 +12,33 @@ import (
 )
 
 const UUID_PREFIX = "#"
-const WILD_CARD = "*"
+const WILDCARD = "*"
 
 type ValidationStore struct {
 	backMatterMap map[string]string
 	validationMap types.LulaValidationMap
-	fileMap       map[string][]*types.LulaValidation
+	hrefIdMap     map[string][]string
 }
 
+// NewValidationStore creates a new validation store
 func NewValidationStore() *ValidationStore {
 	return &ValidationStore{
 		backMatterMap: make(map[string]string),
 		validationMap: make(types.LulaValidationMap),
-		fileMap:       make(map[string][]*types.LulaValidation),
+		hrefIdMap:     make(map[string][]string),
 	}
 }
 
+// NewValidationStoreFromBackMatter creates a new validation store from a back matter
 func NewValidationStoreFromBackMatter(backMatter oscalTypes_1_1_2.BackMatter) *ValidationStore {
 	return &ValidationStore{
 		backMatterMap: oscal.BackMatterToMap(backMatter),
 		validationMap: make(types.LulaValidationMap),
-		fileMap:       make(map[string][]*types.LulaValidation),
+		hrefIdMap:     make(map[string][]string),
 	}
 }
 
+// AddValidation adds a validation to the store
 func (v *ValidationStore) AddValidation(validation *common.Validation) (id string, err error) {
 	if validation.Metadata.UUID == "" {
 		validation.Metadata.UUID = uuid.NewUUID()
@@ -51,8 +54,9 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 
 }
 
+// GetLulaValidation gets the LulaValidation from the store
 func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaValidation, err error) {
-	trimmedId := trimIdPrefix(id)
+	trimmedId := TrimIdPrefix(id)
 
 	if validation, ok := v.validationMap[trimmedId]; ok {
 		return &validation, nil
@@ -70,6 +74,21 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	return validation, fmt.Errorf("validation #%s not found", trimmedId)
 }
 
-func trimIdPrefix(id string) string {
+// SetHrefIds sets the validation ids for a given href
+func (v *ValidationStore) SetHrefIds(href string, ids []string) {
+	v.hrefIdMap[href] = ids
+}
+
+// GetHrefIds gets the validation ids for a given href
+func (v *ValidationStore) GetHrefIds(href string) (ids []string, err error) {
+	if ids, ok := v.hrefIdMap[href]; ok {
+		return ids, nil
+	}
+	return nil, fmt.Errorf("href #%s not found", href)
+}
+
+// TrimIdPrefix trims the id prefix from the given id
+
+func TrimIdPrefix(id string) string {
 	return strings.TrimPrefix(id, UUID_PREFIX)
 }
