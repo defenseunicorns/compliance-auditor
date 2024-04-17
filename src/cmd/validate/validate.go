@@ -349,27 +349,28 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 }
 
 func getValidationIds(link oscalTypes_1_1_2.Link, validationStore *validationstore.ValidationStore) (ids []string, err error) {
-	const WILDCARD = "*"
-	const UUID_PREFIX = "#"
 	const YAML_DELIMITER = "---"
 	var validationBytes []byte
 
-	if strings.HasPrefix(link.Href, UUID_PREFIX) {
-		id := strings.TrimPrefix(link.Href, UUID_PREFIX)
-		if _, err := validationStore.GetLulaValidation(id); err != nil {
-			return ids, err
-		}
-		return []string{id}, nil
-	}
+	id := link.Href
 
-	if link.ResourceFragment != WILDCARD && link.ResourceFragment != "" {
-		id := strings.TrimPrefix(link.ResourceFragment, UUID_PREFIX)
-		if _, err := validationStore.GetLulaValidation(id); err == nil {
-			return []string{id}, err
-		}
+	// If the resource fragment is not a wildcard, trim the prefix from the resource fragment
+	if link.ResourceFragment != validationstore.WILDCARD && link.ResourceFragment != "" {
+		id = validationstore.TrimIdPrefix(link.ResourceFragment)
 		ids = append(ids, id)
 	}
 
+	// If the id is a uuid and the lula validation exists, return the id
+	if _, err := validationStore.GetLulaValidation(id); err == nil {
+		return []string{id}, err
+	}
+
+	// If the id is a url and has been fetched before, return the ids
+	if ids, err := validationStore.GetHrefIds(id); err == nil {
+		return ids, nil
+	}
+
+	// Not in store, fetch from href
 	validationBytes, err = network.Fetch(link.Href)
 	if err != nil {
 		return ids, err
@@ -380,29 +381,30 @@ func getValidationIds(link oscalTypes_1_1_2.Link, validationStore *validationsto
 
 	for _, validationBytes := range validationBytesArr {
 		var validation common.Validation
-		var UUID string
 		if err = validation.UnmarshalYaml(validationBytes); err != nil {
 			return ids, err
 		}
 		// If the validation does not have a UUID, create a new one
 		if validation.Metadata.UUID == "" {
-			UUID = uuid.NewUUID()
-			validation.Metadata.UUID = UUID
-		} else {
-			UUID = validation.Metadata.UUID
+			validation.Metadata.UUID = uuid.NewUUID()
 		}
-		// If WILDCARD or single validation, add the UUID to the ids
-		if link.ResourceFragment == WILDCARD || isSingleValidation {
-			ids = append(ids, UUID)
-		}
-		validationStore.AddValidation(&validation)
+
+		// Add the validation to the store
+		id, err := validationStore.AddValidation(&validation)
 		if err != nil {
 			return ids, err
+		}
+
+		// If WILDCARD or single validation, add the UUID to the ids
+		if link.ResourceFragment == validationstore.WILDCARD || isSingleValidation {
+			ids = append(ids, id)
 		}
 	}
 
 	if len(ids) == 0 {
 		return ids, fmt.Errorf("no validations found for %s", link.Href)
+	} else {
+		validationStore.SetHrefIds(link.Href, ids)
 	}
 
 	return ids, nil
