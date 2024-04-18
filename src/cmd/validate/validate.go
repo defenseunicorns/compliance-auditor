@@ -12,7 +12,6 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -188,7 +187,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						rel := strings.Split(link.Rel, ".")
 						if link.Text == "Lula Validation" || rel[0] == "lula" {
-							ids, err := getValidationIds(link, validationStore)
+							ids, err := validationStore.AddFromLink(link)
 							if err != nil {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 							}
@@ -346,66 +345,4 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	}
 
 	return nil
-}
-
-func getValidationIds(link oscalTypes_1_1_2.Link, validationStore *validationstore.ValidationStore) (ids []string, err error) {
-	const YAML_DELIMITER = "---"
-	var validationBytes []byte
-
-	id := link.Href
-
-	// If the resource fragment is not a wildcard, trim the prefix from the resource fragment
-	if link.ResourceFragment != validationstore.WILDCARD && link.ResourceFragment != "" {
-		id = validationstore.TrimIdPrefix(link.ResourceFragment)
-		ids = append(ids, id)
-	}
-
-	// If the id is a uuid and the lula validation exists, return the id
-	if _, err := validationStore.GetLulaValidation(id); err == nil {
-		return []string{id}, err
-	}
-
-	// If the id is a url and has been fetched before, return the ids
-	if ids, err := validationStore.GetHrefIds(id); err == nil {
-		return ids, nil
-	}
-
-	// Not in store, fetch from href
-	validationBytes, err = network.Fetch(link.Href)
-	if err != nil {
-		return ids, err
-	}
-
-	validationBytesArr := bytes.Split(validationBytes, []byte(YAML_DELIMITER))
-	isSingleValidation := len(validationBytesArr) == 1
-
-	for _, validationBytes := range validationBytesArr {
-		var validation common.Validation
-		if err = validation.UnmarshalYaml(validationBytes); err != nil {
-			return ids, err
-		}
-		// If the validation does not have a UUID, create a new one
-		if validation.Metadata.UUID == "" {
-			validation.Metadata.UUID = uuid.NewUUID()
-		}
-
-		// Add the validation to the store
-		id, err := validationStore.AddValidation(&validation)
-		if err != nil {
-			return ids, err
-		}
-
-		// If WILDCARD or single validation, add the UUID to the ids
-		if link.ResourceFragment == validationstore.WILDCARD || isSingleValidation {
-			ids = append(ids, id)
-		}
-	}
-
-	if len(ids) == 0 {
-		return ids, fmt.Errorf("no validations found for %s", link.Href)
-	} else {
-		validationStore.SetHrefIds(link.Href, ids)
-	}
-
-	return ids, nil
 }
