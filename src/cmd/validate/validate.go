@@ -12,10 +12,9 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -135,15 +134,13 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	var backMatterMap map[string]string
-	// Populate a map[uuid]string for back-matter.resources
-	// This is pre-poulated for on-demand use when referencing the back-matter from a link
+	// Create a validation store from the back-matter if it exists
+	var validationStore *validationstore.ValidationStore
 	if compDef.BackMatter != nil {
-		backMatterMap = oscal.BackMatterToMap(*compDef.BackMatter)
+		validationStore = validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
+	} else {
+		validationStore = validationstore.NewValidationStore()
 	}
-
-	// Populate a map for storing validations
-	validationMap := make(types.LulaValidationMap)
 
 	// Loops all the way down
 
@@ -190,7 +187,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						rel := strings.Split(link.Rel, ".")
 						if link.Text == "Lula Validation" || rel[0] == "lula" {
-							ids, err := getValidationIds(link, validationMap, backMatterMap)
+							ids, err := validationStore.AddFromLink(link)
 							if err != nil {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 							}
@@ -202,7 +199,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 									Methods:   []string{"TEST"},
 									UUID:      sharedUuid,
 								}
-								lulaValidation, err := getLulaValidation(id, validationMap, backMatterMap)
+								lulaValidation, err := validationStore.GetLulaValidation(id)
 								if err != nil {
 									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 								}
@@ -348,82 +345,4 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	}
 
 	return nil
-}
-
-func getLulaValidation(id string, validationMap types.LulaValidationMap, backMatterMap map[string]string) (lulaValidation types.LulaValidation, err error) {
-	if lulaValidation, ok := validationMap[id]; ok {
-		return lulaValidation, nil
-	}
-
-	// If the validation is in the backmatter, add it to the map and return
-	if description, ok := backMatterMap[id]; ok {
-		lulaValidation, err = common.ValidationFromString(description)
-		if err != nil {
-			return lulaValidation, err
-		}
-		validationMap[id] = lulaValidation
-		return lulaValidation, nil
-	}
-
-	return lulaValidation, fmt.Errorf("validation #%s not found", id)
-}
-
-func getValidationIds(link oscalTypes_1_1_2.Link, validationMap types.LulaValidationMap, backMatterMap map[string]string) (ids []string, err error) {
-	const WILDCARD = "*"
-	const UUID_PREFIX = "#"
-	const YAML_DELIMITER = "---"
-	var validationBytes []byte
-
-	if strings.HasPrefix(link.Href, UUID_PREFIX) {
-		id := strings.TrimPrefix(link.Href, UUID_PREFIX)
-		if _, err := getLulaValidation(id, validationMap, backMatterMap); err != nil {
-			return ids, err
-		}
-		return []string{id}, nil
-	}
-
-	if link.ResourceFragment != WILDCARD && link.ResourceFragment != "" {
-		id := strings.TrimPrefix(link.ResourceFragment, UUID_PREFIX)
-		if _, err := getLulaValidation(id, validationMap, backMatterMap); err == nil {
-			return []string{id}, err
-		}
-		ids = append(ids, id)
-	}
-
-	validationBytes, err = network.Fetch(link.Href)
-	if err != nil {
-		return ids, err
-	}
-
-	validationBytesArr := bytes.Split(validationBytes, []byte(YAML_DELIMITER))
-	isSingleValidation := len(validationBytesArr) == 1
-
-	for _, validationBytes := range validationBytesArr {
-		var validation common.Validation
-		var UUID string
-		if err = validation.UnmarshalYaml(validationBytes); err != nil {
-			return ids, err
-		}
-		// If the validation does not have a UUID, create a new one
-		if validation.Metadata.UUID == "" {
-			UUID = uuid.NewUUID()
-			validation.Metadata.UUID = UUID
-		} else {
-			UUID = validation.Metadata.UUID
-		}
-		// If WILDCARD or single validation, add the UUID to the ids
-		if link.ResourceFragment == WILDCARD || isSingleValidation {
-			ids = append(ids, UUID)
-		}
-		validationMap[UUID], err = validation.ToLulaValidation()
-		if err != nil {
-			return ids, err
-		}
-	}
-
-	if len(ids) == 0 {
-		return ids, fmt.Errorf("no validations found for %s", link.Href)
-	}
-
-	return ids, nil
 }
