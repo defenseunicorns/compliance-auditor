@@ -13,8 +13,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
-
-	"sigs.k8s.io/yaml"
 )
 
 // ReadFileToBytes reads a file to bytes
@@ -135,10 +133,8 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 	}
 
 	var validationData Validation
-
-	err = yaml.Unmarshal([]byte(raw), &validationData)
+	err = validationData.UnmarshalYaml([]byte(raw))
 	if err != nil {
-		message.Fatalf(err, "error unmarshalling yaml: %s", err.Error())
 		return validation, err
 	}
 
