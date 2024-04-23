@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -14,6 +16,28 @@ import (
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
 )
+
+const (
+	UUID_PREFIX    = "#"
+	WILDCARD       = "*"
+	YAML_DELIMITER = "---"
+)
+
+// TrimIdPrefix trims the id prefix from the given id
+func TrimIdPrefix(id string) string {
+	return strings.TrimPrefix(id, UUID_PREFIX)
+}
+
+// AddIdPrefix adds the id prefix to the given id
+func AddIdPrefix(id string) string {
+	return fmt.Sprintf("%s%s", UUID_PREFIX, id)
+}
+
+// IsLulaLink checks if the link is a lula link
+func IsLulaLink(link oscalTypes_1_1_2.Link) bool {
+	rel := strings.Split(link.Rel, ".")
+	return link.Text == "Lula Validation" || rel[0] == "lula"
+}
 
 // ReadFileToBytes reads a file to bytes
 func ReadFileToBytes(path string) ([]byte, error) {

@@ -3,7 +3,6 @@ package validationstore
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -12,10 +11,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/types"
 )
-
-const UUID_PREFIX = "#"
-const WILDCARD = "*"
-const YAML_DELIMITER = "---"
 
 type ValidationStore struct {
 	backMatterMap map[string]string
@@ -59,7 +54,7 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 
 // GetLulaValidation gets the LulaValidation from the store
 func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaValidation, err error) {
-	trimmedId := TrimIdPrefix(id)
+	trimmedId := common.TrimIdPrefix(id)
 
 	if validation, ok := v.validationMap[trimmedId]; ok {
 		return &validation, nil
@@ -95,8 +90,8 @@ func (v *ValidationStore) AddFromLink(link oscalTypes_1_1_2.Link) (ids []string,
 	id := link.Href
 
 	// If the resource fragment is not a wildcard, trim the prefix from the resource fragment
-	if link.ResourceFragment != WILDCARD && link.ResourceFragment != "" {
-		id = TrimIdPrefix(link.ResourceFragment)
+	if link.ResourceFragment != common.WILDCARD && link.ResourceFragment != "" {
+		id = common.TrimIdPrefix(link.ResourceFragment)
 	}
 
 	// If the id is a uuid and the lula validation exists, return the id
@@ -109,25 +104,19 @@ func (v *ValidationStore) AddFromLink(link oscalTypes_1_1_2.Link) (ids []string,
 		return ids, nil
 	}
 
-	// If the id is a url and has not been fetched before, fetch and add to the store
-	ids, err = v.fetchFromRemoteLink(link)
-	if err != nil {
-		return ids, err
-	}
-
-	return ids, nil
+	return v.fetchFromRemoteLink(link)
 }
 
 // fetchFromRemoteLink adds a validation from a remote source
 func (v *ValidationStore) fetchFromRemoteLink(link oscalTypes_1_1_2.Link) (ids []string, err error) {
-	wantedId := TrimIdPrefix(link.ResourceFragment)
+	wantedId := common.TrimIdPrefix(link.ResourceFragment)
 
 	validationBytes, err := network.Fetch(link.Href)
 	if err != nil {
 		return ids, err
 	}
 
-	validationBytesArr := bytes.Split(validationBytes, []byte(YAML_DELIMITER))
+	validationBytesArr := bytes.Split(validationBytes, []byte(common.YAML_DELIMITER))
 	isSingleValidation := len(validationBytesArr) == 1
 
 	for _, validationBytes := range validationBytesArr {
@@ -147,7 +136,7 @@ func (v *ValidationStore) fetchFromRemoteLink(link oscalTypes_1_1_2.Link) (ids [
 		}
 
 		// If the wanted id is the id, the id is a wildcard, or there is only one validation, add the id to the ids
-		if wantedId == id || wantedId == WILDCARD || isSingleValidation {
+		if wantedId == id || wantedId == common.WILDCARD || isSingleValidation {
 			ids = append(ids, id)
 		}
 	}
@@ -159,9 +148,4 @@ func (v *ValidationStore) fetchFromRemoteLink(link oscalTypes_1_1_2.Link) (ids [
 	}
 
 	return ids, nil
-}
-
-// TrimIdPrefix trims the id prefix from the given id
-func TrimIdPrefix(id string) string {
-	return strings.TrimPrefix(id, UUID_PREFIX)
 }
