@@ -1,0 +1,51 @@
+component-definition:
+  components:
+    - control-implementations:
+        - description: Validate generic security requirements
+          implemented-requirements:
+            - control-id: ID-1
+              description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+              links:
+                # remote opa validation
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.yaml
+                  rel: lula
+                # remote kyverno validation
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.kyverno.yaml
+                  rel: lula
+                # single validation w/ checksum
+                - href: file://./validation.opa.yaml@9d09d88105eae1e0349b157c5ba98c4c4fb322e9e15e397ba794beabd5f05d44
+                  rel: lula
+                # Single validation from multi-validations.yaml
+                - href: file://./multi-validations.yaml
+                  rel: lula
+                  resource-fragment: "9d09b4fc-1a82-4434-9fbe-392935347a84"
+                # All validations from multi-validations.yaml
+                - href: file:multi-validations.yaml
+                  rel: lula
+                  resource-fragment: "*"
+              uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
+      description: |
+        Lula - the Compliance Validator
+      purpose: Validate compliance controls
+      responsible-roles:
+        - party-uuids:
+            - C18F4A9F-A402-415B-8D13-B51739D689FF
+          role-id: provider
+      title: lula
+      type: software
+      uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+  metadata:
+    last-modified: 2024-04-03T09:56:20.719564-07:00
+    oscal-version: 1.1.2
+    parties:
+      - links:
+          - href: https://github.com/defenseunicorns/lula
+            rel: website
+        name: Lula Development
+        type: organization
+        uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+    title: Lula Demo
+    version: "20220913"
+  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
