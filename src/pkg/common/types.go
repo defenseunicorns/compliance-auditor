@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
@@ -30,6 +32,23 @@ func (v *Validation) UnmarshalYaml(data []byte) error {
 // MarshalYaml is a convenience method to marshal a Validation object to a YAML byte array
 func (v *Validation) MarshalYaml() ([]byte, error) {
 	return yaml.Marshal(v)
+}
+
+// ToResource converts a Validation object to a Resource object
+func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err error) {
+	resource = &oscalTypes_1_1_2.Resource{}
+	resource.Title = v.Metadata.Name
+	if v.Metadata.UUID != "" {
+		resource.UUID = v.Metadata.UUID
+	} else {
+		resource.UUID = uuid.NewUUID()
+	}
+	validationBytes, err := v.MarshalYaml()
+	if err != nil {
+		return nil, err
+	}
+	resource.Description = string(validationBytes)
+	return resource, nil
 }
 
 // TODO: Perhaps extend this structure with other needed information, such as UUID or type of validation if workflow is needed
