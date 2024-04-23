@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -185,8 +184,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
-						rel := strings.Split(link.Rel, ".")
-						if link.Text == "Lula Validation" || rel[0] == "lula" {
+						if common.IsLulaLink(link) {
 							ids, err := validationStore.AddFromLink(link)
 							if err != nil {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
