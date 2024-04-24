@@ -9,6 +9,11 @@ import (
 
 // CompileComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
 func CompileComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
+
+	if compDef == nil {
+		return fmt.Errorf("component definition is nil")
+	}
+
 	resourceMap := NewResourceStoreFromBackMatter(compDef.BackMatter)
 
 	if *compDef.Components == nil {
