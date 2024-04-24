@@ -3,6 +3,7 @@ package compilation
 import (
 	"fmt"
 
+	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 )
@@ -64,8 +65,9 @@ func CompileComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 		compDef.BackMatter = &oscalTypes_1_1_2.BackMatter{
 			Resources: &allFetched,
 		}
-		*compDef = *compDef
 	}
+
+	compDef.Metadata.LastModified = gooscalUtils.GetTimestamp()
 
 	return nil
 }

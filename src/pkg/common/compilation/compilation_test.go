@@ -32,8 +32,9 @@ func TestCompileComponentValidations(t *testing.T) {
 			t.Fatalf("Error compiling component validations: %v", err)
 		}
 
-		if !reflect.DeepEqual(*og, *compDef) {
-			t.Error("expected the component definition to be unchanged")
+		// Only the last-modified timestamp should be different
+		if !reflect.DeepEqual(*og.BackMatter, *compDef.BackMatter) {
+			t.Error("expected the back matter to be unchanged")
 		}
 	})
 
@@ -55,6 +56,10 @@ func TestCompileComponentValidations(t *testing.T) {
 
 		if compDef.BackMatter == nil {
 			t.Error("expected the component definition to have back matter")
+		}
+
+		if og.Metadata.LastModified == compDef.Metadata.LastModified {
+			t.Error("expected the component definition to have a different last modified timestamp")
 		}
 	})
 
