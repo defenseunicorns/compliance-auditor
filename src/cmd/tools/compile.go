@@ -1,4 +1,4 @@
-package compile
+package tools
 
 import (
 	"bytes"
@@ -26,37 +26,34 @@ var compileOpts = &compileFlags{}
 
 var compileHelp = `
 To compile an OSCAL Model:
-	lula compile -f ./oscal-component.yaml
+	lula tools compile -f ./oscal-component.yaml
 
 To indicate a specific output file:
-	lula compile -f ./oscal-component.yaml -o compiled-oscal-component.yaml
+	lula tools compile -f ./oscal-component.yaml -o compiled-oscal-component.yaml
 `
 
-var compileCmd = &cobra.Command{
-	Use:     "compile",
-	Short:   "compile an OSCAL component definition",
-	Long:    "Lula Compilation of an OSCAL component definition. Used to compile remote validations within a component definition in order to resolve any references for portability.",
-	Example: compileHelp,
-	Run: func(cmd *cobra.Command, componentDefinitionPath []string) {
-		if compileOpts.InputFile == "" {
-			message.Fatal(errors.New("flag input-file is not set"),
-				"Please specify an input file with the -f flag")
-		}
-		// Primary expected path for compilation of OSCAL documents
-		err := Compile(compileOpts.InputFile, compileOpts.OutputFile)
-		if err != nil {
-			message.Fatalf(err, "Compilation error: %s", err)
-		}
-	},
-}
+func init() {
+	compileCmd := &cobra.Command{
+		Use:     "compile",
+		Short:   "compile an OSCAL component definition",
+		Long:    "Lula Compilation of an OSCAL component definition. Used to compile remote validations within a component definition in order to resolve any references for portability.",
+		Example: compileHelp,
+		Run: func(cmd *cobra.Command, args []string) {
+			if compileOpts.InputFile == "" {
+				message.Fatal(errors.New("flag input-file is not set"),
+					"Please specify an input file with the -f flag")
+			}
+			err := Compile(compileOpts.InputFile, compileOpts.OutputFile)
+			if err != nil {
+				message.Fatalf(err, "Compilation error: %s", err)
+			}
+		},
+	}
 
-func CompileCommand() *cobra.Command {
+	toolsCmd.AddCommand(compileCmd)
 
-	// insert flag options here
 	compileCmd.Flags().StringVarP(&compileOpts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
 	compileCmd.Flags().StringVarP(&compileOpts.OutputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-compiled` appended")
-
-	return compileCmd
 }
 
 func Compile(inputFile, outputFile string) error {
@@ -88,10 +85,11 @@ func Compile(inputFile, outputFile string) error {
 		return err
 	}
 
+	// Reset Cwd to original before outputting
 	resetCwd()
 
 	var b bytes.Buffer
-
+	// Format the output
 	yamlEncoder := yaml.NewEncoder(&b)
 	yamlEncoder.SetIndent(2)
 	yamlEncoder.Encode(model)

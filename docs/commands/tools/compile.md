@@ -5,7 +5,7 @@ The `compile` command is used to compile an OSCAL component definition. It is us
 ## Usage
 
 ```bash
-lula compile -f <input-file> -o <output-file>
+lula tools compile -f <input-file> -o <output-file>
 ```
 
 ## Options
@@ -17,12 +17,12 @@ lula compile -f <input-file> -o <output-file>
 
 To compile an OSCAL Model:
 ```bash
-lula compile -f ./oscal-component.yaml
+lula tools compile -f ./oscal-component.yaml
 ```
 
 To indicate a specific output file:
 ```bash
-lula compile -f ./oscal-component.yaml -o compiled-oscal-component.yaml
+lula tools compile -f ./oscal-component.yaml -o compiled-oscal-component.yaml
 ```
 
 ## Notes

@@ -1,11 +1,11 @@
-package compile_test
+package tools_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/cmd/compile"
+	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
@@ -20,7 +20,7 @@ func TestCompileComponentDefinition(t *testing.T) {
 	outputFile := filepath.Join(tempDir, "output.yaml")
 
 	t.Run("compiles valid component definition", func(t *testing.T) {
-		err := compile.Compile(validInputFile, outputFile)
+		err := tools.Compile(validInputFile, outputFile)
 		if err != nil {
 			t.Fatalf("error compiling component definition: %s", err)
 		}
@@ -44,7 +44,7 @@ func TestCompileComponentDefinition(t *testing.T) {
 	})
 
 	t.Run("invalid component definition throws error", func(t *testing.T) {
-		err := compile.Compile(invalidInputFile, outputFile)
+		err := tools.Compile(invalidInputFile, outputFile)
 		if err == nil {
 			t.Fatal("expected error compiling invalid component definition")
 		}
