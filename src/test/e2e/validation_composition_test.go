@@ -9,7 +9,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/compilation"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -21,13 +21,13 @@ import (
 
 type contextKey string
 
-const validationCompilationPodKey contextKey = "validation-compilation-pod"
+const validationCompositionPodKey contextKey = "validation-composition-pod"
 
-func TestValidationCompilation(t *testing.T) {
-	featureValidationCompilation := features.New("Check validation compilation").
+func TestValidationComposition(t *testing.T) {
+	featureValidationComposition := features.New("Check validation composition").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
-			pod, err := util.GetPod("./scenarios/validation-compilation/pod.pass.yaml")
+			pod, err := util.GetPod("./scenarios/validation-composition/pod.pass.yaml")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -38,12 +38,12 @@ func TestValidationCompilation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, validationCompilationPodKey, pod)
+			ctx = context.WithValue(ctx, validationCompositionPodKey, pod)
 
 			return ctx
 		}).
-		Assess("Validate local validation file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			compDefPath := "./scenarios/validation-compilation/component-definition.yaml"
+		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			compDefPath := "./scenarios/validation-composition/component-definition.yaml"
 			compDefBytes, err := os.ReadFile(compDefPath)
 			if err != nil {
 				t.Error(err)
@@ -75,7 +75,7 @@ func TestValidationCompilation(t *testing.T) {
 			}
 			defer reset()
 
-			err = compilation.CompileComponentValidations(oscalModel.ComponentDefinition)
+			err = composition.ComposeComponentValidations(oscalModel.ComponentDefinition)
 			if err != nil {
 				t.Error(err)
 			}
@@ -97,12 +97,12 @@ func TestValidationCompilation(t *testing.T) {
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 
 			// Delete the pod
-			pod := ctx.Value(validationCompilationPodKey).(*corev1.Pod)
+			pod := ctx.Value(validationCompositionPodKey).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
 			return ctx
 		}).Feature()
 
-	testEnv.Test(t, featureValidationCompilation)
+	testEnv.Test(t, featureValidationComposition)
 }

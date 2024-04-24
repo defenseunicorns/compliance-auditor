@@ -1,4 +1,4 @@
-package compilation_test
+package composition_test
 
 import (
 	"os"
@@ -7,12 +7,12 @@ import (
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/compilation"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	allRemote      = "../../../test/e2e/scenarios/validation-compilation/component-definition.yaml"
+	allRemote      = "../../../test/e2e/scenarios/validation-composition/component-definition.yaml"
 	allLocal       = "../../../test/unit/common/compilation/component-definition-all-local.yaml"
 	localAndRemote = "../../../test/unit/common/compilation/component-definition-local-and-remote.yaml"
 )
@@ -27,7 +27,7 @@ func TestCompileComponentValidations(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
 		}
-		err = compilation.CompileComponentValidations(compDef)
+		err = composition.ComposeComponentValidations(compDef)
 		if err != nil {
 			t.Fatalf("Error compiling component validations: %v", err)
 		}
@@ -46,7 +46,7 @@ func TestCompileComponentValidations(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
 		}
-		err = compilation.CompileComponentValidations(compDef)
+		err = composition.ComposeComponentValidations(compDef)
 		if err != nil {
 			t.Fatalf("Error compiling component validations: %v", err)
 		}
@@ -71,7 +71,7 @@ func TestCompileComponentValidations(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
 		}
-		err = compilation.CompileComponentValidations(compDef)
+		err = composition.ComposeComponentValidations(compDef)
 		if err != nil {
 			t.Fatalf("Error compiling component validations: %v", err)
 		}

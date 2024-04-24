@@ -14,28 +14,28 @@ var (
 	invalidInputFile = "../../test/unit/common/valid-api-spec.yaml"
 )
 
-func TestCompileComponentDefinition(t *testing.T) {
+func TestComposeComponentDefinition(t *testing.T) {
 	t.Parallel()
 	tempDir := t.TempDir()
 	outputFile := filepath.Join(tempDir, "output.yaml")
 
-	t.Run("compiles valid component definition", func(t *testing.T) {
-		err := tools.Compile(validInputFile, outputFile)
+	t.Run("composes valid component definition", func(t *testing.T) {
+		err := tools.Compose(validInputFile, outputFile)
 		if err != nil {
-			t.Fatalf("error compiling component definition: %s", err)
+			t.Fatalf("error composing component definition: %s", err)
 		}
 
 		compiledBytes, err := os.ReadFile(outputFile)
 		if err != nil {
-			t.Fatalf("error reading compiled component definition: %s", err)
+			t.Fatalf("error reading composed component definition: %s", err)
 		}
 		compiledModel, err := oscal.NewOscalModel(compiledBytes)
 		if err != nil {
-			t.Fatalf("error creating oscal model from compiled component definition: %s", err)
+			t.Fatalf("error creating oscal model from composed component definition: %s", err)
 		}
 
 		if compiledModel.ComponentDefinition.BackMatter.Resources == nil {
-			t.Fatal("compiled component definition is nil")
+			t.Fatal("composed component definition is nil")
 		}
 
 		if len(*compiledModel.ComponentDefinition.BackMatter.Resources) <= 1 {
@@ -44,9 +44,9 @@ func TestCompileComponentDefinition(t *testing.T) {
 	})
 
 	t.Run("invalid component definition throws error", func(t *testing.T) {
-		err := tools.Compile(invalidInputFile, outputFile)
+		err := tools.Compose(invalidInputFile, outputFile)
 		if err == nil {
-			t.Fatal("expected error compiling invalid component definition")
+			t.Fatal("expected error composing invalid component definition")
 		}
 	})
 }

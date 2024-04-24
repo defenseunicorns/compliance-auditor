@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: validation-compilation-pod
+  name: validation-composition-pod
   namespace: validation-test
   labels:
     foo: bar

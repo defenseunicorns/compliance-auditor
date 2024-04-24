@@ -1,4 +1,4 @@
-package compilation
+package composition
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common"
 )
 
-// CompileComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
-func CompileComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
+// ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
+func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
 
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
