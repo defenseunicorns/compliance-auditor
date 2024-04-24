@@ -29,6 +29,7 @@ type componentFlags struct {
 	CatalogSource string   // -c --catalog
 	Profile       string   // -p --profile
 	Requirements  []string // -r --requirements
+	Remarks       []string // --remarks
 }
 
 var opts = &flags{}
@@ -53,10 +54,16 @@ var generateComponentCmd = &cobra.Command{
 	Short:   "Generate a component definition OSCAL template",
 	Run: func(_ *cobra.Command, args []string) {
 		message.Info("generate component executed")
-
+		var remarks []string
 		// check for inputFile flag content
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
+		}
+
+		if len(componentOpts.Remarks) == 0 {
+			remarks = []string{"statement"}
+		} else {
+			remarks = componentOpts.Remarks
 		}
 
 		// var existingComponent oscalTypes_1_1_2.ComponentDefinition
@@ -89,7 +96,7 @@ var generateComponentCmd = &cobra.Command{
 
 		message.Debug(catalog.Metadata.Title)
 
-		comp, err := oscal.ComponentFromCatalog(source, catalog, componentOpts.Requirements)
+		comp, err := oscal.ComponentFromCatalog(source, catalog, componentOpts.Requirements, remarks)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
@@ -195,4 +202,5 @@ func generateComponentFlags() {
 	componentFlags.StringVarP(&componentOpts.CatalogSource, "catalog-source", "c", "", "Catalog source location (local or remote)")
 	componentFlags.StringVarP(&componentOpts.Profile, "profile", "p", "", "Profile source location (local or remote)")
 	componentFlags.StringSliceVarP(&componentOpts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
+	componentFlags.StringSliceVarP(&componentOpts.Remarks, "remarks", "", []string{}, "Target for remarks population (default = statement)")
 }

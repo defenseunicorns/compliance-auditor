@@ -49,7 +49,7 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 	return *oscalModels.ComponentDefinition, nil
 }
 
-func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targetControls []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targetControls []string, targetRemarks []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 
 	message.Debugf("target controls %v", targetControls)
 	// store all of the implemented requirements
@@ -73,7 +73,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 				// If this is a control we have identified
 				if contains(controlArray, id[1]) {
 					message.Debugf("Target control %s identified", control.ID)
-					newRequirement, err := ControlToImplementedRequirement(control)
+					newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
 					if err != nil {
 						return componentDefinition, err
 					}
@@ -119,7 +119,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 }
 
 // Consume a control - Identify statements - iterate through parts in order to create a description
-func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
+func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRemarks []string) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
 
 	var controlDescription string
 	paramMap := make(map[string]parameter)
@@ -150,8 +150,8 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control) (implemen
 	for _, part := range *control.Parts {
 		// I feel like we need recursion here
 		// let's just start with name == "statement" for now
-		if part.Name == "statement" {
-
+		if contains(targetRemarks, part.Name) {
+			controlDescription += fmt.Sprintf("%s:\n", strings.ToTitle(part.Name))
 			if part.Prose != "" && strings.Contains(part.Prose, "{{ insert: param,") {
 				controlDescription += replaceParams(part.Prose, paramMap)
 			} else {
