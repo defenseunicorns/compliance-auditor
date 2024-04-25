@@ -85,7 +85,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 					for _, subControl := range *control.Controls {
 						subId := strings.Split(subControl.ID, "-")
 						if contains(controlArray, subId[1]) {
-							message.Debugf("Target sub-control %s identified with id %s", subControl.ID, subId[1])
+							message.Debugf("Target sub-control %s identified", subControl.ID, subId[1])
 							newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
 							if err != nil {
 								return componentDefinition, err
@@ -163,8 +163,6 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRem
 
 	if control.Parts != nil {
 		for _, part := range *control.Parts {
-			// I feel like we need recursion here
-			// let's just start with name == "statement" for now
 			if contains(targetRemarks, part.Name) {
 				controlDescription += fmt.Sprintf("%s:\n", strings.ToTitle(part.Name))
 				if part.Prose != "" && strings.Contains(part.Prose, "{{ insert: param,") {
@@ -211,7 +209,6 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[st
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
-			message.Debugf("%s does equal %s", a, e)
 			return true
 		}
 	}
@@ -235,7 +232,9 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 			tabs += "\t"
 		}
 		prose := part.Prose
-		if strings.Contains(prose, "{{ insert: param,") {
+		if prose == "" {
+			result += fmt.Sprintf("%s%s\n", tabs, label)
+		} else if strings.Contains(prose, "{{ insert: param,") {
 			result += fmt.Sprintf("%s%s %s\n", tabs, label, replaceParams(prose, paramMap))
 		} else {
 			result += fmt.Sprintf("%s%s %s\n", tabs, label, prose)

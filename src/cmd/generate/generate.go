@@ -94,8 +94,6 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatalf(fmt.Errorf("error creating catalog"), "error creating catalog")
 		}
 
-		message.Debug(catalog.Metadata.Title)
-
 		comp, err := oscal.ComponentFromCatalog(source, catalog, componentOpts.Requirements, remarks)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")

@@ -11,7 +11,6 @@ The generation process for OSCAL artifacts created and maintained by Lula should
 ## Component Definition Generation
 
 Current TODO:
-- Support for controls which have sub-controls IE ac-4 & ac-4.1...
 - Support for current 800-53/fedramp assessment-objectives `parts`
 - Ability to detect an existing output file (IE OutputFile flag)
 - Ability to retain data in an existing OutputFile on re-generation
