@@ -49,7 +49,38 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 	return *oscalModels.ComponentDefinition, nil
 }
 
-func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targetControls []string, targetRemarks []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+// This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
+// The only loss of data should occur when removing implemented-requirements which are no longer defined in the new component-definition
+func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+
+	// current opinionation of this function would mean that all we are really targeting is implemented-requirements and then retaining the original document
+	// TODO: need to consider 1 -> N components (title as identifier?) w/ 1-> N control-implementations (source as identifier)
+	// TODO: maybe this generation is constrained to a specific control-implementation?
+	// Meaning we generate a latest component definition with the control-implementation specified in catalog-source
+	// Then check for its existence in the original component-definition - if not exists - add new control-implementation and return? otherwise if exists - continue with merge
+
+	// How to check the delta between two component-definitions with []oscalTypes_1_1_2.ImplementedRequirementControlImplementation ?
+
+	// Get a map[control-id]oscalTypes_1_1_2.ImplementedRequirementControlImplementation from each component-definition
+
+	// originalMap, err := getImplementedRequirementsMap(original)
+	// latestMap, err := getImplementedRequirementsMap(latest)
+
+	// Create a new []oscalTypes_1_1_2.ImplementedRequirementControlImplementation var
+	// implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+
+	// For each key in the latest map - check if it exists in the original map
+	// If so - add the original to implementedRequirements else add the latest
+
+	// reassign the control-implementations.implemented-requirements array
+
+	// return a copy of the original artifact
+
+	return componentDefinition, err
+}
+
+// Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
+func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string, allControls bool) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 
 	message.Debugf("target controls %v", targetControls)
 	// store all of the implemented requirements
@@ -66,13 +97,11 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 
 	for _, group := range *catalog.Groups {
 		// Is this a group of controls that we are targeting
-		if controlArray, ok := controlMap[group.ID]; ok {
-			message.Debugf("Target group %s identified\n", group.ID)
+		if controlArray, ok := controlMap[group.ID]; ok || allControls {
 			for _, control := range *group.Controls {
 				id := strings.Split(control.ID, "-")
 				// Check if the control is the primary control
-				if contains(controlArray, id[1]) {
-					message.Debugf("Target control %s identified", control.ID)
+				if contains(controlArray, id[1]) || allControls {
 					newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
 					if err != nil {
 						return componentDefinition, err
@@ -84,8 +113,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 				if control.Controls != nil {
 					for _, subControl := range *control.Controls {
 						subId := strings.Split(subControl.ID, "-")
-						if contains(controlArray, subId[1]) {
-							message.Debugf("Target sub-control %s identified", subControl.ID, subId[1])
+						if contains(controlArray, subId[1]) || allControls {
 							newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
 							if err != nil {
 								return componentDefinition, err
@@ -103,7 +131,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, targe
 		{
 			UUID:        uuid.NewUUID(),
 			Type:        "software",
-			Title:       "Software Title",
+			Title:       componentTitle,
 			Description: "Component Description",
 			ControlImplementations: &[]oscalTypes_1_1_2.ControlImplementationSet{
 				{
@@ -261,5 +289,13 @@ func replaceParams(input string, params map[string]parameter) string {
 		}
 		return match
 	})
+	return result
+}
+
+func getImplementedRequirementsMap(irs []oscalTypes_1_1_2.ImplementedRequirementControlImplementation) map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation {
+	result := make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
+	for _, ir := range irs {
+		result[ir.ControlId] = ir
+	}
 	return result
 }

@@ -28,8 +28,10 @@ type componentFlags struct {
 	flags
 	CatalogSource string   // -c --catalog
 	Profile       string   // -p --profile
+	Component     string   // --component
 	Requirements  []string // -r --requirements
 	Remarks       []string // --remarks
+	All           bool     // -a --all
 }
 
 var opts = &flags{}
@@ -55,6 +57,8 @@ var generateComponentCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, args []string) {
 		message.Info("generate component executed")
 		var remarks []string
+		var title = "Component Title"
+		// var outputFile = "oscal-component.yaml"
 		// check for inputFile flag content
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
@@ -66,17 +70,22 @@ var generateComponentCmd = &cobra.Command{
 			remarks = componentOpts.Remarks
 		}
 
+		if componentOpts.Component != "" {
+			title = componentOpts.Component
+		}
+
+		// // Move this to the end - create a merge operation
 		// var existingComponent oscalTypes_1_1_2.ComponentDefinition
 		// if componentOpts.OutputFile != "" {
-		// 	// We meed tp check if the file exists
-		// 	if _, err := os.Stat(componentOpts.OutputFile); err == nil {
-		// 		// if the file exists, we need to read it into bytes
-		// 		existingFileBytes, err := os.ReadFile(componentOpts.OutputFile)
-		// 		if err != nil {
-		// 			message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
-		// 		}
-		// 		existingComponent, err = oscal.NewOscalComponentDefinition(componentOpts.OutputFile, existingFileBytes)
+		// 	outputFile = componentOpts.OutputFile
+		// }
+		// if _, err := os.Stat(outputFile); err == nil {
+		// 	// if the file exists, we need to read it into bytes
+		// 	existingFileBytes, err := os.ReadFile(componentOpts.OutputFile)
+		// 	if err != nil {
+		// 		message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
 		// 	}
+		// 	existingComponent, err = oscal.NewOscalComponentDefinition(componentOpts.OutputFile, existingFileBytes)
 		// }
 
 		// Existing component has now potentially been identified - do something with it.
@@ -94,7 +103,7 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatalf(fmt.Errorf("error creating catalog"), "error creating catalog")
 		}
 
-		comp, err := oscal.ComponentFromCatalog(source, catalog, componentOpts.Requirements, remarks)
+		comp, err := oscal.ComponentFromCatalog(source, catalog, title, componentOpts.Requirements, remarks, componentOpts.All)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
@@ -103,7 +112,7 @@ var generateComponentCmd = &cobra.Command{
 		if opts.OutputFile != "" {
 			fileName = opts.OutputFile
 		} else {
-			fileName = "new-component.yaml"
+			fileName = "oscal-component.yaml"
 		}
 
 		var b bytes.Buffer
@@ -199,6 +208,8 @@ func generateComponentFlags() {
 
 	componentFlags.StringVarP(&componentOpts.CatalogSource, "catalog-source", "c", "", "Catalog source location (local or remote)")
 	componentFlags.StringVarP(&componentOpts.Profile, "profile", "p", "", "Profile source location (local or remote)")
+	componentFlags.StringVar(&componentOpts.Component, "component", "", "Component Title")
 	componentFlags.StringSliceVarP(&componentOpts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
-	componentFlags.StringSliceVarP(&componentOpts.Remarks, "remarks", "", []string{}, "Target for remarks population (default = statement)")
+	componentFlags.StringSliceVar(&componentOpts.Remarks, "remarks", []string{}, "Target for remarks population (default = statement)")
+	componentFlags.BoolVarP(&componentOpts.All, "all", "a", false, "Generate a component with all controls from the catalog")
 }
