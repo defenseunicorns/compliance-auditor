@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -58,7 +59,7 @@ var generateComponentCmd = &cobra.Command{
 		message.Info("generate component executed")
 		var remarks []string
 		var title = "Component Title"
-		// var outputFile = "oscal-component.yaml"
+		var outputFile = "oscal-component.yaml"
 		// check for inputFile flag content
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
@@ -73,23 +74,6 @@ var generateComponentCmd = &cobra.Command{
 		if componentOpts.Component != "" {
 			title = componentOpts.Component
 		}
-
-		// // Move this to the end - create a merge operation
-		// var existingComponent oscalTypes_1_1_2.ComponentDefinition
-		// if componentOpts.OutputFile != "" {
-		// 	outputFile = componentOpts.OutputFile
-		// }
-		// if _, err := os.Stat(outputFile); err == nil {
-		// 	// if the file exists, we need to read it into bytes
-		// 	existingFileBytes, err := os.ReadFile(componentOpts.OutputFile)
-		// 	if err != nil {
-		// 		message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
-		// 	}
-		// 	existingComponent, err = oscal.NewOscalComponentDefinition(componentOpts.OutputFile, existingFileBytes)
-		// }
-
-		// Existing component has now potentially been identified - do something with it.
-		// TODO: start here
 
 		source := componentOpts.CatalogSource
 
@@ -113,6 +97,31 @@ var generateComponentCmd = &cobra.Command{
 			fileName = opts.OutputFile
 		} else {
 			fileName = "oscal-component.yaml"
+		}
+
+		// This is where we will need to look at merge operations
+		// Move this to the end - create a merge operation
+
+		if componentOpts.OutputFile != "" {
+			outputFile = componentOpts.OutputFile
+		}
+		if _, err := os.Stat(outputFile); err == nil {
+			// if the file exists, we need to read it into bytes
+			existingFileBytes, err := os.ReadFile(outputFile)
+			if err != nil {
+				message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
+			}
+			existingComponent, err := oscal.NewOscalComponentDefinition(outputFile, existingFileBytes)
+			if err != nil {
+				message.Fatalf(fmt.Errorf("error creating new component definition"), "error creating new component definition")
+			}
+			newComponent := (*comp.Components)[0]
+			newControlImplmentation := (*newComponent.ControlImplementations)[0]
+			comp, err = oscal.MergeComponentDefinitionOnComponent(existingComponent, newComponent, newControlImplmentation)
+			if err != nil {
+				message.Fatalf(fmt.Errorf("error merging component definition on component"), "error merging component definition on component")
+			}
+			comp.Metadata.LastModified = gooscalUtils.GetTimestamp()
 		}
 
 		var b bytes.Buffer

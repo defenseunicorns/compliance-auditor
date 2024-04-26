@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 
@@ -50,18 +49,9 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 	return *oscalModels.ComponentDefinition, nil
 }
 
-// This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
-// The only loss of data should occur when removing implemented-requirements which are no longer defined in the new component-definition
-// Performs merge using the latest component title and control-implementation source
-func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (oscalTypes_1_1_2.ComponentDefinition, error) {
+// This function should perform a merge of a component-definition with a specific component/control-implementation combo where maintaining the original component-definition is the primary concern.
+func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefinition, newComponent oscalTypes_1_1_2.DefinedComponent, newControlImplementation oscalTypes_1_1_2.ControlImplementationSet) (oscalTypes_1_1_2.ComponentDefinition, error) {
 	var found bool = false
-	// current opinionation of this function would mean that all we are really targeting is implemented-requirements and then retaining the original document
-	// TODO: need to consider 1 -> N components (title as identifier?) w/ 1-> N control-implementations (source as identifier)
-	latestComponent := (*latest.Components)[0]
-	targetTitle := latestComponent.Title
-	latestControlImplementation := (*latestComponent.ControlImplementations)[0]
-	targetSource := controlImplementation.Source
-
 	// Given I have the component title and control-implementation source - How will I replace a targeted control-implementation in a targeted component?
 
 	// Step 1 - identify the component - if it exists
@@ -70,21 +60,22 @@ func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefi
 	tempComponents := make([]oscalTypes_1_1_2.DefinedComponent, 0)
 	var targetComponent oscalTypes_1_1_2.DefinedComponent
 	for _, component := range *original.Components {
-		if component.Title == targetTitle {
+		if component.Title == newComponent.Title {
 			targetComponent = component
 			found = true
+		} else {
+			tempComponents = append(tempComponents, component)
 		}
-		tempComponents = append(tempComponents, component)
 	}
 
 	// New component was not found - append and return
 	if !found {
-		tempComponents = append(tempComponents, latestComponent)
+		tempComponents = append(tempComponents, newComponent)
 		original.Components = &tempComponents
 		return original, nil
 	}
 
-	// reset found
+	// reset found bool
 	found = false
 
 	// New Component was found - continue with merge
@@ -93,21 +84,47 @@ func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefi
 	tempControlImplementations := make([]oscalTypes_1_1_2.ControlImplementationSet, 0)
 	var targetControlImplementation oscalTypes_1_1_2.ControlImplementationSet
 	for _, controlImplementation := range *targetComponent.ControlImplementations {
-		if controlImplementation.Source == targetSource {
+		if controlImplementation.Source == newControlImplementation.Source {
 			targetControlImplementation = controlImplementation
 			found = true
+		} else {
+			tempControlImplementations = append(tempControlImplementations, controlImplementation)
 		}
-		tempControlImplementations = append(tempControlImplementations, controlImplementation)
 	}
 
 	if !found {
-		tempControlImplementations = append(tempControlImplementations, latestControlImplementation)
+		tempControlImplementations = append(tempControlImplementations, newControlImplementation)
 		targetComponent.ControlImplementations = &tempControlImplementations
 		tempComponents = append(tempComponents, targetComponent)
 		original.Components = &tempComponents
 		return original, nil
 	}
-	// Step 3 - Update or Replace
+	// Step 3 - Update or Replace - do not remove
+	newImpMap := getImplementedRequirementsMap(newControlImplementation.ImplementedRequirements)
+	originalImpMap := getImplementedRequirementsMap(targetControlImplementation.ImplementedRequirements)
+
+	// Create a placeholder for implemented-requirements
+	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+	for id, req := range newImpMap {
+		if orig, ok := originalImpMap[id]; ok {
+			// requirement exists in both - update remarks
+			orig.Remarks = req.Remarks
+			implmentedRequirements = append(implmentedRequirements, orig)
+			delete(originalImpMap, id)
+		} else {
+			implmentedRequirements = append(implmentedRequirements, req)
+		}
+	}
+	// Add the remaining original implemented-requirements
+	for _, req := range originalImpMap {
+		implmentedRequirements = append(implmentedRequirements, req)
+	}
+	targetControlImplementation.ImplementedRequirements = implmentedRequirements
+	tempControlImplementations = append(tempControlImplementations, targetControlImplementation)
+	targetComponent.ControlImplementations = &tempControlImplementations
+	tempComponents = append(tempComponents, targetComponent)
+	original.Components = &tempComponents
+	return original, nil
 
 	// TODO: maybe this generation is constrained to a specific control-implementation?
 	// Meaning we generate a latest component definition with the control-implementation specified in catalog-source
@@ -130,7 +147,7 @@ func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefi
 
 	// return a copy of the original artifact
 
-	return componentDefinition, err
+	// return componentDefinition, err
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
@@ -240,7 +257,7 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRem
 			}
 		}
 	} else {
-		message.Debug("No parameters found")
+		message.Debugf("No parameters found for %s", control.ID)
 	}
 
 	if control.Parts != nil {
