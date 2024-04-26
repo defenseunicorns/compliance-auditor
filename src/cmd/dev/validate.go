@@ -24,6 +24,8 @@ const DEFAULT_TIMEOUT = 1
 var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
+To run validations using a custom resources file:
+	lula dev validate -f <path to manifest> -r <path to resources file>
 To run validations using stdin:
 	cat <path to manifest> | lula dev validate
 To hang indefinitely for stdin:
@@ -34,8 +36,9 @@ To hang for timeout of 5 seconds:
 
 type ValidateFlags struct {
 	flags
-	ExpectedResult bool // -e --expected-result
-	Timeout        int  // -t --timeout
+	ExpectedResult bool   // -e --expected-result
+	Timeout        int    // -t --timeout
+	ResourcesFile  string // -r --resources-file
 }
 
 var validateOpts = &ValidateFlags{}
@@ -56,6 +59,7 @@ func init() {
 
 			ctx := context.Background()
 			var validationBytes []byte
+			var resourcesBytes []byte
 			var err error
 
 			if validateOpts.InputFile == STDIN {
@@ -89,7 +93,20 @@ func init() {
 				}
 			}
 
-			validation, err := DevValidate(ctx, validationBytes)
+			// If a resources file is provided, read the resources file
+			if validateOpts.ResourcesFile != "" {
+				if !strings.HasSuffix(validateOpts.ResourcesFile, ".json") {
+					message.Fatalf(fmt.Errorf("resource file must be a json file"), "resource file must be a json file")
+				} else {
+					// Read the resources data
+					resourcesBytes, err = common.ReadFileToBytes(validateOpts.ResourcesFile)
+					if err != nil {
+						message.Fatalf(err, "error reading file: %v", err)
+					}
+				}
+			}
+
+			validation, err := DevValidate(ctx, validationBytes, resourcesBytes)
 			if err != nil {
 				message.Fatalf(err, "error running dev validate: %v", err)
 			}
@@ -114,6 +131,7 @@ func init() {
 	devCmd.AddCommand(validateCmd)
 
 	validateCmd.Flags().StringVarP(&validateOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
+	validateCmd.Flags().StringVarP(&validateOpts.ResourcesFile, "resources-file", "r", "", "the path to an optional resources file")
 	validateCmd.Flags().StringVarP(&validateOpts.OutputFile, "output-file", "o", "", "the path to write the validation with results")
 	validateCmd.Flags().IntVarP(&validateOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
 	validateCmd.Flags().BoolVarP(&validateOpts.ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
@@ -122,7 +140,7 @@ func init() {
 
 // DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it
 // Returns the LulaValidation struct and any error encountered
-func DevValidate(ctx context.Context, validationBytes []byte) (lulaValidation types.LulaValidation, err error) {
+func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte) (lulaValidation types.LulaValidation, err error) {
 	var validation common.Validation
 
 	err = yaml.Unmarshal(validationBytes, &validation)
@@ -135,7 +153,17 @@ func DevValidate(ctx context.Context, validationBytes []byte) (lulaValidation ty
 		return lulaValidation, err
 	}
 
-	err = lulaValidation.Validate()
+	// Set resources if resourcesBytes is not empty
+	var resources types.DomainResources
+	if len(resourcesBytes) > 0 {
+		// Unmarshal the resources data to the DomainResources type
+		err = json.Unmarshal(resourcesBytes, &resources)
+		if err != nil {
+			return lulaValidation, err
+		}
+	}
+
+	err = lulaValidation.Validate(types.WithStaticResources(resources))
 	if err != nil {
 		return lulaValidation, err
 	}

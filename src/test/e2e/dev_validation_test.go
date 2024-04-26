@@ -40,12 +40,13 @@ func TestDevValidation(t *testing.T) {
 
 			message.NoProgress = true
 
+			var resourcesBytes []byte
 			validationBytes, err := common.ReadFileToBytes(validationFile)
 			if err != nil {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			validation, err := dev.DevValidate(ctx, validationBytes)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -68,12 +69,13 @@ func TestDevValidation(t *testing.T) {
 
 			message.NoProgress = true
 
+			var resourcesBytes []byte
 			validationBytes, err := common.ReadFileToBytes(validationFile)
 			if err != nil {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			validation, err := dev.DevValidate(ctx, validationBytes)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -87,7 +89,43 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Validation failed")
 			}
 
-			message.Infof("Successfully validated dev validate comman with kyverno")
+			message.Infof("Successfully validated dev validate command with kyverno")
+
+			return ctx
+		}).
+		Assess("Validate with resources", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			validationFile := "./scenarios/dev-validate/validation.yaml"
+			resourcesFile := "./scenarios/dev-validate/resources.foo-baz.json"
+			expectedResult := false
+
+			message.NoProgress = true
+
+			resourcesBytes, err := common.ReadFileToBytes(resourcesFile)
+			if err != nil {
+				t.Errorf("Error reading file: %v", err)
+			}
+			validationBytes, err := common.ReadFileToBytes(validationFile)
+			if err != nil {
+				t.Errorf("Error reading file: %v", err)
+			}
+
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes)
+			if err != nil {
+				t.Errorf("Error testing dev validate: %v", err)
+			}
+
+			// Check the validation result has been evaluated
+			if !validation.Evaluated {
+				t.Errorf("Validation result has not been evaluated")
+			}
+
+			result := validation.Result.Failing == 0
+			// If the expected result is not equal to the actual result, return an error
+			if expectedResult != result {
+				t.Errorf("expected result to be %t got %t", expectedResult, result)
+			}
+
+			message.Infof("Successfully validated dev validate command with resources")
 
 			return ctx
 		}).
