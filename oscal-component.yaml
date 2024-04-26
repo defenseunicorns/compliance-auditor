@@ -3,52 +3,38 @@ component-definition:
     - control-implementations:
         - description: Control Implementation Description
           implemented-requirements:
-            - control-id: ac-3.2
-              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
-              remarks: |-
-                ASSESSMENT-OBJECTIVE:
-                dual authorization is enforced for [Assignment: organization-defined privileged commands and/or other actions].
-              uuid: cedc2cc0-1b6b-4323-99b6-1785ba8431d7
             - control-id: ac-4
               description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
               remarks: |-
-                ASSESSMENT-OBJECTIVE:
-                approved authorizations are enforced for controlling the flow of information within the system and between connected systems based on [Assignment: organization-defined information flow control policies].
+                STATEMENT:
+                Enforce approved authorizations for controlling the flow of information within the system and between connected systems based on [Assignment: organization-defined information flow control policies].
               uuid: 6aa5ce11-c46d-4d62-8b6d-113f8d6f44fb
             - control-id: ac-1
               description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
               remarks: |
-                ASSESSMENT-OBJECTIVE:
-                AC-01a.
-                	AC-01a.[01] an access control policy is developed and documented;
-                	AC-01a.[02] the access control policy is disseminated to [Assignment: organization-defined personnel or roles];
-                	AC-01a.[03] access control procedures to facilitate the implementation of the access control policy and associated controls are developed and documented;
-                	AC-01a.[04] the access control procedures are disseminated to [Assignment: organization-defined personnel or roles];
-                	AC-01a.01
-                		AC-01a.01(a)
-                			AC-01a.01(a)[01] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses purpose;
-                			AC-01a.01(a)[02] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses scope;
-                			AC-01a.01(a)[03] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses roles;
-                			AC-01a.01(a)[04] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses responsibilities;
-                			AC-01a.01(a)[05] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses management commitment;
-                			AC-01a.01(a)[06] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses coordination among organizational entities;
-                			AC-01a.01(a)[07] the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy addresses compliance;
-                		AC-01a.01(b) the [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy is consistent with applicable laws, Executive Orders, directives, regulations, policies, standards, and guidelines;
-                AC-01b. the [Assignment: organization-defined official] is designated to manage the development, documentation, and dissemination of the access control policy and procedures;
-                AC-01c.
-                	AC-01c.01
-                		AC-01c.01[01] the current access control policy is reviewed and updated [Assignment: organization-defined frequency];
-                		AC-01c.01[02] the current access control policy is reviewed and updated following [Assignment: organization-defined events];
-                	AC-01c.02
-                		AC-01c.02[01] the current access control procedures are reviewed and updated [Assignment: organization-defined frequency];
-                		AC-01c.02[02] the current access control procedures are reviewed and updated following [Assignment: organization-defined events].
+                STATEMENT:
+                a. Develop, document, and disseminate to [Assignment: organization-defined organization-defined personnel or roles]:
+                	1. [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy that:
+                		(a) Addresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and
+                		(b) Is consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and
+                	2. Procedures to facilitate the implementation of the access control policy and the associated access controls;
+                b. Designate an [Assignment: organization-defined official] to manage the development, documentation, and dissemination of the access control policy and procedures; and
+                c. Review and update the current access control:
+                	1. Policy [Assignment: organization-defined frequency] and following [Assignment: organization-defined events] ; and
+                	2. Procedures [Assignment: organization-defined frequency] and following [Assignment: organization-defined events].
               uuid: 9cbd2c64-d504-4ee5-ad7e-9cb231f03439
             - control-id: ac-3
+              description: I plan to do this with a baseball bat
+              remarks: |-
+                STATEMENT:
+                Enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+              uuid: e9c7a8f0-5f76-4535-89fe-5a78305e23b0
+            - control-id: ac-3.2
               description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
               remarks: |-
-                ASSESSMENT-OBJECTIVE:
-                approved authorizations for logical access to information and system resources are enforced in accordance with applicable access control policies.
-              uuid: e9c7a8f0-5f76-4535-89fe-5a78305e23b0
+                STATEMENT:
+                Enforce dual authorization for [Assignment: organization-defined privileged commands and/or other actions].
+              uuid: cedc2cc0-1b6b-4323-99b6-1785ba8431d7
           source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
           uuid: a3039927-839c-5745-ac4e-a9993bcd60ed
       description: Component Description
@@ -56,7 +42,7 @@ component-definition:
       type: software
       uuid: 0f397900-198e-43cd-8c3e-75783a0dae38
   metadata:
-    last-modified: 2024-04-26T21:02:30.064863289Z
+    last-modified: 2024-04-26T21:21:05.880415969Z
     oscal-version: 1.1.2
     published: 2024-04-26T20:58:40.317853034Z
     remarks: Lula Generated Component Definition

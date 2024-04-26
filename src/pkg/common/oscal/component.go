@@ -126,28 +126,7 @@ func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefi
 	original.Components = &tempComponents
 	return original, nil
 
-	// TODO: maybe this generation is constrained to a specific control-implementation?
-	// Meaning we generate a latest component definition with the control-implementation specified in catalog-source
-	// Then check for its existence in the original component-definition - if not exists - add new control-implementation and return? otherwise if exists - continue with merge
-
-	// How to check the delta between two component-definitions with []oscalTypes_1_1_2.ImplementedRequirementControlImplementation ?
-
-	// Get a map[control-id]oscalTypes_1_1_2.ImplementedRequirementControlImplementation from each component-definition
-
-	// originalMap, err := getImplementedRequirementsMap(original)
-	// latestMap, err := getImplementedRequirementsMap(latest)
-
-	// Create a new []oscalTypes_1_1_2.ImplementedRequirementControlImplementation var
-	// implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
-
-	// For each key in the latest map - check if it exists in the original map
-	// If so - add the original to implementedRequirements else add the latest
-
-	// reassign the control-implementations.implemented-requirements array
-
-	// return a copy of the original artifact
-
-	// return componentDefinition, err
+	// TODO: evaluate what to do with links/validations
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
