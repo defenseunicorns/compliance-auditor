@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -51,10 +52,63 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 
 // This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
 // The only loss of data should occur when removing implemented-requirements which are no longer defined in the new component-definition
-func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
-
+// Performs merge using the latest component title and control-implementation source
+func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (oscalTypes_1_1_2.ComponentDefinition, error) {
+	var found bool = false
 	// current opinionation of this function would mean that all we are really targeting is implemented-requirements and then retaining the original document
 	// TODO: need to consider 1 -> N components (title as identifier?) w/ 1-> N control-implementations (source as identifier)
+	latestComponent := (*latest.Components)[0]
+	targetTitle := latestComponent.Title
+	latestControlImplementation := (*latestComponent.ControlImplementations)[0]
+	targetSource := controlImplementation.Source
+
+	// Given I have the component title and control-implementation source - How will I replace a targeted control-implementation in a targeted component?
+
+	// Step 1 - identify the component - if it exists
+	// If it doesn't exist in the original - add and return
+	// So we create a temporary slice of components to re-assign?
+	tempComponents := make([]oscalTypes_1_1_2.DefinedComponent, 0)
+	var targetComponent oscalTypes_1_1_2.DefinedComponent
+	for _, component := range *original.Components {
+		if component.Title == targetTitle {
+			targetComponent = component
+			found = true
+		}
+		tempComponents = append(tempComponents, component)
+	}
+
+	// New component was not found - append and return
+	if !found {
+		tempComponents = append(tempComponents, latestComponent)
+		original.Components = &tempComponents
+		return original, nil
+	}
+
+	// reset found
+	found = false
+
+	// New Component was found - continue with merge
+	// Step 2 - identify the control-implementation - if it exists
+	// If it doesn't exist in the original - add and return
+	tempControlImplementations := make([]oscalTypes_1_1_2.ControlImplementationSet, 0)
+	var targetControlImplementation oscalTypes_1_1_2.ControlImplementationSet
+	for _, controlImplementation := range *targetComponent.ControlImplementations {
+		if controlImplementation.Source == targetSource {
+			targetControlImplementation = controlImplementation
+			found = true
+		}
+		tempControlImplementations = append(tempControlImplementations, controlImplementation)
+	}
+
+	if !found {
+		tempControlImplementations = append(tempControlImplementations, latestControlImplementation)
+		targetComponent.ControlImplementations = &tempControlImplementations
+		tempComponents = append(tempComponents, targetComponent)
+		original.Components = &tempComponents
+		return original, nil
+	}
+	// Step 3 - Update or Replace
+
 	// TODO: maybe this generation is constrained to a specific control-implementation?
 	// Meaning we generate a latest component definition with the control-implementation specified in catalog-source
 	// Then check for its existence in the original component-definition - if not exists - add new control-implementation and return? otherwise if exists - continue with merge
