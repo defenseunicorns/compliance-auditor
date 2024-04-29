@@ -118,14 +118,6 @@ func init() {
 				message.Fatalf(err, "error writing result: %v", err)
 			}
 
-			result := validation.Result.Failing == 0
-			// If the expected result is not equal to the actual result, return an error
-			if validateOpts.ExpectedResult != result {
-				message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
-			}
-			// Print the number of passing and failing results
-			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
-
 			// Print observations if there are any
 			if len(validation.Result.Observations) > 0 {
 				message.Infof("Observations:")
@@ -133,6 +125,14 @@ func init() {
 					message.Infof("--> %s: %s", key, observation)
 				}
 			}
+
+			result := validation.Result.Failing == 0
+			// If the expected result is not equal to the actual result, return an error
+			if validateOpts.ExpectedResult != result {
+				message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
+			}
+			// Print the number of passing and failing results
+			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
 		},
 	}
 
