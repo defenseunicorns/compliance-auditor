@@ -50,89 +50,177 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 }
 
 // This function should perform a merge of a component-definition with a specific component/control-implementation combo where maintaining the original component-definition is the primary concern.
-func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefinition, newComponent oscalTypes_1_1_2.DefinedComponent, newControlImplementation oscalTypes_1_1_2.ControlImplementationSet) (oscalTypes_1_1_2.ComponentDefinition, error) {
-	var found bool = false
-	// Given I have the component title and control-implementation source - How will I replace a targeted control-implementation in a targeted component?
+func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (oscalTypes_1_1_2.ComponentDefinition, error) {
 
-	// Step 1 - identify the component - if it exists
-	// If it doesn't exist in the original - add and return
-	// So we create a temporary slice of components to re-assign?
-	tempComponents := make([]oscalTypes_1_1_2.DefinedComponent, 0)
-	var targetComponent oscalTypes_1_1_2.DefinedComponent
+	originalMap := make(map[string]oscalTypes_1_1_2.DefinedComponent)
+
 	for _, component := range *original.Components {
-		if component.Title == newComponent.Title {
-			targetComponent = component
-			found = true
+		originalMap[component.Title] = component
+	}
+
+	latestMap := make(map[string]oscalTypes_1_1_2.DefinedComponent)
+
+	for _, component := range *latest.Components {
+		latestMap[component.Title] = component
+	}
+
+	tempItems := make([]oscalTypes_1_1_2.DefinedComponent, 0)
+	for key, value := range latestMap {
+		if comp, ok := originalMap[key]; ok {
+			// if the component exists - merge & append
+			comp = mergeComponents(comp, value)
+			tempItems = append(tempItems, comp)
+			delete(originalMap, key)
 		} else {
-			tempComponents = append(tempComponents, component)
+			// append the component
+			tempItems = append(tempItems, value)
 		}
 	}
 
-	// New component was not found - append and return
-	if !found {
-		tempComponents = append(tempComponents, newComponent)
-		original.Components = &tempComponents
-		return original, nil
+	for _, item := range originalMap {
+		tempItems = append(tempItems, item)
 	}
 
-	// reset found bool
-	found = false
-
-	// New Component was found - continue with merge
-	// Step 2 - identify the control-implementation - if it exists
-	// If it doesn't exist in the original - add and return
-	tempControlImplementations := make([]oscalTypes_1_1_2.ControlImplementationSet, 0)
-	var targetControlImplementation oscalTypes_1_1_2.ControlImplementationSet
-	for _, controlImplementation := range *targetComponent.ControlImplementations {
-		if controlImplementation.Source == newControlImplementation.Source {
-			targetControlImplementation = controlImplementation
-			found = true
-		} else {
-			tempControlImplementations = append(tempControlImplementations, controlImplementation)
+	// merge the back-matter resources
+	if original.BackMatter != nil && latest.BackMatter != nil {
+		original.BackMatter = &oscalTypes_1_1_2.BackMatter{
+			Resources: mergeResources(original.BackMatter.Resources, latest.BackMatter.Resources),
 		}
+	} else if original.BackMatter == nil && latest.BackMatter != nil {
+		original.BackMatter = latest.BackMatter
 	}
 
-	if !found {
-		tempControlImplementations = append(tempControlImplementations, newControlImplementation)
-		targetComponent.ControlImplementations = &tempControlImplementations
-		tempComponents = append(tempComponents, targetComponent)
-		original.Components = &tempComponents
-		return original, nil
-	}
-	// Step 3 - Update or Replace - do not remove
-	newImpMap := getImplementedRequirementsMap(newControlImplementation.ImplementedRequirements)
-	originalImpMap := getImplementedRequirementsMap(targetControlImplementation.ImplementedRequirements)
-
-	// Create a placeholder for implemented-requirements
-	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
-	for id, req := range newImpMap {
-		if orig, ok := originalImpMap[id]; ok {
-			// requirement exists in both - update remarks
-			orig.Remarks = req.Remarks
-			implmentedRequirements = append(implmentedRequirements, orig)
-			delete(originalImpMap, id)
-		} else {
-			implmentedRequirements = append(implmentedRequirements, req)
-		}
-	}
-	// Add the remaining original implemented-requirements
-	for _, req := range originalImpMap {
-		implmentedRequirements = append(implmentedRequirements, req)
-	}
-
-	// Re-assemble the original document
-	targetControlImplementation.ImplementedRequirements = implmentedRequirements
-	tempControlImplementations = append(tempControlImplementations, targetControlImplementation)
-	targetComponent.ControlImplementations = &tempControlImplementations
-	tempComponents = append(tempComponents, targetComponent)
-	original.Components = &tempComponents
+	original.Components = &tempItems
 
 	// TODO: Decide if we need to generate a new top-level UUID
 	// original.UUID = uuid.NewUUID()
 
 	return original, nil
 
-	// TODO: evaluate what to do with links/validations
+}
+
+func mergeComponents(original oscalTypes_1_1_2.DefinedComponent, latest oscalTypes_1_1_2.DefinedComponent) oscalTypes_1_1_2.DefinedComponent {
+	originalMap := make(map[string]oscalTypes_1_1_2.ControlImplementationSet)
+
+	for _, item := range *original.ControlImplementations {
+		originalMap[item.Source] = item
+	}
+
+	latestMap := make(map[string]oscalTypes_1_1_2.ControlImplementationSet)
+
+	for _, item := range *latest.ControlImplementations {
+		latestMap[item.Source] = item
+	}
+
+	tempItems := make([]oscalTypes_1_1_2.ControlImplementationSet, 0)
+	for key, value := range latestMap {
+		if orig, ok := originalMap[key]; ok {
+			// if the control implementation exists - merge & append
+			orig = mergeControlImplementations(orig, value)
+			tempItems = append(tempItems, orig)
+			delete(originalMap, key)
+		} else {
+			// append the component
+			tempItems = append(tempItems, value)
+		}
+	}
+
+	for _, item := range originalMap {
+		tempItems = append(tempItems, item)
+	}
+
+	original.ControlImplementations = &tempItems
+	return original
+}
+
+func mergeControlImplementations(original oscalTypes_1_1_2.ControlImplementationSet, latest oscalTypes_1_1_2.ControlImplementationSet) oscalTypes_1_1_2.ControlImplementationSet {
+	originalMap := make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
+
+	for _, item := range original.ImplementedRequirements {
+		originalMap[item.ControlId] = item
+	}
+	latestMap := make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
+
+	for _, item := range latest.ImplementedRequirements {
+		latestMap[item.ControlId] = item
+	}
+	tempItems := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+	for key, latestImp := range latestMap {
+		if orig, ok := originalMap[key]; ok {
+			// requirement exists in both - update remarks as this is solely owned by the automation
+			orig.Remarks = latestImp.Remarks
+			// update the links as another critical field
+			if orig.Links != nil && latestImp.Links != nil {
+				orig.Links = mergeLinks(*orig.Links, *latestImp.Links)
+			} else if orig.Links == nil && latestImp.Links != nil {
+				orig.Links = latest.Links
+			}
+
+			tempItems = append(tempItems, orig)
+			delete(originalMap, key)
+		} else {
+			// append the component
+			tempItems = append(tempItems, latestImp)
+		}
+	}
+
+	for _, item := range originalMap {
+		tempItems = append(tempItems, item)
+	}
+	original.ImplementedRequirements = tempItems
+	return original
+}
+
+// Merges two arrays of resources into a single array
+func mergeResources(orig *[]oscalTypes_1_1_2.Resource, latest *[]oscalTypes_1_1_2.Resource) *[]oscalTypes_1_1_2.Resource {
+	if orig == nil {
+		return latest
+	}
+
+	if latest == nil {
+		return orig
+	}
+
+	result := make([]oscalTypes_1_1_2.Resource, 0)
+
+	tempResource := make(map[string]oscalTypes_1_1_2.Resource)
+	for _, resource := range *orig {
+		tempResource[resource.UUID] = resource
+		result = append(result, resource)
+	}
+
+	for _, resource := range *latest {
+		// Only append if does not exist
+		if _, ok := tempResource[resource.UUID]; !ok {
+			result = append(result, resource)
+		}
+	}
+
+	return &result
+}
+
+// Merges two arrays of links into a single array
+// TODO: account for overriding validations
+func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[]oscalTypes_1_1_2.Link {
+	result := make([]oscalTypes_1_1_2.Link, 0)
+
+	tempLinks := make(map[string]oscalTypes_1_1_2.Link)
+	for _, link := range orig {
+		// Both of these are string fields, href is required - resource fragment can help establish uniqueness
+		key := fmt.Sprintf("%s%s", link.Href, link.ResourceFragment)
+		tempLinks[key] = link
+		result = append(result, link)
+	}
+
+	for _, link := range latest {
+		key := fmt.Sprintf("%s%s", link.Href, link.ResourceFragment)
+		// Only append if does not exist
+		if _, ok := tempLinks[key]; !ok {
+			result = append(result, link)
+		}
+	}
+
+	return &result
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.

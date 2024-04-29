@@ -99,9 +99,6 @@ var generateComponentCmd = &cobra.Command{
 			fileName = "oscal-component.yaml"
 		}
 
-		// This is where we will need to look at merge operations
-		// Move this to the end - create a merge operation
-
 		if componentOpts.OutputFile != "" {
 			outputFile = componentOpts.OutputFile
 		}
@@ -115,9 +112,7 @@ var generateComponentCmd = &cobra.Command{
 			if err != nil {
 				message.Fatalf(fmt.Errorf("error creating new component definition"), "error creating new component definition")
 			}
-			newComponent := (*comp.Components)[0]
-			newControlImplmentation := (*newComponent.ControlImplementations)[0]
-			comp, err = oscal.MergeComponentDefinitionOnComponent(existingComponent, newComponent, newControlImplmentation)
+			comp, err = oscal.MergeComponentDefinitions(existingComponent, comp)
 			if err != nil {
 				message.Fatalf(fmt.Errorf("error merging component definition on component"), "error merging component definition on component")
 			}

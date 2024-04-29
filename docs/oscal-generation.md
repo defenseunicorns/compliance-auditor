@@ -37,12 +37,17 @@ This involves importing other component-definition files from some location and 
 - Validation Link?
 
 ### Overlap
-If we perform a merge of an original component-definition with a single component/control-implementation for Generation - then this could be re-used for import where merging could loop through this function.
-What does this function really need? currently hardcodes the first component and the first control-implementation.
-- In order to support merge with many to many of the above layers... we need the component and control-implementation to be passed in as a parameter?
+Options:
+1. Create a local definition for a component-definition that translates specified arrays into maps
+  a. Convert component to local definition
+  b. Merge two instances
+  c. Convert local definition back to component
+2. Handle all array to map conversions in-line
+  a. 
 
 ## Example 
 
 ```bash
 ./bin/lula generate component -c https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json -r ac-1,ac-3,ac-3.2,ac-4 -o oscal-component.yaml --remarks assessment-objective -l debug
 ```
+
