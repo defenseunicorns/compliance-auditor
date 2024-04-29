@@ -125,6 +125,14 @@ func init() {
 			}
 			// Print the number of passing and failing results
 			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
+
+			// Print observations if there are any
+			if len(validation.Result.Observations) > 0 {
+				message.Infof("Observations:")
+				for key, observation := range validation.Result.Observations {
+					message.Infof("--> %s: %s", key, observation)
+				}
+			}
 		},
 	}
 
