@@ -119,11 +119,17 @@ func MergeComponentDefinitionOnComponent(original oscalTypes_1_1_2.ComponentDefi
 	for _, req := range originalImpMap {
 		implmentedRequirements = append(implmentedRequirements, req)
 	}
+
+	// Re-assemble the original document
 	targetControlImplementation.ImplementedRequirements = implmentedRequirements
 	tempControlImplementations = append(tempControlImplementations, targetControlImplementation)
 	targetComponent.ControlImplementations = &tempControlImplementations
 	tempComponents = append(tempComponents, targetComponent)
 	original.Components = &tempComponents
+
+	// TODO: Decide if we need to generate a new top-level UUID
+	// original.UUID = uuid.NewUUID()
+
 	return original, nil
 
 	// TODO: evaluate what to do with links/validations
