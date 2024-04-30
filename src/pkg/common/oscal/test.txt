@@ -1,0 +1,6 @@
+--- FAIL: TestComponentFromCatalog (0.06s)
+    --- FAIL: TestComponentFromCatalog/Valid_test_of_component_from_Catalog (0.00s)
+        component_test.go:186: ComponentFromCatalog() got = {<nil> <nil> 0xc00183b0e0 <nil> {<nil> <nil> 2024-04-30 21:38:12.168802584 +0000 UTC m=+0.059872989 <nil> <nil> 1.1.2 <nil> <nil> 2024-04-30 21:38:12.168802584 +0000 UTC m=+0.059872989 Lula Generated Component Definition <nil> <nil> <nil> Component Title 0.0.1} 927f2d59-4541-4f93-bd8a-703c7c6811e9}, want {<nil> <nil> 0xc000297560 <nil> {<nil> <nil> 2024-04-30 21:36:53.226218112 +0000 UTC <nil> <nil> 1.1.2 <nil> <nil> 2024-04-30 21:36:53.226218112 +0000 UTC Lula Generated Component Definition <nil> <nil> <nil> Component Title 0.0.1} 48cef479-bda9-440d-8b38-1ba98246bb47}
+FAIL
+FAIL	github.com/defenseunicorns/lula/src/pkg/common/oscal	0.063s
+FAIL

@@ -27,7 +27,6 @@ type componentFlags struct {
 	Component     string   // --component
 	Requirements  []string // -r --requirements
 	Remarks       []string // --remarks
-	All           bool     // -a --all
 }
 
 var opts = &flags{}
@@ -51,7 +50,6 @@ var generateComponentCmd = &cobra.Command{
 	Args:    cobra.MaximumNArgs(1),
 	Short:   "Generate a component definition OSCAL template",
 	Run: func(_ *cobra.Command, args []string) {
-		message.Info("generate component executed")
 		var remarks []string
 		var title = "Component Title"
 		var outputFile = "oscal-component.yaml"
@@ -87,7 +85,7 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		// Create a component definition from the catalog given required context
-		comp, err := oscal.ComponentFromCatalog(source, catalog, title, componentOpts.Requirements, remarks, componentOpts.All)
+		comp, err := oscal.ComponentFromCatalog(source, catalog, title, componentOpts.Requirements, remarks)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
@@ -217,5 +215,4 @@ func generateComponentFlags() {
 	componentFlags.StringVar(&componentOpts.Component, "component", "", "Component Title")
 	componentFlags.StringSliceVarP(&componentOpts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
 	componentFlags.StringSliceVar(&componentOpts.Remarks, "remarks", []string{}, "Target for remarks population (default = statement)")
-	componentFlags.BoolVarP(&componentOpts.All, "all", "a", false, "Generate a component with all controls from the catalog")
 }

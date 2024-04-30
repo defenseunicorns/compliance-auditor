@@ -224,9 +224,7 @@ func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
-func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string, allControls bool) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
-
-	message.Debugf("target controls %v", targetControls)
+func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 
@@ -237,15 +235,26 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, compo
 		controlMap[id[0]] = append(controlMap[id[0]], id[1])
 	}
 
+	if len(controlMap) == 0 {
+		return componentDefinition, fmt.Errorf("no controls identified for generation")
+	}
+
+	if catalog.Groups == nil {
+		return componentDefinition, fmt.Errorf("catalog Groups is nil - no catalog provided")
+	}
+
 	// We then want to iterate through the catalog, identify the controls and map control information to the implemented-requirements
 
 	for _, group := range *catalog.Groups {
 		// Is this a group of controls that we are targeting
-		if controlArray, ok := controlMap[group.ID]; ok || allControls {
+		if controlArray, ok := controlMap[group.ID]; ok {
+			if group.Controls == nil {
+				return componentDefinition, fmt.Errorf("group %s has no controls", group.ID)
+			}
 			for _, control := range *group.Controls {
 				id := strings.Split(control.ID, "-")
 				// Check if the control is the primary control
-				if contains(controlArray, id[1]) || allControls {
+				if contains(controlArray, id[1]) {
 					newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
 					if err != nil {
 						return componentDefinition, err
@@ -257,7 +266,7 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, compo
 				if control.Controls != nil {
 					for _, subControl := range *control.Controls {
 						subId := strings.Split(subControl.ID, "-")
-						if contains(controlArray, subId[1]) || allControls {
+						if contains(controlArray, subId[1]) {
 							newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
 							if err != nil {
 								return componentDefinition, err
