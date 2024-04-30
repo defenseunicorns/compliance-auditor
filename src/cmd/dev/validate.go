@@ -126,7 +126,7 @@ func init() {
 				}
 			}
 
-			result := validation.Result.Failing == 0
+			result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
 			// If the expected result is not equal to the actual result, return an error
 			if validateOpts.ExpectedResult != result {
 				message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
