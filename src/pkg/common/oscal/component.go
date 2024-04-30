@@ -49,7 +49,7 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 	return *oscalModels.ComponentDefinition, nil
 }
 
-// This function should perform a merge of a component-definition with a specific component/control-implementation combo where maintaining the original component-definition is the primary concern.
+// This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
 func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (oscalTypes_1_1_2.ComponentDefinition, error) {
 
 	originalMap := make(map[string]oscalTypes_1_1_2.DefinedComponent)
