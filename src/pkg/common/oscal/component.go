@@ -342,7 +342,7 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRem
 			}
 		}
 	} else {
-		message.Debugf("No parameters found for %s", control.ID)
+		message.Debugf("No parameters (control.Params) found for %s", control.ID)
 	}
 
 	if control.Parts != nil {

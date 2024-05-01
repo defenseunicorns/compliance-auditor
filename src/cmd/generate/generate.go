@@ -49,6 +49,12 @@ lula generate component -c <catalog source url> -r control-a,control-b,control-c
 
 To Generate and merge with an existing Component Definition:
 lula generate component -c <catalog source url> -r control-a,control-b,control-c -o existing-component.yaml
+
+To Generate a component definition with a specific "named" component:
+lula generate component -c <catalog source url> -r control-a --component "Software X"
+
+To Generate a component definition with remarks populated from specific control "parts":
+lula generate component -c <catalog source url> -r control-a --remarks guidance,assessment-objective
 `
 
 // Component-Definition generation will generate an OSCAL file that can be used both as the basis for Lula validations
@@ -143,7 +149,7 @@ var generateComponentCmd = &cobra.Command{
 
 		err = os.WriteFile(fileName, b.Bytes(), 0644)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error writing Component Definition to: %s", fileName), "error writing Security Assessment Results to: %s", fileName)
+			message.Fatalf(fmt.Errorf("error writing Component Definition to: %s", fileName), "error writing Component Definition to: %s", fileName)
 		}
 
 	},
