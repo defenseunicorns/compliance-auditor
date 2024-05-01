@@ -273,3 +273,63 @@ func TestSwitchCwd(t *testing.T) {
 		})
 	}
 }
+
+func TestValidationToResource(t *testing.T) {
+	t.Parallel()
+	t.Run("It populates a resource from a validation", func(t *testing.T) {
+		t.Parallel()
+		validation := &common.Validation{
+			Metadata: common.Metadata{
+				UUID: "1234",
+				Name: "Test Validation",
+			},
+			Provider: common.Provider{
+				Type: "test",
+			},
+			Domain: common.Domain{
+				Type: "test",
+			},
+		}
+
+		resource, err := validation.ToResource()
+		if err != nil {
+			t.Errorf("ToResource() error = %v", err)
+		}
+
+		if resource.Title != validation.Metadata.Name {
+			t.Errorf("ToResource() title = %v, want %v", resource.Title, validation.Metadata.Name)
+		}
+
+		if resource.UUID != validation.Metadata.UUID {
+			t.Errorf("ToResource() UUID = %v, want %v", resource.UUID, validation.Metadata.UUID)
+		}
+
+		if resource.Description == "" {
+			t.Errorf("ToResource() description = %v, want %v", resource.Description, "")
+		}
+	})
+
+	t.Run("It adds a UUID if one does not exist", func(t *testing.T) {
+		t.Parallel()
+		validation := &common.Validation{
+			Metadata: common.Metadata{
+				Name: "Test Validation",
+			},
+			Provider: common.Provider{
+				Type: "test",
+			},
+			Domain: common.Domain{
+				Type: "test",
+			},
+		}
+
+		resource, err := validation.ToResource()
+		if err != nil {
+			t.Errorf("ToResource() error = %v", err)
+		}
+
+		if resource.UUID == validation.Metadata.UUID {
+			t.Errorf("ToResource() description = \"\", want a valid UUID")
+		}
+	})
+}

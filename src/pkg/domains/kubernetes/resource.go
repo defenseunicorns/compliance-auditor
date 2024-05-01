@@ -13,7 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
@@ -50,9 +51,9 @@ func GetResourcesDynamically(ctx context.Context,
 	resource ResourceRule) (
 	[]map[string]interface{}, error) {
 
-	config, err := ctrl.GetConfig()
+	config, err := connect()
 	if err != nil {
-		return nil, fmt.Errorf("error with connection to the Cluster")
+		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
 	}
 	dynamic := dynamic.NewForConfigOrDie(config)
 
@@ -113,9 +114,9 @@ func GetResourcesDynamically(ctx context.Context,
 }
 
 func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
-	config, err := ctrl.GetConfig()
+	config, err := connect()
 	if err != nil {
-		return nil, fmt.Errorf("error with connection to the Cluster")
+		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
 	}
 	name := strings.Split(kind, "/")[0]
 
@@ -218,4 +219,20 @@ func getFieldValue(item map[string]interface{}, field Field) (map[string]interfa
 		}
 		return result, nil
 	}
+}
+
+// Use the K8s "client-go" library to get the currently active kube context, in the same way that
+// "kubectl" gets it if no extra config flags like "--kubeconfig" are passed.
+func connect() (config *rest.Config, err error) {
+	// Build the config from the currently active kube context in the default way that the k8s client-go gets it, which
+	// is to look at the KUBECONFIG env var
+	config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{}).ClientConfig()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }

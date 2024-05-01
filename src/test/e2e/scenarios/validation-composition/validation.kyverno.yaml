@@ -1,0 +1,31 @@
+lula-version: ">= v0.2.0"
+metadata:
+  name: Kyverno validate pods with label foo=bar
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podsvt # Identifier for use in the rego below
+        resource-rule: # Mandatory, resource selection criteria, at least one resource rule is required
+          group: # empty or "" for core group
+          version: v1 # Version of resource
+          resource: pods # Resource type
+          namespaces: [validation-test] # Namespaces to validate the above resources in. Empty or "" for all namespaces or non-namespaced resources
+provider:
+  type: kyverno
+  kyverno-spec:
+    policy:
+      apiVersion: json.kyverno.io/v1alpha1
+      kind: ValidatingPolicy
+      metadata:
+        name: labels
+      spec:
+        rules:
+          - name: foo-label-exists
+            assert:
+              all:
+                - check:
+                    ~.podsvt:
+                      metadata:
+                        labels:
+                          foo: bar

@@ -30,18 +30,45 @@ type LulaValidation struct {
 // LulaValidationMap is a map of LulaValidation objects
 type LulaValidationMap = map[string]LulaValidation
 
+// Lula Validation Options settings
+type lulaValidationOptions struct {
+	staticResources DomainResources
+}
+
+type LulaValidationOption func(*lulaValidationOptions)
+
+// WithStaticResources sets the static resources for the LulaValidation object
+func WithStaticResources(resources DomainResources) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.staticResources = resources
+	}
+}
+
 // Perform the validation, and store the result in the LulaValidation struct
-func (val *LulaValidation) Validate() error {
+func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 	if !val.Evaluated {
-		// Extract the resources from the domain
-		domainResources, err := val.Domain.GetResources()
-		if err != nil {
-			return err
+		// Set Validation config from options passed
+		config := &lulaValidationOptions{
+			staticResources: nil,
 		}
-		// Bookkeeping of the domain resources for use elsewhere
-		val.DomainResources = domainResources
+		for _, opt := range opts {
+			opt(config)
+		}
+
+		// Get the resources
+		if config.staticResources != nil {
+			val.DomainResources = config.staticResources
+		} else {
+			dynamicResources, err := val.Domain.GetResources()
+			if err != nil {
+				return err
+			}
+			// Bookkeeping of the domain resources for use elsewhere
+			val.DomainResources = dynamicResources
+		}
+
 		// Perform the evaluation using the provider
-		result, err := val.Provider.Evaluate(domainResources)
+		result, err := val.Provider.Evaluate(val.DomainResources)
 		if err != nil {
 			return err
 		}
