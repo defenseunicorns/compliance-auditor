@@ -1,53 +1,34 @@
 # OSCAL Generation
 
-Lula has the potential to provide a codified base for how to generate and maintain OSCAL through automation. This means that with a foundation built - Lula can continue to iterate on the methods for mapping & maintaining data that aligns with the intent of OSCAL and the standards/benchmarks involved. 
+Lula can generate OSCAL templates to help with authoring OSCAL artifacts. These generation processes help with initial build and maintenance of OSCAL artifacts and keeps with the vision of modular compliance artifacts that live with the source code. 
 
-## Generic Generation Concepts
+## Component Definition
 
-The generation process for OSCAL artifacts created and maintained by Lula should include the following:
-- Specification of fields only maintained by automation (Challenge this one)
-  - `implemented-requirements.remarks`
-- Ability to maintain data that is added through manual interaction
-  - This involves merging newly generated data with existing data
-  - Involves two scenarios
-    - No data exists - create a new document
-    - Data exists - perform a merge of the new component with the existing data
+To generate a component definition, you need the following context:
+- The catalog source `-c` or `--catalog-source`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json`
+- The controls from the catalog to map to `implemented-requirements` / `-r` or `--requirements`; `ac-1,ac-2,au-5`
 
-## Scenarios for Manipulation of Component Definitions
+The following command will generate a component definition with the above context:
+```
+lula generate component -c https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json -r ac-1,ac-2,au-5
+```
 
-### Component Definition Generation
+There are optional flags that can be added to the command to generate a component definition:
+- The remarks you wish to map from the control parts to the requirement remarks`--remarks`; `assessment-objective,statement,guidance`
+- The title of the component `--component`; `Software Title`
+- The output file of the component `-o` or `--output`; `oscal-component.yaml`
 
-This is the execution that involves creation of a new component-definition and then determining if there is an existing component-definition with which to merge the newly generated data.
+### Existing Data
 
-This command will focus solely on a single component-definition `component` containing a single `control-implementation` - currently preventing further complexity. 
+The ability to retain data that is put into OSCAL artifacts is of utmost importance to this generation process and also a large feature of continued maintenance of these artifacts. Lula supports the ability to merge newly generated component definition templates into existing component definitions automatically. 
 
-Current TODO:
-- Ability to retain data in an existing OutputFile on re-generation
-  - Easier said than done - check if the control-implementation exists
-  - then find the delta of the controls
-- Ability to detect an OSCAL manifest file (IE InputFile flag)
-- wildcard match on requirements?
+By specifying `--output` or `-o` and providing an existing file - Lula will perform a merge operation that only overwrites specific fields owned by automation.
 
-### Component Definition Import-Component-Definitions Compose
-
-This involves importing other component-definition files from some location and performing a merge activity at all layers:
-- Component
-- Control Implementation
-- Implemented Requirement
-- Validation Link?
-
-### Overlap
-Options:
-1. Create a local definition for a component-definition that translates specified arrays into maps
-  a. Convert component to local definition
-  b. Merge two instances
-  c. Convert local definition back to component
-2. Handle all array to map conversions in-line
-  a. 
+Lula performs a match on the component title and the provided catalog source to determine placement and merge of the new implemented requirements. This can be used to updated exiting items or as a method to generation of a single artifacts that contains the data for many components or many control implementations. 
 
 ## Example 
 
 ```bash
-./bin/lula generate component -c https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json -r ac-1,ac-3,ac-3.2,ac-4 -o oscal-component.yaml --remarks assessment-objective -l debug
+./bin/lula generate component -c https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json -r ac-1,ac-3,ac-3.2,ac-4 -o oscal-component.yaml --remarks assessment-objective 
 ```
 

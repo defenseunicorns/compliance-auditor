@@ -42,6 +42,15 @@ var generateCmd = &cobra.Command{
 	Short:   "Generate a specified compliance artifact template",
 }
 
+var componentHelp = `
+To generate a new component-definition template:
+lula generate component -c <catalog source url> -r control-a,control-b,control-c
+- IE lula generate component -c https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json -r ac-1,ac-2,au-5
+
+To Generate and merge with an existing Component Definition:
+lula generate component -c <catalog source url> -r control-a,control-b,control-c -o existing-component.yaml
+`
+
 // Component-Definition generation will generate an OSCAL file that can be used both as the basis for Lula validations
 // as well as required components for SSP/SAP/SAR/POAM.
 var generateComponentCmd = &cobra.Command{
@@ -49,6 +58,7 @@ var generateComponentCmd = &cobra.Command{
 	Aliases: []string{"c"},
 	Args:    cobra.MaximumNArgs(1),
 	Short:   "Generate a component definition OSCAL template",
+	Example: componentHelp,
 	Run: func(_ *cobra.Command, args []string) {
 		var remarks []string
 		var title = "Component Title"
