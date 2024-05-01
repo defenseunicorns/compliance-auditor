@@ -1,7 +1,6 @@
 package oscal_test
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -159,7 +158,6 @@ func TestComponentFromCatalog(t *testing.T) {
 			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
 			remarks:      []string{"statement"},
 			source:       "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
-			want:         *validWantSchema.ComponentDefinition,
 			wantReqLen:   4,
 			wantErr:      false,
 		},
@@ -170,7 +168,6 @@ func TestComponentFromCatalog(t *testing.T) {
 			requirements: []string{},
 			remarks:      []string{"statement"},
 			source:       "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
-			want:         *validWantSchema.ComponentDefinition,
 			wantErr:      true,
 		},
 		{
@@ -182,7 +179,6 @@ func TestComponentFromCatalog(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := oscal.ComponentFromCatalog(tt.source, tt.data, tt.title, tt.requirements, tt.remarks)
-			fmt.Println(err != nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ComponentFromCatalog() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -216,6 +212,121 @@ func TestComponentFromCatalog(t *testing.T) {
 			if !reflect.DeepEqual(implementedRequirements, tt.requirements) {
 				t.Errorf("Generated Requirements length mismatch - got = %v, want %v", implementedRequirements, tt.requirements)
 			}
+		})
+	}
+}
+
+func TestMergeComponentDefinitions(t *testing.T) {
+
+	// This test should ingest the test generated artifacts
+	validBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-generated-component.yaml")
+
+	validComponent, _ := oscal.NewOscalComponentDefinition("valid-generated-component.yaml", validBytes)
+	// generate a new artifact
+	catalogBytes := loadTestData(t, catalogPath)
+	source := "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
+	catalog, err := oscal.NewCatalog(source, catalogBytes)
+	if err != nil {
+		t.Errorf("error creating catalog from path %s", catalogPath)
+	}
+
+	tests := []struct {
+		name                                 string
+		existing                             oscalTypes.ComponentDefinition
+		title                                string
+		source                               string
+		requirements                         []string
+		remarks                              []string
+		expectedComponents                   int
+		expectedControlImplementations       int
+		expectedTargetControlImplementations int
+		wantErr                              bool
+	}{
+		{
+			name:                                 "Valid test of component merge",
+			existing:                             validComponent,
+			title:                                "Component Title",
+			requirements:                         []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
+			remarks:                              []string{"statement"},
+			source:                               "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+			expectedComponents:                   1,
+			expectedControlImplementations:       1,
+			expectedTargetControlImplementations: 1,
+			wantErr:                              false,
+		},
+		{
+			name:                                 "Valid test of component merge with multiple unique components",
+			existing:                             validComponent,
+			title:                                "Component Test Title",
+			requirements:                         []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
+			remarks:                              []string{"statement"},
+			source:                               "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+			expectedComponents:                   2,
+			expectedControlImplementations:       2,
+			expectedTargetControlImplementations: 1,
+			wantErr:                              false,
+		},
+		{
+			name:    "Invalid test of empty catalog",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			generated, _ := oscal.ComponentFromCatalog(tt.source, catalog, tt.title, tt.requirements, tt.remarks)
+
+			merged, err := oscal.MergeComponentDefinitions(tt.existing, generated)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MergeComponentDefinitions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			components := (*merged.Components)
+			if len(components) != tt.expectedComponents {
+				t.Errorf("MergeComponentDefinitions() expected %v components, got %v", tt.expectedComponents, len((*merged.Components)))
+			}
+			controlImplementations := make([]oscalTypes.ControlImplementationSet, 0)
+			var targetComponent oscalTypes.DefinedComponent
+			for _, component := range components {
+				if component.ControlImplementations != nil {
+					if component.Title == "Component Title" {
+						targetComponent = component
+					}
+					controlImplementations = append(controlImplementations, (*component.ControlImplementations)...)
+				}
+			}
+			if len(controlImplementations) != tt.expectedControlImplementations {
+				t.Errorf("MergeComponentDefinitions() expected %v control implementations, got %v", tt.expectedControlImplementations, len(controlImplementations))
+			}
+
+			// Now operate on the target existing component
+			if targetComponent.ControlImplementations == nil {
+				t.Errorf("MergeComponentDefinitions() missing control-implementations in component %s", targetComponent.Title)
+			}
+			controlImplementations = (*targetComponent.ControlImplementations)
+
+			if len(controlImplementations) != tt.expectedTargetControlImplementations {
+				t.Errorf("MergeComponentDefinitions() expected %v control-implementations in component %s, got %v", tt.expectedTargetControlImplementations, targetComponent.Title, len(controlImplementations))
+			}
+			var targetControlImp oscalTypes.ControlImplementationSet
+			for _, item := range controlImplementations {
+				if item.Source == source {
+					targetControlImp = item
+				}
+			}
+
+			if targetControlImp.ImplementedRequirements == nil {
+				t.Errorf("MergeComponentDefinitions() missing implemented-requirements in component %s", targetComponent.Title)
+			}
+
+			// check implemented requirements for length
+
+			// check implemented requirements for existing content - add to the test artifact
 
 		})
 	}

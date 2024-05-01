@@ -54,6 +54,10 @@ func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, la
 
 	originalMap := make(map[string]oscalTypes_1_1_2.DefinedComponent)
 
+	if original.Components == nil {
+		return original, fmt.Errorf("original component-definition is nil")
+	}
+
 	for _, component := range *original.Components {
 		originalMap[component.Title] = component
 	}
@@ -442,13 +446,5 @@ func replaceParams(input string, params map[string]parameter) string {
 		}
 		return match
 	})
-	return result
-}
-
-func getImplementedRequirementsMap(irs []oscalTypes_1_1_2.ImplementedRequirementControlImplementation) map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation {
-	result := make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
-	for _, ir := range irs {
-		result[ir.ControlId] = ir
-	}
 	return result
 }
