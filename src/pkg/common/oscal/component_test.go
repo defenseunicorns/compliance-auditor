@@ -162,6 +162,16 @@ func TestComponentFromCatalog(t *testing.T) {
 			wantErr:      false,
 		},
 		{
+			name:         "Valid test of component from Catalog with malformed control",
+			data:         catalog,
+			title:        "Component Title",
+			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "100"},
+			remarks:      []string{"statement"},
+			source:       "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+			wantReqLen:   4,
+			wantErr:      false,
+		},
+		{
 			name:         "Invalid amount of requirements specified",
 			data:         catalog,
 			title:        "Component Test Title",
@@ -207,10 +217,6 @@ func TestComponentFromCatalog(t *testing.T) {
 			reqLen := len(implementedRequirements)
 			if reqLen != tt.wantReqLen {
 				t.Errorf("Generated Requirements length mismatch - got = %v, want %v", reqLen, tt.wantReqLen)
-			}
-
-			if !reflect.DeepEqual(implementedRequirements, tt.requirements) {
-				t.Errorf("Generated Requirements length mismatch - got = %v, want %v", implementedRequirements, tt.requirements)
 			}
 		})
 	}
@@ -259,7 +265,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 			wantErr:                               false,
 		},
 		{
-			name:                                  "Valid test of component merge with multiple unique components",
+			name:                                  "Valid test of component merge with multiple unique controls",
 			existing:                              validComponent,
 			title:                                 "Component Title",
 			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "ac-4.4", "au-5"},

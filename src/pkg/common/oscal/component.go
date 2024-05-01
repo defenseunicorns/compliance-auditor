@@ -232,56 +232,55 @@ func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, compo
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 
-	// How will we identify a control based on the array of controls passed?
-	controlMap := make(map[string][]string)
-	for _, control := range targetControls {
-		id := strings.Split(control, "-")
-		controlMap[id[0]] = append(controlMap[id[0]], id[1])
+	if len(targetControls) == 0 {
+		return componentDefinition, fmt.Errorf("no controls identified for generation")
 	}
 
-	if len(controlMap) == 0 {
-		return componentDefinition, fmt.Errorf("no controls identified for generation")
+	controlMap := make(map[string]bool)
+	for _, control := range targetControls {
+		controlMap[control] = false
 	}
 
 	if catalog.Groups == nil {
 		return componentDefinition, fmt.Errorf("catalog Groups is nil - no catalog provided")
 	}
 
-	// We then want to iterate through the catalog, identify the controls and map control information to the implemented-requirements
-
+	// Iterate through all possible controls -> improve the efficiency of this in the future
 	for _, group := range *catalog.Groups {
-		// Is this a group of controls that we are targeting
-		if controlArray, ok := controlMap[group.ID]; ok {
-			if group.Controls == nil {
-				return componentDefinition, fmt.Errorf("group %s has no controls", group.ID)
-			}
-			for _, control := range *group.Controls {
-				id := strings.Split(control.ID, "-")
-				// Check if the control is the primary control
-				if contains(controlArray, id[1]) {
-					newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
-					if err != nil {
-						return componentDefinition, err
-					}
-					implmentedRequirements = append(implmentedRequirements, newRequirement)
+		if group.Controls == nil {
+			message.Debugf("group %s has no controls", group.ID)
+			continue
+		}
+		for _, control := range *group.Controls {
+			if _, ok := controlMap[control.ID]; ok {
+				newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
+				if err != nil {
+					return componentDefinition, err
 				}
-				// Now check if this control has sub-controls - this can likely be improved by checking for the '.' notation in a control
-				// We need
-				if control.Controls != nil {
-					for _, subControl := range *control.Controls {
-						subId := strings.Split(subControl.ID, "-")
-						if contains(controlArray, subId[1]) {
-							newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
-							if err != nil {
-								return componentDefinition, err
-							}
-							implmentedRequirements = append(implmentedRequirements, newRequirement)
+				implmentedRequirements = append(implmentedRequirements, newRequirement)
+				controlMap[control.ID] = true
+			}
+
+			if control.Controls != nil {
+				for _, subControl := range *control.Controls {
+					if _, ok := controlMap[subControl.ID]; ok {
+						newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
+						if err != nil {
+							return componentDefinition, err
 						}
+						implmentedRequirements = append(implmentedRequirements, newRequirement)
+						controlMap[subControl.ID] = true
+						continue
 					}
 				}
 			}
 		}
+	}
 
+	for id, found := range controlMap {
+		if !found {
+			message.Debugf("Control %s not found", id)
+		}
 	}
 
 	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
