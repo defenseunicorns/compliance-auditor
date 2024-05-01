@@ -231,44 +231,65 @@ func TestMergeComponentDefinitions(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                                 string
-		existing                             oscalTypes.ComponentDefinition
-		title                                string
-		source                               string
-		requirements                         []string
-		remarks                              []string
-		expectedComponents                   int
-		expectedControlImplementations       int
-		expectedTargetControlImplementations int
-		wantErr                              bool
+		name                                  string
+		existing                              oscalTypes.ComponentDefinition
+		title                                 string
+		source                                string
+		requirements                          []string
+		remarks                               []string
+		expectedComponents                    int
+		expectedControlImplementations        int
+		expectedImplementedRequirements       int
+		expectedTargetControlImplementations  int
+		expectedTargetImplementedRequirements int
+		wantErr                               bool
 	}{
 		{
-			name:                                 "Valid test of component merge",
-			existing:                             validComponent,
-			title:                                "Component Title",
-			requirements:                         []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
-			remarks:                              []string{"statement"},
-			source:                               "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
-			expectedComponents:                   1,
-			expectedControlImplementations:       1,
-			expectedTargetControlImplementations: 1,
-			wantErr:                              false,
+			name:                                  "Valid test of component merge",
+			existing:                              validComponent,
+			title:                                 "Component Title",
+			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
+			remarks:                               []string{"statement"},
+			source:                                "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+			expectedComponents:                    1,
+			expectedControlImplementations:        1,
+			expectedImplementedRequirements:       4,
+			expectedTargetControlImplementations:  1,
+			expectedTargetImplementedRequirements: 4,
+			wantErr:                               false,
 		},
 		{
-			name:                                 "Valid test of component merge with multiple unique components",
-			existing:                             validComponent,
-			title:                                "Component Test Title",
-			requirements:                         []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
-			remarks:                              []string{"statement"},
-			source:                               "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
-			expectedComponents:                   2,
-			expectedControlImplementations:       2,
-			expectedTargetControlImplementations: 1,
-			wantErr:                              false,
+			name:                                  "Valid test of component merge with multiple unique components",
+			existing:                              validComponent,
+			title:                                 "Component Title",
+			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "ac-4.4", "au-5"},
+			remarks:                               []string{"statement"},
+			source:                                "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+			expectedComponents:                    1,
+			expectedControlImplementations:        1,
+			expectedImplementedRequirements:       6,
+			expectedTargetControlImplementations:  1,
+			expectedTargetImplementedRequirements: 6,
+			wantErr:                               false,
 		},
 		{
-			name:    "Invalid test of empty catalog",
-			wantErr: true,
+			name:                                  "Valid test of component merge with multiple unique components",
+			existing:                              validComponent,
+			title:                                 "Component Test Title",
+			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
+			remarks:                               []string{"statement"},
+			source:                                "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
+			expectedComponents:                    2,
+			expectedImplementedRequirements:       8,
+			expectedControlImplementations:        2,
+			expectedTargetImplementedRequirements: 4,
+			expectedTargetControlImplementations:  1,
+			wantErr:                               false,
+		},
+		{
+			name:     "Invalid test of empty existing component definition",
+			existing: oscalTypes.ComponentDefinition{},
+			wantErr:  true,
 		},
 	}
 
@@ -286,6 +307,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 				return
 			}
 
+			// Perform checks on quantities
 			components := (*merged.Components)
 			if len(components) != tt.expectedComponents {
 				t.Errorf("MergeComponentDefinitions() expected %v components, got %v", tt.expectedComponents, len((*merged.Components)))
@@ -304,30 +326,51 @@ func TestMergeComponentDefinitions(t *testing.T) {
 				t.Errorf("MergeComponentDefinitions() expected %v control implementations, got %v", tt.expectedControlImplementations, len(controlImplementations))
 			}
 
-			// Now operate on the target existing component
+			implementedRequirements := make([]oscalTypes.ImplementedRequirementControlImplementation, 0)
+			for _, control := range controlImplementations {
+				implementedRequirements = append(implementedRequirements, control.ImplementedRequirements...)
+			}
+
+			if len(implementedRequirements) != tt.expectedImplementedRequirements {
+				t.Errorf("MergeComponentDefinitions() expected %v implementated requirements, got %v", tt.expectedImplementedRequirements, len(implementedRequirements))
+			}
+
+			// Now operate on the target existing component & items (should only be 1 component, 1 control-implementation and dynamic implemented-requirements)
 			if targetComponent.ControlImplementations == nil {
 				t.Errorf("MergeComponentDefinitions() missing control-implementations in component %s", targetComponent.Title)
 			}
-			controlImplementations = (*targetComponent.ControlImplementations)
+			targetControlImplementations := (*targetComponent.ControlImplementations)
 
-			if len(controlImplementations) != tt.expectedTargetControlImplementations {
+			if len(targetControlImplementations) != tt.expectedTargetControlImplementations {
 				t.Errorf("MergeComponentDefinitions() expected %v control-implementations in component %s, got %v", tt.expectedTargetControlImplementations, targetComponent.Title, len(controlImplementations))
 			}
 			var targetControlImp oscalTypes.ControlImplementationSet
-			for _, item := range controlImplementations {
+			for _, item := range targetControlImplementations {
 				if item.Source == source {
 					targetControlImp = item
 				}
 			}
-
-			if targetControlImp.ImplementedRequirements == nil {
-				t.Errorf("MergeComponentDefinitions() missing implemented-requirements in component %s", targetComponent.Title)
+			// check implemented requirements for length
+			if len(targetControlImp.ImplementedRequirements) != tt.expectedTargetImplementedRequirements {
+				t.Errorf("MergeComponentDefinitions() expected %v implemented-requirements in component %s, got %v", tt.expectedTargetImplementedRequirements, targetComponent.Title, len(targetControlImp.ImplementedRequirements))
 			}
 
-			// check implemented requirements for length
+			// Get the implemented requirements from existing for comparison
+			existingComponent := (*tt.existing.Components)[0]
+			existingControlImplementation := (*existingComponent.ControlImplementations)[0]
+			existingImplementedRequirementsMap := make(map[string]bool)
+			for _, req := range existingControlImplementation.ImplementedRequirements {
+				existingImplementedRequirementsMap[req.ControlId] = true
+			}
 
 			// check implemented requirements for existing content - add to the test artifact
-
+			for _, req := range targetControlImp.ImplementedRequirements {
+				if _, ok := existingImplementedRequirementsMap[req.ControlId]; ok {
+					if req.Description != "This is the existing test string" {
+						t.Errorf("MergeComponentDefinitions() expected description 'this is the existing test string' but got %s", req.Description)
+					}
+				}
+			}
 		})
 	}
 
