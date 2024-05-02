@@ -203,7 +203,7 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 								}
 
 								// Add the description of the validation now that we have the ID
-								observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
+								observation.Description = fmt.Sprintf("[TEST] %s - %s - %s\n", implementedRequirement.ControlId, id, link.Text)
 
 								err = lulaValidation.Validate()
 								if err != nil {

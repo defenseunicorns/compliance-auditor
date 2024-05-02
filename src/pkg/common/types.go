@@ -10,6 +10,7 @@ import (
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
@@ -74,6 +75,7 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	// Do version checking here to establish if the version is correct/acceptable
 	var result types.Result
 	var evaluated bool
+	placeholderObservations := make(map[string]string)
 	currentVersion := strings.Split(config.CLIVersion, "-")[0]
 
 	versionConstraint := currentVersion
@@ -84,11 +86,11 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)
 	if versionErr != nil {
 		result.Failing = 1
-		result.Observations = map[string]string{"Lula Version Error": versionErr.Error()}
+		placeholderObservations["Lula Version Error"] = versionErr.Error()
 		evaluated = true
 	} else if !validVersion {
 		result.Failing = 1
-		result.Observations = map[string]string{"Version Constraint Incompatible": "Lula Version does not meet the constraint for this validation."}
+		placeholderObservations["Version Constraint Incompatible"] = "Lula Version does not meet the constraint for this validation."
 		evaluated = true
 	}
 
@@ -97,14 +99,26 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	ctx := context.Background()
 	lulaValidation.Provider = GetProvider(validation.Provider, ctx)
 	if lulaValidation.Provider == nil {
-		return lulaValidation, fmt.Errorf("provider %s not found", validation.Provider.Type)
+		result.Failing = 1
+		placeholderObservations["Provider not found"] = fmt.Sprintf("Unable to perform validation, provider %s not found", validation.Provider.Type)
+		evaluated = true
+		// return lulaValidation, fmt.Errorf("provider %s not found", validation.Provider.Type)
 	}
 	lulaValidation.Domain = GetDomain(validation.Domain, ctx)
 	if lulaValidation.Domain == nil {
-		return lulaValidation, fmt.Errorf("domain %s not found", validation.Domain.Type)
+		result.Failing = 1
+		placeholderObservations["Domain not found"] = fmt.Sprintf("Unable to perform validation, domain %s not found", validation.Domain.Type)
+		evaluated = true
+		// return lulaValidation, fmt.Errorf("domain %s not found", validation.Domain.Type)
 	}
+	// Print placeholder observations if there are any in debug mode
+	for key, value := range placeholderObservations {
+		message.Debugf(fmt.Sprintf("%s: %s", key, value))
+	}
+
 	lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
 	lulaValidation.Evaluated = evaluated
+	result.Observations = placeholderObservations
 	lulaValidation.Result = result
 
 	return lulaValidation, nil

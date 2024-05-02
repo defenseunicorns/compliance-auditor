@@ -1,5 +1,7 @@
 package types
 
+import "github.com/defenseunicorns/lula/src/pkg/message"
+
 type LulaValidationType string
 
 const (
@@ -47,6 +49,11 @@ func WithStaticResources(resources DomainResources) LulaValidationOption {
 // Perform the validation, and store the result in the LulaValidation struct
 func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 	if !val.Evaluated {
+		var result Result
+		var resourceErr error
+		var evaluateErr error
+		var resources DomainResources
+
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
 			staticResources: nil,
@@ -57,22 +64,28 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 
 		// Get the resources
 		if config.staticResources != nil {
-			val.DomainResources = config.staticResources
+			resources = config.staticResources
 		} else {
-			dynamicResources, err := val.Domain.GetResources()
-			if err != nil {
-				return err
+			resources, resourceErr = val.Domain.GetResources()
+			if resourceErr != nil {
+				result.Failing = 1
+				result.Observations = map[string]string{"Domain Get Resources Error": resourceErr.Error()}
+				message.Debugf("Domain Get Resources Error: %s", resourceErr.Error())
 			}
-			// Bookkeeping of the domain resources for use elsewhere
-			val.DomainResources = dynamicResources
 		}
 
 		// Perform the evaluation using the provider
-		result, err := val.Provider.Evaluate(val.DomainResources)
-		if err != nil {
-			return err
+		if result.Failing == 0 {
+			result, evaluateErr = val.Provider.Evaluate(resources)
+			if evaluateErr != nil {
+				result.Failing = 1
+				result.Observations = map[string]string{"Provider Evaluation Error": evaluateErr.Error()}
+				message.Debugf("Provider Evaluation Error: %s", evaluateErr.Error())
+			}
 		}
+
 		// Store the result in the validation object
+		val.DomainResources = resources
 		val.Result = result
 		val.Evaluated = true
 	}
