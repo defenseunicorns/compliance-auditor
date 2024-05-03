@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -53,6 +54,82 @@ func ReadFileToBytes(path string) ([]byte, error) {
 
 	return data, nil
 }
+
+// TODO: we need a function to standardize what we do with new content
+// When writing to a file - we should check if the file exists and handle merge accordingly
+// There should be a default fle to write machine-readable content to.
+
+// WriteFile takes a path and writes content to a file while performing checks for existing content
+func WriteFile(filepath string, model *oscalTypes_1_1_2.OscalModels) {
+	// first check if the filepath already exists - IE is this an existing artifact
+	if filepath == "" {
+		filepath = "oscal.yaml"
+	}
+
+	if _, err := os.Stat(filepath); err == nil {
+		// If the file exists - read the data
+		existingFileBytes, err := os.ReadFile(filepath)
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
+		}
+		existingModel, err := oscal.NewOscalModel(existingFileBytes)
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error unmarshalling existing file"), "error unmarshalling existing file")
+		}
+		// re-assign to perform common operations below
+		model, err := oscal.MergeOscalModels(existingModel, model)
+		if err != nil {
+			message.Fatalf(fmt.Errorf("error merging oscal models"), "error merging oscal models")
+		}
+
+	}
+
+}
+
+// // WriteOutput writes to the provided output file or to stdout by default.
+// func WriteOutput(output []byte, outputFile string) (err error) {
+// 	if outputFile == "" {
+// 		return errors.New("no output file provided")
+// 	}
+// 	err = CreateFileDirs(outputFile)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to create output file path: %s\n", err)
+// 	}
+// 	err = os.WriteFile(outputFile, output, 0644)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+// // CreateFileDirs creates the directories for a file path if they do not exist.
+// func CreateFileDirs(fullPath string) (err error) {
+// 	pathSeperator := string(os.PathSeparator)
+// 	splitPath := strings.Split(fullPath, pathSeperator)
+// 	builtPath := ""
+// 	// If the path is just a file name, return nil
+// 	if len(splitPath) == 1 {
+// 		if splitPath[0] == "" {
+// 			return errors.New("no output file provided")
+// 		}
+// 		return nil
+// 	}
+// 	for _, location := range splitPath[:len(splitPath)-1] {
+// 		builtPath += location + pathSeperator
+// 		_, err := os.Stat(builtPath)
+// 		if err != nil {
+// 			if os.IsNotExist(err) {
+// 				err = os.Mkdir(builtPath, 0755)
+// 				if err != nil {
+// 					return fmt.Errorf("failed to create file path: %s\n", err)
+// 				}
+// 			} else {
+// 				return err
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
 
 // Returns version validity
 func IsVersionValid(versionConstraint string, version string) (bool, error) {

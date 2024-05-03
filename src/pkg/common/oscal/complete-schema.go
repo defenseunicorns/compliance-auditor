@@ -13,3 +13,10 @@ func NewOscalModel(data []byte) (*oscalTypes_1_1_2.OscalModels, error) {
 	}
 	return &oscalModel, nil
 }
+
+func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, model *oscalTypes_1_1_2.OscalModels) (*oscalTypes_1_1_2.OscalModels, error) {
+
+	// Now to check each model type - currently only component definition and assessment-results apply
+
+	return existingModel, nil
+}
