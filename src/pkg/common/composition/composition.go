@@ -4,9 +4,70 @@ import (
 	"fmt"
 
 	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
+
+func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
+	if compDef == nil {
+		return fmt.Errorf("component definition is nil")
+	}
+
+	// Compose the component validations
+	err := ComposeComponentValidations(compDef)
+	if err != nil {
+		return err
+	}
+
+	if compDef.Components == nil {
+		compDef.Components = &[]oscalTypes_1_1_2.DefinedComponent{}
+	}
+
+	if compDef.BackMatter == nil {
+		compDef.BackMatter = &oscalTypes_1_1_2.BackMatter{}
+	}
+
+	if compDef.ImportComponentDefinitions != nil {
+		for _, importComponentDef := range *compDef.ImportComponentDefinitions {
+			// Fetch the file
+			file, err := network.Fetch(importComponentDef.Href)
+			if err != nil {
+				return err
+			}
+			// Unmarshal the component definition
+			importDef, err := oscal.NewOscalComponentDefinitionFromBytes(file)
+			if err != nil {
+				return err
+			}
+
+			validator, err := validation.NewValidator(file)
+			if err != nil {
+				return err
+			}
+
+			err = validator.Validate()
+			if err != nil {
+				return err
+			}
+
+			err = ComposeComponentDefinitions(&importDef)
+			if err != nil {
+				return err
+			}
+
+			// Merge the component definitions
+			*compDef, err = oscal.MergeComponentDefinitions(*compDef, importDef)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 // ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
 func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
@@ -17,8 +78,9 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 
 	resourceMap := NewResourceStoreFromBackMatter(compDef.BackMatter)
 
-	if *compDef.Components == nil {
-		return fmt.Errorf("no components found in component definition")
+	// If there are no components, there is nothing to do
+	if compDef.Components == nil {
+		return nil
 	}
 
 	for componentIndex, component := range *compDef.Components {
