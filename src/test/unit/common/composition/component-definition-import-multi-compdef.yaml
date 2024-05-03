@@ -1,8 +1,7 @@
 component-definition:
   uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
   import-component-definitions:
-    - href: file://./component-definition-all-local.yaml
-    - href: file://./component-definition-local-and-remote.yaml
+    - href: file://./component-definition-multi.yaml
   metadata:
     title: Lula Demo
     last-modified: "2022-09-13T12:00:00Z"

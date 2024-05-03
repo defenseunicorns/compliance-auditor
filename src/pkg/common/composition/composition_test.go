@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	allRemote       = "../../../test/e2e/scenarios/validation-composition/component-definition.yaml"
-	allLocal        = "../../../test/unit/common/composition/component-definition-all-local.yaml"
-	localAndRemote  = "../../../test/unit/common/composition/component-definition-local-and-remote.yaml"
-	subComponentDef = "../../../test/unit/common/composition/component-definition-import-compdefs.yaml"
+	allRemote          = "../../../test/e2e/scenarios/validation-composition/component-definition.yaml"
+	allLocal           = "../../../test/unit/common/composition/component-definition-all-local.yaml"
+	localAndRemote     = "../../../test/unit/common/composition/component-definition-local-and-remote.yaml"
+	subComponentDef    = "../../../test/unit/common/composition/component-definition-import-compdefs.yaml"
+	compDefMultiImport = "../../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 )
 
 func TestComposeComponentDefinitions(t *testing.T) {
@@ -75,6 +76,31 @@ func TestComposeComponentDefinitions(t *testing.T) {
 
 		if compDef.BackMatter == og.BackMatter {
 			t.Error("expected the back matter to be changed")
+		}
+	})
+
+	t.Run("imports, no components, multiple component definitions from import", func(t *testing.T) {
+		og := getComponentDef(compDefMultiImport, t)
+		compDef := getComponentDef(compDefMultiImport, t)
+		reset, err := common.SetCwdToFileDir(compDefMultiImport)
+		defer reset()
+		if err != nil {
+			t.Fatalf("Error setting cwd to file dir: %v", err)
+		}
+		err = composition.ComposeComponentDefinitions(compDef)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if compDef.Components == og.Components {
+			t.Error("expected there to be components")
+		}
+
+		if compDef.BackMatter == og.BackMatter {
+			t.Error("expected the back matter to be changed")
+		}
+
+		if len(*compDef.Components) != 1 {
+			t.Error("expected there to be 2 components")
 		}
 	})
 

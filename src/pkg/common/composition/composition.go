@@ -1,6 +1,7 @@
 package composition
 
 import (
+	"bytes"
 	"fmt"
 
 	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
@@ -32,36 +33,39 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 
 	if compDef.ImportComponentDefinitions != nil {
 		for _, importComponentDef := range *compDef.ImportComponentDefinitions {
-			// Fetch the file
-			file, err := network.Fetch(importComponentDef.Href)
+			// Fetch the response
+			response, err := network.Fetch(importComponentDef.Href)
 			if err != nil {
 				return err
 			}
+			split := bytes.Split(response, []byte(common.YAML_DELIMITER))
 			// Unmarshal the component definition
-			importDef, err := oscal.NewOscalComponentDefinitionFromBytes(file)
-			if err != nil {
-				return err
-			}
+			for _, file := range split {
+				importDef, err := oscal.NewOscalComponentDefinitionFromBytes(file)
+				if err != nil {
+					return err
+				}
 
-			validator, err := validation.NewValidator(file)
-			if err != nil {
-				return err
-			}
+				validator, err := validation.NewValidator(file)
+				if err != nil {
+					return err
+				}
 
-			err = validator.Validate()
-			if err != nil {
-				return err
-			}
+				err = validator.Validate()
+				if err != nil {
+					return err
+				}
 
-			err = ComposeComponentDefinitions(&importDef)
-			if err != nil {
-				return err
-			}
+				err = ComposeComponentDefinitions(&importDef)
+				if err != nil {
+					return err
+				}
 
-			// Merge the component definitions
-			*compDef, err = oscal.MergeComponentDefinitions(*compDef, importDef)
-			if err != nil {
-				return err
+				// Merge the component definitions
+				*compDef, err = oscal.MergeComponentDefinitions(*compDef, importDef)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
