@@ -11,6 +11,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -133,6 +134,11 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+	err := composition.ComposeComponentDefinitions(&compDef)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Create a validation store from the back-matter if it exists
 	var validationStore *validationstore.ValidationStore
 	if compDef.BackMatter != nil {
@@ -185,63 +191,58 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 					for _, link := range *implementedRequirement.Links {
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						if common.IsLulaLink(link) {
-							ids, err := validationStore.AddFromLink(link)
+
+							sharedUuid := uuid.NewUUID()
+							observation := oscalTypes_1_1_2.Observation{
+								Collected: rfc3339Time,
+								Methods:   []string{"TEST"},
+								UUID:      sharedUuid,
+							}
+							id := common.TrimIdPrefix(link.Href)
+							lulaValidation, err := validationStore.GetLulaValidation(id)
 							if err != nil {
 								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 							}
 
-							for _, id := range ids {
-								sharedUuid := uuid.NewUUID()
-								observation := oscalTypes_1_1_2.Observation{
-									Collected: rfc3339Time,
-									Methods:   []string{"TEST"},
-									UUID:      sharedUuid,
-								}
-								lulaValidation, err := validationStore.GetLulaValidation(id)
-								if err != nil {
-									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-								}
+							// Add the description of the validation now that we have the ID
+							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
 
-								// Add the description of the validation now that we have the ID
-								observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
-
-								err = lulaValidation.Validate()
-								if err != nil {
-									return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-								}
-								// Individual result state
-								if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
-									lulaValidation.Result.State = "satisfied"
-								} else {
-									lulaValidation.Result.State = "not-satisfied"
-								}
-
-								// Add remarks if Result has Observations
-								var remarks string
-								if len(lulaValidation.Result.Observations) > 0 {
-									for k, v := range lulaValidation.Result.Observations {
-										remarks += fmt.Sprintf("%s: %s\n", k, v)
-									}
-								}
-
-								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-									{
-										Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
-										Remarks:     remarks,
-									},
-								}
-
-								relatedObservation := oscalTypes_1_1_2.RelatedObservation{
-									ObservationUuid: sharedUuid,
-								}
-
-								pass += lulaValidation.Result.Passing
-								fail += lulaValidation.Result.Failing
-
-								// Coalesce slices and objects
-								relatedObservations = append(relatedObservations, relatedObservation)
-								tempObservations = append(tempObservations, observation)
+							err = lulaValidation.Validate()
+							if err != nil {
+								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
 							}
+							// Individual result state
+							if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
+								lulaValidation.Result.State = "satisfied"
+							} else {
+								lulaValidation.Result.State = "not-satisfied"
+							}
+
+							// Add remarks if Result has Observations
+							var remarks string
+							if len(lulaValidation.Result.Observations) > 0 {
+								for k, v := range lulaValidation.Result.Observations {
+									remarks += fmt.Sprintf("%s: %s\n", k, v)
+								}
+							}
+
+							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
+								{
+									Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
+									Remarks:     remarks,
+								},
+							}
+
+							relatedObservation := oscalTypes_1_1_2.RelatedObservation{
+								ObservationUuid: sharedUuid,
+							}
+
+							pass += lulaValidation.Result.Passing
+							fail += lulaValidation.Result.Failing
+
+							// Coalesce slices and objects
+							relatedObservations = append(relatedObservations, relatedObservation)
+							tempObservations = append(tempObservations, observation)
 
 						}
 

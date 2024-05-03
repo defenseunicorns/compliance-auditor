@@ -78,6 +78,9 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 		}
 	}
 
+	compDef.Metadata.LastModified = gooscalUtils.GetTimestamp()
+	compDef.ImportComponentDefinitions = nil
+
 	return nil
 }
 
