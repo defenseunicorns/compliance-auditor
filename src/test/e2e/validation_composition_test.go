@@ -80,7 +80,7 @@ func TestValidationComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			findings, observations, err = validate.ValidateOnCompDef(*oscalModel.ComponentDefinition)
+			findings, observations, err = validate.ValidateOnCompDef(oscalModel.ComponentDefinition)
 			if err != nil {
 				t.Error(err)
 			}

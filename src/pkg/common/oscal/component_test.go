@@ -80,14 +80,14 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 		name    string
 		data    []byte
 		source  string
-		want    oscalTypes.ComponentDefinition
+		want    *oscalTypes.ComponentDefinition
 		wantErr bool
 	}{
 		{
 			name:    "Valid OSCAL Component Definition",
 			source:  "test.yaml",
 			data:    validBytes,
-			want:    *validWantSchema.ComponentDefinition,
+			want:    validWantSchema.ComponentDefinition,
 			wantErr: false,
 		},
 		{
@@ -223,11 +223,7 @@ func TestComponentFromCatalog(t *testing.T) {
 }
 
 func TestMergeComponentDefinitions(t *testing.T) {
-
-	// This test should ingest the test generated artifacts
 	validBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-generated-component.yaml")
-
-	validComponent, _ := oscal.NewOscalComponentDefinition("valid-generated-component.yaml", validBytes)
 	// generate a new artifact
 	catalogBytes := loadTestData(t, catalogPath)
 	source := "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
@@ -238,7 +234,6 @@ func TestMergeComponentDefinitions(t *testing.T) {
 
 	tests := []struct {
 		name                                  string
-		existing                              oscalTypes.ComponentDefinition
 		title                                 string
 		source                                string
 		requirements                          []string
@@ -252,7 +247,6 @@ func TestMergeComponentDefinitions(t *testing.T) {
 	}{
 		{
 			name:                                  "Valid test of component merge",
-			existing:                              validComponent,
 			title:                                 "Component Title",
 			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
 			remarks:                               []string{"statement"},
@@ -266,7 +260,6 @@ func TestMergeComponentDefinitions(t *testing.T) {
 		},
 		{
 			name:                                  "Valid test of component merge with multiple unique controls",
-			existing:                              validComponent,
 			title:                                 "Component Title",
 			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "ac-4.4", "au-5"},
 			remarks:                               []string{"statement"},
@@ -280,7 +273,6 @@ func TestMergeComponentDefinitions(t *testing.T) {
 		},
 		{
 			name:                                  "Valid test of component merge with multiple unique components",
-			existing:                              validComponent,
 			title:                                 "Component Test Title",
 			requirements:                          []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
 			remarks:                               []string{"statement"},
@@ -293,17 +285,26 @@ func TestMergeComponentDefinitions(t *testing.T) {
 			wantErr:                               false,
 		},
 		{
-			name:     "Invalid test of empty existing component definition",
-			existing: oscalTypes.ComponentDefinition{},
-			wantErr:  true,
+			name:    "Invalid test of empty existing component definition",
+			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			validComponent, _ := oscal.NewOscalComponentDefinition("valid-generated-component.yaml", validBytes)
+
+			// Get the implemented requirements from existing for comparison
+			existingComponent := (*validComponent.Components)[0]
+			existingControlImplementation := (*existingComponent.ControlImplementations)[0]
+			existingImplementedRequirementsMap := make(map[string]bool)
+			for _, req := range existingControlImplementation.ImplementedRequirements {
+				existingImplementedRequirementsMap[req.ControlId] = true
+			}
+
 			generated, _ := oscal.ComponentFromCatalog(tt.source, catalog, tt.title, tt.requirements, tt.remarks)
 
-			merged, err := oscal.MergeComponentDefinitions(tt.existing, generated)
+			merged, err := oscal.MergeComponentDefinitions(validComponent, generated)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MergeComponentDefinitions() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -338,7 +339,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 			}
 
 			if len(implementedRequirements) != tt.expectedImplementedRequirements {
-				t.Errorf("MergeComponentDefinitions() expected %v implementated requirements, got %v", tt.expectedImplementedRequirements, len(implementedRequirements))
+				t.Errorf("MergeComponentDefinitions() expected %v implemented requirements, got %v", tt.expectedImplementedRequirements, len(implementedRequirements))
 			}
 
 			// Now operate on the target existing component & items (should only be 1 component, 1 control-implementation and dynamic implemented-requirements)
@@ -359,14 +360,6 @@ func TestMergeComponentDefinitions(t *testing.T) {
 			// check implemented requirements for length
 			if len(targetControlImp.ImplementedRequirements) != tt.expectedTargetImplementedRequirements {
 				t.Errorf("MergeComponentDefinitions() expected %v implemented-requirements in component %s, got %v", tt.expectedTargetImplementedRequirements, targetComponent.Title, len(targetControlImp.ImplementedRequirements))
-			}
-
-			// Get the implemented requirements from existing for comparison
-			existingComponent := (*tt.existing.Components)[0]
-			existingControlImplementation := (*existingComponent.ControlImplementations)[0]
-			existingImplementedRequirementsMap := make(map[string]bool)
-			for _, req := range existingControlImplementation.ImplementedRequirements {
-				existingImplementedRequirementsMap[req.ControlId] = true
 			}
 
 			// check implemented requirements for existing content - add to the test artifact

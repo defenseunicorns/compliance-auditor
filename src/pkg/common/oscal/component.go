@@ -27,7 +27,7 @@ type parameter struct {
 
 // NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
 // Standard use is to read a file from the filesystem and pass the []byte to this function
-func NewOscalComponentDefinition(source string, data []byte) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+func NewOscalComponentDefinition(source string, data []byte) (componentDefinition *oscalTypes_1_1_2.ComponentDefinition, err error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
 
 	if strings.HasSuffix(source, ".yaml") {
@@ -46,16 +46,20 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 		return componentDefinition, fmt.Errorf("unsupported file type: %s", source)
 	}
 
-	return *oscalModels.ComponentDefinition, nil
+	return oscalModels.ComponentDefinition, nil
 }
 
 // This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
-func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, latest oscalTypes_1_1_2.ComponentDefinition) (oscalTypes_1_1_2.ComponentDefinition, error) {
+func MergeComponentDefinitions(original *oscalTypes_1_1_2.ComponentDefinition, latest *oscalTypes_1_1_2.ComponentDefinition) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 
 	originalMap := make(map[string]oscalTypes_1_1_2.DefinedComponent)
 
 	if original.Components == nil {
 		return original, fmt.Errorf("original component-definition is nil")
+	}
+
+	if latest.Components == nil {
+		return original, fmt.Errorf("latest component-definition is nil")
 	}
 
 	for _, component := range *original.Components {
@@ -95,6 +99,7 @@ func MergeComponentDefinitions(original oscalTypes_1_1_2.ComponentDefinition, la
 	}
 
 	original.Components = &tempItems
+	original.Metadata.LastModified = time.Now()
 
 	// TODO: Decide if we need to generate a new top-level UUID
 	// original.UUID = uuid.NewUUID()
@@ -228,9 +233,10 @@ func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
-func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+	var componentDefinition = &oscalTypes_1_1_2.ComponentDefinition{}
 
 	if len(targetControls) == 0 {
 		return componentDefinition, fmt.Errorf("no controls identified for generation")

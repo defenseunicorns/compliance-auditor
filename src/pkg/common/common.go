@@ -1,12 +1,14 @@
 package common
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
@@ -16,6 +18,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -60,9 +63,10 @@ func ReadFileToBytes(path string) ([]byte, error) {
 // There should be a default fle to write machine-readable content to.
 
 // WriteFile takes a path and writes content to a file while performing checks for existing content
-func WriteFile(filepath string, model *oscalTypes_1_1_2.OscalModels) {
+func WriteFile(filepath string, model *oscalTypes_1_1_2.OscalModels) error {
 	// first check if the filepath already exists - IE is this an existing artifact
 	if filepath == "" {
+		// Should there be a global default
 		filepath = "oscal.yaml"
 	}
 
@@ -77,59 +81,28 @@ func WriteFile(filepath string, model *oscalTypes_1_1_2.OscalModels) {
 			message.Fatalf(fmt.Errorf("error unmarshalling existing file"), "error unmarshalling existing file")
 		}
 		// re-assign to perform common operations below
-		model, err := oscal.MergeOscalModels(existingModel, model)
+		model, err = oscal.MergeOscalModels(existingModel, model)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error merging oscal models"), "error merging oscal models")
 		}
-
 	}
 
+	var b bytes.Buffer
+
+	yamlEncoder := yaml.NewEncoder(&b)
+	yamlEncoder.SetIndent(2)
+	yamlEncoder.Encode(model)
+
+	err := utils.WriteOutput(b.Bytes(), filepath)
+	if err != nil {
+		return err
+	}
+
+	message.Infof("OSCAL artifact written to: %s", filepath)
+
+	return nil
+
 }
-
-// // WriteOutput writes to the provided output file or to stdout by default.
-// func WriteOutput(output []byte, outputFile string) (err error) {
-// 	if outputFile == "" {
-// 		return errors.New("no output file provided")
-// 	}
-// 	err = CreateFileDirs(outputFile)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to create output file path: %s\n", err)
-// 	}
-// 	err = os.WriteFile(outputFile, output, 0644)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// // CreateFileDirs creates the directories for a file path if they do not exist.
-// func CreateFileDirs(fullPath string) (err error) {
-// 	pathSeperator := string(os.PathSeparator)
-// 	splitPath := strings.Split(fullPath, pathSeperator)
-// 	builtPath := ""
-// 	// If the path is just a file name, return nil
-// 	if len(splitPath) == 1 {
-// 		if splitPath[0] == "" {
-// 			return errors.New("no output file provided")
-// 		}
-// 		return nil
-// 	}
-// 	for _, location := range splitPath[:len(splitPath)-1] {
-// 		builtPath += location + pathSeperator
-// 		_, err := os.Stat(builtPath)
-// 		if err != nil {
-// 			if os.IsNotExist(err) {
-// 				err = os.Mkdir(builtPath, 0755)
-// 				if err != nil {
-// 					return fmt.Errorf("failed to create file path: %s\n", err)
-// 				}
-// 			} else {
-// 				return err
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
 
 // Returns version validity
 func IsVersionValid(versionConstraint string, version string) (bool, error) {
