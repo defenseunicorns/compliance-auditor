@@ -30,7 +30,7 @@ To validate on a cluster:
 	lula validate -f ./oscal-component.yaml
 
 To indicate a specific Assessment Results file to create or append to:
-	lula validate -f ./oscal-component.yaml -a assessment-results.yaml
+	lula validate -f ./oscal-component.yaml -o assessment-results.yaml
 `
 
 var validateCmd = &cobra.Command{
@@ -60,7 +60,7 @@ var validateCmd = &cobra.Command{
 
 		// Write the component definition to file
 		err = common.WriteFile(opts.OutputFile, &model)
-		if err == nil {
+		if err != nil {
 			message.Fatalf(fmt.Errorf("error writing component to file"), "error writing component to file")
 		}
 	},
