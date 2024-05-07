@@ -382,11 +382,11 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRem
 
 // Returns a map of the uuid - description of the back-matter resources
 func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[string]string) {
+	resourceMap = make(map[string]string)
 	if backMatter.Resources == nil {
-		return nil
+		return resourceMap
 	}
 
-	resourceMap = make(map[string]string)
 	for _, resource := range *backMatter.Resources {
 		// perform a check to see if the key already exists (meaning duplicitive uuid use)
 		_, exists := resourceMap[resource.UUID]

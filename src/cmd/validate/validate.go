@@ -140,15 +140,9 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 	}
 
 	// Create a validation store from the back-matter if it exists
-	var validationStore *validationstore.ValidationStore
-	if compDef.BackMatter != nil {
-		validationStore = validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
-	} else {
-		validationStore = validationstore.NewValidationStore()
-	}
+	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
 	// Loops all the way down
-
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
 	observations := make([]oscalTypes_1_1_2.Observation, 0)
 

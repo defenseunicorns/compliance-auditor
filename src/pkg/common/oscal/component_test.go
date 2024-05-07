@@ -44,6 +44,7 @@ func TestBackMatterToMap(t *testing.T) {
 		{
 			name:       "Test No Resources",
 			backMatter: oscalTypes.BackMatter{},
+			want:       make(map[string]string),
 		},
 		{
 			name:       "Test Valid Component",
