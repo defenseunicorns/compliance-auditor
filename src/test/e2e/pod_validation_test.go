@@ -8,7 +8,9 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
@@ -143,10 +145,14 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
 
-	// Write report(s) to file
-	err = validate.WriteReport(report, "sar-test.yaml")
+	var model = oscalTypes_1_1_2.OscalModels{
+		AssessmentResults: report,
+	}
+
+	// Write the component definition to file
+	err = common.WriteFile("sar-test.yaml", &model)
 	if err != nil {
-		t.Fatal("Failed to write report to file: ", err)
+		message.Fatalf(err, "error writing component to file")
 	}
 
 	initialResultCount := len(report.Results)
@@ -156,11 +162,14 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
+	model = oscalTypes_1_1_2.OscalModels{
+		AssessmentResults: report,
+	}
 
-	// Write report(s) to file
-	err = validate.WriteReport(report, "sar-test.yaml")
+	// Write the component definition to file
+	err = common.WriteFile("sar-test.yaml", &model)
 	if err != nil {
-		t.Fatal("Failed to write report to file: ", err)
+		message.Fatalf(err, "error writing component to file")
 	}
 
 	data, err := os.ReadFile("sar-test.yaml")

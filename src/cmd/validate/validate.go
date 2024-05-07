@@ -20,8 +20,8 @@ import (
 )
 
 type flags struct {
-	AssessmentFile string // -a --assessment-file
-	InputFile      string // -f --input-file
+	OutputFile string // -o --output-file
+	InputFile  string // -f --input-file
 }
 
 var opts = &flags{}
@@ -31,7 +31,7 @@ To validate on a cluster:
 	lula validate -f ./oscal-component.yaml
 
 To indicate a specific Assessment Results file to create or append to:
-	lula validate -f ./oscal-component.yaml -a assessment-results.yaml
+	lula validate -f ./oscal-component.yaml -o assessment-results.yaml
 `
 
 var validateCmd = &cobra.Command{
@@ -55,10 +55,14 @@ var validateCmd = &cobra.Command{
 			message.Fatalf(err, "Generate error")
 		}
 
-		// Write report(s) to file
-		err = WriteReport(report, opts.AssessmentFile)
+		var model = oscalTypes_1_1_2.OscalModels{
+			AssessmentResults: report,
+		}
+
+		// Write the component definition to file
+		err = common.WriteFile(opts.OutputFile, &model)
 		if err != nil {
-			message.Fatalf(err, "Write error")
+			message.Fatalf(err, "error writing component to file")
 		}
 	},
 }
@@ -66,7 +70,7 @@ var validateCmd = &cobra.Command{
 func ValidateCommand() *cobra.Command {
 
 	// insert flag options here
-	validateCmd.Flags().StringVarP(&opts.AssessmentFile, "assessment-file", "a", "", "the path to write assessment results. Creates a new file or appends to existing files")
+	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
 	return validateCmd
 }
@@ -133,10 +137,11 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
-func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	err := composition.ComposeComponentDefinitions(&compDef)
+func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+	err := composition.ComposeComponentDefinitions(compDef)
 	if err != nil {
 		return nil, nil, err
+
 	}
 
 	// Create a validation store from the back-matter if it exists

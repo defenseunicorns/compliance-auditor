@@ -1,18 +1,14 @@
 package generate
 
 import (
-	"bytes"
 	"fmt"
-	"os"
 
-	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
-
-	"gopkg.in/yaml.v3"
 )
 
 type flags struct {
@@ -68,7 +64,6 @@ var generateComponentCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, args []string) {
 		var remarks []string
 		var title = "Component Title"
-		var outputFile = "oscal-component.yaml"
 		// check for Catalog Source - this field is required
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
@@ -106,50 +101,14 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
 
-		var fileName string
-		if opts.OutputFile != "" {
-			fileName = opts.OutputFile
-		} else {
-			fileName = "oscal-component.yaml"
+		var model = oscalTypes_1_1_2.OscalModels{
+			ComponentDefinition: comp,
 		}
 
-		if componentOpts.OutputFile != "" {
-			outputFile = componentOpts.OutputFile
-		}
-		// Check for an existing file
-		if _, err := os.Stat(outputFile); err == nil {
-			existingFileBytes, err := os.ReadFile(outputFile)
-			if err != nil {
-				message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
-			}
-			// Create new component definition object
-			existingComponent, err := oscal.NewOscalComponentDefinition(outputFile, existingFileBytes)
-			if err != nil {
-				message.Fatalf(fmt.Errorf("error creating new component definition"), "error creating new component definition")
-			}
-			// Merge the newly generated document into the existing document
-			comp, err = oscal.MergeComponentDefinitions(existingComponent, comp)
-			if err != nil {
-				message.Fatalf(fmt.Errorf("error merging component definition on component"), "error merging component definition on component")
-			}
-			comp.Metadata.LastModified = gooscalUtils.GetTimestamp()
-		}
-
-		var b bytes.Buffer
-
-		var component = oscalTypes_1_1_2.OscalModels{
-			ComponentDefinition: &comp,
-		}
-
-		yamlEncoder := yaml.NewEncoder(&b)
-		yamlEncoder.SetIndent(2)
-		yamlEncoder.Encode(component)
-
-		message.Infof("Writing Component Definition to: %s", fileName)
-
-		err = os.WriteFile(fileName, b.Bytes(), 0644)
+		// Write the component definition to file
+		err = common.WriteFile(componentOpts.OutputFile, &model)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error writing Component Definition to: %s", fileName), "error writing Component Definition to: %s", fileName)
+			message.Fatalf(err, "error writing component to file")
 		}
 
 	},

@@ -70,7 +70,7 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 				}
 
 				// Merge the component definitions
-				*compDef, err = oscal.MergeComponentDefinitions(*compDef, importDef)
+				compDef, err = oscal.MergeComponentDefinitions(compDef, &importDef)
 				if err != nil {
 					return err
 				}

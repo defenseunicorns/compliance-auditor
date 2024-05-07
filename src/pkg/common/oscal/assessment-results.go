@@ -24,8 +24,8 @@ func NewAssessmentResults(data []byte) (oscalTypes_1_1_2.AssessmentResults, erro
 	return *oscalModels.AssessmentResults, nil
 }
 
-func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (oscalTypes_1_1_2.AssessmentResults, error) {
-	var assessmentResults oscalTypes_1_1_2.AssessmentResults
+func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (*oscalTypes_1_1_2.AssessmentResults, error) {
+	var assessmentResults = &oscalTypes_1_1_2.AssessmentResults{}
 
 	// Single time used for all time related fields
 	rfc3339Time := time.Now()
@@ -78,6 +78,19 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 	}
 
 	return assessmentResults, nil
+}
+
+func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest *oscalTypes_1_1_2.AssessmentResults) (*oscalTypes_1_1_2.AssessmentResults, error) {
+
+	results := make([]oscalTypes_1_1_2.Result, 0)
+	// append new results first - unfurl so as to allow multiple results in the future
+	results = append(results, original.Results...)
+	results = append(results, latest.Results...)
+	original.Results = results
+
+	original.Metadata.LastModified = time.Now()
+
+	return original, nil
 }
 
 func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTypes_1_1_2.Finding {
