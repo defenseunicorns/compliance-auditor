@@ -122,7 +122,7 @@ func TestGetProvider(t *testing.T) {
 			name: "opa provider",
 			provider: common.Provider{
 				Type:    "opa",
-				OpaSpec: validOpa,
+				OpaSpec: &validOpa,
 			},
 			expected: "opa.OpaProvider",
 		},
@@ -130,7 +130,7 @@ func TestGetProvider(t *testing.T) {
 			name: "kyverno provider",
 			provider: common.Provider{
 				Type:        "kyverno",
-				KyvernoSpec: validKyverno,
+				KyvernoSpec: &validKyverno,
 			},
 			expected: "kyverno.KyvernoProvider",
 		},

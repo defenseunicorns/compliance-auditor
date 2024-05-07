@@ -64,9 +64,9 @@ type Domain struct {
 }
 
 type Provider struct {
-	Type        string              `json:"type" yaml:"type"`
-	OpaSpec     opa.OpaSpec         `json:"opa-spec" yaml:"opa-spec"`
-	KyvernoSpec kyverno.KyvernoSpec `json:"kyverno-spec" yaml:"kyverno-spec"`
+	Type        string               `json:"type" yaml:"type"`
+	OpaSpec     *opa.OpaSpec         `json:"opa-spec" yaml:"opa-spec"`
+	KyvernoSpec *kyverno.KyvernoSpec `json:"kyverno-spec" yaml:"kyverno-spec"`
 }
 
 // ToLulaValidation converts a Validation object to a LulaValidation object
