@@ -63,7 +63,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	if validationString, ok := v.backMatterMap[trimmedId]; ok {
 		lulaValidation, err := common.ValidationFromString(validationString)
 		if err != nil {
-			return nil, err
+			return &lulaValidation, err
 		}
 		v.validationMap[trimmedId] = lulaValidation
 		return &lulaValidation, nil
@@ -94,9 +94,9 @@ func (v *ValidationStore) AddFromLink(link oscalTypes_1_1_2.Link) (ids []string,
 		id = common.TrimIdPrefix(link.ResourceFragment)
 	}
 
-	// If the id is a uuid and the lula validation exists, return the id
-	if _, err := v.GetLulaValidation(id); err == nil {
-		return []string{id}, err
+	// If the id is a uuid and the lula validation exists, return the id - error will be handled later
+	if validation, _ := v.GetLulaValidation(id); validation != nil {
+		return []string{id}, nil
 	}
 
 	// If the id is a url and has been fetched before, return the ids

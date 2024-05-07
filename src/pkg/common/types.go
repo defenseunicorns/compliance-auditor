@@ -72,8 +72,6 @@ type Provider struct {
 // ToLulaValidation converts a Validation object to a LulaValidation object
 func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValidation, err error) {
 	// Do version checking here to establish if the version is correct/acceptable
-	var result types.Result
-	var evaluated bool
 	currentVersion := strings.Split(config.CLIVersion, "-")[0]
 
 	versionConstraint := currentVersion
@@ -83,13 +81,9 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 
 	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)
 	if versionErr != nil {
-		result.Failing = 1
-		result.Observations = map[string]string{"Lula Version Error": versionErr.Error()}
-		evaluated = true
+		return lulaValidation, fmt.Errorf("version error: %s", versionErr.Error())
 	} else if !validVersion {
-		result.Failing = 1
-		result.Observations = map[string]string{"Version Constraint Incompatible": "Lula Version does not meet the constraint for this validation."}
-		evaluated = true
+		return lulaValidation, fmt.Errorf("version %s does not meet the constraint %s for this validation", currentVersion, versionConstraint)
 	}
 
 	// Construct the lulaValidation object
@@ -103,9 +97,8 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	if lulaValidation.Domain == nil {
 		return lulaValidation, fmt.Errorf("domain %s not found", validation.Domain.Type)
 	}
+
 	lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
-	lulaValidation.Evaluated = evaluated
-	lulaValidation.Result = result
 
 	return lulaValidation, nil
 }
