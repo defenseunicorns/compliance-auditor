@@ -62,7 +62,7 @@ func ReadFileToBytes(path string) ([]byte, error) {
 func WriteFile(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
 
 	// if no path or directory add default filename
-	if filePath == "" {
+	if filepath.Ext(filePath) == "" {
 		filePath = filepath.Join(filePath, "oscal.yaml")
 	}
 
