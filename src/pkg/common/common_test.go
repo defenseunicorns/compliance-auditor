@@ -79,7 +79,7 @@ func TestGetDomain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := common.GetDomain(tt.domain, ctx)
+			result := common.GetDomain(&tt.domain, ctx)
 
 			switch tt.expected {
 			case "kube.KubernetesDomain":
@@ -147,7 +147,7 @@ func TestGetProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := common.GetProvider(tt.provider, ctx)
+			result := common.GetProvider(&tt.provider, ctx)
 
 			switch tt.expected {
 			case "opa.OpaProvider":
@@ -279,14 +279,14 @@ func TestValidationToResource(t *testing.T) {
 	t.Run("It populates a resource from a validation", func(t *testing.T) {
 		t.Parallel()
 		validation := &common.Validation{
-			Metadata: common.Metadata{
+			Metadata: &common.Metadata{
 				UUID: "1234",
 				Name: "Test Validation",
 			},
-			Provider: common.Provider{
+			Provider: &common.Provider{
 				Type: "test",
 			},
-			Domain: common.Domain{
+			Domain: &common.Domain{
 				Type: "test",
 			},
 		}
@@ -312,13 +312,13 @@ func TestValidationToResource(t *testing.T) {
 	t.Run("It adds a UUID if one does not exist", func(t *testing.T) {
 		t.Parallel()
 		validation := &common.Validation{
-			Metadata: common.Metadata{
+			Metadata: &common.Metadata{
 				Name: "Test Validation",
 			},
-			Provider: common.Provider{
+			Provider: &common.Provider{
 				Type: "test",
 			},
-			Domain: common.Domain{
+			Domain: &common.Domain{
 				Type: "test",
 			},
 		}

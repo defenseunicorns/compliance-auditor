@@ -164,7 +164,10 @@ func SetCwdToFileDir(dirPath string) (resetFunc func(), err error) {
 }
 
 // Get the domain and providers
-func GetDomain(domain Domain, ctx context.Context) types.Domain {
+func GetDomain(domain *Domain, ctx context.Context) types.Domain {
+	if domain == nil {
+		return nil
+	}
 	switch domain.Type {
 	case "kubernetes":
 		return kube.KubernetesDomain{
@@ -180,7 +183,10 @@ func GetDomain(domain Domain, ctx context.Context) types.Domain {
 	}
 }
 
-func GetProvider(provider Provider, ctx context.Context) types.Provider {
+func GetProvider(provider *Provider, ctx context.Context) types.Provider {
+	if provider == nil {
+		return nil
+	}
 	switch provider.Type {
 	case "opa":
 		return opa.OpaProvider{

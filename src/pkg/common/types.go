@@ -18,10 +18,10 @@ import (
 
 // Data structures for ingesting validation data
 type Validation struct {
-	LulaVersion string   `json:"lula-version" yaml:"lula-version"`
-	Metadata    Metadata `json:"metadata" yaml:"metadata"`
-	Provider    Provider `json:"provider" yaml:"provider"`
-	Domain      Domain   `json:"domain" yaml:"domain"`
+	LulaVersion string    `json:"lula-version" yaml:"lula-version"`
+	Metadata    *Metadata `json:"metadata" yaml:"metadata"`
+	Provider    *Provider `json:"provider" yaml:"provider"`
+	Domain      *Domain   `json:"domain" yaml:"domain"`
 }
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
@@ -77,6 +77,13 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	versionConstraint := currentVersion
 	if validation.LulaVersion != "" {
 		versionConstraint = validation.LulaVersion
+	}
+
+	if validation.Domain == nil {
+		return lulaValidation, fmt.Errorf("required domain is nil")
+	}
+	if validation.Provider == nil {
+		return lulaValidation, fmt.Errorf("required provider is nil")
 	}
 
 	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)
