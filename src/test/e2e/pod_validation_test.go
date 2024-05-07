@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -153,7 +152,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	// Write the component definition to file
 	err = common.WriteFile("sar-test.yaml", &model)
 	if err != nil {
-		message.Fatalf(fmt.Errorf("error writing component to file"), "error writing component to file")
+		message.Fatalf(err, "error writing component to file")
 	}
 
 	initialResultCount := len(report.Results)
@@ -170,7 +169,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	// Write the component definition to file
 	err = common.WriteFile("sar-test.yaml", &model)
 	if err != nil {
-		message.Fatalf(fmt.Errorf("error writing component to file"), "error writing component to file")
+		message.Fatalf(err, "error writing component to file")
 	}
 
 	data, err := os.ReadFile("sar-test.yaml")
