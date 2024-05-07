@@ -58,9 +58,9 @@ type Metadata struct {
 }
 
 type Domain struct {
-	Type           string              `json:"type" yaml:"type"`
-	KubernetesSpec kube.KubernetesSpec `json:"kubernetes-spec" yaml:"kubernetes-spec"`
-	ApiSpec        api.ApiSpec         `json:"api-spec" yaml:"api-spec"`
+	Type           string               `json:"type" yaml:"type"`
+	KubernetesSpec *kube.KubernetesSpec `json:"kubernetes-spec" yaml:"kubernetes-spec"`
+	ApiSpec        *api.ApiSpec         `json:"api-spec" yaml:"api-spec"`
 }
 
 type Provider struct {

@@ -54,7 +54,7 @@ func TestGetDomain(t *testing.T) {
 			name: "kubernetes domain",
 			domain: common.Domain{
 				Type:           "kubernetes",
-				KubernetesSpec: validKubernetes,
+				KubernetesSpec: &validKubernetes,
 			},
 			expected: "kube.KubernetesDomain",
 		},
@@ -62,7 +62,7 @@ func TestGetDomain(t *testing.T) {
 			name: "api domain",
 			domain: common.Domain{
 				Type:    "api",
-				ApiSpec: validApi,
+				ApiSpec: &validApi,
 			},
 			expected: "api.ApiDomain",
 		},
