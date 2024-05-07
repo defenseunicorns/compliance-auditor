@@ -1,5 +1,9 @@
 package types
 
+import (
+	"fmt"
+)
+
 type LulaValidationType string
 
 const (
@@ -47,6 +51,10 @@ func WithStaticResources(resources DomainResources) LulaValidationOption {
 // Perform the validation, and store the result in the LulaValidation struct
 func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 	if !val.Evaluated {
+		var result Result
+		var err error
+		var resources DomainResources
+
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
 			staticResources: nil,
@@ -57,22 +65,22 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 
 		// Get the resources
 		if config.staticResources != nil {
-			val.DomainResources = config.staticResources
+			resources = config.staticResources
 		} else {
-			dynamicResources, err := val.Domain.GetResources()
+			resources, err = val.Domain.GetResources()
 			if err != nil {
-				return err
+				return fmt.Errorf("domain GetResources error: %v", err)
 			}
-			// Bookkeeping of the domain resources for use elsewhere
-			val.DomainResources = dynamicResources
 		}
 
 		// Perform the evaluation using the provider
-		result, err := val.Provider.Evaluate(val.DomainResources)
+		result, err = val.Provider.Evaluate(resources)
 		if err != nil {
-			return err
+			return fmt.Errorf("provider Evaluate error: %v", err)
 		}
+
 		// Store the result in the validation object
+		val.DomainResources = resources
 		val.Result = result
 		val.Evaluated = true
 	}

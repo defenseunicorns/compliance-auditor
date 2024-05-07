@@ -63,7 +63,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	if validationString, ok := v.backMatterMap[trimmedId]; ok {
 		lulaValidation, err := common.ValidationFromString(validationString)
 		if err != nil {
-			return nil, err
+			return &lulaValidation, err
 		}
 		v.validationMap[trimmedId] = lulaValidation
 		return &lulaValidation, nil

@@ -158,13 +158,13 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 		}
 
 		for _, controlImplementation := range controlImplementations {
-			rfc3339Time := time.Now()
 			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
 				spinner := message.NewProgressSpinner("Validating Implemented Requirement - %s", implementedRequirement.UUID)
 				defer spinner.Stop()
 
 				// This should produce a finding - check if an existing finding for the control-id has been processed
 				var finding oscalTypes_1_1_2.Finding
+				var pass, fail int
 				tempObservations := make([]oscalTypes_1_1_2.Observation, 0)
 				relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0)
 
@@ -178,68 +178,64 @@ func ValidateOnCompDef(compDef oscalTypes_1_1_2.ComponentDefinition) (map[string
 					}
 				}
 
-				var pass, fail int
 				// IF the implemented requirement contains a link - check for Lula Validation
-
 				if implementedRequirement.Links != nil {
 					for _, link := range *implementedRequirement.Links {
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						if common.IsLulaLink(link) {
-
-							sharedUuid := uuid.NewUUID()
-							observation := oscalTypes_1_1_2.Observation{
-								Collected: rfc3339Time,
-								Methods:   []string{"TEST"},
-								UUID:      sharedUuid,
-							}
 							id := common.TrimIdPrefix(link.Href)
 							lulaValidation, err := validationStore.GetLulaValidation(id)
 							if err != nil {
-								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-							}
-
-							// Add the description of the validation now that we have the ID
-							observation.Description = fmt.Sprintf("[TEST] %s - %s\n", implementedRequirement.ControlId, id)
-
-							err = lulaValidation.Validate()
-							if err != nil {
-								return map[string]oscalTypes_1_1_2.Finding{}, []oscalTypes_1_1_2.Observation{}, err
-							}
-							// Individual result state
-							if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
-								lulaValidation.Result.State = "satisfied"
-							} else {
-								lulaValidation.Result.State = "not-satisfied"
-							}
-
-							// Add remarks if Result has Observations
-							var remarks string
-							if len(lulaValidation.Result.Observations) > 0 {
-								for k, v := range lulaValidation.Result.Observations {
-									remarks += fmt.Sprintf("%s: %s\n", k, v)
+								message.Debugf("Error getting lula validation %s: %v", id, err)
+								// Handle error as an output to observations
+								observation := createObservation("TEST", "[Failed Observation]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
+								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
+									{
+										Description: "Result: not-satistfied\n",
+										Remarks:     fmt.Sprintf("Error getting lula validation: %v\n", err),
+									},
 								}
+								fail = 1
+								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
+							} else {
+								// Add the description of the validation now that we have the ID
+								observation := createObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
+
+								err = lulaValidation.Validate()
+								if err != nil {
+									message.Debugf("Error getting validating yaml: %v", err)
+									// Handle error as an output to observations
+									lulaValidation.Result.Failing = 1
+									lulaValidation.Result.Observations = map[string]string{"Validation Error": err.Error()}
+								}
+								// Individual result state
+								if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
+									lulaValidation.Result.State = "satisfied"
+								} else {
+									lulaValidation.Result.State = "not-satisfied"
+								}
+
+								// Add remarks if Result has Observations
+								var remarks string
+								if len(lulaValidation.Result.Observations) > 0 {
+									for k, v := range lulaValidation.Result.Observations {
+										remarks += fmt.Sprintf("%s: %s\n", k, v)
+									}
+								}
+
+								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
+									{
+										Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
+										Remarks:     remarks,
+									},
+								}
+
+								pass += lulaValidation.Result.Passing
+								fail += lulaValidation.Result.Failing
+
+								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
 							}
-
-							observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-								{
-									Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
-									Remarks:     remarks,
-								},
-							}
-
-							relatedObservation := oscalTypes_1_1_2.RelatedObservation{
-								ObservationUuid: sharedUuid,
-							}
-
-							pass += lulaValidation.Result.Passing
-							fail += lulaValidation.Result.Failing
-
-							// Coalesce slices and objects
-							relatedObservations = append(relatedObservations, relatedObservation)
-							tempObservations = append(tempObservations, observation)
-
 						}
-
 					}
 				}
 				// Using language from Assessment Results model for Target Objective Status State
@@ -338,4 +334,26 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	}
 
 	return nil
+}
+
+// Helper function to create observation
+func createObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
+	rfc3339Time := time.Now()
+	sharedUuid := uuid.NewUUID()
+	return oscalTypes_1_1_2.Observation{
+		Collected:   rfc3339Time,
+		Methods:     []string{method},
+		UUID:        sharedUuid,
+		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
+	}
+}
+
+// Helper function to append observations
+func appendObservations(relatedObservations []oscalTypes_1_1_2.RelatedObservation, tempObservations []oscalTypes_1_1_2.Observation, observation oscalTypes_1_1_2.Observation) ([]oscalTypes_1_1_2.RelatedObservation, []oscalTypes_1_1_2.Observation) {
+	relatedObservation := oscalTypes_1_1_2.RelatedObservation{
+		ObservationUuid: observation.UUID,
+	}
+	relatedObservations = append(relatedObservations, relatedObservation)
+	tempObservations = append(tempObservations, observation)
+	return relatedObservations, tempObservations
 }
