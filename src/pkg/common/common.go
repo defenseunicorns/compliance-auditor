@@ -58,32 +58,29 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	return data, nil
 }
 
-// TODO: we need a function to standardize what we do with new content
-// When writing to a file - we should check if the file exists and handle merge accordingly
-// There should be a default fle to write machine-readable content to.
-
 // WriteFile takes a path and writes content to a file while performing checks for existing content
-func WriteFile(filepath string, model *oscalTypes_1_1_2.OscalModels) error {
-	// first check if the filepath already exists - IE is this an existing artifact
-	if filepath == "" {
-		// Should there be a global default
-		filepath = "oscal.yaml"
+func WriteFile(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
+
+	// if no path or directory add default filename
+	if filepath.Ext(filePath) == "" {
+		filePath = filepath.Join(filePath, "oscal.yaml")
 	}
 
-	if _, err := os.Stat(filepath); err == nil {
-		// If the file exists - read the data
-		existingFileBytes, err := os.ReadFile(filepath)
+	if _, err := os.Stat(filePath); err == nil {
+		// If the file exists - read the data into the model
+		existingFileBytes, err := os.ReadFile(filePath)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error reading existing file"), "error reading existing file")
+			return err
 		}
 		existingModel, err := oscal.NewOscalModel(existingFileBytes)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error unmarshalling existing file"), "error unmarshalling existing file")
+			return err
 		}
+		// Merge the existing model with the new model
 		// re-assign to perform common operations below
 		model, err = oscal.MergeOscalModels(existingModel, model)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error merging oscal models"), "error merging oscal models")
+			return err
 		}
 	}
 
@@ -93,12 +90,12 @@ func WriteFile(filepath string, model *oscalTypes_1_1_2.OscalModels) error {
 	yamlEncoder.SetIndent(2)
 	yamlEncoder.Encode(model)
 
-	err := utils.WriteOutput(b.Bytes(), filepath)
+	err := utils.WriteOutput(b.Bytes(), filePath)
 	if err != nil {
 		return err
 	}
 
-	message.Infof("OSCAL artifact written to: %s", filepath)
+	message.Infof("OSCAL artifact written to: %s", filePath)
 
 	return nil
 
