@@ -4,7 +4,7 @@ component-definition:
     title: Lula Demo
     last-modified: "2022-09-13T12:00:00Z"
     version: "20220913"
-    oscal-version: 1.1.1 # This version should remain one version behind latest version for `lula dev upgrade` demo
+    oscal-version: 1.1.2 # This version should remain one version behind latest version for `lula dev upgrade` demo
     parties:
       # Should be consistent across all of the packages, but where is ground truth?
       - uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
@@ -35,6 +35,12 @@ component-definition:
                 This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
                 - href: "#a7377430-2328-4dc4-a9e2-b3f31dc1dff9"
+                  rel: lula
+                  # remote opa validation
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.yaml
+                  rel: lula
+                # remote kyverno validation
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.kyverno.yaml
                   rel: lula
   back-matter:
     resources:

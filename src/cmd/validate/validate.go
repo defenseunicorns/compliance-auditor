@@ -11,6 +11,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -137,16 +138,16 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and add data to a referenced report object
 func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	// Create a validation store from the back-matter if it exists
-	var validationStore *validationstore.ValidationStore
-	if compDef.BackMatter != nil {
-		validationStore = validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
-	} else {
-		validationStore = validationstore.NewValidationStore()
+	err := composition.ComposeComponentDefinitions(compDef)
+	if err != nil {
+		return nil, nil, err
+
 	}
 
-	// Loops all the way down
+	// Create a validation store from the back-matter if it exists
+	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
+	// Loops all the way down
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
 	observations := make([]oscalTypes_1_1_2.Observation, 0)
 
@@ -187,74 +188,57 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 					for _, link := range *implementedRequirement.Links {
 						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
 						if common.IsLulaLink(link) {
-							ids, err := validationStore.AddFromLink(link)
+							id := common.TrimIdPrefix(link.Href)
+							lulaValidation, err := validationStore.GetLulaValidation(id)
 							if err != nil {
-								message.Debugf("Error adding validation from link %s: %v", link.Href, err)
+								message.Debugf("Error getting lula validation %s: %v", id, err)
 								// Handle error as an output to observations
-								observation := createObservation("TEST", "[Failed Observation]: %s\n%s\n", implementedRequirement.ControlId, link.Text)
+								observation := createObservation("TEST", "[Failed Observation]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
 								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 									{
 										Description: "Result: not-satistfied\n",
-										Remarks:     fmt.Sprintf("Error adding validation from link: %v\n", err),
+										Remarks:     fmt.Sprintf("Error getting lula validation: %v\n", err),
 									},
 								}
 								fail = 1
 								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
-							}
+							} else {
+								// Add the description of the validation now that we have the ID
+								observation := createObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
 
-							for _, id := range ids {
-								lulaValidation, err := validationStore.GetLulaValidation(id)
+								err = lulaValidation.Validate()
 								if err != nil {
-									message.Debugf("Error getting lula validation %s: %v", id, err)
+									message.Debugf("Error getting validating yaml: %v", err)
 									// Handle error as an output to observations
-									observation := createObservation("TEST", "[Failed Observation]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
-									observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-										{
-											Description: "Result: not-satistfied\n",
-											Remarks:     fmt.Sprintf("Error getting lula validation: %v\n", err),
-										},
-									}
-									fail = 1
-									relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
+									lulaValidation.Result.Failing = 1
+									lulaValidation.Result.Observations = map[string]string{"Validation Error": err.Error()}
+								}
+								// Individual result state
+								if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
+									lulaValidation.Result.State = "satisfied"
 								} else {
-									// Add the description of the validation now that we have the ID
-									observation := createObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
-
-									err = lulaValidation.Validate()
-									if err != nil {
-										message.Debugf("Error getting validating yaml: %v", err)
-										// Handle error as an output to observations
-										lulaValidation.Result.Failing = 1
-										lulaValidation.Result.Observations = map[string]string{"Validation Error": err.Error()}
-									}
-									// Individual result state
-									if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
-										lulaValidation.Result.State = "satisfied"
-									} else {
-										lulaValidation.Result.State = "not-satisfied"
-									}
-
-									// Add remarks if Result has Observations
-									var remarks string
-									if len(lulaValidation.Result.Observations) > 0 {
-										for k, v := range lulaValidation.Result.Observations {
-											remarks += fmt.Sprintf("%s: %s\n", k, v)
-										}
-									}
-
-									observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-										{
-											Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
-											Remarks:     remarks,
-										},
-									}
-
-									pass += lulaValidation.Result.Passing
-									fail += lulaValidation.Result.Failing
-
-									relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
+									lulaValidation.Result.State = "not-satisfied"
 								}
 
+								// Add remarks if Result has Observations
+								var remarks string
+								if len(lulaValidation.Result.Observations) > 0 {
+									for k, v := range lulaValidation.Result.Observations {
+										remarks += fmt.Sprintf("%s: %s\n", k, v)
+									}
+								}
+
+								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
+									{
+										Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
+										Remarks:     remarks,
+									},
+								}
+
+								pass += lulaValidation.Result.Passing
+								fail += lulaValidation.Result.Failing
+
+								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
 							}
 						}
 					}

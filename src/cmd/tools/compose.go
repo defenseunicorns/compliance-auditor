@@ -80,7 +80,7 @@ func Compose(inputFile, outputFile string) error {
 		return err
 	}
 
-	err = composition.ComposeComponentValidations(model.ComponentDefinition)
+	err = composition.ComposeComponentDefinitions(model.ComponentDefinition)
 	if err != nil {
 		return err
 	}

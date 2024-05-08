@@ -49,6 +49,16 @@ func NewOscalComponentDefinition(source string, data []byte) (componentDefinitio
 	return oscalModels.ComponentDefinition, nil
 }
 
+// NewOscalComponentDefinitionFromBytes consumes a byte array and returns a new single OscalComponentDefinitionModel object
+func NewOscalComponentDefinitionFromBytes(data []byte) (componentDefinition oscalTypes_1_1_2.ComponentDefinition, err error) {
+	var oscalModels oscalTypes_1_1_2.OscalModels
+	err = yaml.Unmarshal(data, &oscalModels)
+	if err != nil {
+		return componentDefinition, err
+	}
+	return *oscalModels.ComponentDefinition, nil
+}
+
 // This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
 func MergeComponentDefinitions(original *oscalTypes_1_1_2.ComponentDefinition, latest *oscalTypes_1_1_2.ComponentDefinition) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 
@@ -378,11 +388,11 @@ func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRem
 
 // Returns a map of the uuid - description of the back-matter resources
 func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[string]string) {
+	resourceMap = make(map[string]string)
 	if backMatter.Resources == nil {
-		return nil
+		return resourceMap
 	}
 
-	resourceMap = make(map[string]string)
 	for _, resource := range *backMatter.Resources {
 		// perform a check to see if the key already exists (meaning duplicitive uuid use)
 		_, exists := resourceMap[resource.UUID]

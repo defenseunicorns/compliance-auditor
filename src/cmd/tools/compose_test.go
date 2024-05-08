@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	validInputFile   = "../../test/unit/common/compilation/component-definition-local-and-remote.yaml"
+	validInputFile   = "../../test/unit/common/composition/component-definition-import-compdefs.yaml"
 	invalidInputFile = "../../test/unit/common/valid-api-spec.yaml"
 )
 

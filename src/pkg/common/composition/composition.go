@@ -1,12 +1,88 @@
 package composition
 
 import (
+	"bytes"
 	"fmt"
 
 	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
+
+func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
+	if compDef == nil {
+		return fmt.Errorf("component definition is nil")
+	}
+
+	// Compose the component validations
+	err := ComposeComponentValidations(compDef)
+	if err != nil {
+		return err
+	}
+
+	// If there are no components, create an empty array
+	// Components aren't required by oscal but are by merge?
+	// TODO: fix merge to match required OSCAL fields
+	if compDef.Components == nil {
+		compDef.Components = &[]oscalTypes_1_1_2.DefinedComponent{}
+	}
+
+	// Same as above
+	if compDef.BackMatter == nil {
+		compDef.BackMatter = &oscalTypes_1_1_2.BackMatter{}
+	}
+
+	if compDef.ImportComponentDefinitions != nil {
+		for _, importComponentDef := range *compDef.ImportComponentDefinitions {
+			// Fetch the response
+			response, err := network.Fetch(importComponentDef.Href)
+			if err != nil {
+				return err
+			}
+
+			// Handle multi-docs
+			split := bytes.Split(response, []byte(common.YAML_DELIMITER))
+			// Unmarshal the component definition
+			for _, file := range split {
+				importDef, err := oscal.NewOscalComponentDefinitionFromBytes(file)
+				if err != nil {
+					return err
+				}
+
+				// create a validator
+				validator, err := validation.NewValidator(file)
+				if err != nil {
+					return err
+				}
+				// Validate the component definition
+				err = validator.Validate()
+				if err != nil {
+					return err
+				}
+
+				// Recurse and compose the component definition
+				err = ComposeComponentDefinitions(&importDef)
+				if err != nil {
+					return err
+				}
+
+				// Merge the component definitions
+				compDef, err = oscal.MergeComponentDefinitions(compDef, &importDef)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	compDef.Metadata.LastModified = gooscalUtils.GetTimestamp()
+	compDef.ImportComponentDefinitions = nil
+
+	return nil
+}
 
 // ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
 func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
@@ -17,8 +93,9 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 
 	resourceMap := NewResourceStoreFromBackMatter(compDef.BackMatter)
 
-	if *compDef.Components == nil {
-		return fmt.Errorf("no components found in component definition")
+	// If there are no components, there is nothing to do
+	if compDef.Components == nil {
+		return nil
 	}
 
 	for componentIndex, component := range *compDef.Components {

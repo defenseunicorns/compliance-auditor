@@ -1,13 +1,11 @@
 package validationstore
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -15,7 +13,6 @@ import (
 type ValidationStore struct {
 	backMatterMap map[string]string
 	validationMap types.LulaValidationMap
-	hrefIdMap     map[string][]string
 }
 
 // NewValidationStore creates a new validation store
@@ -23,7 +20,6 @@ func NewValidationStore() *ValidationStore {
 	return &ValidationStore{
 		backMatterMap: make(map[string]string),
 		validationMap: make(types.LulaValidationMap),
-		hrefIdMap:     make(map[string][]string),
 	}
 }
 
@@ -32,7 +28,6 @@ func NewValidationStoreFromBackMatter(backMatter oscalTypes_1_1_2.BackMatter) *V
 	return &ValidationStore{
 		backMatterMap: oscal.BackMatterToMap(backMatter),
 		validationMap: make(types.LulaValidationMap),
-		hrefIdMap:     make(map[string][]string),
 	}
 }
 
@@ -49,7 +44,12 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 	}
 
 	return validation.Metadata.UUID, nil
+}
 
+// AddLulaValidation adds a LulaValidation to the store
+func (v *ValidationStore) AddLulaValidation(validation *types.LulaValidation, id string) {
+	trimmedId := common.TrimIdPrefix(id)
+	v.validationMap[trimmedId] = *validation
 }
 
 // GetLulaValidation gets the LulaValidation from the store
@@ -70,82 +70,4 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	}
 
 	return validation, fmt.Errorf("validation #%s not found", trimmedId)
-}
-
-// SetHrefIds sets the validation ids for a given href
-func (v *ValidationStore) SetHrefIds(href string, ids []string) {
-	v.hrefIdMap[href] = ids
-}
-
-// GetHrefIds gets the validation ids for a given href
-func (v *ValidationStore) GetHrefIds(href string) (ids []string, err error) {
-	if ids, ok := v.hrefIdMap[href]; ok {
-		return ids, nil
-	}
-	return nil, fmt.Errorf("href #%s not found", href)
-}
-
-// AddFromLink adds a validation from a link
-func (v *ValidationStore) AddFromLink(link oscalTypes_1_1_2.Link) (ids []string, err error) {
-	id := link.Href
-
-	// If the resource fragment is not a wildcard, trim the prefix from the resource fragment
-	if link.ResourceFragment != common.WILDCARD && link.ResourceFragment != "" {
-		id = common.TrimIdPrefix(link.ResourceFragment)
-	}
-
-	// If the id is a uuid and the lula validation exists, return the id - error will be handled later
-	if validation, _ := v.GetLulaValidation(id); validation != nil {
-		return []string{id}, nil
-	}
-
-	// If the id is a url and has been fetched before, return the ids
-	if ids, err := v.GetHrefIds(id); err == nil {
-		return ids, nil
-	}
-
-	return v.fetchFromRemoteLink(link)
-}
-
-// fetchFromRemoteLink adds a validation from a remote source
-func (v *ValidationStore) fetchFromRemoteLink(link oscalTypes_1_1_2.Link) (ids []string, err error) {
-	wantedId := common.TrimIdPrefix(link.ResourceFragment)
-
-	validationBytes, err := network.Fetch(link.Href)
-	if err != nil {
-		return ids, err
-	}
-
-	validationBytesArr := bytes.Split(validationBytes, []byte(common.YAML_DELIMITER))
-	isSingleValidation := len(validationBytesArr) == 1
-
-	for _, validationBytes := range validationBytesArr {
-		var validation common.Validation
-		if err = validation.UnmarshalYaml(validationBytes); err != nil {
-			return ids, err
-		}
-		// If the validation does not have a UUID, create a new one
-		if validation.Metadata.UUID == "" {
-			validation.Metadata.UUID = uuid.NewUUID()
-		}
-
-		// Add the validation to the store
-		id, err := v.AddValidation(&validation)
-		if err != nil {
-			return ids, err
-		}
-
-		// If the wanted id is the id, the id is a wildcard, or there is only one validation, add the id to the ids
-		if wantedId == id || wantedId == common.WILDCARD || isSingleValidation {
-			ids = append(ids, id)
-		}
-	}
-
-	if len(ids) == 0 {
-		return ids, fmt.Errorf("no validations found for %s", link.Href)
-	} else {
-		v.SetHrefIds(link.Href, ids)
-	}
-
-	return ids, nil
 }
