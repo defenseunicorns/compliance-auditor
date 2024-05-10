@@ -68,7 +68,7 @@ func EvaluateAssessmentResults(files []string) error {
 		}
 		// We write results to the assessment-results report in newest -> oldest
 		// Older being our threshold here
-		status, findings, err = EvaluateResults(assessment.Results[1], assessment.Results[0])
+		status, findings, err = EvaluateResults(&assessment.Results[1], &assessment.Results[0])
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,7 @@ func EvaluateAssessmentResults(files []string) error {
 		// Consider parsing the timestamps for comparison
 		// Older timestamp being the threshold
 
-		status, findings, err = EvaluateResults(assessmentOne.Results[0], assessmentTwo.Results[0])
+		status, findings, err = EvaluateResults(&assessmentOne.Results[0], &assessmentTwo.Results[0])
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func EvaluateAssessmentResults(files []string) error {
 	}
 }
 
-func EvaluateResults(thresholdResult oscalTypes_1_1_2.Result, newResult oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
+func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
 	spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", newResult.UUID, thresholdResult.UUID)
 	defer spinner.Stop()
 

@@ -37,7 +37,7 @@ func TestEvaluateResultsPassing(t *testing.T) {
 		},
 	}
 
-	status, _, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	status, _, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestEvaluateResultsFailed(t *testing.T) {
 		},
 	}
 
-	status, findings, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	status, findings, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestEvaluateResultsNoFindings(t *testing.T) {
 		Findings: &[]oscalTypes_1_1_2.Finding{},
 	}
 
-	status, _, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	status, _, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestEvaluateResultsNoThreshold(t *testing.T) {
 		},
 	}
 
-	_, _, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	_, _, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err == nil {
 		t.Fatal("error - expected error, got nil")
 	}
@@ -182,7 +182,7 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		},
 	}
 
-	status, findings, err := EvaluateResults(mockThresholdResult, mockEvaluationResult)
+	status, findings, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
