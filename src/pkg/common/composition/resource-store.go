@@ -9,12 +9,14 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 )
 
+// ResourceStore is a store of resources.
 type ResourceStore struct {
 	existing  map[string]*oscalTypes_1_1_2.Resource
 	fetched   map[string]*oscalTypes_1_1_2.Resource
 	hrefIdMap map[string][]string
 }
 
+// NewResourceStoreFromBackMatter creates a new resource store from the back matter of a component definition.
 func NewResourceStoreFromBackMatter(backMatter *oscalTypes_1_1_2.BackMatter) *ResourceStore {
 	store := &ResourceStore{
 		existing: make(map[string]*oscalTypes_1_1_2.Resource),
@@ -92,7 +94,11 @@ func (s *ResourceStore) Has(id string) bool {
 	return inExisting || inFetched
 }
 
-func (s *ResourceStore) AddFromLink(link oscalTypes_1_1_2.Link) (ids []string, err error) {
+// AddFromLink adds resources from a link to the store.
+func (s *ResourceStore) AddFromLink(link *oscalTypes_1_1_2.Link) (ids []string, err error) {
+	if link == nil {
+		return nil, fmt.Errorf("link is nil")
+	}
 	id := common.TrimIdPrefix(link.Href)
 
 	if link.ResourceFragment != common.WILDCARD && link.ResourceFragment != "" {
@@ -110,7 +116,7 @@ func (s *ResourceStore) AddFromLink(link oscalTypes_1_1_2.Link) (ids []string, e
 	return s.fetchFromRemoteLink(link)
 }
 
-func (s *ResourceStore) fetchFromRemoteLink(link oscalTypes_1_1_2.Link) (ids []string, err error) {
+func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link) (ids []string, err error) {
 	wantedId := common.TrimIdPrefix(link.ResourceFragment)
 
 	validationBytes, err := network.Fetch(link.Href)

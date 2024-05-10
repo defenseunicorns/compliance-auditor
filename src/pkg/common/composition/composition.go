@@ -111,7 +111,7 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 
 					for _, link := range *implementedRequirement.Links {
 						if common.IsLulaLink(link) {
-							ids, err := resourceMap.AddFromLink(link)
+							ids, err := resourceMap.AddFromLink(&link)
 							if err != nil {
 								return err
 							}
