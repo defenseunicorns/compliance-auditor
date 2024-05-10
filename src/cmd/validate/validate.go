@@ -282,7 +282,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath string) error {
 
 	var fileName string
-	var tempAssessment oscalTypes_1_1_2.AssessmentResults
+	var tempAssessment *oscalTypes_1_1_2.AssessmentResults
 
 	if assessmentFilePath != "" {
 
@@ -308,7 +308,7 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 
 		} else if os.IsNotExist(err) {
 			// File does not exist
-			tempAssessment = report
+			tempAssessment = &report
 			fileName = assessmentFilePath
 		} else {
 			// Some other error occurred (permission issues, etc.)
@@ -316,15 +316,15 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 		}
 
 	} else {
-		tempAssessment = report
+		tempAssessment = &report
 		currentTime := time.Now()
-		fileName = "assessment-results-" + currentTime.Format("01-02-2006-15:04:05") + ".yaml"
+		fileName = "assessment-results-" + currentTime.Format("01-02-206-15:04:05") + ".yaml"
 	}
 
 	var b bytes.Buffer
 
 	var sar = oscalTypes_1_1_2.OscalModels{
-		AssessmentResults: &tempAssessment,
+		AssessmentResults: tempAssessment,
 	}
 
 	yamlEncoder := yaml.NewEncoder(&b)

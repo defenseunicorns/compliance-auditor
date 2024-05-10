@@ -12,16 +12,17 @@ import (
 
 const OSCAL_VERSION = "1.1.2"
 
-func NewAssessmentResults(data []byte) (oscalTypes_1_1_2.AssessmentResults, error) {
+// NewAssessmentResults creates a new assessment results object from the given data.
+func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
 
 	err := yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
-		return oscalTypes_1_1_2.AssessmentResults{}, err
+		return nil, err
 	}
 
-	return *oscalModels.AssessmentResults, nil
+	return oscalModels.AssessmentResults, nil
 }
 
 func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (*oscalTypes_1_1_2.AssessmentResults, error) {
