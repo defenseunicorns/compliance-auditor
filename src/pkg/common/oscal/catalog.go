@@ -1,32 +1,35 @@
 package oscal
 
 import (
-	"encoding/json"
-	"fmt"
-	"strings"
-
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"gopkg.in/yaml.v3"
 )
 
-func NewCatalog(source string, data []byte) (catalog oscalTypes_1_1_2.Catalog, err error) {
+// NewCatalog creates a new catalog object from the given data.
+func NewCatalog(data []byte) (catalog *oscalTypes_1_1_2.Catalog, err error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
-	if strings.HasSuffix(source, ".yaml") {
-		err = yaml.Unmarshal(data, &oscalModels)
-		if err != nil {
-			message.Debugf("Error marshalling yaml: %s\n", err.Error())
-			return catalog, err
-		}
-	} else if strings.HasSuffix(source, ".json") {
-		err = json.Unmarshal(data, &oscalModels)
-		if err != nil {
-			message.Debugf("Error marshalling json: %s\n", err.Error())
-			return catalog, err
-		}
-	} else {
-		return catalog, fmt.Errorf("unsupported file type: %s", source)
+
+	// create a new validator
+	validator, err := validation.NewValidator(data)
+	if err != nil {
+		return catalog, err
+	}
+	// validate the catalog
+	err = validator.Validate()
+	if err != nil {
+		return catalog, err
 	}
 
-	return *oscalModels.Catalog, nil
+	// unmarshal the catalog
+	// yaml.v3 unmarshal handles both json and yaml
+	err = yaml.Unmarshal(data, &oscalModels)
+	if err != nil {
+		message.Debugf("Error marshalling yaml: %s\n", err.Error())
+		return catalog, err
+
+	}
+
+	return oscalModels.Catalog, nil
 }

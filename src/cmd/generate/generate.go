@@ -90,13 +90,13 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		// Create new catalog object
-		catalog, err := oscal.NewCatalog(source, data)
+		catalog, err := oscal.NewCatalog(data)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating catalog"), "error creating catalog")
 		}
 
 		// Create a component definition from the catalog given required context
-		comp, err := oscal.ComponentFromCatalog(source, catalog, title, componentOpts.Requirements, remarks)
+		comp, err := oscal.ComponentFromCatalog(source, *catalog, title, componentOpts.Requirements, remarks)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}

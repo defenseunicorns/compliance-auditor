@@ -136,7 +136,7 @@ func TestComponentFromCatalog(t *testing.T) {
 	// let's create a catalog from a test document
 	catalogBytes := loadTestData(t, catalogPath)
 
-	catalog, err := oscal.NewCatalog("https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json", catalogBytes)
+	catalog, err := oscal.NewCatalog(catalogBytes)
 	if err != nil {
 		t.Errorf("error creating catalog from path %s", catalogPath)
 	}
@@ -154,7 +154,7 @@ func TestComponentFromCatalog(t *testing.T) {
 	}{
 		{
 			name:         "Valid test of component from Catalog",
-			data:         catalog,
+			data:         *catalog,
 			title:        "Component Title",
 			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
 			remarks:      []string{"statement"},
@@ -164,7 +164,7 @@ func TestComponentFromCatalog(t *testing.T) {
 		},
 		{
 			name:         "Valid test of component from Catalog with malformed control",
-			data:         catalog,
+			data:         *catalog,
 			title:        "Component Title",
 			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "100"},
 			remarks:      []string{"statement"},
@@ -174,7 +174,7 @@ func TestComponentFromCatalog(t *testing.T) {
 		},
 		{
 			name:         "Invalid amount of requirements specified",
-			data:         catalog,
+			data:         *catalog,
 			title:        "Component Test Title",
 			requirements: []string{},
 			remarks:      []string{"statement"},
@@ -228,7 +228,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 	// generate a new artifact
 	catalogBytes := loadTestData(t, catalogPath)
 	source := "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
-	catalog, err := oscal.NewCatalog(source, catalogBytes)
+	catalog, err := oscal.NewCatalog(catalogBytes)
 	if err != nil {
 		t.Errorf("error creating catalog from path %s", catalogPath)
 	}
@@ -303,7 +303,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 				existingImplementedRequirementsMap[req.ControlId] = true
 			}
 
-			generated, _ := oscal.ComponentFromCatalog(tt.source, catalog, tt.title, tt.requirements, tt.remarks)
+			generated, _ := oscal.ComponentFromCatalog(tt.source, *catalog, tt.title, tt.requirements, tt.remarks)
 
 			merged, err := oscal.MergeComponentDefinitions(validComponent, generated)
 			if (err != nil) != tt.wantErr {
