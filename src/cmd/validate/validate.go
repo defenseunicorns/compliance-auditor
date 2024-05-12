@@ -66,7 +66,7 @@ var validateCmd = &cobra.Command{
 		}
 
 		// Write the component definition to file
-		err = common.WriteOscalModel(opts.OutputFile, &model)
+		err = oscal.WriteOscalModel(opts.OutputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}

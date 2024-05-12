@@ -10,7 +10,6 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
@@ -150,7 +149,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Write the component definition to file
-	err = common.WriteOscalModel("sar-test.yaml", &model)
+	err = oscal.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
 	}
@@ -167,7 +166,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Write the component definition to file
-	err = common.WriteOscalModel("sar-test.yaml", &model)
+	err = oscal.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
 	}

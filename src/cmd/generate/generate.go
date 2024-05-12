@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -106,7 +105,7 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		// Write the component definition to file
-		err = common.WriteOscalModel(componentOpts.OutputFile, &model)
+		err = oscal.WriteOscalModel(componentOpts.OutputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}

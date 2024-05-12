@@ -1,17 +1,13 @@
 package common
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -19,7 +15,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -57,60 +52,6 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	}
 
 	return data, nil
-}
-
-// WriteOscalModel takes a path and writes content to a file while performing checks for existing content
-// supports both json and yaml
-func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
-
-	// if no path or directory add default filename
-	if filepath.Ext(filePath) == "" {
-		filePath = filepath.Join(filePath, "oscal.yaml")
-	}
-
-	if err := utils.IsJsonOrYaml(filePath); err != nil {
-		return err
-	}
-
-	if _, err := os.Stat(filePath); err == nil {
-		// If the file exists - read the data into the model
-		existingFileBytes, err := os.ReadFile(filePath)
-		if err != nil {
-			return err
-		}
-		existingModel, err := oscal.NewOscalModel(existingFileBytes)
-		if err != nil {
-			return err
-		}
-		// Merge the existing model with the new model
-		// re-assign to perform common operations below
-		model, err = oscal.MergeOscalModels(existingModel, model)
-		if err != nil {
-			return err
-		}
-	}
-
-	var b bytes.Buffer
-
-	if filepath.Ext(filePath) == ".json" {
-		jsonEncoder := json.NewEncoder(&b)
-		jsonEncoder.SetIndent("", "  ")
-		jsonEncoder.Encode(model)
-	} else {
-		yamlEncoder := yaml.NewEncoder(&b)
-		yamlEncoder.SetIndent(2)
-		yamlEncoder.Encode(model)
-	}
-
-	err := utils.WriteOutput(b.Bytes(), filePath)
-	if err != nil {
-		return err
-	}
-
-	message.Infof("OSCAL artifact written to: %s", filePath)
-
-	return nil
-
 }
 
 // Returns version validity
