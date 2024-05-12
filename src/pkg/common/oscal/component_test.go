@@ -80,13 +80,11 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    []byte
-		source  string
 		want    *oscalTypes.ComponentDefinition
 		wantErr bool
 	}{
 		{
 			name:    "Valid OSCAL Component Definition",
-			source:  "test.yaml",
 			data:    validBytes,
 			want:    validWantSchema.ComponentDefinition,
 			wantErr: false,
@@ -94,19 +92,17 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 		{
 			name:    "Invalid OSCAL Component Definition",
 			data:    invalidBytes,
-			source:  "",
 			wantErr: true,
 		},
 		{
 			name:    "Invalid OSCAL source with valid data",
 			data:    validBytes,
-			source:  "test.go",
-			wantErr: true,
+			want:    validWantSchema.ComponentDefinition,
+			wantErr: false,
 		},
 		{
 			name:    "Empty Data",
 			data:    []byte{},
-			source:  "",
 			wantErr: true,
 		},
 		// Additional test cases can be added here
@@ -114,7 +110,7 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := oscal.NewOscalComponentDefinition(tt.source, tt.data)
+			got, err := oscal.NewOscalComponentDefinition(tt.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewOscalComponentDefinition() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -293,7 +289,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			validComponent, _ := oscal.NewOscalComponentDefinition("valid-generated-component.yaml", validBytes)
+			validComponent, _ := oscal.NewOscalComponentDefinition(validBytes)
 
 			// Get the implemented requirements from existing for comparison
 			existingComponent := (*validComponent.Components)[0]

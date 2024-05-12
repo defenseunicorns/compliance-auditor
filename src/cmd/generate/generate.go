@@ -106,7 +106,7 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		// Write the component definition to file
-		err = common.WriteFile(componentOpts.OutputFile, &model)
+		err = common.WriteOscalModel(componentOpts.OutputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}

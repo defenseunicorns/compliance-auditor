@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
-	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -47,23 +46,11 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 			split := bytes.Split(response, []byte(common.YAML_DELIMITER))
 			// Unmarshal the component definition
 			for _, file := range split {
-				importDef, err := oscal.NewOscalComponentDefinitionFromBytes(file)
+				importDef, err := oscal.NewOscalComponentDefinition(file)
 				if err != nil {
 					return err
 				}
 
-				// create a validator
-				validator, err := validation.NewValidator(file)
-				if err != nil {
-					return err
-				}
-				// Validate the component definition
-				err = validator.Validate()
-				if err != nil {
-					return err
-				}
-
-				// Recurse and compose the component definition
 				err = ComposeComponentDefinitions(importDef)
 				if err != nil {
 					return err

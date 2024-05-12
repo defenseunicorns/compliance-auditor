@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -58,12 +59,17 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	return data, nil
 }
 
-// WriteFile takes a path and writes content to a file while performing checks for existing content
-func WriteFile(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
+// WriteOscalModel takes a path and writes content to a file while performing checks for existing content
+// supports both json and yaml
+func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
 
 	// if no path or directory add default filename
 	if filepath.Ext(filePath) == "" {
 		filePath = filepath.Join(filePath, "oscal.yaml")
+	}
+
+	if err := utils.IsJsonOrYaml(filePath); err != nil {
+		return err
 	}
 
 	if _, err := os.Stat(filePath); err == nil {
@@ -86,9 +92,15 @@ func WriteFile(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
 
 	var b bytes.Buffer
 
-	yamlEncoder := yaml.NewEncoder(&b)
-	yamlEncoder.SetIndent(2)
-	yamlEncoder.Encode(model)
+	if filepath.Ext(filePath) == ".json" {
+		jsonEncoder := json.NewEncoder(&b)
+		jsonEncoder.SetIndent("", "  ")
+		jsonEncoder.Encode(model)
+	} else {
+		yamlEncoder := yaml.NewEncoder(&b)
+		yamlEncoder.SetIndent(2)
+		yamlEncoder.Encode(model)
+	}
 
 	err := utils.WriteOutput(b.Bytes(), filePath)
 	if err != nil {

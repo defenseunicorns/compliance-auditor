@@ -150,7 +150,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Write the component definition to file
-	err = common.WriteFile("sar-test.yaml", &model)
+	err = common.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
 	}
@@ -167,7 +167,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Write the component definition to file
-	err = common.WriteFile("sar-test.yaml", &model)
+	err = common.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
 	}

@@ -1,13 +1,13 @@
 package oscal
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
+	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 
@@ -27,31 +27,19 @@ type parameter struct {
 
 // NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
 // Standard use is to read a file from the filesystem and pass the []byte to this function
-func NewOscalComponentDefinition(source string, data []byte) (componentDefinition *oscalTypes_1_1_2.ComponentDefinition, err error) {
+func NewOscalComponentDefinition(data []byte) (componentDefinition *oscalTypes_1_1_2.ComponentDefinition, err error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
 
-	if strings.HasSuffix(source, ".yaml") {
-		err = yaml.Unmarshal(data, &oscalModels)
-		if err != nil {
-			message.Debugf("Error marshalling yaml: %s\n", err.Error())
-			return componentDefinition, err
-		}
-	} else if strings.HasSuffix(source, ".json") {
-		err = json.Unmarshal(data, &oscalModels)
-		if err != nil {
-			message.Debugf("Error marshalling json: %s\n", err.Error())
-			return componentDefinition, err
-		}
-	} else {
-		return componentDefinition, fmt.Errorf("unsupported file type: %s", source)
+	validator, err := validation.NewValidator(data)
+	if err != nil {
+		return componentDefinition, err
 	}
 
-	return oscalModels.ComponentDefinition, nil
-}
+	err = validator.Validate()
+	if err != nil {
+		return componentDefinition, err
+	}
 
-// NewOscalComponentDefinitionFromBytes consumes a byte array and returns a new single OscalComponentDefinitionModel object
-func NewOscalComponentDefinitionFromBytes(data []byte) (componentDefinition *oscalTypes_1_1_2.ComponentDefinition, err error) {
-	var oscalModels oscalTypes_1_1_2.OscalModels
 	err = yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		return componentDefinition, err

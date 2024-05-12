@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -44,6 +45,11 @@ var validateCmd = &cobra.Command{
 			message.Fatal(errors.New("flag input-file is not set"),
 				"Please specify an input file with the -f flag")
 		}
+
+		if err := utils.IsJsonOrYaml(opts.InputFile); err != nil {
+			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
+		}
+
 		// Primary expected path for validation of OSCAL documents
 		findings, observations, err := ValidateOnPath(opts.InputFile)
 		if err != nil {
@@ -60,7 +66,7 @@ var validateCmd = &cobra.Command{
 		}
 
 		// Write the component definition to file
-		err = common.WriteFile(opts.OutputFile, &model)
+		err = common.WriteOscalModel(opts.OutputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}
@@ -121,7 +127,7 @@ func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding
 	}
 	defer resetCwd()
 
-	compDef, err := oscal.NewOscalComponentDefinition(path, data)
+	compDef, err := oscal.NewOscalComponentDefinition(data)
 	if err != nil {
 		return findingMap, observations, err
 	}
