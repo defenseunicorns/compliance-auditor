@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 
@@ -30,12 +29,8 @@ type parameter struct {
 func NewOscalComponentDefinition(data []byte) (componentDefinition *oscalTypes_1_1_2.ComponentDefinition, err error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
 
-	validator, err := validation.NewValidator(data)
-	if err != nil {
-		return componentDefinition, err
-	}
-
-	err = validator.Validate()
+	// validate the data
+	err = multiModelValidate(data)
 	if err != nil {
 		return componentDefinition, err
 	}

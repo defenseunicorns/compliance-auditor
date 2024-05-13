@@ -16,7 +16,12 @@ const OSCAL_VERSION = "1.1.2"
 func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
 
-	err := yaml.Unmarshal(data, &oscalModels)
+	err := multiModelValidate(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
 		fmt.Printf("Error marshalling yaml: %s\n", err.Error())
 		return nil, err

@@ -15,7 +15,13 @@ import (
 
 func NewOscalModel(data []byte) (*oscalTypes_1_1_2.OscalModels, error) {
 	oscalModel := oscalTypes_1_1_2.OscalModels{}
-	err := yaml.Unmarshal(data, &oscalModel)
+
+	err := multiModelValidate(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(data, &oscalModel)
 	if err != nil {
 		return nil, err
 	}
