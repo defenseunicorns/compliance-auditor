@@ -69,7 +69,7 @@ func MergeComponentDefinitions(original *oscalTypes_1_1_2.ComponentDefinition, l
 	for key, value := range latestMap {
 		if comp, ok := originalMap[key]; ok {
 			// if the component exists - merge & append
-			comp = mergeComponents(comp, value)
+			comp = *mergeComponents(&comp, &value)
 			tempItems = append(tempItems, comp)
 			delete(originalMap, key)
 		} else {
@@ -101,17 +101,21 @@ func MergeComponentDefinitions(original *oscalTypes_1_1_2.ComponentDefinition, l
 
 }
 
-func mergeComponents(original oscalTypes_1_1_2.DefinedComponent, latest oscalTypes_1_1_2.DefinedComponent) oscalTypes_1_1_2.DefinedComponent {
+func mergeComponents(original *oscalTypes_1_1_2.DefinedComponent, latest *oscalTypes_1_1_2.DefinedComponent) *oscalTypes_1_1_2.DefinedComponent {
 	originalMap := make(map[string]oscalTypes_1_1_2.ControlImplementationSet)
 
-	for _, item := range *original.ControlImplementations {
-		originalMap[item.Source] = item
+	if original.ControlImplementations != nil {
+		for _, item := range *original.ControlImplementations {
+			originalMap[item.Source] = item
+		}
 	}
 
 	latestMap := make(map[string]oscalTypes_1_1_2.ControlImplementationSet)
 
-	for _, item := range *latest.ControlImplementations {
-		latestMap[item.Source] = item
+	if latest.ControlImplementations != nil {
+		for _, item := range *latest.ControlImplementations {
+			latestMap[item.Source] = item
+		}
 	}
 
 	tempItems := make([]oscalTypes_1_1_2.ControlImplementationSet, 0)
@@ -226,7 +230,7 @@ func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
-func ComponentFromCatalog(source string, catalog oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
+func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 	var componentDefinition = &oscalTypes_1_1_2.ComponentDefinition{}
