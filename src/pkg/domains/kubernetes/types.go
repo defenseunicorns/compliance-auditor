@@ -23,17 +23,26 @@ func (k KubernetesDomain) GetResources() (types.DomainResources, error) {
 		return nil, err
 	}
 
-	resources, err = QueryCluster(k.Context, k.Spec.Resources)
-	if err != nil {
-		return nil, err
+	// Return both?
+	if k.Spec.Resources != nil {
+		resources, err = QueryCluster(k.Context, k.Spec.Resources)
+		if err != nil {
+			return nil, err
+		}
+	} else if k.Spec.CreateResources != nil {
+		resources, err = CreateE2E(k.Context, k.Spec.CreateResources)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return resources, nil
 }
 
 type KubernetesSpec struct {
-	Resources []Resource `json:"resources" yaml:"resources"`
-	Wait      Wait       `json:"wait" yaml:"wait"`
+	Resources       []Resource       `json:"resources" yaml:"resources"`
+	Wait            Wait             `json:"wait" yaml:"wait"`
+	CreateResources []CreateResource `json:"create-resources" yaml:"create-resources"`
 }
 
 type Resource struct {
@@ -81,4 +90,11 @@ type Wait struct {
 	Kind      string `json:"kind" yaml:"kind"`
 	Namespace string `json:"namespace" yaml:"namespace"`
 	Timeout   string `json:"timeout" yaml:"timeout"`
+}
+
+type CreateResource struct {
+	Name      string `json:"name" yaml:"name"`
+	Namespace string `json:"namespace" yaml:"namespace"`
+	Manifest  string `json:"manifest" yaml:"manifest"`
+	File      string `json:"file" yaml:"file"`
 }

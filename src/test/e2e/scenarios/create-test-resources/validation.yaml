@@ -1,0 +1,92 @@
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    create-resources:
+      - name: successPods
+        namespace: validation-test
+        manifest: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: success-1
+            namespace: validation-test
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+          ---
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: success-2
+            namespace: validation-test
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+      - name: failPods
+        namespace: validation-test
+        manifest: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: invalid*name+1
+            namespace: validation-test
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+          ---
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: invalid*name+2
+            namespace: validation-test
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+      - name: netpolTestJob
+        manifest: |
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: test-job
+            namespace: validation-test
+          spec:
+            template:
+              spec:
+                containers:
+                - name: test-container
+                  image: nginx
+                  command: ["curl", "http://fake-service:80"]
+                restartPolicy: Never
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+      
+      default validate = false
+      validate {
+        check_success_pods
+        check_fail_pods
+        check_netpol_test_job
+      }
+
+      # Check if successPods were created - should be true
+      check_success_pods {
+        success_pod_names := { pod.metadata.name | pod := input.successPods[_]; pod.kind == "Pod" }
+        count({"success-1", "success-2"}-success_pod_names) == 0
+      }
+
+      # Check if failPods were created - should be false
+      check_fail_pods {
+        fail_pod_names := { pod.metadata.name | pod := input.failPods[_]; pod.kind == "Pod" }
+        count({"invalid*name+1", "invalid*name+2"}-fail_pod_names) == 2
+      }
+
+      # Check the netpolTestJob didn't run successfully
+      check_netpol_test_job {
+        input.netpolTestJob[_].status.failed > 0
+      }
