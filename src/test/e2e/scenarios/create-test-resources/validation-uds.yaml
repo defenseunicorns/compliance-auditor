@@ -1,0 +1,23 @@
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    create-resources:
+      - name: disallowHostNamespacePods # Need to add registry credentials... or make sure they're in the cluster already...
+        file: https://repo1.dso.mil/big-bang/product/packages/kyverno-policies/-/raw/main/chart/tests/manifests/disallow-host-namespaces.yaml
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+      
+      default validate = false
+      validate {
+        check_allowed_pods
+      }
+
+      # Check if only allowed pods were created
+      check_allowed_pods {
+        pod_names := { pod.metadata.name | pod := input.disallowHostNamespacePods[_]; pod.kind == "Pod" }
+        count({"disallow-host-namespaces-4", "disallow-host-namespaces-5"}-pod_names) == 0
+      }
+
