@@ -122,7 +122,7 @@ func mergeComponents(original *oscalTypes_1_1_2.DefinedComponent, latest *oscalT
 	for key, value := range latestMap {
 		if orig, ok := originalMap[key]; ok {
 			// if the control implementation exists - merge & append
-			orig = mergeControlImplementations(orig, value)
+			orig = *mergeControlImplementations(&orig, &value)
 			tempItems = append(tempItems, orig)
 			delete(originalMap, key)
 		} else {
@@ -139,17 +139,22 @@ func mergeComponents(original *oscalTypes_1_1_2.DefinedComponent, latest *oscalT
 	return original
 }
 
-func mergeControlImplementations(original oscalTypes_1_1_2.ControlImplementationSet, latest oscalTypes_1_1_2.ControlImplementationSet) oscalTypes_1_1_2.ControlImplementationSet {
+func mergeControlImplementations(original *oscalTypes_1_1_2.ControlImplementationSet, latest *oscalTypes_1_1_2.ControlImplementationSet) *oscalTypes_1_1_2.ControlImplementationSet {
 	originalMap := make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
 
-	for _, item := range original.ImplementedRequirements {
-		originalMap[item.ControlId] = item
+	if original.ImplementedRequirements != nil {
+		for _, item := range original.ImplementedRequirements {
+			originalMap[item.ControlId] = item
+		}
 	}
 	latestMap := make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
 
-	for _, item := range latest.ImplementedRequirements {
-		latestMap[item.ControlId] = item
+	if latest.ImplementedRequirements != nil {
+		for _, item := range latest.ImplementedRequirements {
+			latestMap[item.ControlId] = item
+		}
 	}
+
 	tempItems := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 	for key, latestImp := range latestMap {
 		if orig, ok := originalMap[key]; ok {
@@ -256,22 +261,22 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 		}
 		for _, control := range *group.Controls {
 			if _, ok := controlMap[control.ID]; ok {
-				newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
+				newRequirement, err := ControlToImplementedRequirement(&control, targetRemarks)
 				if err != nil {
 					return componentDefinition, err
 				}
-				implmentedRequirements = append(implmentedRequirements, newRequirement)
+				implmentedRequirements = append(implmentedRequirements, *newRequirement)
 				controlMap[control.ID] = true
 			}
 
 			if control.Controls != nil {
 				for _, subControl := range *control.Controls {
 					if _, ok := controlMap[subControl.ID]; ok {
-						newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
+						newRequirement, err := ControlToImplementedRequirement(&subControl, targetRemarks)
 						if err != nil {
 							return componentDefinition, err
 						}
-						implmentedRequirements = append(implmentedRequirements, newRequirement)
+						implmentedRequirements = append(implmentedRequirements, *newRequirement)
 						controlMap[subControl.ID] = true
 						continue
 					}
@@ -320,8 +325,10 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 }
 
 // Consume a control - Identify statements - iterate through parts in order to create a description
-func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRemarks []string) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
-
+func ControlToImplementedRequirement(control *oscalTypes_1_1_2.Control, targetRemarks []string) (implementedRequirement *oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
+	if control == nil {
+		return nil, fmt.Errorf("control is nil")
+	}
 	var controlDescription string
 	paramMap := make(map[string]parameter)
 
