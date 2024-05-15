@@ -19,9 +19,9 @@ import (
 // Data structures for ingesting validation data
 type Validation struct {
 	LulaVersion string    `json:"lula-version" yaml:"lula-version"`
-	Metadata    *Metadata `json:"metadata" yaml:"metadata"`
-	Provider    *Provider `json:"provider" yaml:"provider"`
-	Domain      *Domain   `json:"domain" yaml:"domain"`
+	Metadata    *Metadata `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	Provider    *Provider `json:"provider,omitempty" yaml:"provider,omitempty"`
+	Domain      *Domain   `json:"domain,omitempty" yaml:"domain,omitempty"`
 }
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
@@ -59,14 +59,14 @@ type Metadata struct {
 
 type Domain struct {
 	Type           string               `json:"type" yaml:"type"`
-	KubernetesSpec *kube.KubernetesSpec `json:"kubernetes-spec" yaml:"kubernetes-spec"`
-	ApiSpec        *api.ApiSpec         `json:"api-spec" yaml:"api-spec"`
+	KubernetesSpec *kube.KubernetesSpec `json:"kubernetes-spec,omitempty" yaml:"kubernetes-spec,omitempty"`
+	ApiSpec        *api.ApiSpec         `json:"api-spec,omitempty" yaml:"api-spec,omitempty"`
 }
 
 type Provider struct {
 	Type        string               `json:"type" yaml:"type"`
-	OpaSpec     *opa.OpaSpec         `json:"opa-spec" yaml:"opa-spec"`
-	KyvernoSpec *kyverno.KyvernoSpec `json:"kyverno-spec" yaml:"kyverno-spec"`
+	OpaSpec     *opa.OpaSpec         `json:"opa-spec,omitempty" yaml:"opa-spec,omitempty"`
+	KyvernoSpec *kyverno.KyvernoSpec `json:"kyverno-spec,omitempty" yaml:"kyverno-spec,omitempty"`
 }
 
 // ToLulaValidation converts a Validation object to a LulaValidation object
