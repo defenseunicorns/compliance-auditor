@@ -261,7 +261,7 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 		}
 		for _, control := range *group.Controls {
 			if _, ok := controlMap[control.ID]; ok {
-				newRequirement, err := ControlToImplementedRequirement(control, targetRemarks)
+				newRequirement, err := ControlToImplementedRequirement(&control, targetRemarks)
 				if err != nil {
 					return componentDefinition, err
 				}
@@ -272,7 +272,7 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 			if control.Controls != nil {
 				for _, subControl := range *control.Controls {
 					if _, ok := controlMap[subControl.ID]; ok {
-						newRequirement, err := ControlToImplementedRequirement(subControl, targetRemarks)
+						newRequirement, err := ControlToImplementedRequirement(&subControl, targetRemarks)
 						if err != nil {
 							return componentDefinition, err
 						}
@@ -325,10 +325,13 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 }
 
 // Consume a control - Identify statements - iterate through parts in order to create a description
-func ControlToImplementedRequirement(control oscalTypes_1_1_2.Control, targetRemarks []string) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
-
+func ControlToImplementedRequirement(control *oscalTypes_1_1_2.Control, targetRemarks []string) (implementedRequirement oscalTypes_1_1_2.ImplementedRequirementControlImplementation, err error) {
 	var controlDescription string
 	paramMap := make(map[string]parameter)
+
+	if control == nil {
+		return implementedRequirement, fmt.Errorf("control is nil")
+	}
 
 	if control.Params != nil {
 		for _, param := range *control.Params {
