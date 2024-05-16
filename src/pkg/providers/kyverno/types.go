@@ -12,7 +12,7 @@ type KyvernoProvider struct {
 	Context context.Context `json:"context" yaml:"context"`
 
 	// Spec is the specification of the Kyverno policy
-	Spec *KyvernoSpec `json:"spec" yaml:"spec"`
+	Spec *KyvernoSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
 func (k KyvernoProvider) Evaluate(resources types.DomainResources) (types.Result, error) {
