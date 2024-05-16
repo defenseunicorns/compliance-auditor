@@ -50,7 +50,7 @@ type ResourceRule struct {
 	Version    string   `json:"version" yaml:"version"`
 	Resource   string   `json:"resource" yaml:"resource"`
 	Namespaces []string `json:"namespaces" yaml:"namespaces"`
-	Field      Field    `json:"field" yaml:"field"`
+	Field      *Field   `json:"field,omitempty" yaml:"field,omitempty"`
 }
 
 type FieldType string

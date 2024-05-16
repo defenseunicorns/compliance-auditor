@@ -87,7 +87,7 @@ func GetResourcesDynamically(ctx context.Context,
 					return nil, err
 				}
 				// If field is specified, get the field data
-				if resource.Field.Jsonpath != "" {
+				if resource.Field != nil && resource.Field.Jsonpath != "" {
 					item, err = getFieldValue(item, resource.Field)
 					if err != nil {
 						return nil, err
@@ -161,8 +161,10 @@ func reduceByName(name string, items []unstructured.Unstructured) (map[string]in
 }
 
 // getFieldValue() looks up the field from a resource and returns a map[string]interface{} representation of the data
-func getFieldValue(item map[string]interface{}, field Field) (map[string]interface{}, error) {
-
+func getFieldValue(item map[string]interface{}, field *Field) (map[string]interface{}, error) {
+	if field == nil {
+		return nil, fmt.Errorf("field is nil")
+	}
 	// Identify the field in item
 	pathParts := strings.Split(field.Jsonpath, ".")[1:]
 	current := item
