@@ -48,9 +48,11 @@ func QueryCluster(ctx context.Context, resources []Resource) (map[string]interfa
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}
 // This function is used to query the cluster for specific subset of resources required for processing
 func GetResourcesDynamically(ctx context.Context,
-	resource ResourceRule) (
+	resource *ResourceRule) (
 	[]map[string]interface{}, error) {
-
+	if resource == nil {
+		return nil, fmt.Errorf("resource rule is nil")
+	}
 	config, err := connect()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)

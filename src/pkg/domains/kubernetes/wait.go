@@ -84,7 +84,7 @@ func WaitForExistence(kind string, namespace string, timeout time.Duration) (err
 				return err
 			}
 
-			resourceRule := ResourceRule{
+			resourceRule := &ResourceRule{
 				Group:      gvr.Group,
 				Version:    gvr.Version,
 				Resource:   gvr.Resource,
