@@ -40,6 +40,14 @@ func (k KubernetesDomain) GetResources() (resources types.DomainResources, err e
 	return resources, nil
 }
 
+func (k KubernetesDomain) IsExecutable() bool {
+	// Domain is only executable if create-resources is not nil
+	if len(k.Spec.CreateResources) > 0 {
+		return true
+	}
+	return false
+}
+
 type KubernetesSpec struct {
 	Resources       []Resource       `json:"resources" yaml:"resources"`
 	Wait            *Wait            `json:"wait,omitempty" yaml:"wait,omitempty"`

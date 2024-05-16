@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -24,6 +26,7 @@ import (
 func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]interface{}, error) {
 	collections := make(map[string]interface{}, len(resources))
 	namespaces := make([]string, 0)
+	var errList []string
 
 	// Set up the clients
 	config, err := connect()
@@ -43,7 +46,8 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 		if resource.Namespace != "" {
 			new, err := createNamespace(ctx, client, resource.Namespace)
 			if err != nil {
-				return nil, err
+				message.Debugf("error creating namespace %s: %v", resource.Namespace, err)
+				errList = append(errList, err.Error())
 			}
 			// Only add to list if not already in cluster
 			if new {
@@ -52,27 +56,38 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 		}
 
 		// TODO: Allow both Manifest and File to be specified?
+		// Want to catch any errors and proceed in case resources have already been created
 		if resource.Manifest != "" {
 			collection, err = CreateFromManifest(ctx, client, []byte(resource.Manifest))
 			if err != nil {
-				return nil, err
+				message.Debugf("error creating resource from manifest: %v", err)
+				errList = append(errList, err.Error())
 			}
 		} else if resource.File != "" {
 			collection, err = CreateFromFile(ctx, client, resource.File)
 			if err != nil {
-				return nil, err
+				message.Debugf("error creating resource from file: %v", err)
+				errList = append(errList, err.Error())
 			}
 		} else {
-			return nil, errors.New("resource must have either manifest or file specified")
+			// return nil, errors.New("resource must have either manifest or file specified")
+			errList = append(errList, "resource must have either manifest or file specified")
 		}
 		collections[resource.Name] = collection
 	}
 
 	// Destroy the resources
 	if err = DestroyAllResources(ctx, client, collections, namespaces); err != nil {
-		// What do you do if resources can't be destroyed...
-		return nil, err
+		// If a resource can't be destroyed, return the error (include retry logic??)
+		message.Debugf("error destroying all resources: %v", err)
+		errList = append(errList, err.Error())
 	}
+
+	// Check if there were any errors
+	if len(errList) > 0 {
+		return nil, errors.New("errors encountered: " + strings.Join(errList, "; "))
+	}
+
 	return collections, nil
 }
 
@@ -109,6 +124,7 @@ func CreateFromFile(ctx context.Context, client klient.Client, resourceFile stri
 
 // DestroyAllResources() removes all the created resources
 func DestroyAllResources(ctx context.Context, client klient.Client, collections map[string]interface{}, namespaces []string) error {
+	var errList []string // Collect errors to return at end so all resources are attempted to be destroyed
 	for _, resources := range collections {
 		if resources, ok := resources.([]map[string]interface{}); ok {
 			// Destroy in reverse order
@@ -116,7 +132,8 @@ func DestroyAllResources(ctx context.Context, client klient.Client, collections 
 				obj := &unstructured.Unstructured{Object: resources[i]}
 				err := destroyResource(ctx, client, obj)
 				if err != nil {
-					return err // Should I try again if this returns an error, or handle some other way?
+					message.Debugf("error destroying resource %s: %v", obj.GetName(), err)
+					errList = append(errList, err.Error())
 				}
 			}
 		}
@@ -135,8 +152,14 @@ func DestroyAllResources(ctx context.Context, client klient.Client, collections 
 		}
 
 		if err := destroyResource(ctx, client, ns); err != nil {
-			return err
+			message.Debugf("error destroying namespace %s: %v", namespace, err)
+			errList = append(errList, err.Error())
 		}
+	}
+
+	// Check if there were any errors
+	if len(errList) > 0 {
+		return errors.New("errors encountered: " + strings.Join(errList, "; "))
 	}
 
 	return nil
@@ -145,14 +168,15 @@ func DestroyAllResources(ctx context.Context, client klient.Client, collections 
 // createResource() creates a resource in a k8s cluster
 func createResource(ctx context.Context, client klient.Client, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	// Modify the obj name to avoid collisions
-	//obj.SetName(envconf.RandomName(obj.GetName(), 16)) // Maybe don't do this... What if you want to check a specific object?
+	// Omitting this - if you want to check a specific object name, this gets in the way. Additionally, probably aren't running in such quick succession that this is necessary
+	//obj.SetName(envconf.RandomName(obj.GetName(), 16))
 
-	// Create the object
+	// Create the object -> error returned when object is unable to be created
 	if err := client.Resources().Create(ctx, obj); err != nil {
 		return nil, err
 	}
 
-	// Wait for object to exist -> Times out at 10 seconds -> Presumably the object is blocked(?)
+	// Wait for object to exist -> Times out at 10 seconds
 	conditionFunc := func(obj k8s.Object) bool {
 		if err := client.Resources().Get(ctx, obj.GetName(), obj.GetNamespace(), obj); err != nil {
 			return false
@@ -167,7 +191,7 @@ func createResource(ctx context.Context, client klient.Client, obj *unstructured
 	}
 
 	// Add pause for resources to do thier thang
-	time.Sleep(time.Second * 2) // Not sure if this is enough time
+	time.Sleep(time.Second * 2) // Not sure if this is enough time, need to test with more complex resources
 
 	// Get the object to return
 	if err := client.Resources().Get(ctx, obj.GetName(), obj.GetNamespace(), obj); err != nil {
@@ -183,6 +207,15 @@ func destroyResource(ctx context.Context, client klient.Client, obj *unstructure
 	if err := client.Resources().Delete(ctx, obj, resources.WithDeletePropagation(string(propagationPolicy))); err != nil {
 		return err
 	}
+
+	// Wait for object to be removed from the cluster -> Times out at 30 seconds
+	if err := wait.For(
+		conditions.New(client.Resources()).ResourceDeleted(obj),
+		wait.WithTimeout(time.Second*30),
+	); err != nil {
+		return err // Object is unable to be deleted... retry logic? Or just return error?
+	}
+
 	return nil
 }
 

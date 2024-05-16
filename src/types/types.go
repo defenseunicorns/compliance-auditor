@@ -91,6 +91,7 @@ type DomainResources map[string]interface{}
 
 type Domain interface {
 	GetResources() (DomainResources, error)
+	IsExecutable() bool
 }
 
 type Provider interface {
@@ -106,4 +107,9 @@ type Result struct {
 	Failing      int               `json:"failing" yaml:"failing"`
 	State        string            `json:"state" yaml:"state"`
 	Observations map[string]string `json:"observations" yaml:"observations"`
+}
+
+// Check if the validation requires confirmation before possible execution code is run
+func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
+	return !val.Domain.IsExecutable()
 }

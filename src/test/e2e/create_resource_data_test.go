@@ -1,0 +1,110 @@
+package test
+
+import (
+	"context"
+	"testing"
+
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/e2e-framework/pkg/envconf"
+	"sigs.k8s.io/e2e-framework/pkg/features"
+)
+
+func TestCreateResourceDataValidation(t *testing.T) {
+	featureTrueDataValidation := features.New("Check Create Resource Data Validation - Success").
+		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Create the secure namespace for blocking admission of failPods
+			secureNamespace := &corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "secure-ns",
+					Labels: map[string]string{
+						"pod-security.kubernetes.io/enforce": "restricted",
+					},
+				},
+			}
+			if err := config.Client().Resources().Create(ctx, secureNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			return ctx
+		}).
+		Assess("Validate Create Resource Data Collections", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/create-resources/oscal-component.yaml"
+			message.NoProgress = true
+
+			// Check that validation passes
+			findingMap, observations, err := validate.ValidateOnPath(oscalPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Test report generation
+			report, err := oscal.GenerateAssessmentResults(findingMap, observations)
+			if err != nil {
+				t.Fatal("Failed generation of Assessment Results object with: ", err)
+			}
+
+			var model = oscalTypes_1_1_2.OscalModels{
+				AssessmentResults: report,
+			}
+
+			// Write the component definition to file
+			err = common.WriteFile("sar-test.yaml", &model)
+			if err != nil {
+				message.Fatalf(err, "error writing component to file")
+			}
+
+			for _, finding := range findingMap {
+				state := finding.Target.Status.State
+				if state != "satisfied" {
+					t.Fatal("State should be satisfied, but got:", state)
+				}
+			}
+
+			// Check that resources in the cluster were destroyed
+			if err := config.Client().Resources().Get(ctx, "success-1", "validation-test", &corev1.Pod{}); err == nil {
+				t.Fatal("pod success-1 should not exist")
+			}
+			if err := config.Client().Resources().Get(ctx, "success-2", "validation-test", &corev1.Pod{}); err == nil {
+				t.Fatal("pod success-2 should not exist")
+			}
+			if err := config.Client().Resources().Get(ctx, "test-job", "another-ns", &batchv1.Job{}); err == nil {
+				t.Fatal("job test-job should not exist")
+			}
+			if err := config.Client().Resources().Get(ctx, "test-pod-label", "validation-test", &corev1.Pod{}); err == nil {
+				t.Fatal("pod test-pod-label should not exist")
+			}
+			if err := config.Client().Resources().Get(ctx, "validation-test", "", &corev1.Namespace{}); err != nil {
+				t.Fatal("namespace validation-test should still exist")
+			}
+			if err := config.Client().Resources().Get(ctx, "secure-ns", "", &corev1.Namespace{}); err != nil {
+				t.Fatal("namespace secure-ns should still exist")
+			}
+			if err := config.Client().Resources().Get(ctx, "another-ns", "", &corev1.Namespace{}); err == nil {
+				t.Fatal("namespace another-ns should not exist")
+			}
+
+			return ctx
+		}).
+		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Delete the secure namespace
+			secureNamespace := &corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "secure-ns",
+				},
+			}
+			if err := config.Client().Resources().Delete(ctx, secureNamespace); err != nil {
+				t.Fatal(err)
+			}
+
+			return ctx
+		}).
+		Feature()
+
+	testEnv.Test(t, featureTrueDataValidation)
+}
