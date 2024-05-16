@@ -11,7 +11,7 @@ type OpaProvider struct {
 	Context context.Context `json:"context" yaml:"context"`
 
 	// Spec is the specification of the OPA policy
-	Spec OpaSpec `json:"spec" yaml:"spec"`
+	Spec *OpaSpec `json:"spec" yaml:"spec"`
 }
 
 func (o OpaProvider) Evaluate(resources types.DomainResources) (types.Result, error) {

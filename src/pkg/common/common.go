@@ -144,7 +144,7 @@ func GetProvider(provider *Provider, ctx context.Context) types.Provider {
 	case "opa":
 		return opa.OpaProvider{
 			Context: ctx,
-			Spec:    *provider.OpaSpec,
+			Spec:    provider.OpaSpec,
 		}
 	case "kyverno":
 		return kyverno.KyvernoProvider{
