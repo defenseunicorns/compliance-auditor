@@ -149,7 +149,7 @@ func GetProvider(provider *Provider, ctx context.Context) types.Provider {
 	case "kyverno":
 		return kyverno.KyvernoProvider{
 			Context: ctx,
-			Spec:    *provider.KyvernoSpec,
+			Spec:    provider.KyvernoSpec,
 		}
 	default:
 		return nil
