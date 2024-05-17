@@ -12,7 +12,7 @@ type KubernetesDomain struct {
 	Context context.Context `json:"context" yaml:"context"`
 
 	// Spec is the specification of the Kubernetes resources
-	Spec KubernetesSpec `json:"spec" yaml:"spec"`
+	Spec *KubernetesSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
 func (k KubernetesDomain) GetResources() (types.DomainResources, error) {

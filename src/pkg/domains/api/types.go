@@ -6,7 +6,7 @@ import (
 
 type ApiDomain struct {
 	// Spec is the specification of the API requests
-	Spec ApiSpec `json:"spec" yaml:"spec"`
+	Spec *ApiSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
 func (a ApiDomain) GetResources() (types.DomainResources, error) {

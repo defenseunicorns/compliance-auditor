@@ -125,11 +125,11 @@ func GetDomain(domain *Domain, ctx context.Context) types.Domain {
 	case "kubernetes":
 		return kube.KubernetesDomain{
 			Context: ctx,
-			Spec:    *domain.KubernetesSpec,
+			Spec:    domain.KubernetesSpec,
 		}
 	case "api":
 		return api.ApiDomain{
-			Spec: *domain.ApiSpec,
+			Spec: domain.ApiSpec,
 		}
 	default:
 		return nil
