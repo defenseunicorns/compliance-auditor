@@ -13,13 +13,13 @@ const (
 
 type LulaValidation struct {
 	// Provider is the provider that is evaluating the validation
-	Provider Provider
+	Provider *Provider
 
 	// Domain is the domain that provides the evidence for the validation
-	Domain Domain
+	Domain *Domain
 
 	// DomainResources is the set of resources that the domain is providing
-	DomainResources DomainResources
+	DomainResources *DomainResources
 
 	// LulaValidationType is the type of validation that is being performed
 	LulaValidationType LulaValidationType
@@ -28,7 +28,7 @@ type LulaValidation struct {
 	Evaluated bool
 
 	// Result is the result of the validation
-	Result Result
+	Result *Result
 }
 
 // LulaValidationMap is a map of LulaValidation objects
@@ -67,21 +67,21 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		if config.staticResources != nil {
 			resources = config.staticResources
 		} else {
-			resources, err = val.Domain.GetResources()
+			resources, err = (*val.Domain).GetResources()
 			if err != nil {
 				return fmt.Errorf("domain GetResources error: %v", err)
 			}
 		}
 
 		// Perform the evaluation using the provider
-		result, err = val.Provider.Evaluate(resources)
+		result, err = (*val.Provider).Evaluate(resources)
 		if err != nil {
 			return fmt.Errorf("provider Evaluate error: %v", err)
 		}
 
 		// Store the result in the validation object
-		val.DomainResources = resources
-		val.Result = result
+		val.DomainResources = &resources
+		val.Result = &result
 		val.Evaluated = true
 	}
 	return nil

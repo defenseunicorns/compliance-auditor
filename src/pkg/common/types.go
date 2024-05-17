@@ -96,14 +96,17 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	// Construct the lulaValidation object
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
-	lulaValidation.Provider = GetProvider(validation.Provider, ctx)
-	if lulaValidation.Provider == nil {
+	provider := GetProvider(validation.Provider, ctx)
+	if provider == nil {
 		return lulaValidation, fmt.Errorf("provider %s not found", validation.Provider.Type)
 	}
-	lulaValidation.Domain = GetDomain(validation.Domain, ctx)
-	if lulaValidation.Domain == nil {
+	lulaValidation.Provider = &provider
+
+	domain := GetDomain(validation.Domain, ctx)
+	if domain == nil {
 		return lulaValidation, fmt.Errorf("domain %s not found", validation.Domain.Type)
 	}
+	lulaValidation.Domain = &domain
 
 	lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
 
