@@ -14,13 +14,17 @@ import (
 )
 
 // GetValidatedAssets performs the validation of the dataset against the given rego policy
-func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}, output OpaOutput) (types.Result, error) {
+func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}, output *OpaOutput) (types.Result, error) {
 	var matchResult types.Result
 
 	if len(dataset) == 0 {
 		// Not an error but no entries to validate
 		// TODO: add a warning log
 		return matchResult, nil
+	}
+
+	if output == nil {
+		output = &OpaOutput{}
 	}
 
 	compiler, err := ast.CompileModules(map[string]string{

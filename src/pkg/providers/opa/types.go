@@ -23,8 +23,8 @@ func (o OpaProvider) Evaluate(resources types.DomainResources) (types.Result, er
 }
 
 type OpaSpec struct {
-	Rego   string    `json:"rego" yaml:"rego"`
-	Output OpaOutput `json:"output" yaml:"output"`
+	Rego   string     `json:"rego" yaml:"rego"`
+	Output *OpaOutput `json:"output,omitempty" yaml:"output,omitempty"`
 }
 
 type OpaOutput struct {

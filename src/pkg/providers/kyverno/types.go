@@ -25,7 +25,7 @@ func (k KyvernoProvider) Evaluate(resources types.DomainResources) (types.Result
 
 type KyvernoSpec struct {
 	Policy *kjson.ValidatingPolicy `json:"policy" yaml:"policy"`
-	Output KyvernoOutput           `json:"output" yaml:"output"`
+	Output *KyvernoOutput          `json:"output,omitempty" yaml:"output,omitempty"`
 }
 
 type KyvernoOutput struct {
