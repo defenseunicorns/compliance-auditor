@@ -4,11 +4,11 @@ This document provides guidance on how to create Lula releases, address release 
 
 ## Creating releases
 
-This project uses [goreleaser](https://github.com/goreleaser/goreleaser-action) for releasing binaries.
+This project uses [goreleaser](https://github.com/goreleaser/goreleaser-action) for releasing binaries and [release-please](https://github.com/marketplace/actions/release-please-action) for creating release PR's.
 
 ### How should I write my commits?
 
-We use conventional commit messages [Conventional Commit messages](https://www.conventionalcommits.org/).
+We use conventional commit messages [Conventional Commit messages](https://www.conventionalcommits.org/). 
 
 The most important prefixes you should have in mind are:
 
@@ -20,15 +20,8 @@ The most important prefixes you should have in mind are:
 
 ### How can I influence the version number for a release?
 
-To trigger the goreleaser action you push a signed tag using your GPG key.
-
-```console
-git tag -s vX.X.X -m "Release Commit Message"
-
-git push origin vX.X.X
-```
-
-Goreleaser can also be triggered by cutting the release manually through GitHub. Following the GitHub [release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) documentation and using a semver version number IE. vX.X.X
+PR titles should also follow this pattern and are linted using [commitlint](https://commitlint.js.org/). The PR title will determine the version bump. When a PR is merged (squashed) release-please will kick off a release PR. When that release PR is approved and merged, release-please will create a draft release. Once that draft release is published go-releaser with build and publish the assets.  
+* Pre-v1.0.0 release-please is configured to bump minors on breaking changes and patches otherwise. per [release-please-config](../release-please-config.json)
 
 ### How do I fix a release issue?
 
@@ -45,28 +38,6 @@ The CHANGELOG is not required to be updated, only the release notes must be upda
 ```md
 >[!WARNING]
 >PLEASE USE A NEWER VERSION (there are known issues with this release)
-```
-
-#### Incorrect Tag or Remove a Tag
-
-In the event a release is tagged incorrectly and it needs to be changed this can be completed by someone with admin privileges in the repo by running the following commands:
-
-```console
-git tag -d vX.X.X
-
-git tag -s vX.X.X
-
-git push origin vX.X.X --force
-```
-
-These commands will delete the tag locally, create a new signed tag version, lastly force push the new tag to origin.
-
-In the event a tag needs deleted and NOT replaced this can be completed by someone with admin privileges in the repo by running the following commands:
-
-```console
-git tag -d vX.X.X
-
-git push origin :refs/tags/vX.X.X
 ```
 
 #### Other issues and helpful tips
