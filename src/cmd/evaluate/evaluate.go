@@ -132,16 +132,16 @@ func EvaluateAssessmentResults(files []string) error {
 }
 
 func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
+	if thresholdResult == nil || thresholdResult.Findings == nil || newResult == nil || newResult.Findings == nil {
+		return false, nil, fmt.Errorf("results must contain findings to evaluate")
+	}
+
 	spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", newResult.UUID, thresholdResult.UUID)
 	defer spinner.Stop()
 
 	// Store unique findings for review here
 	findings := make(map[string][]oscalTypes_1_1_2.Finding, 0)
 	result := true
-
-	if thresholdResult.Findings == nil || newResult.Findings == nil {
-		return false, nil, fmt.Errorf("Results must contain findings to evaluate")
-	}
 
 	findingMapThreshold := oscal.GenerateFindingsMap(*thresholdResult.Findings)
 	findingMapNew := oscal.GenerateFindingsMap(*newResult.Findings)
