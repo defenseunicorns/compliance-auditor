@@ -65,7 +65,7 @@ var validateCmd = &cobra.Command{
 			AssessmentResults: report,
 		}
 
-		// Write the component definition to file
+		// Write the assessment results to file
 		err = oscal.WriteOscalModel(opts.OutputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
@@ -285,6 +285,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 // This is the OSCAL document generation for final output.
 // This should include some ability to consolidate controls met in multiple input documents under single control entries
 // This should include fields that reference the source of the control to the original document ingested
+// TODO: This is unused - remove?
 func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath string) error {
 
 	var fileName string
