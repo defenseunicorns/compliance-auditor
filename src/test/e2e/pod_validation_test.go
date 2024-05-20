@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -19,8 +21,6 @@ import (
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
-
-	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 )
 
 func TestPodLabelValidation(t *testing.T) {
@@ -114,14 +114,14 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	revisionOptions := revision.RevisionOptions{
 		InputFile:  oscalPath,
 		OutputFile: tempDir + "/oscal-component-upgraded.yaml",
-		Version:    gooscalUtils.GetLatestSupportedVersion(),
+		Version:    versioning.GetLatestSupportedVersion(),
 	}
 	revisionResponse, err := revision.RevisionCommand(&revisionOptions)
 	if err != nil {
 		t.Fatal("Failed to upgrade component definition with: ", err)
 	}
 	// Write the upgraded component definition to a temp file
-	err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
+	err = files.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
 	if err != nil {
 		t.Fatal("Failed to write upgraded component definition with: ", err)
 	}

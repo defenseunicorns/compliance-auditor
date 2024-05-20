@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -78,7 +78,7 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 		}
 	}
 
-	compDef.Metadata.LastModified = gooscalUtils.GetTimestamp()
+	compDef.Metadata.LastModified = versioning.GetTimestamp()
 	compDef.ImportComponentDefinitions = nil
 
 	return nil
@@ -144,7 +144,7 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 		}
 	}
 
-	compDef.Metadata.LastModified = gooscalUtils.GetTimestamp()
+	compDef.Metadata.LastModified = versioning.GetTimestamp()
 
 	return nil
 }

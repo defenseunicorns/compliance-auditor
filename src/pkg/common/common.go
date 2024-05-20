@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
@@ -90,7 +90,7 @@ func WriteFile(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
 	yamlEncoder.SetIndent(2)
 	yamlEncoder.Encode(model)
 
-	err := utils.WriteOutput(b.Bytes(), filePath)
+	err := files.WriteOutput(b.Bytes(), filePath)
 	if err != nil {
 		return err
 	}

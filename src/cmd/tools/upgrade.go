@@ -1,9 +1,10 @@
 package tools
 
 import (
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
-	goOscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -50,7 +51,7 @@ func init() {
 				}
 			}
 
-			err = goOscalUtils.WriteOutput(revisionResponse.RevisedBytes, upgradeOpts.OutputFile)
+			err = files.WriteOutput(revisionResponse.RevisedBytes, upgradeOpts.OutputFile)
 			if err != nil {
 				message.Fatalf(err, "Failed to write upgraded %s with: %s", upgradeOpts.OutputFile, err)
 			}
@@ -67,6 +68,6 @@ func init() {
 
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.InputFile, "input-file", "f", "", "the path to a oscal json schema file")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.OutputFile, "output-file", "o", "", "the path to write the linted oscal json schema file (default is the input file)")
-	upgradeCmd.Flags().StringVarP(&upgradeOpts.Version, "version", "v", goOscalUtils.GetLatestSupportedVersion(), "the version of the oscal schema to validate against (default is the latest supported version)")
+	upgradeCmd.Flags().StringVarP(&upgradeOpts.Version, "version", "v", versioning.GetLatestSupportedVersion(), "the version of the oscal schema to validate against (default is the latest supported version)")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.ValidationResult, "validation-result", "r", "", "the path to write the validation result file")
 }
