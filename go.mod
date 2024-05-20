@@ -1,6 +1,6 @@
 module github.com/defenseunicorns/lula
 
-go 1.22.2
+go 1.22.3
 
 require (
 	github.com/defenseunicorns/go-oscal v0.3.2
