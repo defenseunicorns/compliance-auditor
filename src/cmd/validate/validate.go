@@ -16,6 +16,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -26,6 +27,7 @@ type flags struct {
 }
 
 var opts = &flags{}
+var confirmExecution bool
 
 var validateHelp = `
 To validate on a cluster:
@@ -78,6 +80,7 @@ func ValidateCommand() *cobra.Command {
 	// insert flag options here
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
+	validateCmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	return validateCmd
 }
 
@@ -212,7 +215,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 								// Add the description of the validation now that we have the ID
 								observation := createObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
 
-								err = lulaValidation.Validate()
+								err = lulaValidation.Validate(types.RequireExecutionConfirmation(confirmExecution))
 								if err != nil {
 									message.Debugf("Error getting validating yaml: %v", err)
 									// Handle error as an output to observations

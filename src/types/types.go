@@ -36,7 +36,8 @@ type LulaValidationMap = map[string]LulaValidation
 
 // Lula Validation Options settings
 type lulaValidationOptions struct {
-	staticResources DomainResources
+	staticResources  DomainResources
+	confirmExecution bool
 }
 
 type LulaValidationOption func(*lulaValidationOptions)
@@ -45,6 +46,13 @@ type LulaValidationOption func(*lulaValidationOptions)
 func WithStaticResources(resources DomainResources) LulaValidationOption {
 	return func(opts *lulaValidationOptions) {
 		opts.staticResources = resources
+	}
+}
+
+// RequireExecutionConfirmation is a function that returns a boolean indicating if the validation requires confirmation before execution
+func RequireExecutionConfirmation(confirmationFlag bool) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.confirmExecution = !confirmationFlag
 	}
 }
 
@@ -62,10 +70,16 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
-			staticResources: nil,
+			staticResources:  nil,
+			confirmExecution: true,
 		}
 		for _, opt := range opts {
 			opt(config)
+		}
+
+		// Check if confirmation is required before execution
+		if config.confirmExecution && val.Domain.IsExecutable() {
+			// Run confirmation user prompt
 		}
 
 		// Get the resources
@@ -85,6 +99,11 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		}
 	}
 	return nil
+}
+
+// Check if the validation requires confirmation before possible execution code is run
+func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
+	return !val.Domain.IsExecutable()
 }
 
 type DomainResources map[string]interface{}
@@ -107,9 +126,4 @@ type Result struct {
 	Failing      int               `json:"failing" yaml:"failing"`
 	State        string            `json:"state" yaml:"state"`
 	Observations map[string]string `json:"observations" yaml:"observations"`
-}
-
-// Check if the validation requires confirmation before possible execution code is run
-func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
-	return !val.Domain.IsExecutable()
 }
