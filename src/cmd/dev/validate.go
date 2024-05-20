@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	files "github.com/defenseunicorns/go-oscal/src/pkg/files"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
