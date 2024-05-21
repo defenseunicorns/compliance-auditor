@@ -1,0 +1,269 @@
+# add the descriptions inline
+component-definition:
+  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
+  metadata:
+    title: OSCAL Demo Tool
+    last-modified: "2022-09-13T12:00:00Z"
+    version: "20220913"
+    oscal-version: 1.1.1
+    parties:
+      # Should be consistent across all of the packages, but where is ground truth?
+      - uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+        type: organization
+        name: Defense Unicorns
+        links:
+          - href: https://github.com/defenseunicorns/lula
+            rel: website
+  components:
+    - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+      type: software
+      title: lula
+      description: |
+        Defense Unicorns lula
+      purpose: Validate compliance controls
+      responsible-roles:
+        - role-id: provider
+          party-uuids:
+            - C18F4A9F-A402-415B-8D13-B51739D689FF # matches parties entry for Defense Unicorns
+      control-implementations:
+        - uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
+          source: https://github.com/defenseunicorns/lula https://github.com/defenseunicorns/lula
+          description: Validate generic security requirements
+          implemented-requirements:
+            - uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+              control-id: ID-1
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#88AB3470-B96B-4D7C-BC36-02BF9563C46C"
+                  rel: lula
+                  text: Bad kubernetes-spec
+            - uuid: bfda0b37-26dd-41be-97a9-06efe13a28d9
+              control-id: ID-1.1
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#7a7803b5-1da3-4744-af16-d2b81908ade0"
+                  rel: lula
+                  text: Bad api-spec
+            - uuid: 86a0e8d9-0ce0-4304-afe7-4c000001e032
+              control-id: ID-2
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#01e21994-2cfc-45fb-ac84-d00f2e5912b0"
+                  rel: lula
+                  text: Bad opa-spec
+            - uuid: 99f74603-52d7-4211-9b0f-752a29fd43e7
+              control-id: ID-2.1
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#7b136728-89c8-4cd6-b3aa-d10679cf4136"
+                  rel: lula
+                  text: Bad kyverno-spec
+            - uuid: 80485783-40d7-45ad-bacd-70fb0a1dc03c
+              control-id: ID-3
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#b57ed0ba-78f7-4a46-b0b1-d7328ce7347c"
+                  rel: lula
+                  text: Malformed validation
+            - uuid: 7a37c461-29ef-44a4-8b9c-6e44fbffd436
+              control-id: ID-4
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#0e8dbc72-9363-466d-9653-dcb7383c2be2"
+                  rel: lula
+                  text: Malformed rego
+            - uuid: 3ccbf559-d244-4e0a-aff0-9fe065bb247d
+              control-id: ID-5
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#ea66cb18-d26c-4dd7-8e2b-65999cd542c2"
+                  rel: lula
+                  text: No resources by name
+            - uuid: e308ca47-74c0-4cb7-8fa4-ff40af8ea4bf
+              control-id: ID-6
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#3d170c49-41a7-4677-9b3f-f8c7c0a8ab24"
+                  rel: lula
+                  text: No resources by namespace
+  back-matter:
+    resources:
+      - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              wait:
+                here: "forever"
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                import future.keywords.every
+
+                validate {
+                  every pod in input.podsvt {
+                    podLabel := pod.metadata.labels.foo
+                    podLabel == "bar"
+                  }
+                }
+      - uuid: 7a7803b5-1da3-4744-af16-d2b81908ade0
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: api
+            api-spec:
+              invalid-field: "nothing"
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                import future.keywords.every
+
+                validate {
+                  every pod in input.podsvt {
+                    podLabel := pod.metadata.labels.foo
+                    podLabel == "bar"
+                  }
+                }
+      - uuid: 01e21994-2cfc-45fb-ac84-d00f2e5912b0
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    name: test-pod-label
+                    group:
+                    version: v1
+                    resource: pods
+                    namespaces: [validation-test]
+          provider:
+            type: opa
+            opa-spec:
+              no-rego: "nothing"
+      - uuid: 7b136728-89c8-4cd6-b3aa-d10679cf4136
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    name: test-pod-label
+                    group:
+                    version: v1
+                    resource: pods
+                    namespaces: [validation-test]
+          provider:
+            type: kyverno
+            kyverno-spec:
+              policy: "bad-policy"
+      - uuid: b57ed0ba-78f7-4a46-b0b1-d7328ce7347c
+        description: |
+          domain:
+            - this: is
+              not: right
+          provider:
+            something: here
+      - uuid: 0e8dbc72-9363-466d-9653-dcb7383c2be2
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    name: test-pod-label
+                    group:
+                    version: v1
+                    resource: pods
+                    namespaces: [validation-test]
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                # No package definition -> invalid rego
+                default validate = false
+      - uuid: ea66cb18-d26c-4dd7-8e2b-65999cd542c2
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    name: some-test-pod
+                    group:
+                    version: v1
+                    resource: pods
+                    namespaces: [validation-test]
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                default validate = false
+      - uuid: 3d170c49-41a7-4677-9b3f-f8c7c0a8ab24
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    group:
+                    version: v1
+                    resource: pods
+                    namespaces: [no-namespace]
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                default validate = false
+

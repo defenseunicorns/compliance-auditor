@@ -3,7 +3,6 @@ package opa
 import (
 	"context"
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -19,6 +18,7 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 	if len(dataset) == 0 {
 		// Not an error but no entries to validate
 		// TODO: add a warning log
+		matchResult.Observations = map[string]string{"OPA validation not performed": "No resources to validate"}
 		return matchResult, nil
 	}
 
@@ -30,7 +30,7 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 		"validate.rego": regoPolicy,
 	})
 	if err != nil {
-		log.Fatal(err)
+		message.Debugf("failed to compile rego policy: %s", err.Error())
 		return matchResult, fmt.Errorf("failed to compile rego policy: %w", err)
 	}
 

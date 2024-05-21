@@ -16,6 +16,7 @@ func GetValidatedAssets(ctx context.Context, kyvernoPolicies *kjson.ValidatingPo
 	var matchResult types.Result
 
 	if len(resources) == 0 {
+		matchResult.Observations = map[string]string{"Kyverno validation not performed": "No resources to validate"}
 		return matchResult, nil
 	}
 

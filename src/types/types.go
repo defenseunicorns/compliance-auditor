@@ -55,6 +55,11 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		var err error
 		var resources DomainResources
 
+		// Update the validation
+		val.DomainResources = &resources
+		val.Result = &result
+		val.Evaluated = true
+
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
 			staticResources: nil,
@@ -78,11 +83,6 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		if err != nil {
 			return fmt.Errorf("provider Evaluate error: %v", err)
 		}
-
-		// Store the result in the validation object
-		val.DomainResources = &resources
-		val.Result = &result
-		val.Evaluated = true
 	}
 	return nil
 }
