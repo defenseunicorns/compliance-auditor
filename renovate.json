@@ -1,25 +1,44 @@
 {
-  "extends": ["config:base"],
-  "ignorePaths": ["**/adr/**", "**/docs/**", "**/test/**"],
+  "extends": [
+    "config:base",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "ignorePaths": [
+    "**/adr/**",
+    "**/docs/**",
+    "**/test/**"
+  ],
   "timezone": "America/New_York",
-  "schedule": ["after 12pm and before 11am every weekday"],
+  "schedule": [
+    "after 12pm and before 11am every weekday"
+  ],
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "packageRules": [
     {
-      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
       "automerge": true,
       "automergeType": "pr"
     },
     {
-      "matchDepTypes": ["devDependencies"],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "automerge": true,
       "automergeType": "pr"
     }
   ],
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
   "platformAutomerge": true,
   "platformCommit": true,
-  "postUpdateOptions": ["gomodTidy"],
-  "commitBodyTable": true,
-  "commitMessagePrefix": "deps"
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
+  "commitBodyTable": true
 }
