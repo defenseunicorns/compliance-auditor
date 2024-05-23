@@ -180,7 +180,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 		AssessmentResults: report,
 	}
 
-	// Write the component definition to file
+	// Write the assessment results to file
 	err = oscal.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
@@ -193,11 +193,15 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
+
+	// Get the UUID of the report results - there should only be one
+	resultId := report.Results[0].UUID
+
 	model = oscalTypes_1_1_2.OscalModels{
 		AssessmentResults: report,
 	}
 
-	// Write the component definition to file
+	// Write the assessment results to file
 	err = oscal.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
@@ -216,6 +220,10 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	// The number of results in the file should be more than initially
 	if len(tempAssessment.Results) <= initialResultCount {
 		t.Fatal("Failed to append results to existing report")
+	}
+
+	if resultId != tempAssessment.Results[0].UUID {
+		t.Fatal("Failed to prepend results to existing report")
 	}
 
 	validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
