@@ -1,9 +1,9 @@
 module github.com/defenseunicorns/lula
 
-go 1.22.2
+go 1.22.3
 
 require (
-	github.com/defenseunicorns/go-oscal v0.3.2
+	github.com/defenseunicorns/go-oscal v0.4.0
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kyverno/kyverno-json v0.0.3-alpha.2
 	github.com/open-policy-agent/opa v0.64.1

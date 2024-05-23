@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -46,7 +46,7 @@ var validateCmd = &cobra.Command{
 				"Please specify an input file with the -f flag")
 		}
 
-		if err := utils.IsJsonOrYaml(opts.InputFile); err != nil {
+		if err := files.IsJsonOrYaml(opts.InputFile); err != nil {
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	yamlV3 "gopkg.in/yaml.v3"
@@ -37,7 +37,7 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		filePath = filepath.Join(filePath, "oscal.yaml")
 	}
 
-	if err := utils.IsJsonOrYaml(filePath); err != nil {
+	if err := files.IsJsonOrYaml(filePath); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		yamlEncoder.Encode(model)
 	}
 
-	err := utils.WriteOutput(b.Bytes(), filePath)
+	err := files.WriteOutput(b.Bytes(), filePath)
 	if err != nil {
 		return err
 	}
