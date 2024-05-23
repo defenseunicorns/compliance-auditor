@@ -14,6 +14,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
@@ -53,6 +54,8 @@ var validateCmd = &cobra.Command{
 		}
 
 		// Primary expected path for validation of OSCAL documents
+		message.HeaderInfof("Lula Component Definition Validation")
+
 		findings, observations, err := ValidateOnPath(opts.InputFile)
 		if err != nil {
 			message.Fatalf(err, "Validation error: %s", err)
@@ -163,6 +166,29 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 	if *compDef.Components == nil {
 		return findings, observations, fmt.Errorf("no components found in component definition")
 	}
+
+	// Create requirement store for all implemented requirements
+	requirementStore := requirementstore.NewRequirementStore(compDef, validationStore)
+	message.Title("🔍 Collecting Requirements and Validations", "")
+	requirementStore.UpdateRequirementStoreWithLulaValidations()
+	message.Infof("Found %d implemented requirements", len(requirementStore.RequirementMap))
+	message.Infof("Found %d unique Lula validations", requirementStore.ValidationStore.Count())
+
+	// Check if validations perform execution (method on ValidationStore?)
+	executableValidations, msg := requirementStore.ValidationStore.DryRun()
+	if executableValidations {
+		message.Warnf(msg)
+		if !confirmExecution {
+			confirm := message.PromptForConfirmation()
+			if !confirm {
+				message.Fatalf(errors.New("execution not confirmed"), "Exiting validation")
+				// Or should I just remove these validations from the store and continue...
+			}
+		}
+	}
+
+	// Run Lula validations and generate findings/observations
+	message.Title("📐 Running Validations", "")
 
 	for _, component := range *compDef.Components {
 		// If there are no control-implementations, skip to the next component

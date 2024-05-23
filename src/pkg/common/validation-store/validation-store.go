@@ -7,6 +7,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 )
 
@@ -70,4 +71,35 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	}
 
 	return validation, fmt.Errorf("validation #%s not found", trimmedId)
+}
+
+// Number of validations in the store
+func (v *ValidationStore) Count() int {
+	return len(v.validationMap)
+}
+
+// DryRun checks if the validations are performing execution actions
+func (v *ValidationStore) DryRun() (executable bool, msg string) {
+	executableValidations := make([]string, 0)
+	for k, validation := range v.validationMap {
+		if validation.Domain.IsExecutable() {
+			executableValidations = append(executableValidations, k)
+		}
+	}
+	if len(executableValidations) > 0 {
+		return true, fmt.Sprintf("The following validations are executable: %v", executableValidations)
+	}
+	return false, "No validation is executable"
+}
+
+// RunValidations runs the validations in the store
+func (v *ValidationStore) RunValidations(confirmExecution bool) {
+	for k, validation := range v.validationMap {
+		err := validation.Validate()
+		if err != nil {
+			message.Debugf("Error running validation %s: %v", k, err)
+			// Update validation with failed results
+		}
+	}
+
 }

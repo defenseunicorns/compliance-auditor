@@ -401,6 +401,28 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[st
 
 }
 
+// Returns a map of the requirements and lula validations
+func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (
+	requirementMap map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation) {
+	requirementMap = make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
+
+	if componentDefinition.Components == nil {
+		return requirementMap
+	}
+
+	for _, component := range *componentDefinition.Components {
+		if component.ControlImplementations != nil {
+			for _, controlImplementation := range *component.ControlImplementations {
+				for _, requirement := range controlImplementation.ImplementedRequirements {
+					// TODO: should this be controlID (i.e., possibly combining multiple instances of the same control?)
+					requirementMap[requirement.UUID] = requirement
+				}
+			}
+		}
+	}
+	return requirementMap
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

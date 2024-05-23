@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type LulaValidationType string
@@ -33,6 +35,9 @@ type LulaValidation struct {
 
 // LulaValidationMap is a map of LulaValidation objects
 type LulaValidationMap = map[string]LulaValidation
+
+// LulaValidationLinksMap is map of an array of LulaValidations
+type LulaValidationLinksMap = map[string][]*LulaValidation
 
 // Lula Validation Options settings
 type lulaValidationOptions struct {
@@ -80,6 +85,10 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		// Check if confirmation is required before execution
 		if config.confirmExecution && val.Domain.IsExecutable() {
 			// Run confirmation user prompt
+			confirm := message.PromptForConfirmation()
+			if !confirm {
+				return errors.New("execution not confirmed")
+			}
 		}
 
 		// Get the resources
