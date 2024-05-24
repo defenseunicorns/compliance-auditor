@@ -16,7 +16,11 @@
 ### Features
 
 * [#367](https://github.com/defenseunicorns/lula/issues/367) compiling external/remote validations ([#384](https://github.com/defenseunicorns/lula/issues/384)) ([8bb42b0](https://github.com/defenseunicorns/lula/commit/8bb42b02f6da2670830f11a1d2e1e5367c2b7d09))
-* **generate:** Add generate command and initial component generation ([#401](https://github.com/defenseunicorns/lula/issues/401)) ([918299a](https://github.com/defenseunicorns/lula/commit/918299ad397363e0d3580cd15b92ddf09044ce05))
+* **oscal:** merge on write consolidation ([#407](https://github.com/defenseunicorns/lula/pull/407)) ([ef2f9f5](https://github.com/defenseunicorns/lula/commit/ef2f9f536ac8809785ca03325ae56575bbe0361c))
+* **compose:** add ability to pull and compose import component defs ([#406](https://github.com/defenseunicorns/lula/pull/406)) ([ddf919a](https://github.com/defenseunicorns/lula/commit/ddf919a43995703f782f8667eb7305363b95b3cd))
+* **generate:** add generate command and initial component generation ([#401](https://github.com/defenseunicorns/lula/issues/401)) ([918299a](https://github.com/defenseunicorns/lula/commit/918299ad397363e0d3580cd15b92ddf09044ce05))
+* **dev:** added Observation logging to dev validate ([#396](https://github.com/defenseunicorns/lula/pull/396)) ([c32027e](https://github.com/defenseunicorns/lula/commit/c32027eafbf65e1cf69b3a72acac3a51c4f35656))
+* **dev:** dev validate with optional resources file input ([#394](https://github.com/defenseunicorns/lula/pull/394)) ([f034a97](https://github.com/defenseunicorns/lula/commit/f034a976d20d10fe5ec660433e4554a02f76158c))
 * **validate:** validation store/cache ([#373](https://github.com/defenseunicorns/lula/issues/373)) ([751982f](https://github.com/defenseunicorns/lula/commit/751982f5d4eee60a6412eed5e554c86a683ecb7a))
 
 
@@ -25,6 +29,7 @@
 * **deps:** consolidate use of goyaml pkg ([#422](https://github.com/defenseunicorns/lula/issues/422)) ([d1abbcc](https://github.com/defenseunicorns/lula/commit/d1abbcc052fd1f1ff2e57265e54a1b005ec66641))
 * **deps:** controller runtime ([#379](https://github.com/defenseunicorns/lula/issues/379)) ([7d3aec3](https://github.com/defenseunicorns/lula/commit/7d3aec3e7e94652d524d1e40d62c61736ca1e12e))
 * **dev:** updated result condition to match satisfaction logic ([#400](https://github.com/defenseunicorns/lula/issues/400)) ([5feda9d](https://github.com/defenseunicorns/lula/commit/5feda9dde93b270e9d2cebc5ee40ec21ab4b1c4c))
+* **validate:** validation errors mapped to observations ([#405](https://github.com/defenseunicorns/lula/pull/405)) ([39e5ebd](https://github.com/defenseunicorns/lula/commit/39e5ebd45d4a9cfc0918899ed647192d8bcf0952))
 * **validate:** fix order of assessment-results results ([#437](https://github.com/defenseunicorns/lula/issues/437)) ([a8db208](https://github.com/defenseunicorns/lula/commit/a8db20862f9f1bf7c269cd75839823f58b7c9541))
 
 
