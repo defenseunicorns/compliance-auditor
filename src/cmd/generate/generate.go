@@ -16,7 +16,6 @@ type flags struct {
 }
 
 type componentFlags struct {
-	flags
 	CatalogSource string   // -c --catalog
 	Profile       string   // -p --profile
 	Component     string   // --component
@@ -105,7 +104,7 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		// Write the component definition to file
-		err = oscal.WriteOscalModel(componentOpts.OutputFile, &model)
+		err = oscal.WriteOscalModel(opts.OutputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}
