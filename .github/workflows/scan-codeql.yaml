@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["go"]
+        language: ["go","javascript"]
 
     steps:
       - name: Checkout
@@ -55,15 +55,3 @@ jobs:
         uses: github/codeql-action/analyze@9fdb3e49720b44c48891d036bb502feb25684276 # v3.25.6
         with:
           category: "/language:${{matrix.language}}"
-
-      - name: Find CodeQL
-        id: find-codeql
-        run: echo "CODEQL_PATH=$(which codeql)" >> $GITHUB_ENV
-
-
-      - name: Analyze GitHub Actions Workflows
-        run: |
-          $CODEQL_PATH database create --overwrite --language=yaml --source-root=.github/workflows codeql_actions_db
-          $CODEQL_PATH database analyze --format=sarif-latest --output=results/actions.sarif codeql_actions_db codeql/javascript-queries codeql/codeql-action
-        env:
-          CODEQL_PATH: ${{ env.CODEQL_PATH }}
