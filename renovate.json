@@ -30,6 +30,13 @@
       ],
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "matchDatasources": ["github-releases"],
+      "packageNames": ["github/codeql-cli-binaries"],
+      "matchManagers": ["github-actions"],
+      "extractVersion": "^https://github\\.com/github/codeql-cli-binaries/releases/download/(?<version>[^/]+)/codeql-linux64\\.zip$",
+      "extractDigest": "^https://github\\.com/github/codeql-cli-binaries/releases/download/(?<digest>[^/]+)/codeql-linux64\\.zip$"
     }
   ],
   "labels": [
