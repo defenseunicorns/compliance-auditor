@@ -2,6 +2,7 @@ name: Publish Lula Packages on Tag
 
 permissions:
   contents: read
+  packages: read
 
 on:
   push:
