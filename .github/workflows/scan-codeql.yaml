@@ -65,4 +65,5 @@ jobs:
         run: |
           $CODEQL_PATH database create --overwrite --language=yaml --source-root=.github/workflows codeql_actions_db
           $CODEQL_PATH database analyze --format=sarif-latest --output=results/actions.sarif codeql_actions_db codeql/javascript-queries codeql/codeql-action
-
+        env:
+          CODEQL_PATH: ${{ env.CODEQL_PATH }}
