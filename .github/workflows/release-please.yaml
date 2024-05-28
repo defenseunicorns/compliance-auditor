@@ -5,13 +5,16 @@ on:
     branches:
       - main
 
+permissions: 
+  contents: read
+
 jobs:
   tag-new-version:
     name: Tag New Version
-    permissions: 
+    runs-on: ubuntu-latest
+    permissions:
       contents: write
       pull-requests: write
-    runs-on: ubuntu-latest
     steps:
       - name: Create release tag
         id: tag
