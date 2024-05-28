@@ -57,3 +57,8 @@ jobs:
         with:
           category: "/language:${{matrix.language}}"
 
+      - name: Analyze GitHub Actions Workflows
+        run: |
+          codeql database create --overwrite --language=yaml --source-root=.github/workflows codeql_database
+          codeql database analyze --format=sarif-latest --output=results/actions.sarif codeql_database codeql/javascript-queries codeql/codeql-action
+
