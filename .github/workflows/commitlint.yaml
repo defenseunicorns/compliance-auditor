@@ -24,6 +24,4 @@ jobs:
         run: npm install --save-dev @commitlint/{config-conventional,cli}
 
       - name: Lint PR title
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: echo "$TITLE" | npx commitlint
+        run: echo "${{ github.event.pull_request.title }}" | npx commitlint
