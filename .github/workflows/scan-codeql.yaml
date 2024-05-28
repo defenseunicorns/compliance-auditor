@@ -56,15 +56,13 @@ jobs:
         with:
           category: "/language:${{matrix.language}}"
 
-      - name: Install CodeQL CLI
-        run: |
-          curl -LO https://github.com/github/codeql-cli-binaries/releases/download/d8845dbabdaf5c1ba56bfc223717efaf0c626e8b/codeql-linux64.zip
-          unzip codeql-linux64.zip -d codeql
-          sudo cp -r codeql/* /usr/local/bin/
-          codeql --version
+      - name: Find CodeQL
+        id: find-codeql
+        run: echo "CODEQL_PATH=$(which codeql)" >> $GITHUB_ENV
+
 
       - name: Analyze GitHub Actions Workflows
         run: |
-          codeql database create --overwrite --language=yaml --source-root=.github/workflows codeql_actions_db
-          codeql database analyze --format=sarif-latest --output=results/actions.sarif codeql_actions_db codeql/javascript-queries codeql/codeql-action
+          $CODEQL_PATH database create --overwrite --language=yaml --source-root=.github/workflows codeql_actions_db
+          $CODEQL_PATH database analyze --format=sarif-latest --output=results/actions.sarif codeql_actions_db codeql/javascript-queries codeql/codeql-action
 
