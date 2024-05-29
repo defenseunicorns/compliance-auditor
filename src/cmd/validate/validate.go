@@ -251,6 +251,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 				}
 				// Using language from Assessment Results model for Target Objective Status State
 				var state string
+				message.Debugf("Pass: %v / Fail: %v / Existing State: %s", pass, fail, finding.Target.Status.State)
 				if finding.Target.Status.State == "not-satisfied" {
 					state = "not-satisfied"
 				} else if pass > 0 && fail <= 0 {
@@ -270,7 +271,10 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 					Type:     "objective-id",
 				}
 
-				finding.RelatedObservations = &relatedObservations
+				// Only add related observations if there are any present (preventing an empty array in the field)
+				if len(relatedObservations) > 0 {
+					finding.RelatedObservations = &relatedObservations
+				}
 
 				findings[implementedRequirement.ControlId] = finding
 				observations = append(observations, tempObservations...)
