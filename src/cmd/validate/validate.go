@@ -17,7 +17,6 @@ import (
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -159,7 +158,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 	// Create a validation store from the back-matter if it exists
 	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-	// Loops all the way down
+	// Initialize findings and observations
 	findings := make(map[string]oscalTypes_1_1_2.Finding)
 	observations := make([]oscalTypes_1_1_2.Observation, 0)
 
@@ -168,145 +167,30 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 	}
 
 	// Create requirement store for all implemented requirements
-	requirementStore := requirementstore.NewRequirementStore(compDef, validationStore)
-	message.Title("🔍 Collecting Requirements and Validations", "")
-	requirementStore.UpdateRequirementStoreWithLulaValidations()
-	message.Infof("Found %d implemented requirements", len(requirementStore.RequirementMap))
-	message.Infof("Found %d unique Lula validations", requirementStore.ValidationStore.Count())
+	requirementStore := requirementstore.NewRequirementStore(compDef)
+	message.Title("\n🔍 Collecting Requirements and Validations", "")
+	requirementStore.ResolveLulaValidations(validationStore)
+	reqtStats := requirementStore.GetStats(validationStore)
+	message.Infof("Found %d Implemented Requirements", reqtStats.TotalRequirements)
+	message.Infof("Found %d runnable Lula Validations", reqtStats.TotalValidations)
 
-	// Check if validations perform execution (method on ValidationStore?)
-	executableValidations, msg := requirementStore.ValidationStore.DryRun()
-	if executableValidations {
-		message.Warnf(msg)
+	// Check if validations perform execution actions
+	if reqtStats.ExecutableValidations {
+		message.Warnf(reqtStats.ExecutableValidationsMsg)
 		if !confirmExecution {
 			confirm := message.PromptForConfirmation()
 			if !confirm {
 				message.Fatalf(errors.New("execution not confirmed"), "Exiting validation")
-				// Or should I just remove these validations from the store and continue...
+				// Or should I just not execute those validations and continue...
 			}
 		}
 	}
 
-	// Run Lula validations and generate findings/observations
-	message.Title("📐 Running Validations", "")
-
-	for _, component := range *compDef.Components {
-		// If there are no control-implementations, skip to the next component
-		controlImplementations := *component.ControlImplementations
-		if controlImplementations == nil {
-			continue
-		}
-
-		for _, controlImplementation := range controlImplementations {
-			for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
-				spinner := message.NewProgressSpinner("Validating Implemented Requirement - %s", implementedRequirement.UUID)
-				defer spinner.Stop()
-
-				// This should produce a finding - check if an existing finding for the control-id has been processed
-				var finding oscalTypes_1_1_2.Finding
-				var pass, fail int
-				tempObservations := make([]oscalTypes_1_1_2.Observation, 0)
-				relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0)
-
-				if _, ok := findings[implementedRequirement.ControlId]; ok {
-					finding = findings[implementedRequirement.ControlId]
-				} else {
-					finding = oscalTypes_1_1_2.Finding{
-						UUID:        uuid.NewUUID(),
-						Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", component.UUID, controlImplementation.UUID, implementedRequirement.ControlId),
-						Description: implementedRequirement.Description,
-					}
-				}
-
-				// IF the implemented requirement contains a link - check for Lula Validation
-				if implementedRequirement.Links != nil {
-					for _, link := range *implementedRequirement.Links {
-						// TODO: potentially use rel to determine the type of validation (Validation Types discussion)
-						if common.IsLulaLink(link) {
-							id := common.TrimIdPrefix(link.Href)
-							lulaValidation, err := validationStore.GetLulaValidation(id)
-							if err != nil {
-								message.Debugf("Error getting lula validation %s: %v", id, err)
-								// Handle error as an output to observations
-								observation := createObservation("TEST", "[Failed Observation]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
-								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-									{
-										Description: "Result: not-satistfied\n",
-										Remarks:     fmt.Sprintf("Error getting lula validation: %v\n", err),
-									},
-								}
-								fail = 1
-								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
-							} else {
-								// Add the description of the validation now that we have the ID
-								observation := createObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
-
-								err = lulaValidation.Validate(types.RequireExecutionConfirmation(confirmExecution))
-								if err != nil {
-									message.Debugf("Error getting validating yaml: %v", err)
-									// Handle error as an output to observations
-									lulaValidation.Result.Failing = 1
-									lulaValidation.Result.Observations = map[string]string{"Validation Error": err.Error()}
-								}
-								// Individual result state
-								if lulaValidation.Result.Passing > 0 && lulaValidation.Result.Failing <= 0 {
-									lulaValidation.Result.State = "satisfied"
-								} else {
-									lulaValidation.Result.State = "not-satisfied"
-								}
-
-								// Add remarks if Result has Observations
-								var remarks string
-								if len(lulaValidation.Result.Observations) > 0 {
-									for k, v := range lulaValidation.Result.Observations {
-										remarks += fmt.Sprintf("%s: %s\n", k, v)
-									}
-								}
-
-								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
-									{
-										Description: fmt.Sprintf("Result: %s\n", lulaValidation.Result.State),
-										Remarks:     remarks,
-									},
-								}
-
-								pass += lulaValidation.Result.Passing
-								fail += lulaValidation.Result.Failing
-
-								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
-							}
-						}
-					}
-				}
-				// Using language from Assessment Results model for Target Objective Status State
-				var state string
-				if finding.Target.Status.State == "not-satisfied" {
-					state = "not-satisfied"
-				} else if pass > 0 && fail <= 0 {
-					state = "satisfied"
-				} else {
-					state = "not-satisfied"
-				}
-
-				message.Infof("UUID: %v", finding.UUID)
-				message.Infof("    Status: %v", state)
-
-				finding.Target = oscalTypes_1_1_2.FindingTarget{
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
-						State: state,
-					},
-					TargetId: implementedRequirement.ControlId,
-					Type:     "objective-id",
-				}
-
-				finding.RelatedObservations = &relatedObservations
-
-				findings[implementedRequirement.ControlId] = finding
-				observations = append(observations, tempObservations...)
-				spinner.Success()
-			}
-		}
-	}
+	// Run Lula validations and generate observations & findings
+	message.Title("\n📐 Running Validations", "")
+	observations = validationStore.RunValidations(confirmExecution)
+	message.Title("\n💡 Findings", "")
+	findings = requirementStore.GenerateFindings(validationStore)
 
 	return findings, observations, nil
 }

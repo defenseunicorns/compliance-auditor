@@ -1,9 +1,7 @@
 package types
 
 import (
-	"errors"
 	"fmt"
-	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type LulaValidationType string
@@ -14,6 +12,9 @@ const (
 )
 
 type LulaValidation struct {
+	// Name of the Validation
+	Name string
+
 	// Provider is the provider that is evaluating the validation
 	Provider *Provider
 
@@ -33,11 +34,17 @@ type LulaValidation struct {
 	Result *Result
 }
 
+// CreatePlaceholderLulaValidation creates a placeholder LulaValidation object that is always not-satisfied
+func CreateNotSatisfiedLulaValidation(name string) *LulaValidation {
+	return &LulaValidation{
+		Name:      name,
+		Evaluated: true,
+		Result:    &Result{State: "not-satisfied"},
+	}
+}
+
 // LulaValidationMap is a map of LulaValidation objects
 type LulaValidationMap = map[string]LulaValidation
-
-// LulaValidationLinksMap is map of an array of LulaValidations
-type LulaValidationLinksMap = map[string][]*LulaValidation
 
 // Lula Validation Options settings
 type lulaValidationOptions struct {
@@ -82,14 +89,15 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 			opt(config)
 		}
 
-		// Check if confirmation is required before execution
-		if config.confirmExecution && val.Domain.IsExecutable() {
-			// Run confirmation user prompt
-			confirm := message.PromptForConfirmation()
-			if !confirm {
-				return errors.New("execution not confirmed")
-			}
-		}
+		// Check if confirmation is still needed before execution
+		// if config.confirmExecution && (*val.Domain).IsExecutable() {
+		// 	// Run confirmation user prompt
+		// 	confirm := message.PromptForConfirmation()
+		// 	if !confirm {
+		// 		return errors.New("execution not confirmed")
+		// 	}
+		// }
+		// If execution has been rejected, return err
 
 		// Get the resources
 		if config.staticResources != nil {
@@ -112,7 +120,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 
 // Check if the validation requires confirmation before possible execution code is run
 func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
-	return !val.Domain.IsExecutable()
+	return !(*val.Domain).IsExecutable()
 }
 
 type DomainResources map[string]interface{}

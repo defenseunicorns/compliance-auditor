@@ -2,7 +2,9 @@ package requirementstore
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -12,63 +14,44 @@ import (
 )
 
 type RequirementStore struct {
-	RequirementMap    map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation
-	ValidationLinkMap types.LulaValidationLinksMap
-	ValidationStore   *validationstore.ValidationStore
-	FindingsMap       map[string]oscalTypes_1_1_2.Finding
+	requirementMap map[string]oscal.Requirement
+	findingMap     map[string]oscalTypes_1_1_2.Finding
+}
+
+type Stats struct {
+	TotalRequirements        int
+	TotalValidations         int
+	ExecutableValidations    bool
+	ExecutableValidationsMsg string
+	TotalFindings            int
 }
 
 // NewRequirementStore creates a new requirement store from component defintion
-func NewRequirementStore(componentDef *oscalTypes_1_1_2.ComponentDefinition, validationStore *validationstore.ValidationStore) *RequirementStore {
+func NewRequirementStore(componentDef *oscalTypes_1_1_2.ComponentDefinition) *RequirementStore {
 	return &RequirementStore{
-		RequirementMap:    oscal.ComponentDefinitionToRequirementMap(componentDef),
-		ValidationLinkMap: make(types.LulaValidationLinksMap),
-		ValidationStore:   validationStore,
-		FindingsMap:       make(map[string]oscalTypes_1_1_2.Finding),
+		requirementMap: oscal.ComponentDefinitionToRequirementMap(componentDef),
+		findingMap:     make(map[string]oscalTypes_1_1_2.Finding),
 	}
 }
 
-// UpdateRequirementStoreWithLulaValidations adds Lula validations to the store
-func (r *RequirementStore) UpdateRequirementStoreWithLulaValidations() {
+// ResolveLulaValidations resolves the linked Lula validations with the requirements and populates the ValidationStore.validationMap
+func (r *RequirementStore) ResolveLulaValidations(validationStore *validationstore.ValidationStore) {
 	// get all Lula validations linked to the requirement
-	for _, requirement := range r.RequirementMap {
-		if requirement.Links != nil {
-			for _, link := range *requirement.Links {
+	var lulaValidation *types.LulaValidation
+	for _, requirement := range r.requirementMap {
+		if requirement.ImplementedRequirement.Links != nil {
+			for _, link := range *requirement.ImplementedRequirement.Links {
 				if common.IsLulaLink(link) {
-					ids, err := r.ValidationStore.AddFromLink(link)
+					id := common.TrimIdPrefix(link.Href)
+					_, err := validationStore.GetLulaValidation(id)
 					if err != nil {
 						message.Debugf("Error adding validation from link %s: %v", link.Href, err)
-						// Create a new validation and add it to the validationLinkMap
-						tmpValidation := &types.LulaValidation{
-							Evaluated: true,
-							Result: types.Result{
-								State: "not-satisfied",
-								Observations: map[string]string{
-									fmt.Sprintf("Error adding validation from link %s", link.Href): err.Error(),
-								},
-							},
+						// Create new LulaValidation and add to validationStore
+						lulaValidation = types.CreateNotSatisfiedLulaValidation("lula-validation-error")
+						lulaValidation.Result.Observations = map[string]string{
+							fmt.Sprintf("Error getting Lula validation %s", link.Href): err.Error(),
 						}
-						r.ValidationLinkMap[requirement.UUID] = append(r.ValidationLinkMap[requirement.UUID], tmpValidation)
-						continue
-					}
-					for _, id := range ids {
-						validation, err := r.ValidationStore.GetLulaValidation(id)
-						if err != nil {
-							message.Debugf("Error getting validation %s: %v", id, err)
-							// Create a new validation and add it to the validationLinkMap
-							tmpValidation := &types.LulaValidation{
-								Evaluated: true,
-								Result: types.Result{
-									State: "not-satisfied",
-									Observations: map[string]string{
-										fmt.Sprintf("Error getting validation %s", id): err.Error(),
-									},
-								},
-							}
-							r.ValidationLinkMap[requirement.UUID] = append(r.ValidationLinkMap[requirement.UUID], tmpValidation)
-							continue
-						}
-						r.ValidationLinkMap[requirement.UUID] = append(r.ValidationLinkMap[requirement.UUID], validation)
+						validationStore.AddLulaValidation(lulaValidation, id)
 					}
 				}
 			}
@@ -76,14 +59,80 @@ func (r *RequirementStore) UpdateRequirementStoreWithLulaValidations() {
 	}
 }
 
-// RunValidations runs the validations in the store
-func (r *RequirementStore) RunValidations() {
-	for _, validations := range r.ValidationStore. {
+// GenerateFindings generates the findings in the store
+func (r *RequirementStore) GenerateFindings(validationStore *validationstore.ValidationStore) map[string]oscalTypes_1_1_2.Finding {
+	// For each implemented requirement and linked validation, create a finding/observation
+	for _, requirement := range r.requirementMap {
+		// This should produce a finding - check if an existing finding for the control-id has been processed
+		var finding oscalTypes_1_1_2.Finding
+		var pass, fail int
+
+		// This is going to be messed up if you have multiple control IDs mapped to different components/control implementations
+		if _, ok := r.findingMap[requirement.ImplementedRequirement.ControlId]; ok {
+			finding = r.findingMap[requirement.ImplementedRequirement.ControlId]
+		} else {
+			finding = oscalTypes_1_1_2.Finding{
+				UUID:        uuid.NewUUID(),
+				Title:       fmt.Sprintf("Validation Result - Component:%s / Control Implementation: %s / Control:  %s", requirement.Component.UUID, requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.ControlId),
+				Description: requirement.ImplementedRequirement.Description,
+			}
+		}
+
+		if requirement.ImplementedRequirement.Links != nil {
+			relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0, len(*requirement.ImplementedRequirement.Links))
+			for _, link := range *requirement.ImplementedRequirement.Links {
+				observation, passBool := validationStore.GetRelatedObservation(link.Href)
+				relatedObservations = append(relatedObservations, observation)
+				if passBool {
+					pass++
+				} else {
+					fail++
+				}
+			}
+			finding.RelatedObservations = &relatedObservations
+		}
+
+		// Using language from Assessment Results model for Target Objective Status State
+		var state string
+		if finding.Target.Status.State == "not-satisfied" {
+			state = "not-satisfied"
+		} else if pass > 0 && fail <= 0 {
+			state = "satisfied"
+		} else {
+			state = "not-satisfied"
+		}
+
+		message.Infof("UUID: %v", finding.UUID)
+		message.Infof("    Status: %v", state)
+
+		finding.Target = oscalTypes_1_1_2.FindingTarget{
+			Status: oscalTypes_1_1_2.ObjectiveStatus{
+				State: state,
+			},
+			TargetId: requirement.ImplementedRequirement.ControlId,
+			Type:     "objective-id",
+		}
+
+		r.findingMap[requirement.ImplementedRequirement.ControlId] = finding
+	}
+	return r.findingMap
 }
 
-// GenerateFindings generates the findings in the store
-func (r *RequirementStore) GenerateFindings() {
-	// For each implemented requirement and linked validation, create a finding/observation
+// GetStats returns the stats of the store
+func (r *RequirementStore) GetStats(validationStore *validationstore.ValidationStore) Stats {
+	var executableValidations bool
+	var executableValidationsMsg string
+	if validationStore != nil {
+		executableValidations, executableValidationsMsg = validationStore.DryRun()
+	}
+
+	return Stats{
+		TotalRequirements:        len(r.requirementMap),
+		TotalValidations:         validationStore.Count(),
+		ExecutableValidations:    executableValidations,
+		ExecutableValidationsMsg: executableValidationsMsg,
+		TotalFindings:            len(r.findingMap),
+	}
 }
 
 // Drop unused validations from store (only relevant when store created from the backmatter if it contains unused validations)
@@ -94,3 +143,25 @@ func (r *RequirementStore) GenerateFindings() {
 // AddFinding adds a finding to the store
 
 // ReturnObservations returns the observations from the store (subset of findings)
+
+// Helper function to create observation
+func createObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
+	rfc3339Time := time.Now()
+	sharedUuid := uuid.NewUUID()
+	return oscalTypes_1_1_2.Observation{
+		Collected:   rfc3339Time,
+		Methods:     []string{method},
+		UUID:        sharedUuid,
+		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
+	}
+}
+
+// Helper function to append observations
+func appendObservations(relatedObservations []oscalTypes_1_1_2.RelatedObservation, tempObservations []oscalTypes_1_1_2.Observation, observation oscalTypes_1_1_2.Observation) ([]oscalTypes_1_1_2.RelatedObservation, []oscalTypes_1_1_2.Observation) {
+	relatedObservation := oscalTypes_1_1_2.RelatedObservation{
+		ObservationUuid: observation.UUID,
+	}
+	relatedObservations = append(relatedObservations, relatedObservation)
+	tempObservations = append(tempObservations, observation)
+	return relatedObservations, tempObservations
+}

@@ -110,5 +110,11 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 
 	lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
 
+	if validation.Metadata == nil {
+		lulaValidation.Name = "lula-validation"
+	} else {
+		lulaValidation.Name = validation.Metadata.Name
+	}
+
 	return lulaValidation, nil
 }

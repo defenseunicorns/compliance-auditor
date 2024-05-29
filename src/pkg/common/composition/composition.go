@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
@@ -100,7 +102,10 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 						if common.IsLulaLink(link) {
 							ids, err := resourceMap.AddFromLink(&link)
 							if err != nil {
-								return err
+								// return err
+								newId := uuid.NewUUID()
+								message.Debugf("Error adding validation %s from link %s: %v", newId, link.Href, err)
+								ids = []string{newId}
 							}
 							for _, id := range ids {
 								link := oscalTypes_1_1_2.Link{

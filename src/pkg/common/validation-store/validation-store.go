@@ -2,6 +2,7 @@ package validationstore
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -12,23 +13,26 @@ import (
 )
 
 type ValidationStore struct {
-	backMatterMap map[string]string
-	validationMap types.LulaValidationMap
+	backMatterMap  map[string]string
+	validationMap  types.LulaValidationMap
+	observationMap map[string]*oscalTypes_1_1_2.Observation
 }
 
 // NewValidationStore creates a new validation store
 func NewValidationStore() *ValidationStore {
 	return &ValidationStore{
-		backMatterMap: make(map[string]string),
-		validationMap: make(types.LulaValidationMap),
+		backMatterMap:  make(map[string]string),
+		validationMap:  make(types.LulaValidationMap),
+		observationMap: make(map[string]*oscalTypes_1_1_2.Observation),
 	}
 }
 
 // NewValidationStoreFromBackMatter creates a new validation store from a back matter
 func NewValidationStoreFromBackMatter(backMatter oscalTypes_1_1_2.BackMatter) *ValidationStore {
 	return &ValidationStore{
-		backMatterMap: oscal.BackMatterToMap(backMatter),
-		validationMap: make(types.LulaValidationMap),
+		backMatterMap:  oscal.BackMatterToMap(backMatter),
+		validationMap:  make(types.LulaValidationMap),
+		observationMap: make(map[string]*oscalTypes_1_1_2.Observation),
 	}
 }
 
@@ -73,17 +77,14 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	return validation, fmt.Errorf("validation #%s not found", trimmedId)
 }
 
-// Number of validations in the store
-func (v *ValidationStore) Count() int {
-	return len(v.validationMap)
-}
-
 // DryRun checks if the validations are performing execution actions
 func (v *ValidationStore) DryRun() (executable bool, msg string) {
 	executableValidations := make([]string, 0)
-	for k, validation := range v.validationMap {
-		if validation.Domain.IsExecutable() {
-			executableValidations = append(executableValidations, k)
+	for k, val := range v.validationMap {
+		if val.Domain != nil {
+			if (*val.Domain).IsExecutable() {
+				executableValidations = append(executableValidations, k)
+			}
 		}
 	}
 	if len(executableValidations) > 0 {
@@ -93,13 +94,82 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(confirmExecution bool) {
-	for k, validation := range v.validationMap {
-		err := validation.Validate()
+func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1_2.Observation {
+	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
+	for k, val := range v.validationMap {
+		spinner := message.NewProgressSpinner("Running validation %s", k)
+		defer spinner.Stop()
+		err := val.Validate(types.RequireExecutionConfirmation(confirmExecution))
 		if err != nil {
 			message.Debugf("Error running validation %s: %v", k, err)
 			// Update validation with failed results
+			val.Result.State = "not-satisfied"
+			val.Result.Observations = map[string]string{
+				"Error running validation": err.Error(),
+			}
+		}
+
+		// Update individual result state
+		if val.Result.Passing > 0 && val.Result.Failing <= 0 {
+			val.Result.State = "satisfied"
+		} else {
+			val.Result.State = "not-satisfied"
+		}
+
+		// Add the observation to the observation map
+		var remarks string
+		if len(val.Result.Observations) > 0 {
+			for k, v := range val.Result.Observations {
+				remarks += fmt.Sprintf("%s: %s\n", k, v)
+			}
+		}
+
+		observation := &oscalTypes_1_1_2.Observation{
+			Collected:   time.Now(),
+			Methods:     []string{"TEST"},
+			UUID:        uuid.NewUUID(),
+			Description: fmt.Sprintf("[TEST]: %s - %s\n", k, val.Name),
+			RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
+				{
+					Description: fmt.Sprintf("Result: %s\n", val.Result.State),
+					Remarks:     remarks,
+				},
+			},
+		}
+		v.observationMap[k] = observation
+		observations = append(observations, *observation)
+		spinner.Success()
+	}
+	return observations
+}
+
+// Number of validations in the store
+func (v *ValidationStore) Count() int {
+	return len(v.validationMap)
+}
+
+// GetObservation returns the observation with the given ID as well as pass status
+func (v *ValidationStore) GetRelatedObservation(id string) (oscalTypes_1_1_2.RelatedObservation, bool) {
+	trimmedId := common.TrimIdPrefix(id)
+	observation, ok := v.observationMap[trimmedId]
+	if !ok {
+		return oscalTypes_1_1_2.RelatedObservation{}, false
+	}
+	pass := false
+
+	// check all descriptions in relevant evidence are satisfied
+	if observation.RelevantEvidence != nil {
+		for _, e := range *observation.RelevantEvidence {
+			if e.Description == "Result: satisfied\n" {
+				pass = true
+			} else { // if any are not satisfied, return false
+				pass = false
+				break
+			}
 		}
 	}
 
+	return oscalTypes_1_1_2.RelatedObservation{
+		ObservationUuid: observation.UUID,
+	}, pass
 }

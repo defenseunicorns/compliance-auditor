@@ -13,6 +13,12 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+type Requirement struct {
+	ImplementedRequirement *oscalTypes_1_1_2.ImplementedRequirementControlImplementation
+	Component              *oscalTypes_1_1_2.DefinedComponent
+	ControlImplementation  *oscalTypes_1_1_2.ControlImplementationSet
+}
+
 type selection struct {
 	HowMany string
 	Choice  []string
@@ -403,8 +409,8 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[st
 
 // Returns a map of the requirements and lula validations
 func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (
-	requirementMap map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation) {
-	requirementMap = make(map[string]oscalTypes_1_1_2.ImplementedRequirementControlImplementation)
+	requirementMap map[string]Requirement) {
+	requirementMap = make(map[string]Requirement)
 
 	if componentDefinition.Components == nil {
 		return requirementMap
@@ -415,7 +421,11 @@ func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.C
 			for _, controlImplementation := range *component.ControlImplementations {
 				for _, requirement := range controlImplementation.ImplementedRequirements {
 					// TODO: should this be controlID (i.e., possibly combining multiple instances of the same control?)
-					requirementMap[requirement.UUID] = requirement
+					requirementMap[requirement.UUID] = Requirement{
+						ImplementedRequirement: &requirement,
+						Component:              &component,
+						ControlImplementation:  &controlImplementation,
+					}
 				}
 			}
 		}
