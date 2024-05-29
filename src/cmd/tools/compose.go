@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -101,7 +101,7 @@ func Compose(inputFile, outputFile string) error {
 
 	message.Infof("Writing Composed OSCAL Component Definition to: %s", outputFileName)
 
-	err = gooscalUtils.WriteOutput(b.Bytes(), outputFileName)
+	err = files.WriteOutput(b.Bytes(), outputFileName)
 	if err != nil {
 		return err
 	}

@@ -1,22 +1,22 @@
 module github.com/defenseunicorns/lula
 
-go 1.22.2
+go 1.22.3
 
 require (
-	github.com/defenseunicorns/go-oscal v0.3.2
-	github.com/hashicorp/go-version v1.6.0
+	github.com/defenseunicorns/go-oscal v0.4.1
+	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3-alpha.2
 	github.com/open-policy-agent/opa v0.64.1
 	github.com/pterm/pterm v0.12.79
 	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/cobra v1.8.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.30.0
-	k8s.io/apimachinery v0.30.0
-	k8s.io/cli-runtime v0.30.0
-	k8s.io/client-go v0.30.0
-	k8s.io/kubectl v0.30.0
-	sigs.k8s.io/e2e-framework v0.3.0
+	k8s.io/api v0.30.1
+	k8s.io/apimachinery v0.30.1
+	k8s.io/cli-runtime v0.30.1
+	k8s.io/client-go v0.30.1
+	k8s.io/kubectl v0.30.1
+	sigs.k8s.io/e2e-framework v0.4.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -127,13 +127,13 @@ require (
 	gopkg.in/evanphx/json-patch.v5 v5.9.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/component-base v0.30.0 // indirect
-	k8s.io/component-helpers v0.30.0 // indirect
+	k8s.io/component-base v0.30.1 // indirect
+	k8s.io/component-helpers v0.30.1 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
-	k8s.io/metrics v0.30.0 // indirect
+	k8s.io/metrics v0.30.1 // indirect
 	k8s.io/utils v0.0.0-20240102154912-e7106e64919e // indirect
-	sigs.k8s.io/controller-runtime v0.17.3 // indirect
+	sigs.k8s.io/controller-runtime v0.18.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.16.0 // indirect
 	sigs.k8s.io/kustomize/kustomize/v5 v5.0.4-0.20230601165947-6ce0bf390ce3 // indirect

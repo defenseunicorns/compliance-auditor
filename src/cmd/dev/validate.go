@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -198,7 +198,7 @@ func writeValidation(result types.LulaValidation, outputFile string) error {
 	if outputFile == "" {
 		message.Debug(string(resultBytes))
 	} else {
-		err = utils.WriteOutput(resultBytes, outputFile)
+		err = files.WriteOutput(resultBytes, outputFile)
 		if err != nil {
 			return err
 		}

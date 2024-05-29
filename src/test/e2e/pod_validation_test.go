@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -18,8 +20,6 @@ import (
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
-
-	gooscalUtils "github.com/defenseunicorns/go-oscal/src/pkg/utils"
 )
 
 func TestPodLabelValidation(t *testing.T) {
@@ -145,14 +145,14 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	revisionOptions := revision.RevisionOptions{
 		InputFile:  oscalPath,
 		OutputFile: tempDir + "/oscal-component-upgraded.yaml",
-		Version:    gooscalUtils.GetLatestSupportedVersion(),
+		Version:    versioning.GetLatestSupportedVersion(),
 	}
 	revisionResponse, err := revision.RevisionCommand(&revisionOptions)
 	if err != nil {
 		t.Fatal("Failed to upgrade component definition with: ", err)
 	}
 	// Write the upgraded component definition to a temp file
-	err = gooscalUtils.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
+	err = files.WriteOutput(revisionResponse.RevisedBytes, revisionOptions.OutputFile)
 	if err != nil {
 		t.Fatal("Failed to write upgraded component definition with: ", err)
 	}
@@ -180,7 +180,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 		AssessmentResults: report,
 	}
 
-	// Write the component definition to file
+	// Write the assessment results to file
 	err = oscal.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
@@ -193,11 +193,15 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
+
+	// Get the UUID of the report results - there should only be one
+	resultId := report.Results[0].UUID
+
 	model = oscalTypes_1_1_2.OscalModels{
 		AssessmentResults: report,
 	}
 
-	// Write the component definition to file
+	// Write the assessment results to file
 	err = oscal.WriteOscalModel("sar-test.yaml", &model)
 	if err != nil {
 		message.Fatalf(err, "error writing component to file")
@@ -216,6 +220,10 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	// The number of results in the file should be more than initially
 	if len(tempAssessment.Results) <= initialResultCount {
 		t.Fatal("Failed to append results to existing report")
+	}
+
+	if resultId != tempAssessment.Results[0].UUID {
+		t.Fatal("Failed to prepend results to existing report")
 	}
 
 	validatorResponse, err := validation.ValidationCommand("sar-test.yaml")

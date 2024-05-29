@@ -15,6 +15,14 @@ type KubernetesDomain struct {
 	Spec *KubernetesSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func (k KubernetesDomain) GetResources() (types.DomainResources, error) {
+	var resources types.DomainResources
+
+	if k.Spec.Wait != nil {
+		err := EvaluateWait(*k.Spec.Wait)
+		if err != nil {
+			return nil, err
+		}
 func (k KubernetesDomain) GetResources() (resources types.DomainResources, err error) {
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
@@ -58,6 +66,9 @@ type Resource struct {
 	Name         string        `json:"name" yaml:"name"`
 	Description  string        `json:"description" yaml:"description"`
 	ResourceRule *ResourceRule `json:"resource-rule,omitempty" yaml:"resource-rule,omitempty"`
+	Name         string        `json:"name" yaml:"name"`
+	Description  string        `json:"description" yaml:"description"`
+	ResourceRule *ResourceRule `json:"resource-rule,omitempty" yaml:"resource-rule,omitempty"`
 }
 
 type ResourceRule struct {
@@ -66,6 +77,7 @@ type ResourceRule struct {
 	Version    string   `json:"version" yaml:"version"`
 	Resource   string   `json:"resource" yaml:"resource"`
 	Namespaces []string `json:"namespaces" yaml:"namespaces"`
+	Field      *Field   `json:"field,omitempty" yaml:"field,omitempty"`
 	Field      *Field   `json:"field,omitempty" yaml:"field,omitempty"`
 }
 

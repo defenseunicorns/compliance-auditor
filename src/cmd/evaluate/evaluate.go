@@ -3,7 +3,7 @@ package evaluate
 import (
 	"fmt"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -48,25 +48,25 @@ func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessmentResults(files []string) error {
+func EvaluateAssessmentResults(fileArray []string) error {
 	var status bool
 	var findings map[string][]oscalTypes_1_1_2.Finding
 
 	// Read in files - establish the results to
-	if len(files) == 0 {
+	if len(fileArray) == 0 {
 		// TODO: Determine if we will handle a default location/name for assessment files
 		return fmt.Errorf("No files provided for evaluation")
 	}
 
-	for _, f := range files {
-		err := utils.IsJsonOrYaml(f)
+	for _, f := range fileArray {
+		err := files.IsJsonOrYaml(f)
 		if err != nil {
 			return fmt.Errorf("invalid file extension: %s, requires .json or .yaml", f)
 		}
 	}
 
-	if len(files) == 1 {
-		data, err := common.ReadFileToBytes(files[0])
+	if len(fileArray) == 1 {
+		data, err := common.ReadFileToBytes(fileArray[0])
 		if err != nil {
 			return err
 		}
@@ -84,8 +84,8 @@ func EvaluateAssessmentResults(files []string) error {
 			return err
 		}
 
-	} else if len(files) == 2 {
-		data, err := common.ReadFileToBytes(files[0])
+	} else if len(fileArray) == 2 {
+		data, err := common.ReadFileToBytes(fileArray[0])
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func EvaluateAssessmentResults(files []string) error {
 		if err != nil {
 			return err
 		}
-		data, err = common.ReadFileToBytes(files[1])
+		data, err = common.ReadFileToBytes(fileArray[1])
 		if err != nil {
 			return err
 		}

@@ -89,9 +89,9 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest *oscalTypes_1_1_2.AssessmentResults) (*oscalTypes_1_1_2.AssessmentResults, error) {
 
 	results := make([]oscalTypes_1_1_2.Result, 0)
-	// append new results first - unfurl so as to allow multiple results in the future
-	results = append(results, original.Results...)
+	// append newest to oldest results
 	results = append(results, latest.Results...)
+	results = append(results, original.Results...)
 	original.Results = results
 
 	original.Metadata.LastModified = time.Now()

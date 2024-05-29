@@ -5,11 +5,13 @@ on:
     branches: [main]
     types: [opened, edited, synchronize]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   title_check:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
 
     steps:
       - name: Checkout
@@ -21,7 +23,9 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
 
       - name: Install commitlint
-        run: npm install --save-dev @commitlint/{config-conventional,cli}
+        run: npm install --save-dev @commitlint/config-conventional@19.2.2 @commitlint/cli@19.3.0
 
       - name: Lint PR title
-        run: echo "${{ github.event.pull_request.title }}" | npx commitlint
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: echo "$PR_TITLE" | npx commitlint

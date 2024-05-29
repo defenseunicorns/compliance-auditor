@@ -3,12 +3,12 @@ package oscal
 import (
 	"errors"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/utils"
+	"github.com/defenseunicorns/go-oscal/src/pkg/model"
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 )
 
 func multiModelValidate(data []byte) (err error) {
-	jsonMap, err := utils.CoerceToJsonMap(data)
+	jsonMap, err := model.CoerceToJsonMap(data)
 	if err != nil {
 		return err
 	}
