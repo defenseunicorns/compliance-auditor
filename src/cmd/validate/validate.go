@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
@@ -27,7 +26,7 @@ type flags struct {
 }
 
 var opts = &flags{}
-var confirmExecution bool
+var ConfirmExecution bool // --confirm-execution
 
 var validateHelp = `
 To validate on a cluster:
@@ -82,7 +81,7 @@ func ValidateCommand() *cobra.Command {
 	// insert flag options here
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	validateCmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
+	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	return validateCmd
 }
 
@@ -175,20 +174,22 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 	message.Infof("Found %d runnable Lula Validations", reqtStats.TotalValidations)
 
 	// Check if validations perform execution actions
+	confirm := ConfirmExecution
 	if reqtStats.ExecutableValidations {
 		message.Warnf(reqtStats.ExecutableValidationsMsg)
-		if !confirmExecution {
-			confirm := message.PromptForConfirmation()
+		if !confirm {
+			confirm = message.PromptForConfirmation()
 			if !confirm {
-				message.Fatalf(errors.New("execution not confirmed"), "Exiting validation")
-				// Or should I just not execute those validations and continue...
+				// Break or just skip those those validations?
+				message.Infof("Validations requiring execution will not be run")
+				// message.Fatalf(errors.New("execution not confirmed"), "Exiting validation")
 			}
 		}
 	}
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations = validationStore.RunValidations(confirmExecution)
+	observations = validationStore.RunValidations(confirm)
 	message.Title("\n💡 Findings", "")
 	findings = requirementStore.GenerateFindings(validationStore)
 
@@ -259,26 +260,4 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	}
 
 	return nil
-}
-
-// Helper function to create observation
-func createObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
-	rfc3339Time := time.Now()
-	sharedUuid := uuid.NewUUID()
-	return oscalTypes_1_1_2.Observation{
-		Collected:   rfc3339Time,
-		Methods:     []string{method},
-		UUID:        sharedUuid,
-		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
-	}
-}
-
-// Helper function to append observations
-func appendObservations(relatedObservations []oscalTypes_1_1_2.RelatedObservation, tempObservations []oscalTypes_1_1_2.Observation, observation oscalTypes_1_1_2.Observation) ([]oscalTypes_1_1_2.RelatedObservation, []oscalTypes_1_1_2.Observation) {
-	relatedObservation := oscalTypes_1_1_2.RelatedObservation{
-		ObservationUuid: observation.UUID,
-	}
-	relatedObservations = append(relatedObservations, relatedObservation)
-	tempObservations = append(tempObservations, observation)
-	return relatedObservations, tempObservations
 }

@@ -6,15 +6,15 @@ import (
 	"os"
 
 	"github.com/defenseunicorns/lula/src/config"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 type flags struct {
-	InputFile  string // -f --input-file
-	OutputFile string // -o --output-file
+	InputFile        string // -f --input-file
+	OutputFile       string // -o --output-file
+	ConfirmExecution bool   // --confirm-execution
 }
 
 var opts = &flags{}
@@ -37,17 +37,29 @@ func init() {
 		Long:    "Get the JSON resources specified in a Lula Validation Manifest",
 		Example: getResourcesHelp,
 		Run: func(cmd *cobra.Command, args []string) {
-			spinner := message.NewProgressSpinner("Getting Resources from %s", opts.InputFile)
+			spinnerMessage := fmt.Sprintf("Getting Resources from %s", opts.InputFile)
+			spinner := message.NewProgressSpinner(spinnerMessage)
 			defer spinner.Stop()
 
 			ctx := context.Background()
+			var validationBytes []byte
+			var err error
 
-			collection, err := DevGetResources(ctx, opts.InputFile)
+			// Read the validation data from STDIN or provided file
+			validationBytes, err = ReadValidation(cmd, spinner, validateOpts.InputFile, validateOpts.Timeout)
+			if err != nil {
+				message.Fatalf(err, "error reading validation: %v", err)
+			}
+
+			// Reset the spinner message
+			spinner.Updatef(spinnerMessage)
+
+			collection, err := DevGetResources(ctx, validationBytes)
 			if err != nil {
 				message.Fatalf(err, "error running dev get-resources: %v", err)
 			}
 
-			PrintJSON(collection, opts.OutputFile)
+			writeResources(collection, opts.OutputFile)
 
 			spinner.Success()
 		},
@@ -57,42 +69,26 @@ func init() {
 
 	getResourcesCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to a validation manifest file")
 	getResourcesCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write the resources json")
+	getResourcesCmd.Flags().BoolVar(&opts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
 }
 
-func DevGetResources(ctx context.Context, inputFile string) (map[string]interface{}, error) {
-	validationFile, err := os.ReadFile(inputFile)
+func DevGetResources(ctx context.Context, validationBytes []byte) (types.DomainResources, error) {
+	lulaValidation, err := RunSingleValidation(validationBytes, types.ExecutionAllowed(opts.ConfirmExecution), types.Interactive(true))
 	if err != nil {
-		return nil, fmt.Errorf("error reading YAML file: %v", err)
+		return nil, err
 	}
 
-	var validation common.Validation
-	err = yaml.Unmarshal([]byte(validationFile), &validation)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling yaml: %v", err)
-	}
-
-	domain := common.GetDomain(validation.Domain, ctx)
-	if domain == nil {
-		return nil, fmt.Errorf("domain %s not found", validation.Domain.Type)
-	}
-
-	// Extract the resources from the domain
-	domainResources, err := domain.GetResources()
-	if err != nil {
-		return nil, fmt.Errorf("error getting domain resources: %s", err.Error())
-	}
-
-	return domainResources, nil
+	return *lulaValidation.DomainResources, nil
 }
 
-func PrintJSON(data map[string]interface{}, filepath string) {
+func writeResources(data types.DomainResources, filepath string) {
 	jsonData := message.JSONValue(data)
 
 	// If a filepath is provided, write the JSON data to the file.
 	if filepath != "" {
 		err := os.WriteFile(filepath, []byte(jsonData), 0644)
 		if err != nil {
-			message.Fatalf(err, "error writing JSON to file: %v", err)
+			message.Fatalf(err, "error writing resource JSON to file: %v", err)
 		}
 	} else {
 		// Else print to stdout

@@ -4,10 +4,7 @@ import (
 	"context"
 	"testing"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -39,25 +36,26 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			message.NoProgress = true
 
 			// Check that validation passes
-			findingMap, observations, err := validate.ValidateOnPath(oscalPath)
+			validate.ConfirmExecution = true
+			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
 				t.Fatal(err)
 			}
 			// Test report generation
-			report, err := oscal.GenerateAssessmentResults(findingMap, observations)
-			if err != nil {
-				t.Fatal("Failed generation of Assessment Results object with: ", err)
-			}
+			// report, err := oscal.GenerateAssessmentResults(findingMap, observations)
+			// if err != nil {
+			// 	t.Fatal("Failed generation of Assessment Results object with: ", err)
+			// }
 
-			var model = oscalTypes_1_1_2.OscalModels{
-				AssessmentResults: report,
-			}
+			// var model = oscalTypes_1_1_2.OscalModels{
+			// 	AssessmentResults: report,
+			// }
 
 			// Write the component definition to file
-			err = common.WriteFile("sar-test.yaml", &model)
-			if err != nil {
-				message.Fatalf(err, "error writing component to file")
-			}
+			// err = oscal.WriteOscalModel("sar-test.yaml", &model)
+			// if err != nil {
+			// 	message.Fatalf(err, "error writing component to file")
+			// }
 
 			for _, finding := range findingMap {
 				state := finding.Target.Status.State

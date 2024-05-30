@@ -2,7 +2,6 @@ package requirementstore
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -47,7 +46,7 @@ func (r *RequirementStore) ResolveLulaValidations(validationStore *validationsto
 					if err != nil {
 						message.Debugf("Error adding validation from link %s: %v", link.Href, err)
 						// Create new LulaValidation and add to validationStore
-						lulaValidation = types.CreateNotSatisfiedLulaValidation("lula-validation-error")
+						lulaValidation = types.CreateFailingLulaValidation("lula-validation-error")
 						lulaValidation.Result.Observations = map[string]string{
 							fmt.Sprintf("Error getting Lula validation %s", link.Href): err.Error(),
 						}
@@ -139,29 +138,3 @@ func (r *RequirementStore) GetStats(validationStore *validationstore.ValidationS
 // func (r *RequirementStore) DropUnusedValidations() {
 // 	TODO
 // }
-
-// AddFinding adds a finding to the store
-
-// ReturnObservations returns the observations from the store (subset of findings)
-
-// Helper function to create observation
-func createObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
-	rfc3339Time := time.Now()
-	sharedUuid := uuid.NewUUID()
-	return oscalTypes_1_1_2.Observation{
-		Collected:   rfc3339Time,
-		Methods:     []string{method},
-		UUID:        sharedUuid,
-		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
-	}
-}
-
-// Helper function to append observations
-func appendObservations(relatedObservations []oscalTypes_1_1_2.RelatedObservation, tempObservations []oscalTypes_1_1_2.Observation, observation oscalTypes_1_1_2.Observation) ([]oscalTypes_1_1_2.RelatedObservation, []oscalTypes_1_1_2.Observation) {
-	relatedObservation := oscalTypes_1_1_2.RelatedObservation{
-		ObservationUuid: observation.UUID,
-	}
-	relatedObservations = append(relatedObservations, relatedObservation)
-	tempObservations = append(tempObservations, observation)
-	return relatedObservations, tempObservations
-}

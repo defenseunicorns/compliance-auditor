@@ -36,8 +36,17 @@ func NewValidationStoreFromBackMatter(backMatter oscalTypes_1_1_2.BackMatter) *V
 	}
 }
 
+// Number of validations in the store
+func (v *ValidationStore) Count() int {
+	return len(v.validationMap)
+}
+
 // AddValidation adds a validation to the store
 func (v *ValidationStore) AddValidation(validation *common.Validation) (id string, err error) {
+	if validation.Metadata == nil {
+		validation.Metadata = &common.Metadata{}
+	}
+
 	if validation.Metadata.UUID == "" {
 		validation.Metadata.UUID = uuid.NewUUID()
 	}
@@ -99,7 +108,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 	for k, val := range v.validationMap {
 		spinner := message.NewProgressSpinner("Running validation %s", k)
 		defer spinner.Stop()
-		err := val.Validate(types.RequireExecutionConfirmation(confirmExecution))
+		err := val.Validate(types.ExecutionAllowed(confirmExecution))
 		if err != nil {
 			message.Debugf("Error running validation %s: %v", k, err)
 			// Update validation with failed results
@@ -138,14 +147,9 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 		}
 		v.observationMap[k] = observation
 		observations = append(observations, *observation)
-		spinner.Success()
+		spinner.Successf("Validation %s completed and determined %s", k, val.Result.State)
 	}
 	return observations
-}
-
-// Number of validations in the store
-func (v *ValidationStore) Count() int {
-	return len(v.validationMap)
 }
 
 // GetObservation returns the observation with the given ID as well as pass status

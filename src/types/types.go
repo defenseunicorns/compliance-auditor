@@ -1,7 +1,10 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type LulaValidationType string
@@ -34,12 +37,21 @@ type LulaValidation struct {
 	Result *Result
 }
 
-// CreatePlaceholderLulaValidation creates a placeholder LulaValidation object that is always not-satisfied
-func CreateNotSatisfiedLulaValidation(name string) *LulaValidation {
+// CreateFailingLulaValidation creates a placeholder LulaValidation object that is always failing
+func CreateFailingLulaValidation(name string) *LulaValidation {
 	return &LulaValidation{
 		Name:      name,
 		Evaluated: true,
-		Result:    &Result{State: "not-satisfied"},
+		Result:    &Result{Failing: 1},
+	}
+}
+
+// CreatePassingLulaValidation creates a placeholder LulaValidation object that is always passing
+func CreatePassingLulaValidation(name string) *LulaValidation {
+	return &LulaValidation{
+		Name:      name,
+		Evaluated: true,
+		Result:    &Result{Passing: 1},
 	}
 }
 
@@ -49,7 +61,9 @@ type LulaValidationMap = map[string]LulaValidation
 // Lula Validation Options settings
 type lulaValidationOptions struct {
 	staticResources  DomainResources
-	confirmExecution bool
+	executionAllowed bool
+	isInteractive    bool
+	onlyResources    bool
 }
 
 type LulaValidationOption func(*lulaValidationOptions)
@@ -61,10 +75,24 @@ func WithStaticResources(resources DomainResources) LulaValidationOption {
 	}
 }
 
-// RequireExecutionConfirmation is a function that returns a boolean indicating if the validation requires confirmation before execution
-func RequireExecutionConfirmation(confirmationFlag bool) LulaValidationOption {
+// ExecutionAllowed sets the value of the executionAllowed field in the LulaValidation object
+func ExecutionAllowed(executionAllowed bool) LulaValidationOption {
 	return func(opts *lulaValidationOptions) {
-		opts.confirmExecution = !confirmationFlag
+		opts.executionAllowed = executionAllowed
+	}
+}
+
+// RequireExecutionConfirmation is a function that returns a boolean indicating if the validation requires confirmation before execution
+func Interactive(isInteractive bool) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.isInteractive = isInteractive
+	}
+}
+
+// RequireExecutionConfirmation is a function that returns a boolean indicating if the validation requires confirmation before execution
+func GetResourcesOnly(onlyResources bool) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.onlyResources = onlyResources
 	}
 }
 
@@ -83,21 +111,25 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
 			staticResources:  nil,
-			confirmExecution: true,
+			executionAllowed: false,
+			isInteractive:    false,
+			onlyResources:    false,
 		}
 		for _, opt := range opts {
 			opt(config)
 		}
 
-		// Check if confirmation is still needed before execution
-		// if config.confirmExecution && (*val.Domain).IsExecutable() {
-		// 	// Run confirmation user prompt
-		// 	confirm := message.PromptForConfirmation()
-		// 	if !confirm {
-		// 		return errors.New("execution not confirmed")
-		// 	}
-		// }
-		// If execution has been rejected, return err
+		// Check if confirmation needed before execution
+		if (*val.Domain).IsExecutable() {
+			if config.isInteractive {
+				// Run confirmation user prompt
+				confirm := message.PromptForConfirmation()
+				config.executionAllowed = confirm
+			}
+			if !config.executionAllowed {
+				return errors.New("execution not allowed")
+			}
+		}
 
 		// Get the resources
 		if config.staticResources != nil {
@@ -106,6 +138,9 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 			resources, err = (*val.Domain).GetResources()
 			if err != nil {
 				return fmt.Errorf("domain GetResources error: %v", err)
+			}
+			if config.onlyResources {
+				return nil
 			}
 		}
 
