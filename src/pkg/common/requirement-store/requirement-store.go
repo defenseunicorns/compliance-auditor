@@ -93,6 +93,7 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 
 		// Using language from Assessment Results model for Target Objective Status State
 		var state string
+		message.Debugf("Pass: %v / Fail: %v / Existing State: %s", pass, fail, finding.Target.Status.State)
 		if finding.Target.Status.State == "not-satisfied" {
 			state = "not-satisfied"
 		} else if pass > 0 && fail <= 0 {
