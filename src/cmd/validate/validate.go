@@ -26,7 +26,8 @@ type flags struct {
 }
 
 var opts = &flags{}
-var ConfirmExecution bool // --confirm-execution
+var ConfirmExecution bool        // --confirm-execution
+var RunInteractively bool = true // default to run command interactively
 
 var validateHelp = `
 To validate on a cluster:
@@ -50,9 +51,6 @@ var validateCmd = &cobra.Command{
 		if err := files.IsJsonOrYaml(opts.InputFile); err != nil {
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
-
-		// Primary expected path for validation of OSCAL documents
-		message.HeaderInfof("Lula Component Definition Validation")
 
 		findings, observations, err := ValidateOnPath(opts.InputFile)
 		if err != nil {
@@ -174,12 +172,13 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 	message.Infof("Found %d runnable Lula Validations", reqtStats.TotalValidations)
 
 	// Check if validations perform execution actions
-	confirm := ConfirmExecution
 	if reqtStats.ExecutableValidations {
 		message.Warnf(reqtStats.ExecutableValidationsMsg)
-		if !confirm {
-			confirm = message.PromptForConfirmation()
-			if !confirm {
+		if !ConfirmExecution {
+			if RunInteractively {
+				ConfirmExecution = message.PromptForConfirmation(nil)
+			}
+			if !ConfirmExecution {
 				// Break or just skip those those validations?
 				message.Infof("Validations requiring execution will not be run")
 				// message.Fatalf(errors.New("execution not confirmed"), "Exiting validation")
@@ -189,7 +188,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations = validationStore.RunValidations(confirm)
+	observations = validationStore.RunValidations(ConfirmExecution)
 	message.Title("\n💡 Findings", "")
 	findings = requirementStore.GenerateFindings(validationStore)
 

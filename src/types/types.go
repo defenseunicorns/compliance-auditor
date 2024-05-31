@@ -64,6 +64,7 @@ type lulaValidationOptions struct {
 	executionAllowed bool
 	isInteractive    bool
 	onlyResources    bool
+	spinner          *message.Spinner
 }
 
 type LulaValidationOption func(*lulaValidationOptions)
@@ -82,10 +83,17 @@ func ExecutionAllowed(executionAllowed bool) LulaValidationOption {
 	}
 }
 
-// RequireExecutionConfirmation is a function that returns a boolean indicating if the validation requires confirmation before execution
+// Interactive is a function that returns a boolean indicating if the validation should be interactive
 func Interactive(isInteractive bool) LulaValidationOption {
 	return func(opts *lulaValidationOptions) {
 		opts.isInteractive = isInteractive
+	}
+}
+
+// WithSpinner returns a LulaValidationOption that sets the spinner for the LulaValidation object
+func WithSpinner(spinner *message.Spinner) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.spinner = spinner
 	}
 }
 
@@ -114,6 +122,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 			executionAllowed: false,
 			isInteractive:    false,
 			onlyResources:    false,
+			spinner:          nil,
 		}
 		for _, opt := range opts {
 			opt(config)
@@ -121,13 +130,15 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 
 		// Check if confirmation needed before execution
 		if (*val.Domain).IsExecutable() {
-			if config.isInteractive {
-				// Run confirmation user prompt
-				confirm := message.PromptForConfirmation()
-				config.executionAllowed = confirm
-			}
 			if !config.executionAllowed {
-				return errors.New("execution not allowed")
+				if config.isInteractive {
+					// Run confirmation user prompt
+					if confirm := message.PromptForConfirmation(config.spinner); !confirm {
+						return errors.New("execution not allowed")
+					}
+				} else {
+					return errors.New("execution not allowed")
+				}
 			}
 		}
 

@@ -106,7 +106,9 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1_2.Observation {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
 	for k, val := range v.validationMap {
-		spinner := message.NewProgressSpinner("Running validation %s", k)
+		completedText := "evaluated"
+		spinnerMessage := fmt.Sprintf("Running validation %s", k)
+		spinner := message.NewProgressSpinner(spinnerMessage)
 		defer spinner.Stop()
 		err := val.Validate(types.ExecutionAllowed(confirmExecution))
 		if err != nil {
@@ -116,6 +118,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 			val.Result.Observations = map[string]string{
 				"Error running validation": err.Error(),
 			}
+			completedText = "NOT evaluated"
 		}
 
 		// Update individual result state
@@ -147,7 +150,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 		}
 		v.observationMap[k] = observation
 		observations = append(observations, *observation)
-		spinner.Successf("Validation %s completed and determined %s", k, val.Result.State)
+		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
 	}
 	return observations
 }

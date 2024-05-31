@@ -48,13 +48,14 @@ func TestGetResources(t *testing.T) {
 		Assess("Validate dev get-resources", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			validationFile := "./scenarios/dev-get-resources/validation.yaml"
 			message.NoProgress = true
+			dev.RunInteractively = false
 
 			validationBytes, err := common.ReadFileToBytes(validationFile)
 			if err != nil {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			collection, err := dev.DevGetResources(ctx, validationBytes)
+			collection, err := dev.DevGetResources(ctx, validationBytes, nil)
 			if err != nil {
 				t.Fatalf("error testing dev get-resources: %v", err)
 			}

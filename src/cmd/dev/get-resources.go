@@ -11,20 +11,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type flags struct {
-	InputFile        string // -f --input-file
-	OutputFile       string // -o --output-file
-	ConfirmExecution bool   // --confirm-execution
-}
-
-var opts = &flags{}
+var getResourcesOpts = &flags{}
 
 var getResourcesHelp = `
 To get resources from lula validation manifest:
 	lula dev get-resources -f <path to manifest>
-
-	Example:
+To get resources from lula validation manifest and write to file:
 	lula dev get-resources -f /path/to/manifest.json -o /path/to/output.json
+To get resources from lula validation that performs execution non-interactively
+	lula dev get-resources -f /path/to/manifest.json --confirm-execution
+To run validations using stdin:
+	cat <path to manifest> | lula dev validate
+To hang indefinitely for stdin:
+	lula get-resources -t -1
+To hang for timeout of 5 seconds:
+	lula get-resources -t 5
 `
 
 func init() {
@@ -37,7 +38,7 @@ func init() {
 		Long:    "Get the JSON resources specified in a Lula Validation Manifest",
 		Example: getResourcesHelp,
 		Run: func(cmd *cobra.Command, args []string) {
-			spinnerMessage := fmt.Sprintf("Getting Resources from %s", opts.InputFile)
+			spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
 			spinner := message.NewProgressSpinner(spinnerMessage)
 			defer spinner.Stop()
 
@@ -46,20 +47,17 @@ func init() {
 			var err error
 
 			// Read the validation data from STDIN or provided file
-			validationBytes, err = ReadValidation(cmd, spinner, validateOpts.InputFile, validateOpts.Timeout)
+			validationBytes, err = ReadValidation(cmd, spinner, getResourcesOpts.InputFile, getResourcesOpts.Timeout)
 			if err != nil {
 				message.Fatalf(err, "error reading validation: %v", err)
 			}
 
-			// Reset the spinner message
-			spinner.Updatef(spinnerMessage)
-
-			collection, err := DevGetResources(ctx, validationBytes)
+			collection, err := DevGetResources(ctx, validationBytes, spinner)
 			if err != nil {
 				message.Fatalf(err, "error running dev get-resources: %v", err)
 			}
 
-			writeResources(collection, opts.OutputFile)
+			writeResources(collection, getResourcesOpts.OutputFile)
 
 			spinner.Success()
 		},
@@ -67,13 +65,19 @@ func init() {
 
 	devCmd.AddCommand(getResourcesCmd)
 
-	getResourcesCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to a validation manifest file")
-	getResourcesCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write the resources json")
-	getResourcesCmd.Flags().BoolVar(&opts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
+	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.InputFile, "input-file", "f", "", "the path to a validation manifest file")
+	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.OutputFile, "output-file", "o", "", "the path to write the resources json")
+	getResourcesCmd.Flags().IntVarP(&getResourcesOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
+	getResourcesCmd.Flags().BoolVar(&getResourcesOpts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
 }
 
-func DevGetResources(ctx context.Context, validationBytes []byte) (types.DomainResources, error) {
-	lulaValidation, err := RunSingleValidation(validationBytes, types.ExecutionAllowed(opts.ConfirmExecution), types.Interactive(true))
+func DevGetResources(ctx context.Context, validationBytes []byte, spinner *message.Spinner) (types.DomainResources, error) {
+	lulaValidation, err := RunSingleValidation(
+		validationBytes,
+		types.ExecutionAllowed(getResourcesOpts.ConfirmExecution),
+		types.Interactive(RunInteractively),
+		types.WithSpinner(spinner),
+	)
 	if err != nil {
 		return nil, err
 	}

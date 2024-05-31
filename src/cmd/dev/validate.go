@@ -15,10 +15,6 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const STDIN = "0"
-const NO_TIMEOUT = -1
-const DEFAULT_TIMEOUT = 1
-
 var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
@@ -34,10 +30,8 @@ To hang for timeout of 5 seconds:
 
 type ValidateFlags struct {
 	flags
-	ExpectedResult   bool   // -e --expected-result
-	Timeout          int    // -t --timeout
-	ResourcesFile    string // -r --resources-file
-	ConfirmExecution bool   // --confirm-execution
+	ExpectedResult bool   // -e --expected-result
+	ResourcesFile  string // -r --resources-file
 }
 
 var validateOpts = &ValidateFlags{}
@@ -83,7 +77,7 @@ func init() {
 				}
 			}
 
-			validation, err := DevValidate(ctx, validationBytes, resourcesBytes)
+			validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
 			if err != nil {
 				message.Fatalf(err, "error running dev validate: %v", err)
 			}
@@ -125,7 +119,7 @@ func init() {
 
 // DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it
 // Returns the LulaValidation struct and any error encountered
-func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte) (lulaValidation types.LulaValidation, err error) {
+func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte, spinner *message.Spinner) (lulaValidation types.LulaValidation, err error) {
 	// Set resources if resourcesBytes is not empty
 	var resources types.DomainResources
 	if len(resourcesBytes) > 0 {
@@ -136,7 +130,13 @@ func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []b
 		}
 	}
 
-	lulaValidation, err = RunSingleValidation(validationBytes, types.WithStaticResources(resources), types.ExecutionAllowed(validateOpts.ConfirmExecution), types.Interactive(true))
+	lulaValidation, err = RunSingleValidation(
+		validationBytes,
+		types.WithStaticResources(resources),
+		types.ExecutionAllowed(validateOpts.ConfirmExecution),
+		types.Interactive(RunInteractively),
+		types.WithSpinner(spinner),
+	)
 	if err != nil {
 		return lulaValidation, err
 	}

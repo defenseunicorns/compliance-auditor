@@ -37,25 +37,11 @@ func TestCreateResourceDataValidation(t *testing.T) {
 
 			// Check that validation passes
 			validate.ConfirmExecution = true
+			validate.RunInteractively = false
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
 				t.Fatal(err)
 			}
-			// Test report generation
-			// report, err := oscal.GenerateAssessmentResults(findingMap, observations)
-			// if err != nil {
-			// 	t.Fatal("Failed generation of Assessment Results object with: ", err)
-			// }
-
-			// var model = oscalTypes_1_1_2.OscalModels{
-			// 	AssessmentResults: report,
-			// }
-
-			// Write the component definition to file
-			// err = oscal.WriteOscalModel("sar-test.yaml", &model)
-			// if err != nil {
-			// 	message.Fatalf(err, "error writing component to file")
-			// }
 
 			for _, finding := range findingMap {
 				state := finding.Target.Status.State
@@ -105,4 +91,32 @@ func TestCreateResourceDataValidation(t *testing.T) {
 		Feature()
 
 	testEnv.Test(t, featureTrueDataValidation)
+}
+
+func TestDeniedCreateResources(t *testing.T) {
+	featureDeniedCreateResource := features.New("Check Create Resource Denied - Success").
+		Assess("Validate Create Resource Denied", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/create-resources/oscal-component-denied.yaml"
+			message.NoProgress = true
+
+			// Check that validation fails
+			validate.ConfirmExecution = false
+			validate.RunInteractively = false
+			findingMap, _, err := validate.ValidateOnPath(oscalPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for _, finding := range findingMap {
+				state := finding.Target.Status.State
+				if state != "not-satisfied" {
+					t.Fatal("State should be not-satisfied, but got:", state)
+				}
+			}
+
+			return ctx
+		}).
+		Feature()
+
+	testEnv.Test(t, featureDeniedCreateResource)
 }

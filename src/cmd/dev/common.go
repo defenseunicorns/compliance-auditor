@@ -13,11 +13,24 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const STDIN = "0"
+const NO_TIMEOUT = -1
+const DEFAULT_TIMEOUT = 1
+
 var devCmd = &cobra.Command{
 	Use:     "dev",
 	Aliases: []string{"t"},
 	Short:   "Collection of dev commands to make dev life easier",
 }
+
+type flags struct {
+	InputFile        string // -f --input-file
+	OutputFile       string // -o --output-file
+	Timeout          int    // -t --timeout
+	ConfirmExecution bool   // --confirm-execution
+}
+
+var RunInteractively bool = true // default to run dev command interactively
 
 // Include adds the tools command to the root command.
 func Include(rootCmd *cobra.Command) {
@@ -29,13 +42,13 @@ func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, t
 	var validationBytes []byte
 	var err error
 
-	if validateOpts.InputFile == STDIN {
+	if path == STDIN {
 		var inputReader io.Reader = cmd.InOrStdin()
 
 		// If the timeout is not -1, wait for the timeout then close and return an error
 		go func() {
-			if validateOpts.Timeout != NO_TIMEOUT {
-				time.Sleep(time.Duration(validateOpts.Timeout) * time.Second)
+			if timeout != NO_TIMEOUT {
+				time.Sleep(time.Duration(timeout) * time.Second)
 				cmd.Help()
 				message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
 			}
@@ -48,11 +61,11 @@ func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, t
 		if err != nil || len(validationBytes) == 0 {
 			message.Fatalf(err, "error reading from stdin: %v", err)
 		}
-	} else if !strings.HasSuffix(validateOpts.InputFile, ".yaml") {
+	} else if !strings.HasSuffix(path, ".yaml") {
 		message.Fatalf(fmt.Errorf("input file must be a yaml file"), "input file must be a yaml file")
 	} else {
 		// Read the validation file
-		validationBytes, err = common.ReadFileToBytes(validateOpts.InputFile)
+		validationBytes, err = common.ReadFileToBytes(path)
 		if err != nil {
 			message.Fatalf(err, "error reading file: %v", err)
 		}
