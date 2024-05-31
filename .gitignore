@@ -5,3 +5,4 @@ assessment-results-*.yaml
 .idea
 .vscode/settings.json
 .vscode/launch.json
+commitlint/node_modules

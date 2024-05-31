@@ -23,9 +23,9 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
 
       - name: Install commitlint
-        run: npm install --save-dev @commitlint/config-conventional@19.2.2 @commitlint/cli@19.3.0
+        run: cd commitlint && npm install 
 
       - name: Lint PR title
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: echo "$PR_TITLE" | npx commitlint
+        run: echo "$PR_TITLE" | npx commitlint --config commitlint/commitlint.config.js
