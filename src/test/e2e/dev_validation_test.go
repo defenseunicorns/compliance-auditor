@@ -76,7 +76,7 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, nil)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -110,7 +110,7 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, nil)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}

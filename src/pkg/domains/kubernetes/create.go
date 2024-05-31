@@ -95,20 +95,31 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 func CreateFromManifest(ctx context.Context, client klient.Client, resourceBytes []byte) ([]map[string]interface{}, error) {
 	resources := make([]map[string]interface{}, 0)
 
-	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(resourceBytes), 4096)
-	for {
-		rawObj := &unstructured.Unstructured{}
-		if err := decoder.Decode(rawObj); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-		resource, err := createResource(ctx, client, rawObj)
+	objArray, err := readResourcesFromYaml(resourceBytes)
+	if err != nil {
+		return nil, err
+	}
+	for _, obj := range objArray {
+		resource, err := createResource(ctx, client, &obj)
 		if err == nil {
 			resources = append(resources, resource.Object)
 		}
 	}
+
+	// decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(resourceBytes), 4096)
+	// for {
+	// 	rawObj := &unstructured.Unstructured{}
+	// 	if err := decoder.Decode(rawObj); err != nil {
+	// 		if err == io.EOF {
+	// 			break
+	// 		}
+	// 		return nil, err
+	// 	}
+	// 	resource, err := createResource(ctx, client, rawObj)
+	// 	if err == nil {
+	// 		resources = append(resources, resource.Object)
+	// 	}
+	// }
 	return resources, nil
 }
 
@@ -235,4 +246,22 @@ func createNamespace(ctx context.Context, client klient.Client, namespace string
 	}
 
 	return true, nil // Namespace created successfully
+}
+
+// readResourcesFromYaml reads a yaml file of k8s resources to an array of resources
+func readResourcesFromYaml(resourceBytes []byte) (resources []unstructured.Unstructured, err error) {
+	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(resourceBytes), 4096)
+
+	for {
+		resource := &unstructured.Unstructured{}
+		if err := decoder.Decode(resource); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		resources = append(resources, *resource)
+	}
+
+	return resources, nil
 }
