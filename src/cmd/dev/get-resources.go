@@ -65,7 +65,7 @@ func init() {
 
 	devCmd.AddCommand(getResourcesCmd)
 
-	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.InputFile, "input-file", "f", "", "the path to a validation manifest file")
+	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
 	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.OutputFile, "output-file", "o", "", "the path to write the resources json")
 	getResourcesCmd.Flags().IntVarP(&getResourcesOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
 	getResourcesCmd.Flags().BoolVar(&getResourcesOpts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
