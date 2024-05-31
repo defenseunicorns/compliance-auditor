@@ -15,7 +15,7 @@ var evaluateHelp = `
 To evaluate the latest results in two assessment results files:
 	lula evaluate -f assessment-results-threshold.yaml -f assessment-results-new.yaml
 
-To evaluate two results (latest and preceding) in a single assessment results file:
+To evaluate two results (threshold and latest) in a single OSCAL file:
 	lula evaluate -f assessment-results.yaml
 `
 
@@ -51,11 +51,16 @@ func EvaluateCommand() *cobra.Command {
 func EvaluateAssessmentResults(fileArray []string) error {
 	var status bool
 	var findings map[string][]oscalTypes_1_1_2.Finding
+	var threshold, latest *oscalTypes_1_1_2.Result
+
+	// Items for updating the threshold automatically
+	var thresholdFile string
+	var thresholdAssessment *oscalTypes_1_1_2.AssessmentResults
 
 	// Read in files - establish the results to
 	if len(fileArray) == 0 {
 		// TODO: Determine if we will handle a default location/name for assessment files
-		return fmt.Errorf("No files provided for evaluation")
+		return fmt.Errorf("no files provided for evaluation")
 	}
 
 	for _, f := range fileArray {
@@ -66,6 +71,7 @@ func EvaluateAssessmentResults(fileArray []string) error {
 	}
 
 	if len(fileArray) == 1 {
+		thresholdFile = fileArray[0]
 		data, err := common.ReadFileToBytes(fileArray[0])
 		if err != nil {
 			return err
@@ -75,16 +81,25 @@ func EvaluateAssessmentResults(fileArray []string) error {
 			return err
 		}
 		if len(assessment.Results) < 2 {
-			return fmt.Errorf("2 or more result objects must be present for evaluation\n")
+			message.Infof("%v result object identified - unable to evaluate", len(assessment.Results))
+			return nil
 		}
-		// We write results to the assessment-results report in newest -> oldest
-		// Older being our threshold here
-		status, findings, err = EvaluateResults(&assessment.Results[1], &assessment.Results[0])
+
+		// Identify the threshold
+		threshold, err = findThreshold(&assessment.Results)
+		if err != nil {
+			return err
+		}
+
+		latest = &assessment.Results[0]
+
+		status, findings, err = EvaluateResults(threshold, latest)
 		if err != nil {
 			return err
 		}
 
 	} else if len(fileArray) == 2 {
+		thresholdFile = fileArray[1]
 		data, err := common.ReadFileToBytes(fileArray[0])
 		if err != nil {
 			return err
@@ -110,29 +125,48 @@ func EvaluateAssessmentResults(fileArray []string) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("Exceeded maximum of 2 files for evaluation\n")
+		return fmt.Errorf("exceeded maximum of 2 files for evaluation")
 	}
 
 	if status {
-		message.Info("Evaluation Passing the established threshold")
-		if len(findings["new-findings"]) > 0 {
-			message.Info("New finding Target-Ids:")
-			for _, finding := range findings["new-findings"] {
+		if len(findings["new-passing-findings"]) > 0 {
+			message.Info("New passing finding Target-Ids:")
+			for _, finding := range findings["new-passing-findings"] {
+				message.Infof("%s", finding.Target.TargetId)
+			}
+			// TODO: If there are new passing Findings -> update the threshold in the assessment
+			updateProp("threshold", "false", threshold)
+			updateProp("threshold", "true", latest)
+
+			// Props are updated - now write the thresholdAssessment to the existing assessment?
+			// if we create the model and write it - the merge will need to de-duplicate instead of merge results
+			model := oscalTypes_1_1_2.OscalCompleteSchema{
+				AssessmentResults: thresholdAssessment,
+			}
+
+			oscal.WriteOscalModel(thresholdFile, &model)
+
+		}
+
+		if len(findings["new-failing-findings"]) > 0 {
+			message.Info("New failing finding Target-Ids:")
+			for _, finding := range findings["new-failing-findings"] {
 				message.Infof("%s", finding.Target.TargetId)
 			}
 		}
+
 		return nil
 	} else {
 		message.Warn("Evaluation Failed against the following findings:")
 		for _, finding := range findings["no-longer-satisfied"] {
 			message.Warnf("%s", finding.Target.TargetId)
 		}
-		return fmt.Errorf("Failed to meet established threshold")
+		return fmt.Errorf("failed to meet established threshold")
 	}
 }
 
 func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
-	if thresholdResult == nil || thresholdResult.Findings == nil || newResult == nil || newResult.Findings == nil {
+	if thresholdResult.Findings == nil || newResult.Findings == nil {
 		return false, nil, fmt.Errorf("results must contain findings to evaluate")
 	}
 
@@ -144,7 +178,9 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 	result := true
 
 	findingMapThreshold := oscal.GenerateFindingsMap(*thresholdResult.Findings)
+	message.Debug(findingMapThreshold)
 	findingMapNew := oscal.GenerateFindingsMap(*newResult.Findings)
+	message.Debug(findingMapNew)
 
 	// For a given oldResult - we need to prove that the newResult implements all of the oldResult findings/controls
 	// We are explicitly iterating through the findings in order to collect a delta to display
@@ -169,11 +205,44 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 		}
 	}
 
+	message.Debug(findingMapNew)
+
 	// All remaining findings in the new map are new findings
 	for _, finding := range findingMapNew {
-		findings["new-findings"] = append(findings["new-findings"], finding)
+		if finding.Target.Status.State == "satisfied" {
+			message.Debugf("New finding to append: %s", finding.Target.TargetId)
+			findings["new-passing-findings"] = append(findings["new-passing-findings"], finding)
+		} else {
+			findings["new-failing-findings"] = append(findings["new-failing-findings"], finding)
+		}
+
 	}
 
 	spinner.Success()
 	return result, findings, nil
+}
+
+func findThreshold(results *[]oscalTypes_1_1_2.Result) (*oscalTypes_1_1_2.Result, error) {
+	for _, result := range *results {
+		for _, prop := range *result.Props {
+			if prop.Name == "threshold" {
+				if prop.Value == "true" {
+					return &result, nil
+				}
+			}
+		}
+	}
+	return &oscalTypes_1_1_2.Result{}, fmt.Errorf("threshold not found")
+}
+
+func updateProp(name string, value string, result *oscalTypes_1_1_2.Result) error {
+	for index, prop := range *result.Props {
+		if prop.Name == name {
+			prop.Value = value
+			(*result.Props)[index] = prop
+			message.Debug(*result)
+			return nil
+		}
+	}
+	return fmt.Errorf("property not found")
 }

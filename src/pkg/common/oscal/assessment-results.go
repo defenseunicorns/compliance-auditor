@@ -61,6 +61,15 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 		LastModified: rfc3339Time,
 	}
 
+	// Here we are going to add the threshold property
+	props := []oscalTypes_1_1_2.Property{
+		{
+			Ns:    "https://docs.lula.dev/ns",
+			Name:  "threshold",
+			Value: "true",
+		},
+	}
+
 	// Create results object
 	assessmentResults.Results = []oscalTypes_1_1_2.Result{
 		{
@@ -68,6 +77,7 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 			Title:       "Lula Validation Result",
 			Start:       rfc3339Time,
 			Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
+			Props:       &props,
 			ReviewedControls: oscalTypes_1_1_2.ReviewedControls{
 				Description: "Controls validated",
 				Remarks:     "Validation performed may indicate full or partial satisfaction",
@@ -88,13 +98,33 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 
 func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest *oscalTypes_1_1_2.AssessmentResults) (*oscalTypes_1_1_2.AssessmentResults, error) {
 
+	// If UUID's are matching - this must be a prop update for threshold
+	// We should be able to return the latest results
+	// This is used during evaluate to update the threshold prop automatically
+	if original.UUID == latest.UUID {
+		return latest, nil
+	}
+
+	// Validate only ever creates one result
+	// Assumed that there is always an original threshold
+	result := latest.Results[0]
+	for index, prop := range *result.Props {
+		if prop.Name == "threshold" {
+			prop.Value = "false"
+			// Better way to update the prop?
+			(*result.Props)[index] = prop
+		}
+	}
+
 	results := make([]oscalTypes_1_1_2.Result, 0)
 	// append newest to oldest results
-	results = append(results, latest.Results...)
+	results = append(results, result)
 	results = append(results, original.Results...)
 	original.Results = results
 
+	// Update pertinent information
 	original.Metadata.LastModified = time.Now()
+	original.UUID = uuid.NewUUID()
 
 	return original, nil
 }
