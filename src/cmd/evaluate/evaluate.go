@@ -55,7 +55,7 @@ func EvaluateAssessmentResults(fileArray []string) error {
 
 	// Items for updating the threshold automatically
 	var thresholdFile string
-	var thresholdAssessment *oscalTypes_1_1_2.AssessmentResults
+	var assessment *oscalTypes_1_1_2.AssessmentResults
 
 	// Read in files - establish the results to
 	if len(fileArray) == 0 {
@@ -76,7 +76,7 @@ func EvaluateAssessmentResults(fileArray []string) error {
 		if err != nil {
 			return err
 		}
-		assessment, err := oscal.NewAssessmentResults(data)
+		assessment, err = oscal.NewAssessmentResults(data)
 		if err != nil {
 			return err
 		}
@@ -135,13 +135,15 @@ func EvaluateAssessmentResults(fileArray []string) error {
 				message.Infof("%s", finding.Target.TargetId)
 			}
 			// TODO: If there are new passing Findings -> update the threshold in the assessment
-			updateProp("threshold", "false", threshold)
-			updateProp("threshold", "true", latest)
+			message.Debugf("props before update: %v", threshold.Props)
+			updateProp("threshold", "false", &threshold.Props)
+			message.Debugf("props after update: %v", threshold.Props)
+			updateProp("threshold", "true", &latest.Props)
 
 			// Props are updated - now write the thresholdAssessment to the existing assessment?
 			// if we create the model and write it - the merge will need to de-duplicate instead of merge results
 			model := oscalTypes_1_1_2.OscalCompleteSchema{
-				AssessmentResults: thresholdAssessment,
+				AssessmentResults: assessment,
 			}
 
 			oscal.WriteOscalModel(thresholdFile, &model)
@@ -178,9 +180,7 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 	result := true
 
 	findingMapThreshold := oscal.GenerateFindingsMap(*thresholdResult.Findings)
-	message.Debug(findingMapThreshold)
 	findingMapNew := oscal.GenerateFindingsMap(*newResult.Findings)
-	message.Debug(findingMapNew)
 
 	// For a given oldResult - we need to prove that the newResult implements all of the oldResult findings/controls
 	// We are explicitly iterating through the findings in order to collect a delta to display
@@ -235,14 +235,25 @@ func findThreshold(results *[]oscalTypes_1_1_2.Result) (*oscalTypes_1_1_2.Result
 	return &oscalTypes_1_1_2.Result{}, fmt.Errorf("threshold not found")
 }
 
-func updateProp(name string, value string, result *oscalTypes_1_1_2.Result) error {
-	for index, prop := range *result.Props {
+func updateProp(name string, value string, props **[]oscalTypes_1_1_2.Property) error {
+
+	for index, prop := range **props {
 		if prop.Name == name {
 			prop.Value = value
-			(*result.Props)[index] = prop
-			message.Debug(*result)
+			(**props)[index] = prop
+			message.Debug(prop)
 			return nil
 		}
 	}
 	return fmt.Errorf("property not found")
+
+	// for index, prop := range *result.Props {
+	// 	if prop.Name == name {
+	// 		prop.Value = value
+	// 		(*result.Props)[index] = prop
+	// 		message.Debug(*result)
+	// 		return nil
+	// 	}
+	// }
+	// return fmt.Errorf("property not found")
 }

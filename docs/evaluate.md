@@ -1,3 +1,7 @@
+# TODO
+- Evaluate functions again for updating prop values
+- Determine multiple artifact evaluation process
+
 # Compliance Evaluation
 
 Evaluate serves as a method for verifying the compliance of a component/system against an established threshold to determine if it is more or less compliant than a previous assessment. 
@@ -19,3 +23,22 @@ In workflows run manually or with automation (such as CI/CD), there is an expect
 steps:
 1. `lula validate`
 2. `lula evaluate` -> Passes or Fails based on threshold
+
+
+## Scenarios for Consideration
+
+Evaluate will determine which result is the threshold based on the following property:
+```yaml
+props:
+  - name: threshold
+    ns: https://docs.lula.dev/ns
+    value: "true/false"
+```
+
+### Assessment Results Artifact
+
+When evaluate is ran with a single assessment results artifact, it is expected that a single threshold with a `true` value exists. This will be identified and ran against the latest result to determine if compliance is less-than-equal (fail), equal (pass), or greater-than-equal (pass). When the comparison results in greater-than-equal, Lula will update the threshold `prop` for the latest result to `true` and set the previous result threshold prop to `false`.
+
+### Comparing multiple assessment results artifacts
+
+In the scenario where multiple assessment results artifacts are evaluated, there may be a multiple threshold results with a `true` value as Lula establishes a default `true` value when writing an assessment results artifact to a new file with no previous results present. 
