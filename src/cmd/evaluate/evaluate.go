@@ -2,6 +2,7 @@ package evaluate
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -53,79 +54,65 @@ func EvaluateAssessmentResults(fileArray []string) error {
 	var findings map[string][]oscalTypes_1_1_2.Finding
 	var threshold, latest *oscalTypes_1_1_2.Result
 
-	// Items for updating the threshold automatically
-	var thresholdFile string
-	var assessment *oscalTypes_1_1_2.AssessmentResults
-
-	// Read in files - establish the results to
 	if len(fileArray) == 0 {
-		// TODO: Determine if we will handle a default location/name for assessment files
 		return fmt.Errorf("no files provided for evaluation")
 	}
 
-	for _, f := range fileArray {
-		err := files.IsJsonOrYaml(f)
+	// Potentially write changes back to multiple files requires some storage
+	resultMap := make(map[string]*oscalTypes_1_1_2.AssessmentResults)
+	for _, fileString := range fileArray {
+		err := files.IsJsonOrYaml(fileString)
 		if err != nil {
-			return fmt.Errorf("invalid file extension: %s, requires .json or .yaml", f)
+			return fmt.Errorf("invalid file extension: %s, requires .json or .yaml", fileString)
 		}
+
+		data, err := common.ReadFileToBytes(fileString)
+		if err != nil {
+			return err
+		}
+		assessment, err := oscal.NewAssessmentResults(data)
+		if err != nil {
+			return err
+		}
+		resultMap[fileString] = assessment
 	}
 
-	if len(fileArray) == 1 {
-		thresholdFile = fileArray[0]
-		data, err := common.ReadFileToBytes(fileArray[0])
-		if err != nil {
-			return err
-		}
-		assessment, err = oscal.NewAssessmentResults(data)
-		if err != nil {
-			return err
-		}
-		if len(assessment.Results) < 2 {
-			message.Infof("%v result object identified - unable to evaluate", len(assessment.Results))
-			return nil
-		}
+	// Now that we have the map of assessment results - we need to identify the threshold(s)
+	// Also sort the results -> if we maintain pointers, can we update and write all artifacts in one go?
 
-		// Identify the threshold
-		threshold, err = findThreshold(&assessment.Results)
-		if err != nil {
-			return err
-		}
+	thresholds, sortedResults, err := findAndSortResults(resultMap)
+	if err != nil {
+		return err
+	}
 
-		latest = &assessment.Results[0]
+	if len(sortedResults) <= 1 {
+		// Should this implicitly pass? If so then a workflow can operate on the assumption that it will pass from 0 -> N results
+		message.Infof("%v result object identified - unable to evaluate", len(sortedResults))
+		return nil
+	}
+
+	if len(thresholds) == 0 {
+		// No thresholds identified but we have > 1 results - compare the latest and the preceding
+		threshold = sortedResults[len(sortedResults)-2]
+		latest = sortedResults[len(sortedResults)-1]
 
 		status, findings, err = EvaluateResults(threshold, latest)
 		if err != nil {
 			return err
 		}
-
-	} else if len(fileArray) == 2 {
-		thresholdFile = fileArray[1]
-		data, err := common.ReadFileToBytes(fileArray[0])
-		if err != nil {
-			return err
-		}
-		assessmentOne, err := oscal.NewAssessmentResults(data)
-		if err != nil {
-			return err
-		}
-		data, err = common.ReadFileToBytes(fileArray[1])
-		if err != nil {
-			return err
-		}
-		assessmentTwo, err := oscal.NewAssessmentResults(data)
-		if err != nil {
-			return err
-		}
-
-		// Consider parsing the timestamps for comparison
-		// Older timestamp being the threshold
-
-		status, findings, err = EvaluateResults(&assessmentOne.Results[0], &assessmentTwo.Results[0])
-		if err != nil {
-			return err
-		}
 	} else {
-		return fmt.Errorf("exceeded maximum of 2 files for evaluation")
+		// Constraint - Always evaluate the latest threshold against the latest result
+		threshold = thresholds[len(thresholds)-1]
+		latest = sortedResults[len(sortedResults)-1]
+
+		if threshold.UUID == latest.UUID {
+			// They are the same - return error
+			return fmt.Errorf("unable to evaluate - threshold and latest result are the same result - nothing to compare")
+		}
+		status, findings, err = EvaluateResults(threshold, latest)
+		if err != nil {
+			return err
+		}
 	}
 
 	if status {
@@ -134,19 +121,21 @@ func EvaluateAssessmentResults(fileArray []string) error {
 			for _, finding := range findings["new-passing-findings"] {
 				message.Infof("%s", finding.Target.TargetId)
 			}
-			// TODO: If there are new passing Findings -> update the threshold in the assessment
-			message.Debugf("props before update: %v", threshold.Props)
-			updateProp("threshold", "false", &threshold.Props)
-			message.Debugf("props after update: %v", threshold.Props)
-			updateProp("threshold", "true", &latest.Props)
 
-			// Props are updated - now write the thresholdAssessment to the existing assessment?
+			message.Info("New threshold identified - threshold will be updated to latest result")
+
+			updateProp("threshold", "false", threshold.Props)
+			updateProp("threshold", "true", latest.Props)
+
+			// Props are updated - now write back to all files
 			// if we create the model and write it - the merge will need to de-duplicate instead of merge results
-			model := oscalTypes_1_1_2.OscalCompleteSchema{
-				AssessmentResults: assessment,
-			}
+			for filePath, assessment := range resultMap {
+				model := oscalTypes_1_1_2.OscalCompleteSchema{
+					AssessmentResults: assessment,
+				}
 
-			oscal.WriteOscalModel(thresholdFile, &model)
+				oscal.WriteOscalModel(filePath, &model)
+			}
 
 		}
 
@@ -205,12 +194,9 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 		}
 	}
 
-	message.Debug(findingMapNew)
-
 	// All remaining findings in the new map are new findings
 	for _, finding := range findingMapNew {
 		if finding.Target.Status.State == "satisfied" {
-			message.Debugf("New finding to append: %s", finding.Target.TargetId)
 			findings["new-passing-findings"] = append(findings["new-passing-findings"], finding)
 		} else {
 			findings["new-failing-findings"] = append(findings["new-failing-findings"], finding)
@@ -222,38 +208,41 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 	return result, findings, nil
 }
 
-func findThreshold(results *[]oscalTypes_1_1_2.Result) (*oscalTypes_1_1_2.Result, error) {
-	for _, result := range *results {
-		for _, prop := range *result.Props {
-			if prop.Name == "threshold" {
-				if prop.Value == "true" {
-					return &result, nil
+// findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
+func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) ([]*oscalTypes_1_1_2.Result, []*oscalTypes_1_1_2.Result, error) {
+
+	thresholds := make([]*oscalTypes_1_1_2.Result, 0)
+	sortedResults := make([]*oscalTypes_1_1_2.Result, 0)
+
+	for _, assessment := range resultMap {
+		for _, result := range assessment.Results {
+			if result.Props != nil {
+				for _, prop := range *result.Props {
+					if prop.Name == "threshold" && prop.Value == "true" {
+						thresholds = append(thresholds, &result)
+					}
 				}
 			}
+			// Store all results in a non-sorted list
+			sortedResults = append(sortedResults, &result)
 		}
 	}
-	return &oscalTypes_1_1_2.Result{}, fmt.Errorf("threshold not found")
+
+	// Sort the results by start time
+	slices.SortFunc(sortedResults, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
+	slices.SortFunc(thresholds, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
+
+	return thresholds, sortedResults, nil
 }
 
-func updateProp(name string, value string, props **[]oscalTypes_1_1_2.Property) error {
+func updateProp(name string, value string, props *[]oscalTypes_1_1_2.Property) error {
 
-	for index, prop := range **props {
+	for index, prop := range *props {
 		if prop.Name == name {
 			prop.Value = value
-			(**props)[index] = prop
-			message.Debug(prop)
+			(*props)[index] = prop
 			return nil
 		}
 	}
 	return fmt.Errorf("property not found")
-
-	// for index, prop := range *result.Props {
-	// 	if prop.Name == name {
-	// 		prop.Value = value
-	// 		(*result.Props)[index] = prop
-	// 		message.Debug(*result)
-	// 		return nil
-	// 	}
-	// }
-	// return fmt.Errorf("property not found")
 }

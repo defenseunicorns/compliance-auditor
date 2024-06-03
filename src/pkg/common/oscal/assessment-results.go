@@ -102,6 +102,7 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 	// We should be able to return the latest results
 	// This is used during evaluate to update the threshold prop automatically
 	if original.UUID == latest.UUID {
+		// Consider that this is a potential modification and this might be a good location to generate a new UUID
 		return latest, nil
 	}
 

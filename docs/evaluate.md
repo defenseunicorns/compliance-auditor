@@ -1,7 +1,3 @@
-# TODO
-- Evaluate functions again for updating prop values
-- Determine multiple artifact evaluation process
-
 # Compliance Evaluation
 
 Evaluate serves as a method for verifying the compliance of a component/system against an established threshold to determine if it is more or less compliant than a previous assessment. 
@@ -41,4 +37,4 @@ When evaluate is ran with a single assessment results artifact, it is expected t
 
 ### Comparing multiple assessment results artifacts
 
-In the scenario where multiple assessment results artifacts are evaluated, there may be a multiple threshold results with a `true` value as Lula establishes a default `true` value when writing an assessment results artifact to a new file with no previous results present. 
+In the scenario where multiple assessment results artifacts are evaluated, there may be a multiple threshold results with a `true` value as Lula establishes a default `true` value when writing an assessment results artifact to a new file with no previous results present. In this case, Lula will use the older result as the threshold to determine compliance of the result.

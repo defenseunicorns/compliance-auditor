@@ -192,8 +192,8 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		t.Fatal("error - evaluation failed")
 	}
 
-	if len(findings["new-findings"]) != 2 {
-		t.Fatal("error - expected 1 new finding, got ", len(findings["new-findings"]))
+	if len(findings["new-passing-findings"]) != 1 {
+		t.Fatal("error - expected 1 new finding, got ", len(findings["new-passing-findings"]))
 	}
 
 }
