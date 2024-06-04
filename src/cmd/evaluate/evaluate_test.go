@@ -7,6 +7,41 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
+var (
+	validInputFile   = "../../test/unit/common/oscal/valid-assessment-result.yaml"
+	invalidInputFile = "../../test/unit/common/oscal/invalid-assessment-result.yaml"
+)
+
+func TestEvaluateAssessmentResults(t *testing.T) {
+	t.Parallel()
+
+	// TODO: write logic to separate file read from core evaluation logic
+	// TODO: move the core logic to library package
+	// TODO: write a success test to receive assessments/results that we can verify intended prop change
+	// t.Run("handles valid assessment result", func(t *testing.T) {
+	// 	assessmentMap, err := EvaluateAssessmentResults([]string{validInputFile})
+	// 	if err != nil {
+	// 		t.Fatal("unexpected error for valid assessment result")
+	// 	}
+
+	// })
+
+	t.Run("handles invalid path to assessment result file", func(t *testing.T) {
+		_, err := EvaluateAssessmentResults([]string{"./invalid-path.yaml"})
+		if err == nil {
+			t.Fatal("expected error for invalid path")
+		}
+	})
+
+	t.Run("handles invalid assessment result without any results", func(t *testing.T) {
+		_, err := EvaluateAssessmentResults([]string{invalidInputFile})
+		if err == nil {
+			t.Fatal("expected error for invalid assessment result without results")
+		}
+	})
+
+}
+
 // Given two results - evaluate for passing
 func TestEvaluateResultsPassing(t *testing.T) {
 	message.NoProgress = true

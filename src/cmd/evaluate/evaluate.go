@@ -35,9 +35,19 @@ var evaluateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Access the files and evaluate them
-		err := EvaluateAssessmentResults(opts.files)
+		assessmentMap, err := EvaluateAssessmentResults(opts.files)
 		if err != nil {
 			message.Fatal(err, err.Error())
+		}
+
+		// Props are updated - now write back to all files
+		// if we create the model and write it - the merge will need to de-duplicate instead of merge results
+		for filePath, assessment := range assessmentMap {
+			model := oscalTypes_1_1_2.OscalCompleteSchema{
+				AssessmentResults: assessment,
+			}
+
+			oscal.WriteOscalModel(filePath, &model)
 		}
 	},
 }
@@ -49,13 +59,13 @@ func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessmentResults(fileArray []string) error {
+func EvaluateAssessmentResults(fileArray []string) (map[string]*oscalTypes_1_1_2.AssessmentResults, error) {
 	var status bool
 	var findings map[string][]oscalTypes_1_1_2.Finding
 	var threshold, latest *oscalTypes_1_1_2.Result
 
 	if len(fileArray) == 0 {
-		return fmt.Errorf("no files provided for evaluation")
+		return nil, fmt.Errorf("no files provided for evaluation")
 	}
 
 	// Potentially write changes back to multiple files requires some storage
@@ -63,16 +73,16 @@ func EvaluateAssessmentResults(fileArray []string) error {
 	for _, fileString := range fileArray {
 		err := files.IsJsonOrYaml(fileString)
 		if err != nil {
-			return fmt.Errorf("invalid file extension: %s, requires .json or .yaml", fileString)
+			return nil, fmt.Errorf("invalid file extension: %s, requires .json or .yaml", fileString)
 		}
 
 		data, err := common.ReadFileToBytes(fileString)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		assessment, err := oscal.NewAssessmentResults(data)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		resultMap[fileString] = assessment
 	}
@@ -82,13 +92,13 @@ func EvaluateAssessmentResults(fileArray []string) error {
 
 	thresholds, sortedResults, err := findAndSortResults(resultMap)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(sortedResults) <= 1 {
 		// Should this implicitly pass? If so then a workflow can operate on the assumption that it will pass from 0 -> N results
 		message.Infof("%v result object identified - unable to evaluate", len(sortedResults))
-		return nil
+		return nil, nil
 	}
 
 	if len(thresholds) == 0 {
@@ -98,7 +108,7 @@ func EvaluateAssessmentResults(fileArray []string) error {
 
 		status, findings, err = EvaluateResults(threshold, latest)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		// Constraint - Always evaluate the latest threshold against the latest result
@@ -107,11 +117,11 @@ func EvaluateAssessmentResults(fileArray []string) error {
 
 		if threshold.UUID == latest.UUID {
 			// They are the same - return error
-			return fmt.Errorf("unable to evaluate - threshold and latest result are the same result - nothing to compare")
+			return nil, fmt.Errorf("unable to evaluate - threshold and latest result are the same result - nothing to compare")
 		}
 		status, findings, err = EvaluateResults(threshold, latest)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -122,21 +132,13 @@ func EvaluateAssessmentResults(fileArray []string) error {
 				message.Infof("%s", finding.Target.TargetId)
 			}
 
-			message.Info("New threshold identified - threshold will be updated to latest result")
+			message.Infof("New threshold identified - threshold will be updated to result %s", latest.UUID)
 
-			updateProp("threshold", "false", threshold.Props)
-			updateProp("threshold", "true", latest.Props)
-
-			// Props are updated - now write back to all files
-			// if we create the model and write it - the merge will need to de-duplicate instead of merge results
-			for filePath, assessment := range resultMap {
-				model := oscalTypes_1_1_2.OscalCompleteSchema{
-					AssessmentResults: assessment,
-				}
-
-				oscal.WriteOscalModel(filePath, &model)
+			// In the event we still have multiple thresholds - let's clean them up
+			for _, result := range thresholds {
+				updateProp("threshold", "false", result.Props)
 			}
-
+			updateProp("threshold", "true", latest.Props)
 		}
 
 		if len(findings["new-failing-findings"]) > 0 {
@@ -146,13 +148,13 @@ func EvaluateAssessmentResults(fileArray []string) error {
 			}
 		}
 
-		return nil
+		return resultMap, nil
 	} else {
 		message.Warn("Evaluation Failed against the following findings:")
 		for _, finding := range findings["no-longer-satisfied"] {
 			message.Warnf("%s", finding.Target.TargetId)
 		}
-		return fmt.Errorf("failed to meet established threshold")
+		return nil, fmt.Errorf("failed to meet established threshold")
 	}
 }
 

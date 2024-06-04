@@ -1,0 +1,181 @@
+assessment-results:
+  import-ap:
+    href: ""
+  metadata:
+    last-modified: 2024-06-04T03:34:46.521030308Z
+    oscal-version: 1.1.2
+    published: 2024-06-04T02:46:29.02587111Z
+    remarks: Assessment Results generated from Lula
+    title: '[System Name] Security Assessment Results (SAR)'
+    version: 0.0.1
+  results:
+    - description: Assessment results for performing Validations with Lula version v0.3.0-7-gfc18c43
+      findings:
+        - description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: bcb5c77a-981d-4698-acd4-84c3e8a0b3e7
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: 41018849-9825-4760-82ad-6d74362e44d5
+        - description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: 38d1abe2-7c30-4eaa-b792-46a0978bf0a0
+          target:
+            status:
+              state: satisfied
+            target-id: ID-2
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: 60345fd5-f0b8-4097-b9a2-b4f795edcab3 / Control:  ID-2'
+          uuid: 9fd5633e-2509-41bc-b66c-16d30e7dc29e
+      observations:
+        - collected: 2024-06-04T03:34:46.435905414Z
+          description: |+
+            [TEST]: ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: bcb5c77a-981d-4698-acd4-84c3e8a0b3e7
+        - collected: 2024-06-04T03:34:46.441327814Z
+          description: |+
+            [TEST]: ID-2 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: 38d1abe2-7c30-4eaa-b792-46a0978bf0a0
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "true"
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+              - control-id: ID-2
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-06-04T03:34:46.443161469Z
+      title: Lula Validation Result
+      uuid: b5fb7bd4-c91e-4cd3-8020-ed04aa8d74b5
+    - description: Assessment results for performing Validations with Lula version v0.3.0-7-gfc18c43
+      findings:
+        - description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: 42a8b71d-7d08-42cc-beb4-c1c384c119ef
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: 50c818bd-e6be-4870-8766-8a22d18f1af1
+      observations:
+        - collected: 2024-06-04T03:33:33.977370866Z
+          description: |+
+            [TEST]: ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: 42a8b71d-7d08-42cc-beb4-c1c384c119ef
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "false"
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-06-04T03:33:33.982591133Z
+      title: Lula Validation Result
+      uuid: ae611955-e97e-4115-a5d0-2e5ccbf35872
+    - description: Assessment results for performing Validations with Lula version v0.3.0-7-gfc18c43
+      findings:
+        - description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: 20d943cb-8a8d-47e2-b625-2d5829604f5e
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: fbee2fb0-e8ba-419c-9d29-f20525bbc420
+      observations:
+        - collected: 2024-06-04T02:48:06.890379789Z
+          description: |+
+            [TEST]: ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: 20d943cb-8a8d-47e2-b625-2d5829604f5e
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "false"
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-06-04T02:48:06.895205436Z
+      title: Lula Validation Result
+      uuid: 7ef25ccd-22b8-421e-8c64-9fcbde697696
+    - description: Assessment results for performing Validations with Lula version v0.3.0-7-gfc18c43
+      findings:
+        - description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: d3b228e8-8c8b-4be9-a0b0-8da9fcdb005f
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: 44fc8e49-b633-4880-8d58-4ed0f14c7bdb
+      observations:
+        - collected: 2024-06-04T02:46:29.018416946Z
+          description: |+
+            [TEST]: ID-1 - a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+          uuid: d3b228e8-8c8b-4be9-a0b0-8da9fcdb005f
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "false"
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-06-04T02:46:29.02587111Z
+      title: Lula Validation Result
+      uuid: 250ac234-519f-4f26-bee3-98e870feeb7a
+  uuid: 9673739a-9379-4575-b454-1b42672a4970
