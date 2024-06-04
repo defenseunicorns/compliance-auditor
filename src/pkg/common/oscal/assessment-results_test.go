@@ -1,46 +1,45 @@
-package evaluate
+package oscal_test
 
 import (
 	"testing"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
-var (
-	validInputFile   = "../../test/unit/common/oscal/valid-assessment-result.yaml"
-	invalidInputFile = "../../test/unit/common/oscal/invalid-assessment-result.yaml"
-)
-
-func TestEvaluateAssessmentResults(t *testing.T) {
-	t.Parallel()
-
-	// TODO: write logic to separate file read from core evaluation logic
-	// TODO: move the core logic to library package
-	// TODO: write a success test to receive assessments/results that we can verify intended prop change
-	// t.Run("handles valid assessment result", func(t *testing.T) {
-	// 	assessmentMap, err := EvaluateAssessmentResults([]string{validInputFile})
-	// 	if err != nil {
-	// 		t.Fatal("unexpected error for valid assessment result")
-	// 	}
-
-	// })
-
-	t.Run("handles invalid path to assessment result file", func(t *testing.T) {
-		_, err := EvaluateAssessmentResults([]string{"./invalid-path.yaml"})
-		if err == nil {
-			t.Fatal("expected error for invalid path")
-		}
-	})
-
-	t.Run("handles invalid assessment result without any results", func(t *testing.T) {
-		_, err := EvaluateAssessmentResults([]string{invalidInputFile})
-		if err == nil {
-			t.Fatal("expected error for invalid assessment result without results")
-		}
-	})
-
+// Create re-usable findings and observations
+// use those in tests to generate test assessment results
+var findingMap = map[string]oscalTypes_1_1_2.Finding{
+	"ID-1_pass": {
+		Target: oscalTypes_1_1_2.FindingTarget{
+			TargetId: "ID-1",
+			Status: oscalTypes_1_1_2.ObjectiveStatus{
+				State: "satisfied",
+			},
+		},
+	},
+	"ID-1_fail": {
+		Target: oscalTypes_1_1_2.FindingTarget{
+			TargetId: "ID-1",
+			Status: oscalTypes_1_1_2.ObjectiveStatus{
+				State: "not-satisfied",
+			},
+		},
+	},
 }
+
+// func TestIdentifyResults(t *testing.T) {
+// 	t.Parallel()
+
+// 	// t.Run("handles invalid path to assessment result file", func(t *testing.T) {
+// 	// 	_, err := EvaluateAssessmentResults([]string{"./invalid-path.yaml"})
+// 	// 	if err == nil {
+// 	// 		t.Fatal("expected error for invalid path")
+// 	// 	}
+// 	// })
+
+// }
 
 // Given two results - evaluate for passing
 func TestEvaluateResultsPassing(t *testing.T) {
@@ -48,31 +47,17 @@ func TestEvaluateResultsPassing(t *testing.T) {
 
 	mockThresholdResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			{
-				Target: oscalTypes_1_1_2.FindingTarget{
-					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
-						State: "satisfied",
-					},
-				},
-			},
+			findingMap["ID-1_pass"],
 		},
 	}
 
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			{
-				Target: oscalTypes_1_1_2.FindingTarget{
-					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
-						State: "satisfied",
-					},
-				},
-			},
+			findingMap["ID-1_pass"],
 		},
 	}
 
-	status, _, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
+	status, _, err := oscal.EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,31 +73,17 @@ func TestEvaluateResultsFailed(t *testing.T) {
 	message.NoProgress = true
 	mockThresholdResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			{
-				Target: oscalTypes_1_1_2.FindingTarget{
-					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
-						State: "satisfied",
-					},
-				},
-			},
+			findingMap["ID-1_pass"],
 		},
 	}
 
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			{
-				Target: oscalTypes_1_1_2.FindingTarget{
-					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
-						State: "not-satisfied",
-					},
-				},
-			},
+			findingMap["ID-1_fail"],
 		},
 	}
 
-	status, findings, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
+	status, findings, err := oscal.EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +109,7 @@ func TestEvaluateResultsNoFindings(t *testing.T) {
 		Findings: &[]oscalTypes_1_1_2.Finding{},
 	}
 
-	status, _, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
+	status, _, err := oscal.EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +138,7 @@ func TestEvaluateResultsNoThreshold(t *testing.T) {
 		},
 	}
 
-	_, _, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
+	_, _, err := oscal.EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err == nil {
 		t.Fatal("error - expected error, got nil")
 	}
@@ -217,7 +188,7 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		},
 	}
 
-	status, findings, err := EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
+	status, findings, err := oscal.EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
 	if err != nil {
 		t.Fatal(err)
 	}
