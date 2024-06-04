@@ -2,7 +2,9 @@ package oscal_test
 
 import (
 	"testing"
+	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -10,8 +12,8 @@ import (
 
 // Create re-usable findings and observations
 // use those in tests to generate test assessment results
-var findingMap = map[string]oscalTypes_1_1_2.Finding{
-	"ID-1_pass": {
+var findingMapPass = map[string]oscalTypes_1_1_2.Finding{
+	"ID-1": {
 		Target: oscalTypes_1_1_2.FindingTarget{
 			TargetId: "ID-1",
 			Status: oscalTypes_1_1_2.ObjectiveStatus{
@@ -19,7 +21,10 @@ var findingMap = map[string]oscalTypes_1_1_2.Finding{
 			},
 		},
 	},
-	"ID-1_fail": {
+}
+
+var findingMapFail = map[string]oscalTypes_1_1_2.Finding{
+	"ID-1": {
 		Target: oscalTypes_1_1_2.FindingTarget{
 			TargetId: "ID-1",
 			Status: oscalTypes_1_1_2.ObjectiveStatus{
@@ -29,17 +34,70 @@ var findingMap = map[string]oscalTypes_1_1_2.Finding{
 	},
 }
 
-// func TestIdentifyResults(t *testing.T) {
-// 	t.Parallel()
+var observations = []oscalTypes_1_1_2.Observation{
+	{
+		Collected:   time.Now(),
+		Methods:     []string{"TEST"},
+		UUID:        uuid.NewUUID(),
+		Description: "test description",
+	},
+	{
+		Collected:   time.Now(),
+		Methods:     []string{"TEST"},
+		UUID:        uuid.NewUUID(),
+		Description: "test description",
+	},
+}
 
-// 	// t.Run("handles invalid path to assessment result file", func(t *testing.T) {
-// 	// 	_, err := EvaluateAssessmentResults([]string{"./invalid-path.yaml"})
-// 	// 	if err == nil {
-// 	// 		t.Fatal("expected error for invalid path")
-// 	// 	}
-// 	// })
+func TestIdentifyResults(t *testing.T) {
+	t.Parallel()
 
-// }
+	t.Run("Handle valid assessment containing a single result", func(t *testing.T) {
+
+		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		// key name does not matter here
+		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+			"valid.yaml": assessment,
+		}
+
+		_, err = oscal.IdentifyResults(assessmentMap)
+		if err == nil {
+			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+	})
+
+	t.Run("Handle multiple valid assessment containing a single result", func(t *testing.T) {
+
+		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		// key name does not matter here
+		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+			"valid.yaml": assessment,
+			"other.yaml": assessment2,
+		}
+
+		resultMap, err := oscal.IdentifyResults(assessmentMap)
+		if err != nil {
+			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+
+		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
+			t.Fatalf("Expected results to be identified")
+		}
+	})
+}
 
 // Given two results - evaluate for passing
 func TestEvaluateResultsPassing(t *testing.T) {
@@ -47,13 +105,13 @@ func TestEvaluateResultsPassing(t *testing.T) {
 
 	mockThresholdResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			findingMap["ID-1_pass"],
+			findingMapPass["ID-1"],
 		},
 	}
 
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			findingMap["ID-1_pass"],
+			findingMapPass["ID-1"],
 		},
 	}
 
@@ -73,13 +131,13 @@ func TestEvaluateResultsFailed(t *testing.T) {
 	message.NoProgress = true
 	mockThresholdResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			findingMap["ID-1_pass"],
+			findingMapPass["ID-1"],
 		},
 	}
 
 	mockEvaluationResult := oscalTypes_1_1_2.Result{
 		Findings: &[]oscalTypes_1_1_2.Finding{
-			findingMap["ID-1_fail"],
+			findingMapFail["ID-1"],
 		},
 	}
 

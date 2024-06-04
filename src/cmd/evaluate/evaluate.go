@@ -70,8 +70,7 @@ var evaluateCmd = &cobra.Command{
 
 					message.Infof("New threshold identified - threshold will be updated to result %s", resultMap["latest"].UUID)
 
-					// In the event we still have multiple thresholds - let's clean them up
-					oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", resultMap["threshold"].Props)
+					// Update latest threshold prop
 					oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["latest"].Props)
 				}
 
@@ -82,7 +81,6 @@ var evaluateCmd = &cobra.Command{
 					}
 				}
 
-				return
 			} else {
 				message.Warn("Evaluation Failed against the following findings:")
 				for _, finding := range findings["no-longer-satisfied"] {

@@ -160,6 +160,10 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 	} else {
 		// Constraint - Always evaluate the latest threshold against the latest result
 		resultMap["threshold"] = thresholds[len(thresholds)-1]
+		// Consider changing the namespace value to "false" here - only written if the command logic completes
+		for _, result := range thresholds {
+			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
+		}
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
 		return resultMap, nil
 	}
@@ -243,11 +247,11 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 // Helper function to create observation
 func CreateObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
 	rfc3339Time := time.Now()
-	sharedUuid := uuid.NewUUID()
+	uuid := uuid.NewUUID()
 	return oscalTypes_1_1_2.Observation{
 		Collected:   rfc3339Time,
 		Methods:     []string{method},
-		UUID:        sharedUuid,
+		UUID:        uuid,
 		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
 	}
 }
