@@ -13,7 +13,7 @@ func PromptForConfirmation(spinner *Spinner) bool {
 		defer spinner.Updatef(fmt.Sprintf("%s\n", spinnerText))
 	}
 
-	confirmation := pterm.DefaultInteractiveConfirm.WithDefaultText("Do you want to continue?")
+	confirmation := pterm.DefaultInteractiveConfirm.WithDefaultText("Do you want to run executable validations?")
 	result, _ := confirmation.Show()
 
 	return result
