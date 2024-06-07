@@ -106,20 +106,6 @@ func CreateFromManifest(ctx context.Context, client klient.Client, resourceBytes
 		}
 	}
 
-	// decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(resourceBytes), 4096)
-	// for {
-	// 	rawObj := &unstructured.Unstructured{}
-	// 	if err := decoder.Decode(rawObj); err != nil {
-	// 		if err == io.EOF {
-	// 			break
-	// 		}
-	// 		return nil, err
-	// 	}
-	// 	resource, err := createResource(ctx, client, rawObj)
-	// 	if err == nil {
-	// 		resources = append(resources, resource.Object)
-	// 	}
-	// }
 	return resources, nil
 }
 

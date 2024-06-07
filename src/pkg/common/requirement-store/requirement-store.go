@@ -41,8 +41,7 @@ func (r *RequirementStore) ResolveLulaValidations(validationStore *validationsto
 		if requirement.ImplementedRequirement.Links != nil {
 			for _, link := range *requirement.ImplementedRequirement.Links {
 				if common.IsLulaLink(link) {
-					id := common.TrimIdPrefix(link.Href)
-					_, err := validationStore.GetLulaValidation(id)
+					_, err := validationStore.GetLulaValidation(link.Href)
 					if err != nil {
 						message.Debugf("Error adding validation from link %s: %v", link.Href, err)
 						// Create new LulaValidation and add to validationStore
@@ -50,7 +49,7 @@ func (r *RequirementStore) ResolveLulaValidations(validationStore *validationsto
 						lulaValidation.Result.Observations = map[string]string{
 							fmt.Sprintf("Error getting Lula validation %s", link.Href): err.Error(),
 						}
-						validationStore.AddLulaValidation(lulaValidation, id)
+						validationStore.AddLulaValidation(lulaValidation, link.Href)
 					}
 				}
 			}

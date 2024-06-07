@@ -420,7 +420,6 @@ func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.C
 		if component.ControlImplementations != nil {
 			for _, controlImplementation := range *component.ControlImplementations {
 				for _, requirement := range controlImplementation.ImplementedRequirements {
-					// TODO: should this be controlID (i.e., possibly combining multiple instances of the same control?)
 					requirementMap[requirement.UUID] = Requirement{
 						ImplementedRequirement: &requirement,
 						Component:              &component,
