@@ -52,6 +52,7 @@ var observations = []oscalTypes_1_1_2.Observation{
 func TestIdentifyResults(t *testing.T) {
 	t.Parallel()
 
+	// Expecting an error when evaluating a single result
 	t.Run("Handle valid assessment containing a single result", func(t *testing.T) {
 
 		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
@@ -70,7 +71,8 @@ func TestIdentifyResults(t *testing.T) {
 		}
 	})
 
-	t.Run("Handle multiple valid assessment containing a single result", func(t *testing.T) {
+	// Identify threshold for multiple assessments and evaluate passing
+	t.Run("Handle multiple valid assessment containing a single result - pass", func(t *testing.T) {
 
 		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
 		if err != nil {
@@ -84,8 +86,8 @@ func TestIdentifyResults(t *testing.T) {
 
 		// key name does not matter here
 		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
-			"valid.yaml": assessment,
-			"other.yaml": assessment2,
+			"valid.yaml":   assessment,
+			"invalid.yaml": assessment2,
 		}
 
 		resultMap, err := oscal.IdentifyResults(assessmentMap)
@@ -96,7 +98,67 @@ func TestIdentifyResults(t *testing.T) {
 		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
 			t.Fatalf("Expected results to be identified")
 		}
+
+		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		if err != nil {
+			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
+		}
+
+		if !status {
+			t.Fatalf("Expected results to be evaluated as passing")
+		}
 	})
+
+	// Identify threshold for multiple assessments and evaluate failing
+	t.Run("Handle multiple valid assessment containing a single result - fail", func(t *testing.T) {
+
+		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		// key name does not matter here
+		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+			"valid.yaml":   assessment,
+			"invalid.yaml": assessment2,
+		}
+
+		resultMap, err := oscal.IdentifyResults(assessmentMap)
+		if err != nil {
+			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+
+		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
+			t.Fatalf("Expected results to be identified")
+		}
+
+		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		if err != nil {
+			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
+		}
+
+		if status {
+			t.Fatalf("Expected results to be evaluated as failing")
+		}
+	})
+
+	//
+	// t.Run("Test merging two assessments - evaluate for passing", func(t *testing.T) {
+
+	// })
+
+	// t.Run("test title", func(t *testing.T) {
+
+	// })
+
+	// t.Run("test title", func(t *testing.T) {
+
+	// })
 }
 
 // Given two results - evaluate for passing

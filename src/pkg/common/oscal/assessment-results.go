@@ -139,6 +139,7 @@ func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTy
 }
 
 // IdentifyResults produces a map containing the threshold result and a result used for comparison
+// TODO: need to look further at the logic behind this - what do we do when the threshold is the latest result?
 func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
 	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
 
@@ -159,12 +160,21 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 		return resultMap, nil
 	} else {
 		// Constraint - Always evaluate the latest threshold against the latest result
+		// Unless they are the same pointer
 		resultMap["threshold"] = thresholds[len(thresholds)-1]
+
 		// Consider changing the namespace value to "false" here - only written if the command logic completes
 		for _, result := range thresholds {
 			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
 		}
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
+
+		if resultMap["threshold"] == resultMap["latest"] {
+			// Maybe we should consider returning an error here
+			// TODO: why does the test pass in this scenario?
+			resultMap["threshold"] = sortedResults[len(sortedResults)-2]
+		}
+
 		return resultMap, nil
 	}
 }
