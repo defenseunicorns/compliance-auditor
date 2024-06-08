@@ -143,36 +143,50 @@ func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTy
 func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
 	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
 
-	thresholds, sortedResults, err := findAndSortResults(assessmentMap)
-	if err != nil {
-		return nil, err
-	}
+	thresholds, sortedResults := findAndSortResults(assessmentMap)
 
 	if len(sortedResults) <= 1 {
 		return nil, fmt.Errorf("less than 2 results found - no comparison possible")
 	}
 
 	if len(thresholds) == 0 {
-		// No thresholds identified but we have > 1 results - compare the latest and the preceding
+		// No thresholds identified but we have > 1 results - compare the latest against the preceding
 		resultMap["threshold"] = sortedResults[len(sortedResults)-2]
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
 
 		return resultMap, nil
-	} else {
-		// Constraint - Always evaluate the latest threshold against the latest result
-		// Unless they are the same pointer
+	} else if len(thresholds) > 1 {
+		// TODO: what to do when we have >1 threshold - likely the case when you create
+		// two assessment results in two separate files and attempt to evaluate
+		// We can fix this by updating all of the threshold props on subsequent runs
 		resultMap["threshold"] = thresholds[len(thresholds)-1]
+		resultMap["latest"] = sortedResults[len(sortedResults)-1]
+
+		if resultMap["threshold"] == resultMap["latest"] {
+			// if threshold is latest here && we have > 1 threshold - make the threshold the older threshold
+			resultMap["threshold"] = thresholds[len(thresholds)-2]
+		}
 
 		// Consider changing the namespace value to "false" here - only written if the command logic completes
 		for _, result := range thresholds {
 			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
 		}
+
+		return resultMap, nil
+
+	} else {
+		// Constraint - Always evaluate the latest threshold against the latest result
+		// Unless they are the same pointer
+		resultMap["threshold"] = thresholds[len(thresholds)-1]
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
 
 		if resultMap["threshold"] == resultMap["latest"] {
-			// Maybe we should consider returning an error here
-			// TODO: why does the test pass in this scenario?
-			resultMap["threshold"] = sortedResults[len(sortedResults)-2]
+			return nil, fmt.Errorf("latest threshold is the latest result - no comparison possible")
+		}
+
+		// Consider changing the namespace value to "false" here - only written if the command logic completes
+		for _, result := range thresholds {
+			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
 		}
 
 		return resultMap, nil
@@ -228,7 +242,7 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 }
 
 // findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
-func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) ([]*oscalTypes_1_1_2.Result, []*oscalTypes_1_1_2.Result, error) {
+func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) ([]*oscalTypes_1_1_2.Result, []*oscalTypes_1_1_2.Result) {
 
 	thresholds := make([]*oscalTypes_1_1_2.Result, 0)
 	sortedResults := make([]*oscalTypes_1_1_2.Result, 0)
@@ -251,7 +265,7 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 	slices.SortFunc(sortedResults, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
 	slices.SortFunc(thresholds, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
 
-	return thresholds, sortedResults, nil
+	return thresholds, sortedResults
 }
 
 // Helper function to create observation

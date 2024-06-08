@@ -79,7 +79,7 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		assessment2, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -92,7 +92,7 @@ func TestIdentifyResults(t *testing.T) {
 
 		resultMap, err := oscal.IdentifyResults(assessmentMap)
 		if err != nil {
-			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+			t.Fatalf("Expected no error for inability to identify multiple results : %v", err)
 		}
 
 		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
@@ -107,17 +107,20 @@ func TestIdentifyResults(t *testing.T) {
 		if !status {
 			t.Fatalf("Expected results to be evaluated as passing")
 		}
+
+		// TODO: check for threshold updates here
+
 	})
 
 	// Identify threshold for multiple assessments and evaluate failing
 	t.Run("Handle multiple valid assessment containing a single result - fail", func(t *testing.T) {
 
-		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
