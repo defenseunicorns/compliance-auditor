@@ -1,0 +1,365 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Validation",
+    "type": "object",
+    "properties": {
+        "lula-version": {
+            "$ref": "#/definitions/semver"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "provider": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "opa-spec": {
+                    "$ref": "#/definitions/opaSpec"
+                },
+                "kyverno-spec": {
+                    "$ref": "#/definitions/kyvernoSpec"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "domain": {
+            "$ref": "#/definitions/domain"
+        }
+    },
+    "required": [
+        "lula-version",
+        "metadata",
+        "provider",
+        "domain"
+    ],
+    "definitions": {
+        "semver": {
+            "type": "string",
+            "pattern": "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+        },
+        "opaSpec": {
+            "type": "object",
+            "properties": {
+                "rego": {
+                    "type": "string"
+                },
+                "output": {
+                    "type": "object",
+                    "properties": {
+                        "validation": {
+                            "type": "string"
+                        },
+                        "observations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "validation"
+                    ]
+                }
+            },
+            "required": [
+                "rego"
+            ]
+        },
+        "kyvernoSpec": {
+            "type": "object",
+            "properties": {
+                "policy": {
+                    "type": "object",
+                    "properties": {
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "namespace": {
+                                    "type": "string"
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                },
+                                "annotations": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "spec": {
+                            "$ref": "#/definitions/validatingPolicySpec"
+                        }
+                    },
+                    "required": [
+                        "metadata",
+                        "spec"
+                    ]
+                },
+                "output": {
+                    "type": "object",
+                    "properties": {
+                        "validation": {
+                            "type": "string"
+                        },
+                        "observations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "validation"
+                    ]
+                }
+            },
+            "required": [
+                "policy"
+            ]
+        },
+        "validatingPolicySpec": {
+            "type": "object",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/validatingRule"
+                    }
+                }
+            },
+            "required": [
+                "rules"
+            ]
+        },
+        "validatingRule": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 63
+                },
+                "context": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/contextEntry"
+                    }
+                },
+                "match": {
+                    "$ref": "#/definitions/match"
+                },
+                "exclude": {
+                    "$ref": "#/definitions/match"
+                },
+                "identifier": {
+                    "type": "string"
+                },
+                "assert": {
+                    "$ref": "#/definitions/assert"
+                }
+            },
+            "required": [
+                "name",
+                "assert"
+            ]
+        },
+        "contextEntry": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "variable": {
+                    "type": "object"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "match": {
+            "type": "object",
+            "properties": {
+                "any": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "all": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "assert": {
+            "type": "object",
+            "properties": {
+                "any": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/assertion"
+                    }
+                },
+                "all": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/assertion"
+                    }
+                }
+            }
+        },
+        "assertion": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "check": {
+                    "type": "object"
+                }
+            },
+            "required": [
+                "check"
+            ]
+        },
+        "domain": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "kubernetes-spec": {
+                    "type": "object",
+                    "properties": {
+                        "resources": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "resource-rule": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "group": {
+                                                "type": "string"
+                                            },
+                                            "version": {
+                                                "type": "string"
+                                            },
+                                            "resource": {
+                                                "type": "string"
+                                            },
+                                            "namespaces": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "field": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "jsonpath": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "json",
+                                                            "yaml"
+                                                        ]
+                                                    },
+                                                    "base64": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "jsonpath",
+                                                    "type"
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "name",
+                                            "group",
+                                            "version",
+                                            "resource"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "description"
+                                ]
+                            }
+                        },
+                        "wait": {
+                            "type": "object",
+                            "properties": {
+                                "condition": {
+                                    "type": "string"
+                                },
+                                "jsonpath": {
+                                    "type": "string"
+                                },
+                                "kind": {
+                                    "type": "string"
+                                },
+                                "namespace": {
+                                    "type": "string"
+                                },
+                                "timeout": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "condition",
+                                "jsonpath",
+                                "kind",
+                                "namespace",
+                                "timeout"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "resources"
+                    ]
+                }
+            }
+        }
+    }
+}
