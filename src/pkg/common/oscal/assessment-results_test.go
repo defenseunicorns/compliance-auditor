@@ -72,7 +72,7 @@ func TestIdentifyResults(t *testing.T) {
 	})
 
 	// Identify threshold for multiple assessments and evaluate passing
-	t.Run("Handle multiple valid assessment containing a single result - pass", func(t *testing.T) {
+	t.Run("Handle multiple threshold assessment containing a single result - pass", func(t *testing.T) {
 
 		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
 		if err != nil {
@@ -113,7 +113,7 @@ func TestIdentifyResults(t *testing.T) {
 	})
 
 	// Identify threshold for multiple assessments and evaluate failing
-	t.Run("Handle multiple valid assessment containing a single result - fail", func(t *testing.T) {
+	t.Run("Handle multiple threshold assessment containing a single result - fail", func(t *testing.T) {
 
 		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
 		if err != nil {
@@ -150,14 +150,92 @@ func TestIdentifyResults(t *testing.T) {
 		}
 	})
 
-	//
-	// t.Run("Test merging two assessments - evaluate for passing", func(t *testing.T) {
+	t.Run("Test merging two assessments - evaluate for passing", func(t *testing.T) {
 
-	// })
+		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
 
-	// t.Run("test title", func(t *testing.T) {
+		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
 
-	// })
+		// Update assessment 2 props so that we only have 1 threshold
+		oscal.UpdateProps("threshold", "docs.lula.dev/ns", "false", assessment2.Results[0].Props)
+
+		assessment, err = oscal.MergeAssessmentResults(assessment, assessment2)
+		if err != nil {
+			t.Fatalf("error merging assessment results: %v", err)
+		}
+
+		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+			"valid.yaml": assessment,
+		}
+
+		resultMap, err := oscal.IdentifyResults(assessmentMap)
+		if err != nil {
+			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+
+		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
+			t.Fatalf("Expected results to be identified")
+		}
+
+		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		if err != nil {
+			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
+		}
+
+		if status {
+			t.Fatalf("Expected results to be evaluated as failing")
+		}
+	})
+
+	t.Run("Test merging two assessments - evaluate for passing", func(t *testing.T) {
+
+		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating assessment results: %v", err)
+		}
+
+		// Update assessment props so that we only have 1 threshold
+		oscal.UpdateProps("threshold", "docs.lula.dev/ns", "false", assessment.Results[0].Props)
+
+		// TODO: review assumptions made about order of assessments during merge
+		assessment, err = oscal.MergeAssessmentResults(assessment2, assessment)
+		if err != nil {
+			t.Fatalf("error merging assessment results: %v", err)
+		}
+
+		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+			"valid.yaml": assessment,
+		}
+
+		resultMap, err := oscal.IdentifyResults(assessmentMap)
+		if err != nil {
+			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+
+		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
+			t.Fatalf("Expected results to be identified")
+		}
+
+		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		if err != nil {
+			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
+		}
+
+		if !status {
+			t.Fatalf("Expected results to be evaluated as failing")
+		}
+	})
 
 	// t.Run("test title", func(t *testing.T) {
 

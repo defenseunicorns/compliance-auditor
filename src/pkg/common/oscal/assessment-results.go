@@ -108,18 +108,13 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 
 	// Validate only ever creates one result
 	// Assumed that there is always an original threshold
-	result := latest.Results[0]
-	for index, prop := range *result.Props {
-		if prop.Name == "threshold" {
-			prop.Value = "false"
-			// Better way to update the prop?
-			(*result.Props)[index] = prop
-		}
-	}
+	// TODO: modify the below behavior to remove awareness of how many results exist during merge
+	// TODO: append all results to a slice and the sort such that the newest is prepended to the results
+	UpdateProps("threshold", "docs.lula.dev/ns", "false", latest.Results[0].Props)
 
 	results := make([]oscalTypes_1_1_2.Result, 0)
-	// append newest to oldest results
-	results = append(results, result)
+	// append newest to oldest results? or rather should we sort?
+	results = append(results, latest.Results[0])
 	results = append(results, original.Results...)
 	original.Results = results
 
@@ -139,7 +134,6 @@ func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTy
 }
 
 // IdentifyResults produces a map containing the threshold result and a result used for comparison
-// TODO: need to look further at the logic behind this - what do we do when the threshold is the latest result?
 func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
 	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
 
@@ -150,15 +144,13 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 	}
 
 	if len(thresholds) == 0 {
-		// No thresholds identified but we have > 1 results - compare the latest against the preceding
+		// No thresholds identified but we have > 1 results - compare the preceding (threshold) against the latest
 		resultMap["threshold"] = sortedResults[len(sortedResults)-2]
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
 
 		return resultMap, nil
 	} else if len(thresholds) > 1 {
-		// TODO: what to do when we have >1 threshold - likely the case when you create
-		// two assessment results in two separate files and attempt to evaluate
-		// We can fix this by updating all of the threshold props on subsequent runs
+		// More than one threshold - likely the case with multiple assessment-results artifacts
 		resultMap["threshold"] = thresholds[len(thresholds)-1]
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
 
@@ -175,8 +167,7 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 		return resultMap, nil
 
 	} else {
-		// Constraint - Always evaluate the latest threshold against the latest result
-		// Unless they are the same pointer
+		// Otherwise we have a single threshold and we compare that against the latest result
 		resultMap["threshold"] = thresholds[len(thresholds)-1]
 		resultMap["latest"] = sortedResults[len(sortedResults)-1]
 
