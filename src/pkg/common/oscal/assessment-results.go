@@ -100,24 +100,14 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest *oscalTypes_1_1_2.AssessmentResults) (*oscalTypes_1_1_2.AssessmentResults, error) {
 
 	// If UUID's are matching - this must be a prop update for threshold
-	// We should be able to return the latest results
 	// This is used during evaluate to update the threshold prop automatically
 	if original.UUID == latest.UUID {
 		return latest, nil
 	}
 
-	// Validate only ever creates one result
-	// Assumed that there is always an original threshold
-	// TODO: modify the below behavior to remove awareness of how many results exist during merge
-	// TODO: append all results to a slice and the sort such that the newest is prepended to the results
-	UpdateProps("threshold", "docs.lula.dev/ns", "false", latest.Results[0].Props)
+	original.Results = append(original.Results, latest.Results...)
 
-	results := make([]oscalTypes_1_1_2.Result, 0)
-	// append newest to oldest results? or rather should we sort?
-	results = append(results, latest.Results[0])
-	results = append(results, original.Results...)
-	original.Results = results
-
+	slices.SortFunc(original.Results, func(a, b oscalTypes_1_1_2.Result) int { return b.Start.Compare(a.Start) })
 	// Update pertinent information
 	original.Metadata.LastModified = time.Now()
 	original.UUID = uuid.NewUUID()

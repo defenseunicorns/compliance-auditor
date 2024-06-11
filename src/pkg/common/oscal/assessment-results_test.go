@@ -108,8 +108,6 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("Expected results to be evaluated as passing")
 		}
 
-		// TODO: check for threshold updates here
-
 	})
 
 	// Identify threshold for multiple assessments and evaluate failing
@@ -150,7 +148,7 @@ func TestIdentifyResults(t *testing.T) {
 		}
 	})
 
-	t.Run("Test merging two assessments - evaluate for passing", func(t *testing.T) {
+	t.Run("Test merging two assessments - passing", func(t *testing.T) {
 
 		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
 		if err != nil {
@@ -193,7 +191,7 @@ func TestIdentifyResults(t *testing.T) {
 		}
 	})
 
-	t.Run("Test merging two assessments - evaluate for passing", func(t *testing.T) {
+	t.Run("Test merging two assessments - failing", func(t *testing.T) {
 
 		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
 		if err != nil {
@@ -206,14 +204,21 @@ func TestIdentifyResults(t *testing.T) {
 		}
 
 		// Update assessment props so that we only have 1 threshold
-		oscal.UpdateProps("threshold", "docs.lula.dev/ns", "false", assessment.Results[0].Props)
+		oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", assessment.Results[0].Props)
 
 		// TODO: review assumptions made about order of assessments during merge
-		assessment, err = oscal.MergeAssessmentResults(assessment2, assessment)
+		assessment, err = oscal.MergeAssessmentResults(assessment, assessment2)
 		if err != nil {
 			t.Fatalf("error merging assessment results: %v", err)
 		}
 
+		// t.Log(assessment.Results)
+
+		for _, item := range assessment.Results {
+			t.Logf("Start: %s", item.Start)
+			t.Logf("Props: %s", item.Props)
+			t.Log()
+		}
 		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
 			"valid.yaml": assessment,
 		}
@@ -237,9 +242,6 @@ func TestIdentifyResults(t *testing.T) {
 		}
 	})
 
-	// t.Run("test title", func(t *testing.T) {
-
-	// })
 }
 
 // Given two results - evaluate for passing
