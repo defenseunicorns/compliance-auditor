@@ -165,11 +165,6 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 			return nil, fmt.Errorf("latest threshold is the latest result - no comparison possible")
 		}
 
-		// Consider changing the namespace value to "false" here - only written if the command logic completes
-		for _, result := range thresholds {
-			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
-		}
-
 		return resultMap, nil
 	}
 }

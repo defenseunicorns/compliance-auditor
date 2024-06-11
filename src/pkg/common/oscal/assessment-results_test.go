@@ -99,6 +99,10 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("Expected results to be identified")
 		}
 
+		if resultMap["threshold"].Start.After(resultMap["latest"].Start) {
+			t.Fatalf("Expected threshold result to be before latest result")
+		}
+
 		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
 			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
@@ -136,6 +140,10 @@ func TestIdentifyResults(t *testing.T) {
 
 		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
 			t.Fatalf("Expected results to be identified")
+		}
+
+		if resultMap["threshold"].Start.After(resultMap["latest"].Start) {
+			t.Fatalf("Expected threshold result to be before latest result")
 		}
 
 		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
@@ -181,6 +189,10 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("Expected results to be identified")
 		}
 
+		if resultMap["threshold"].Start.After(resultMap["latest"].Start) {
+			t.Fatalf("Expected threshold result to be before latest result")
+		}
+
 		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
 			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
@@ -212,13 +224,6 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("error merging assessment results: %v", err)
 		}
 
-		// t.Log(assessment.Results)
-
-		for _, item := range assessment.Results {
-			t.Logf("Start: %s", item.Start)
-			t.Logf("Props: %s", item.Props)
-			t.Log()
-		}
 		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
 			"valid.yaml": assessment,
 		}
@@ -230,6 +235,10 @@ func TestIdentifyResults(t *testing.T) {
 
 		if resultMap["threshold"] == nil || resultMap["latest"] == nil {
 			t.Fatalf("Expected results to be identified")
+		}
+
+		if resultMap["threshold"].Start.After(resultMap["latest"].Start) {
+			t.Fatalf("Expected threshold result to be before latest result")
 		}
 
 		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
