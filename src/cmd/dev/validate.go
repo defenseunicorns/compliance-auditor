@@ -20,6 +20,8 @@ To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
 To run validations using a custom resources file:
 	lula dev validate -f <path to manifest> -r <path to resources file>
+To run validations and automatically confirm execution
+	lula dev get-resources -f /path/to/manifest.json --confirm-execution
 To run validations using stdin:
 	cat <path to manifest> | lula dev validate
 To hang indefinitely for stdin:

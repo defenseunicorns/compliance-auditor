@@ -26,15 +26,18 @@ type flags struct {
 }
 
 var opts = &flags{}
-var ConfirmExecution bool        // --confirm-execution
-var RunInteractively bool = true // default to run command interactively
+var ConfirmExecution bool    // --confirm-execution
+var RunNonInteractively bool // --non-interactive
 
 var validateHelp = `
 To validate on a cluster:
 	lula validate -f ./oscal-component.yaml
-
 To indicate a specific Assessment Results file to create or append to:
 	lula validate -f ./oscal-component.yaml -o assessment-results.yaml
+To run validations and automatically confirm execution
+	lula dev validate -f ./oscal-component.yaml --confirm-execution
+To run validations non-interactively (no execution)
+	lula dev validate -f ./oscal-component.yaml --non-interactive
 `
 
 var validateCmd = &cobra.Command{
@@ -80,6 +83,7 @@ func ValidateCommand() *cobra.Command {
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
+	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
 	return validateCmd
 }
 
@@ -175,7 +179,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 	if reqtStats.ExecutableValidations {
 		message.Warnf(reqtStats.ExecutableValidationsMsg)
 		if !ConfirmExecution {
-			if RunInteractively {
+			if !RunNonInteractively {
 				ConfirmExecution = message.PromptForConfirmation(nil)
 			}
 			if !ConfirmExecution {

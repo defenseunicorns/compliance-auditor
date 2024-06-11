@@ -37,7 +37,7 @@ func TestCreateResourceDataValidation(t *testing.T) {
 
 			// Check that validation passes
 			validate.ConfirmExecution = true
-			validate.RunInteractively = false
+			validate.RunNonInteractively = true
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
 				t.Fatal(err)
@@ -101,7 +101,7 @@ func TestDeniedCreateResources(t *testing.T) {
 
 			// Check that validation fails
 			validate.ConfirmExecution = false
-			validate.RunInteractively = false
+			validate.RunNonInteractively = true
 			findingMap, _, err := validate.ValidateOnPath(oscalPath)
 			if err != nil {
 				t.Fatal(err)

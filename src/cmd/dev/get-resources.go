@@ -18,7 +18,7 @@ To get resources from lula validation manifest:
 	lula dev get-resources -f <path to manifest>
 To get resources from lula validation manifest and write to file:
 	lula dev get-resources -f /path/to/manifest.json -o /path/to/output.json
-To get resources from lula validation that performs execution non-interactively
+To get resources from lula validation and automatically confirm execution
 	lula dev get-resources -f /path/to/manifest.json --confirm-execution
 To run validations using stdin:
 	cat <path to manifest> | lula dev validate
