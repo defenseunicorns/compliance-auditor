@@ -2,6 +2,7 @@ package schemas_test
 
 import (
 	"io/fs"
+	"os"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
@@ -57,6 +58,23 @@ func TestListSchemas(t *testing.T) {
 		}
 		if len(schemasList) == 0 {
 			t.Errorf("Expected non-empty schema list, got empty")
+		}
+	})
+}
+
+func TestValidate(t *testing.T) {
+	t.Parallel() // Enable parallel execution of tests
+	validationPath := "../../../test/unit/common/validation/validation.opa.yaml"
+	validationData, err := os.ReadFile(validationPath)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+	t.Run("Should validate a schema", func(t *testing.T) {
+		t.Parallel() // Enable parallel execution of subtests
+		schema := "validation"
+		err := schemas.Validate(schema, validationData)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
 		}
 	})
 }
