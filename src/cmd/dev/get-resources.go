@@ -77,6 +77,7 @@ func DevGetResources(ctx context.Context, validationBytes []byte, spinner *messa
 		types.ExecutionAllowed(getResourcesOpts.ConfirmExecution),
 		types.Interactive(RunInteractively),
 		types.WithSpinner(spinner),
+		types.GetResourcesOnly(true),
 	)
 	if err != nil {
 		return nil, err
