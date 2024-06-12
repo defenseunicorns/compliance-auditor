@@ -106,6 +106,8 @@ func CreateFromManifest(ctx context.Context, client klient.Client, resourceBytes
 		}
 	}
 
+	cleanResources(&resources)
+
 	return resources, nil
 }
 
