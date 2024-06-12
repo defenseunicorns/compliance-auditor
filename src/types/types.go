@@ -129,7 +129,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		}
 
 		// Check if confirmation needed before execution
-		if (*val.Domain).IsExecutable() {
+		if (*val.Domain).IsExecutable() && config.staticResources == nil {
 			if !config.executionAllowed {
 				if config.isInteractive {
 					// Run confirmation user prompt
