@@ -245,13 +245,14 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 }
 
 // Helper function to create observation
-func CreateObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
+func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
 	rfc3339Time := time.Now()
 	uuid := uuid.NewUUID()
 	return oscalTypes_1_1_2.Observation{
-		Collected:   rfc3339Time,
-		Methods:     []string{method},
-		UUID:        uuid,
-		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
+		Collected:        rfc3339Time,
+		Methods:          []string{method},
+		UUID:             uuid,
+		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
+		RelevantEvidence: relevantEvidence,
 	}
 }

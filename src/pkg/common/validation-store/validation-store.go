@@ -2,7 +2,6 @@ package validationstore
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -136,20 +135,16 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 			}
 		}
 
-		observation := &oscalTypes_1_1_2.Observation{
-			Collected:   time.Now(),
-			Methods:     []string{"TEST"},
-			UUID:        uuid.NewUUID(),
-			Description: fmt.Sprintf("[TEST]: %s - %s\n", k, val.Name),
-			RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
-				{
-					Description: fmt.Sprintf("Result: %s\n", val.Result.State),
-					Remarks:     remarks,
-				},
+		// Create an observation
+		relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
+			{
+				Description: fmt.Sprintf("Result: %s\n", val.Result.State),
+				Remarks:     remarks,
 			},
 		}
-		v.observationMap[k] = observation
-		observations = append(observations, *observation)
+		observation := oscal.CreateObservation("TEST", relevantEvidence, "[TEST]: %s - %s\n", k, val.Name)
+		v.observationMap[k] = &observation
+		observations = append(observations, observation)
 		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
 	}
 	return observations
