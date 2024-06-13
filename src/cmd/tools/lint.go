@@ -8,15 +8,15 @@ import (
 )
 
 type flags struct {
-	InputFile  string // -f --input-file
-	ResultFile string // -r --result-file
+	InputFiles []string // -f --input-files
+	ResultFile string   // -r --result-file
 }
 
 var opts = &flags{}
 
 var lintHelp = `
-To lint an existing OSCAL file:
-	lula tools lint -f <path to oscal>
+To lint existing OSCAL files:
+	lula tools lint -f <path to oscal file1>,<path to oscal file2>,...
 `
 
 func init() {
@@ -26,32 +26,34 @@ func init() {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			config.SkipLogFile = true
 		},
-		Long:    "Validate an OSCAL document is properly configured against the OSCAL schema",
+		Long:    "Validate OSCAL documents are properly configured against the OSCAL schema",
 		Example: lintHelp,
 		Run: func(cmd *cobra.Command, args []string) {
-			spinner := message.NewProgressSpinner("Linting %s", opts.InputFile)
-			defer spinner.Stop()
+			for _, inputFile := range opts.InputFiles {
+				spinner := message.NewProgressSpinner("Linting %s", inputFile)
+				defer spinner.Stop()
 
-			validationResp, err := validation.ValidationCommand(opts.InputFile)
+				validationResp, err := validation.ValidationCommand(inputFile)
 
-			for _, warning := range validationResp.Warnings {
-				message.Warn(warning)
+				for _, warning := range validationResp.Warnings {
+					message.Warn(warning)
+				}
+
+				if opts.ResultFile != "" {
+					validation.WriteValidationResult(validationResp.Result, opts.ResultFile)
+				}
+
+				if err != nil {
+					message.Fatalf(err, "Failed to lint %s", inputFile)
+				}
+				message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
+				spinner.Success()
 			}
-
-			if opts.ResultFile != "" {
-				validation.WriteValidationResult(validationResp.Result, opts.ResultFile)
-			}
-
-			if err != nil {
-				message.Fatalf(err, "Failed to lint %s", opts.InputFile)
-			}
-			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", opts.InputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
-			spinner.Success()
 		},
 	}
 
 	toolsCmd.AddCommand(lintCmd)
 
-	lintCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to a oscal json schema file")
+	lintCmd.Flags().StringSliceVarP(&opts.InputFiles, "input-files", "f", []string{}, "the paths to oscal files")
 	lintCmd.Flags().StringVarP(&opts.ResultFile, "result-file", "r", "", "the path to write the validation result")
 }
