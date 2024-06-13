@@ -100,7 +100,8 @@ func Validate(schema string, data model.InterfaceOrBytes) error {
 
 		// Extract the specific errors from the schema error
 		// Return the errors as a string
-		basicErrors := validation.ExtractErrors(jsonMap, validationErr.BasicOutput())
+		basicOutput := validationErr.BasicOutput()
+		basicErrors := validation.ExtractErrors(jsonMap, basicOutput)
 		formattedErrors, _ := json.MarshalIndent(basicErrors, "", "  ")
 		return errors.New(string(formattedErrors))
 	}

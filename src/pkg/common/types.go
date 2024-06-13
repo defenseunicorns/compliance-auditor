@@ -8,6 +8,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
@@ -26,6 +27,10 @@ type Validation struct {
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
 func (v *Validation) UnmarshalYaml(data []byte) error {
+	err := schemas.Validate("validation", v)
+	if err != nil {
+		return err
+	}
 	return yaml.Unmarshal(data, v)
 }
 
