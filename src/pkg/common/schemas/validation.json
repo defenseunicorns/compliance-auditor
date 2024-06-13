@@ -19,7 +19,8 @@
                 }
             },
             "required": [
-                "name"
+                "name",
+                "uuid"
             ]
         },
         "provider": {
@@ -44,7 +45,6 @@
         }
     },
     "required": [
-        "lula-version",
         "metadata",
         "provider",
         "domain"
@@ -315,17 +315,11 @@
                                             }
                                         },
                                         "required": [
-                                            "name",
-                                            "group",
                                             "version",
                                             "resource"
                                         ]
                                     }
-                                },
-                                "required": [
-                                    "name",
-                                    "description"
-                                ]
+                                }
                             }
                         },
                         "wait": {

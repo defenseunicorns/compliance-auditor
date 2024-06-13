@@ -1,6 +1,7 @@
 lula-version: ">= v0.2.0"
 metadata:
   name: Validate pods with label foo=bar
+  uuid: 123e4567-e89b-12d3-a456-426655440000
 domain:
   type: kubernetes
   kubernetes-spec:
@@ -8,6 +9,7 @@ domain:
       - name: podsvt
         description: Validate pods with label foo=bar
         resource-rule:
+          name: ""
           group: ""
           version: v1
           resource: pods

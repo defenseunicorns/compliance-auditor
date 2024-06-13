@@ -77,4 +77,13 @@ func TestValidate(t *testing.T) {
 			t.Errorf("Expected no error, got %v", err)
 		}
 	})
+
+	t.Run("Should return an error if the schema is missing required properties", func(t *testing.T) {
+		t.Parallel() // Enable parallel execution of subtests
+		schema := "validation"
+		err := schemas.Validate(schema, []byte("{\n\t\"name\": \"test\"\n}"))
+		if err == nil {
+			t.Errorf("Expected error, got nil")
+		}
+	})
 }
