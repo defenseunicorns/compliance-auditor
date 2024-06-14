@@ -1,46 +1,49 @@
 88AB3470-B96B-4D7C-BC36-02BF9563C46C: >-
-  domain: 
+  metadata:
+    name: Validate pods with label foo=bar
+    uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
+  domain:
     type: kubernetes
     kubernetes-spec:
       resources:
-      - name: jsoncm
-        resource-rule:
-          name: configmap-json
-          version: v1
-          resource: configmaps
-          namespaces: [validation-test]
-          field:
-            jsonpath: .data.person.json
-            type: yaml
-      - name: yamlcm
-        resource-rule:
-          name: configmap-yaml
-          version: v1
-          resource: configmaps
-          namespaces: [validation-test]
-          field:
-            jsonpath: .data.app-config.yaml
-            type: yaml
-      - name: secret
-        resource-rule:
-          name: example-secret
-          version: v1
-          resource: secrets
-          namespaces: [validation-test]
-          field:
-            jsonpath: .data.auth
-            type: yaml
-            base64: true
-      - name: pod
-        resource-rule:
-          name: example-pod
-          version: v1
-          resource: pods
-          namespaces: [validation-test]
-          field:
-            jsonpath: .metadata.annotations.annotation.io/simple
-            type: json
-  provider: 
+        - name: jsoncm
+          resource-rule:
+            name: configmap-json
+            version: v1
+            resource: configmaps
+            namespaces: [validation-test]
+            field:
+              jsonpath: .data.person.json
+              type: yaml
+        - name: yamlcm
+          resource-rule:
+            name: configmap-yaml
+            version: v1
+            resource: configmaps
+            namespaces: [validation-test]
+            field:
+              jsonpath: .data.app-config.yaml
+              type: yaml
+        - name: secret
+          resource-rule:
+            name: example-secret
+            version: v1
+            resource: secrets
+            namespaces: [validation-test]
+            field:
+              jsonpath: .data.auth
+              type: yaml
+              base64: true
+        - name: pod
+          resource-rule:
+            name: example-pod
+            version: v1
+            resource: pods
+            namespaces: [validation-test]
+            field:
+              jsonpath: .metadata.annotations.annotation.io/simple
+              type: json
+  provider:
     type: opa
     opa-spec:
       rego: |
