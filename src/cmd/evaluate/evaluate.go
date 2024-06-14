@@ -15,7 +15,7 @@ var evaluateHelp = `
 To evaluate the latest results in two assessment results files:
 	lula evaluate -f assessment-results-threshold.yaml -f assessment-results-new.yaml
 
-To evaluate two results (latest and preceding) in a single assessment results file:
+To evaluate two results (threshold and latest) in a single OSCAL file:
 	lula evaluate -f assessment-results.yaml
 `
 
@@ -33,11 +33,13 @@ var evaluateCmd = &cobra.Command{
 	Aliases: []string{"eval"},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// Access the files and evaluate them
-		err := EvaluateAssessmentResults(opts.files)
+		// Build map of filepath -> assessment results
+		assessmentMap, err := readManyAssessmentResults(opts.files)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
+
+		EvaluateAssessments(assessmentMap)
 	},
 }
 
@@ -48,132 +50,105 @@ func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessmentResults(fileArray []string) error {
-	var status bool
-	var findings map[string][]oscalTypes_1_1_2.Finding
-
-	// Read in files - establish the results to
-	if len(fileArray) == 0 {
-		// TODO: Determine if we will handle a default location/name for assessment files
-		return fmt.Errorf("No files provided for evaluation")
-	}
-
-	for _, f := range fileArray {
-		err := files.IsJsonOrYaml(f)
-		if err != nil {
-			return fmt.Errorf("invalid file extension: %s, requires .json or .yaml", f)
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) {
+	// Identify the threshold & latest for comparison
+	resultMap, err := oscal.IdentifyResults(assessmentMap)
+	if err != nil {
+		if err.Error() == "less than 2 results found - no comparison possible" {
+			// Catch and warn of insufficient results
+			message.Warn(err.Error())
+			return
+		} else {
+			message.Fatal(err, err.Error())
 		}
 	}
 
-	if len(fileArray) == 1 {
-		data, err := common.ReadFileToBytes(fileArray[0])
+	if resultMap["threshold"] != nil && resultMap["latest"] != nil {
+		// Compare the assessment results
+		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
+		defer spinner.Stop()
+
+		status, findings, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
-			return err
-		}
-		assessment, err := oscal.NewAssessmentResults(data)
-		if err != nil {
-			return err
-		}
-		if len(assessment.Results) < 2 {
-			return fmt.Errorf("2 or more result objects must be present for evaluation\n")
-		}
-		// We write results to the assessment-results report in newest -> oldest
-		// Older being our threshold here
-		status, findings, err = EvaluateResults(&assessment.Results[1], &assessment.Results[0])
-		if err != nil {
-			return err
+			message.Fatal(err, err.Error())
 		}
 
-	} else if len(fileArray) == 2 {
-		data, err := common.ReadFileToBytes(fileArray[0])
-		if err != nil {
-			return err
-		}
-		assessmentOne, err := oscal.NewAssessmentResults(data)
-		if err != nil {
-			return err
-		}
-		data, err = common.ReadFileToBytes(fileArray[1])
-		if err != nil {
-			return err
-		}
-		assessmentTwo, err := oscal.NewAssessmentResults(data)
-		if err != nil {
-			return err
-		}
+		if status {
+			if len(findings["new-passing-findings"]) > 0 {
+				message.Info("New passing finding Target-Ids:")
+				for _, finding := range findings["new-passing-findings"] {
+					message.Infof("%s", finding.Target.TargetId)
+				}
 
-		// Consider parsing the timestamps for comparison
-		// Older timestamp being the threshold
+				message.Infof("New threshold identified - threshold will be updated to result %s", resultMap["latest"].UUID)
 
-		status, findings, err = EvaluateResults(&assessmentOne.Results[0], &assessmentTwo.Results[0])
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("Exceeded maximum of 2 files for evaluation\n")
-	}
-
-	if status {
-		message.Info("Evaluation Passing the established threshold")
-		if len(findings["new-findings"]) > 0 {
-			message.Info("New finding Target-Ids:")
-			for _, finding := range findings["new-findings"] {
-				message.Infof("%s", finding.Target.TargetId)
+				// Update latest threshold prop
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["latest"].Props)
+			} else {
+				// retain result as threshold
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
 			}
+
+			if len(findings["new-failing-findings"]) > 0 {
+				message.Info("New failing finding Target-Ids:")
+				for _, finding := range findings["new-failing-findings"] {
+					message.Infof("%s", finding.Target.TargetId)
+				}
+			}
+
+		} else {
+			message.Warn("Evaluation Failed against the following findings:")
+			for _, finding := range findings["no-longer-satisfied"] {
+				message.Warnf("%s", finding.Target.TargetId)
+			}
+			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
+
+			// retain result as threshold
+			oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
 		}
-		return nil
+
+		spinner.Success()
+
+	} else if resultMap["threshold"] == nil {
+		message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
 	} else {
-		message.Warn("Evaluation Failed against the following findings:")
-		for _, finding := range findings["no-longer-satisfied"] {
-			message.Warnf("%s", finding.Target.TargetId)
+		message.Fatal(fmt.Errorf("no latest assessment results could be identified"), "no latest assessment results could be identified")
+	}
+
+	// Write each file back in the case of modification
+	for filePath, assessment := range assessmentMap {
+		model := oscalTypes_1_1_2.OscalCompleteSchema{
+			AssessmentResults: assessment,
 		}
-		return fmt.Errorf("Failed to meet established threshold")
+
+		oscal.WriteOscalModel(filePath, &model)
 	}
 }
 
-func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
-	if thresholdResult == nil || thresholdResult.Findings == nil || newResult == nil || newResult.Findings == nil {
-		return false, nil, fmt.Errorf("results must contain findings to evaluate")
+// Read many filepaths into a map[filepath]*AssessmentResults
+// Placing here until otherwise decided on value elsewhere
+func readManyAssessmentResults(fileArray []string) (map[string]*oscalTypes_1_1_2.AssessmentResults, error) {
+	if len(fileArray) == 0 {
+		return nil, fmt.Errorf("no files provided for evaluation")
 	}
 
-	spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", newResult.UUID, thresholdResult.UUID)
-	defer spinner.Stop()
-
-	// Store unique findings for review here
-	findings := make(map[string][]oscalTypes_1_1_2.Finding, 0)
-	result := true
-
-	findingMapThreshold := oscal.GenerateFindingsMap(*thresholdResult.Findings)
-	findingMapNew := oscal.GenerateFindingsMap(*newResult.Findings)
-
-	// For a given oldResult - we need to prove that the newResult implements all of the oldResult findings/controls
-	// We are explicitly iterating through the findings in order to collect a delta to display
-
-	for targetId, finding := range findingMapThreshold {
-		if _, ok := findingMapNew[targetId]; !ok {
-			// If the new result does not contain the finding of the old result
-			// set result to fail, add finding to the findings map and continue
-			result = false
-			findings[targetId] = append(findings["no-longer-satisfied"], finding)
-		} else {
-			// If the finding is present in each map - we need to check if the state has changed from "not-satisfied" to "satisfied"
-			if finding.Target.Status.State == "satisfied" {
-				// Was previously satisfied - compare state
-				if findingMapNew[targetId].Target.Status.State == "not-satisfied" {
-					// If the new finding is now not-satisfied - set result to false and add to findings
-					result = false
-					findings["no-longer-satisfied"] = append(findings["no-longer-satisfied"], finding)
-				}
-			}
-			delete(findingMapNew, targetId)
+	assessmentMap := make(map[string]*oscalTypes_1_1_2.AssessmentResults)
+	for _, fileString := range fileArray {
+		err := files.IsJsonOrYaml(fileString)
+		if err != nil {
+			return nil, fmt.Errorf("invalid file extension: %s, requires .json or .yaml", fileString)
 		}
+
+		data, err := common.ReadFileToBytes(fileString)
+		if err != nil {
+			return nil, err
+		}
+		assessment, err := oscal.NewAssessmentResults(data)
+		if err != nil {
+			return nil, err
+		}
+		assessmentMap[fileString] = assessment
 	}
 
-	// All remaining findings in the new map are new findings
-	for _, finding := range findingMapNew {
-		findings["new-findings"] = append(findings["new-findings"], finding)
-	}
-
-	spinner.Success()
-	return result, findings, nil
+	return assessmentMap, nil
 }

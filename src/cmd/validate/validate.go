@@ -199,7 +199,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 							if err != nil {
 								message.Debugf("Error getting lula validation %s: %v", id, err)
 								// Handle error as an output to observations
-								observation := createObservation("TEST", "[Failed Observation]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
+								observation := oscal.CreateObservation("TEST", "[Failed Observation]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
 								observation.RelevantEvidence = &[]oscalTypes_1_1_2.RelevantEvidence{
 									{
 										Description: "Result: not-satistfied\n",
@@ -210,7 +210,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 								relatedObservations, tempObservations = appendObservations(relatedObservations, tempObservations, observation)
 							} else {
 								// Add the description of the validation now that we have the ID
-								observation := createObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
+								observation := oscal.CreateObservation("TEST", "[TEST]: %s - %s\n%s\n", implementedRequirement.ControlId, id, link.Text)
 
 								err = lulaValidation.Validate()
 								if err != nil {
@@ -350,18 +350,6 @@ func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath s
 	}
 
 	return nil
-}
-
-// Helper function to create observation
-func createObservation(method string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
-	rfc3339Time := time.Now()
-	sharedUuid := uuid.NewUUID()
-	return oscalTypes_1_1_2.Observation{
-		Collected:   rfc3339Time,
-		Methods:     []string{method},
-		UUID:        sharedUuid,
-		Description: fmt.Sprintf(descriptionPattern, descriptionArgs...),
-	}
 }
 
 // Helper function to append observations
