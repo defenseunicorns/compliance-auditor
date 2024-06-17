@@ -38,11 +38,9 @@ func init() {
 
 				validationResp, err := validation.ValidationCommand(inputFile)
 
-
 				if err != nil {
 					message.Warnf("Failed to lint %s: %v\n", inputFile, err)
 					errorsOccurred = true
-					continue
 				}
 
 				for _, warning := range validationResp.Warnings {
@@ -51,21 +49,25 @@ func init() {
 
 				validationResults = append(validationResults, validationResp.Result)
 
-				message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
-				spinner.Success()
+				if validationResp.Result.Valid {
+					message.Infof("Successfully lint %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
+					spinner.Success()
+				} else {
+					message.Warnf("Failed to lint %s\n", inputFile)
+				}
 			}
 
 			if opts.ResultFile != "" {
 				err := validation.WriteValidationResults(validationResults, opts.ResultFile)
 				if err != nil {
-					message.Fatalf(err, "Failed to write validation results to %s\n", opts.ResultFile)
+					message.Fatalf(err, "Failed to write linting results to %s with error: %s\n", opts.ResultFile, err.Error())
 				}
 			}
 
 			if errorsOccurred {
 				message.Fatalf(nil, "Some files failed to lint. Check the error messages above.\n")
 			} else {
-				message.Infof("All files successfully validated.\n")
+				message.Infof("All files successfully linted.\n")
 			}
 		},
 	}
