@@ -1,9 +1,11 @@
 # Dependency Updates
 
 ## Responsibility
-Dependency updates are a responsibility of all project maintainers. All maintainers must be accountable for the updates they introduce and proper review provides a mechanism for reducing the potential for negative impact to the project. 
+
+Dependency updates are a responsibility of all project maintainers. All maintainers must be accountable for the updates they introduce and proper review provides a mechanism for reducing the potential for negative impact to the project.
 
 ## Objectives
+
 - Ensuring that all dependencies are updated to their latest versions
 - Understanding the implications of updated dependency code
 - Validating the provenance of the updated dependency
@@ -31,26 +33,33 @@ Through the use of [Renovate](https://www.mend.io/renovate/), we can automate th
 ## Examples
 
 ### Golang Dependencies
+
 Given a dependency in the go.mod file, the following steps are taken to validate the dependency:
+
 1. Identify the dependency source - IE github.com/open-policy-agent/opa
 2. Identify the tagged version - IE v0.62.1
-3. Curl the checksum of the tagged version - IE curl https://sum.golang.org/lookup/${source}@${tag}
+3. Curl the checksum of the tagged version - IE curl `https://sum.golang.org/lookup/${source}@${tag}`
 
 The following should be returned for use in validation:
+
 ```
 github.com/open-policy-agent/opa v0.62.1 h1:UcxBQ0fe6NEjkYc775j4PWoUFFhx4f6yXKIKSTAuTVk=
 github.com/open-policy-agent/opa v0.62.1/go.mod h1:YqiSIIuvKwyomtnnXkJvy0E3KtVKbavjPJ/hNMuOmeM=
 ```
 
 ### NPM Dependencies
+
 Given a dependency in the package-lock.json file, the following steps are taken to validate the dependency:
+
 1. Identify the resolved dependency archive - IE https://registry.npmjs.org/autoprefixer/-/autoprefixer-10.4.19.tgz
 2. Curl the archive locally - IE curl -LO https://registry.npmjs.org/autoprefixer/-/autoprefixer-10.4.19.tgz
 3. Perform a SHA512 hash on the archive - IE cat ./autoprefixer-10.4.19.tgz | openssl dgst -sha512 -binary | openssl base64 -A
 4. Compare results against the `integrity` field in the package-lock.json file
 
 ### GitHub Action Dependencies
-Review the updated commit hash of the tagged action against the tag of the action in the source git repository. 
+
+Review the updated commit hash of the tagged action against the tag of the action in the source git repository.
 
 ### Notes
-- Validation of the checksums is currently a manual process and a byproduct of not yet capturing the provenance of Renovates checksum process. Given that no single version of Renovate is being used (this is the non-self-hosted GitHub application), we do not track updates to the renovate runtime itself. 
+
+- Validation of the checksums is currently a manual process and a byproduct of not yet capturing the provenance of Renovates checksum process. Given that no single version of Renovate is being used (this is the non-self-hosted GitHub application), we do not track updates to the renovate runtime itself.
