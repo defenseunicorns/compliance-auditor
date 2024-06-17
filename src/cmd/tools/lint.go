@@ -38,11 +38,14 @@ func init() {
 				spinner := message.NewProgressSpinner("Linting %s\n", inputFile)
 				defer spinner.Stop()
 
-			validationResp, err := validation.ValidationCommand(opts.InputFile)
-			// fatal for non-validation errors
-			if err != nil {
-				message.Fatalf(err, "Failed to lint %s: %s", opts.InputFile, err)
-			}
+				validationResp, err := validation.ValidationCommand(inputFile)
+
+
+				if err != nil {
+					message.Warnf("Failed to lint %s: %v\n", inputFile, err)
+					errorsOccurred = true
+					continue
+				}
 
 				for _, warning := range validationResp.Warnings {
 					message.Warn(warning)
