@@ -156,3 +156,13 @@ func (p *Spinner) Fatalf(err error, format string, a ...any) {
 	}
 	Fatalf(err, format, a...)
 }
+
+// Pause the spinner.
+func (p *Spinner) Pause() string {
+	var spinnerText string
+	if p.spinner != nil && p.spinner.IsActive {
+		spinnerText = p.spinner.Text
+		p.spinner.Stop()
+	}
+	return spinnerText
+}

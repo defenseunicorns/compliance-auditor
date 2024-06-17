@@ -19,6 +19,8 @@ const validKubernetesPath = "../../test/unit/common/valid-kubernetes-spec.yaml"
 const validApiPath = "../../test/unit/common/valid-api-spec.yaml"
 const validOpaPath = "../../test/unit/common/valid-opa-spec.yaml"
 const validKyvernoPath = "../../test/unit/common/valid-kyverno-spec.yaml"
+const multiValidationPath = "../../test/e2e/scenarios/remote-validations/multi-validations.yaml"
+const singleValidationPath = "../../test/e2e/scenarios/remote-validations/validation.opa.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {
@@ -332,4 +334,43 @@ func TestValidationToResource(t *testing.T) {
 			t.Errorf("ToResource() description = \"\", want a valid UUID")
 		}
 	})
+}
+
+func TestReadValidationsFromYaml(t *testing.T) {
+	multipleValidations := loadTestData(t, multiValidationPath)
+	singleValidations := loadTestData(t, singleValidationPath)
+
+	tests := []struct {
+		name          string
+		validations   []byte
+		expectedCount int
+	}{
+		{
+			name:          "multiple validations",
+			validations:   multipleValidations,
+			expectedCount: 2,
+		},
+		{
+			name:          "single validation",
+			validations:   singleValidations,
+			expectedCount: 1,
+		},
+		{
+			name:          "no validations",
+			validations:   []byte{},
+			expectedCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validations, err := common.ReadValidationsFromYaml(tt.validations)
+			if err != nil {
+				t.Errorf("Error reading validations from yaml: %v", err)
+			}
+			if len(validations) != tt.expectedCount {
+				t.Errorf("Expected %d validations, but got %d", tt.expectedCount, len(validations))
+			}
+		})
+	}
 }

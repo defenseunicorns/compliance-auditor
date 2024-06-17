@@ -15,9 +15,8 @@ type KubernetesDomain struct {
 	Spec *KubernetesSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
-func (k KubernetesDomain) GetResources() (types.DomainResources, error) {
-	var resources types.DomainResources
-
+func (k KubernetesDomain) GetResources() (resources types.DomainResources, err error) {
+	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
 		err := EvaluateWait(*k.Spec.Wait)
 		if err != nil {
@@ -25,17 +24,34 @@ func (k KubernetesDomain) GetResources() (types.DomainResources, error) {
 		}
 	}
 
-	resources, err := QueryCluster(k.Context, k.Spec.Resources)
-	if err != nil {
-		return nil, err
+	// Return both?
+	if k.Spec.Resources != nil {
+		resources, err = QueryCluster(k.Context, k.Spec.Resources)
+		if err != nil {
+			return nil, err
+		}
+	} else if k.Spec.CreateResources != nil {
+		resources, err = CreateE2E(k.Context, k.Spec.CreateResources)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return resources, nil
 }
 
+func (k KubernetesDomain) IsExecutable() bool {
+	// Domain is only executable if create-resources is not nil
+	if len(k.Spec.CreateResources) > 0 {
+		return true
+	}
+	return false
+}
+
 type KubernetesSpec struct {
-	Resources []Resource `json:"resources" yaml:"resources"`
-	Wait      *Wait      `json:"wait,omitempty" yaml:"wait,omitempty"`
+	Resources       []Resource       `json:"resources" yaml:"resources"`
+	Wait            *Wait            `json:"wait,omitempty" yaml:"wait,omitempty"`
+	CreateResources []CreateResource `json:"create-resources" yaml:"create-resources"`
 }
 
 type Resource struct {
@@ -83,4 +99,11 @@ type Wait struct {
 	Kind      string `json:"kind" yaml:"kind"`
 	Namespace string `json:"namespace" yaml:"namespace"`
 	Timeout   string `json:"timeout" yaml:"timeout"`
+}
+
+type CreateResource struct {
+	Name      string `json:"name" yaml:"name"`
+	Namespace string `json:"namespace" yaml:"namespace"`
+	Manifest  string `json:"manifest" yaml:"manifest"`
+	File      string `json:"file" yaml:"file"`
 }

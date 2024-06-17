@@ -1,8 +1,10 @@
 package common
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,6 +17,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	goversion "github.com/hashicorp/go-version"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 const (
@@ -52,6 +55,24 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+// ReadValidationsFromYaml reads a yaml file of validations to an array of validations
+func ReadValidationsFromYaml(validationBytes []byte) (validations []Validation, err error) {
+	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(validationBytes), 4096)
+
+	for {
+		validation := &Validation{}
+		if err := decoder.Decode(validation); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		validations = append(validations, *validation)
+	}
+
+	return validations, nil
 }
 
 // Returns version validity

@@ -1,0 +1,107 @@
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    create-resources:
+    - name: successPods
+      namespace: validation-test
+      manifest: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: success-1
+          namespace: validation-test
+        spec:
+          containers:
+          - name: test-container
+            image: nginx
+        ---
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: success-2
+          namespace: validation-test
+        spec:
+          containers:
+          - name: test-container
+            image: nginx
+    - name: failPods
+      namespace: secure-ns
+      manifest: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: fail-1
+          namespace: secure-ns
+        spec:
+          containers:
+          - name: test-container
+            image: nginx
+            securityContext:
+              privileged: true
+        ---
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: fail-2
+          namespace: secure-ns
+        spec:
+          containers:
+          - name: test-container
+            image: nginx
+          securityContext:
+            runAsUser: 0
+    - name: netpolTestJob
+      namespace: another-ns
+      manifest: |
+        apiVersion: batch/v1
+        kind: Job
+        metadata:
+          name: test-job
+          namespace: another-ns
+        spec:
+          template:
+            spec:
+              containers:
+              - name: test-container
+                image: nginx
+                command: ["curl", "http://fake-service:80"]
+              restartPolicy: Never
+    - name: remotePod
+      namespace: validation-test
+      file: 'file:../pod-label/pod.pass.yaml'
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+      
+      default validate = false
+      validate {
+        check_success_pods
+        check_fail_pods
+        check_netpol_test_job
+        check_remote_pod
+      }
+
+      # Check if successPods were created
+      check_success_pods {
+        success_pod_names := { pod.metadata.name | pod := input.successPods[_]; pod.kind == "Pod" }
+        count({"success-1", "success-2"}-success_pod_names) == 0
+      }
+
+      # Check that failPods were not created
+      check_fail_pods {
+        fail_pod_names := { pod.metadata.name | pod := input.failPods[_]; pod.kind == "Pod" }
+        count({"fail-1", "fail-2"}-fail_pod_names) == 2
+      }
+
+      # Check the netpolTestJob didn't run successfully
+      check_netpol_test_job {
+        input.netpolTestJob[_].status.failed > 0
+      }
+
+      # Check the remotePod was created
+      check_remote_pod {
+        remote_pod_names := { pod.metadata.name | pod := input.remotePod[_]; pod.kind == "Pod" }
+        count({"test-pod-label"}-remote_pod_names) == 0
+      }

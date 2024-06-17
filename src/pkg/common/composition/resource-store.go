@@ -1,7 +1,6 @@
 package composition
 
 import (
-	"bytes"
 	"fmt"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -124,15 +123,13 @@ func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link) (ids []
 		return nil, err
 	}
 
-	validationBytesArr := bytes.Split(validationBytes, []byte(common.YAML_DELIMITER))
-	isSingleValidation := len(validationBytesArr) == 1
+	validationArr, err := common.ReadValidationsFromYaml(validationBytes)
+	if err != nil {
+		return nil, err
+	}
+	isSingleValidation := len(validationArr) == 1
 
-	for _, validationBytes := range validationBytesArr {
-		var validation common.Validation
-		if err = validation.UnmarshalYaml(validationBytes); err != nil {
-			return nil, err
-		}
-
+	for _, validation := range validationArr {
 		resource, err := validation.ToResource()
 		if err != nil {
 			return nil, err
