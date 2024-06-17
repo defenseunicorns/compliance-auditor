@@ -39,12 +39,12 @@ func init() {
 				validationResp, err := validation.ValidationCommand(inputFile)
 
 				if err != nil {
-					message.Warnf("Failed to lint %s: %v\n", inputFile, err)
-					errorsOccurred = true
-				}
-
-				for _, warning := range validationResp.Warnings {
-					message.Warn(warning)
+					if validatorErr, ok := err.(wrappedValidatorError); ok {
+						message.Fatalf(err, "Validation error occurred while linting %s: %v\n", inputFile, validatorErr)
+					} else {
+						message.Warnf("Failed to lint %s: %v\n", inputFile, err)
+						errorsOccurred = true
+					}
 				}
 
 				validationResults = append(validationResults, validationResp.Result)
