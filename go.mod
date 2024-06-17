@@ -9,7 +9,7 @@ require (
 	github.com/open-policy-agent/opa v0.65.0
 	github.com/pterm/pterm v0.12.79
 	github.com/sergi/go-diff v1.3.1
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.30.2
 	k8s.io/apimachinery v0.30.2
