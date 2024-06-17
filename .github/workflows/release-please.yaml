@@ -18,4 +18,4 @@ jobs:
     steps:
       - name: Create release tag
         id: tag
-        uses: googleapis/release-please-action@f3969c04a4ec81d7a9aa4010d84ae6a7602f86a7
+        uses: googleapis/release-please-action@7987652d64b4581673a76e33ad5e98e3dd56832f
