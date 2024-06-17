@@ -39,16 +39,32 @@ func init() {
 				defer spinner.Stop()
 
 			validationResp, err := validation.ValidationCommand(opts.InputFile)
+			// fatal for non-validation errors
+			if err != nil {
+				message.Fatalf(err, "Failed to lint %s: %s", opts.InputFile, err)
+			}
 
-			for _, warning := range validationResp.Warnings {
-				message.Warn(warning)
+				for _, warning := range validationResp.Warnings {
+					message.Warn(warning)
+				}
+
+				validationResults = append(validationResults, validationResp.Result)
+
+				message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
+				spinner.Success()
 			}
 
 			if opts.ResultFile != "" {
 				validation.WriteValidationResult(validationResp.Result, opts.ResultFile)
+			} else {
+				jsonBytes, err := json.MarshalIndent(validationResp.Result, "", "  ")
+				if err != nil {
+					message.Fatalf(err, "Failed to marshal validation result")
+				}
+				message.Infof("Validation result: %s", string(jsonBytes))
 			}
 
-			if err != nil {
+			if validationResp.JsonSchemaError != nil {
 				message.Fatalf(err, "Failed to lint %s", opts.InputFile)
 			}
 			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", opts.InputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
