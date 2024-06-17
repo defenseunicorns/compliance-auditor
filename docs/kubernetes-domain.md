@@ -2,28 +2,34 @@
 
 The Kubernetes domain provides Lula with a common interface for data collection of Kubernetes artifacts for use across many Lula Providers. 
 
-## Payload Expectation
+>[!Important]
+>This domain supports both read and write operations on the Kubernetes cluster in the current context, so use with care
 
-The validation performed when using the Kubernetes domain is as follows:
+## Specification
+
+Resources are read from the Kubernetes cluster when using the Kubernetes domain specification as follows:
 
 ```yaml
-resources:
-- name: podsvt                      # Required - Identifier for use in the rego below
-  resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
-    name:                           # Optional - Used to retrieve a specific resource in a single namespace
-    group:                          # Required - empty or "" for core group
-    version: v1                     # Required - Version of resource
-    resource: pods                  # Required - Resource type
-    namespaces: [validation-test]   # Required - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
-    field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
-      jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
-      type:                         # Optional - Accepts "json" or "yaml". Default is "json".
-      base64:                       # Optional - Boolean whether field is base64 encoded
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: podsvt                      # Required - Identifier to be read by the policy
+      resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
+        name:                           # Optional - Used to retrieve a specific resource in a single namespace
+        group:                          # Required - empty or "" for core group
+        version: v1                     # Required - Version of resource
+        resource: pods                  # Required - Resource type (API-recognized type, not Kind)
+        namespaces: [validation-test]   # Required - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
+        field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
+          jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
+          type:                         # Optional - Accepts "json" or "yaml". Default is "json".
+          base64:                       # Optional - Boolean whether field is base64 encoded
 
 ```
 
 > [!Tip]
-> Lula supports eventual-consistency through use of an optional `wait` field. 
+> Lula supports eventual-consistency through use of an optional `wait` field in the `kubernetes-spec`. 
 
 ```yaml
 wait:
@@ -38,6 +44,22 @@ resources:
     version: v1
     resource: pods
     namespaces: [validation-test]
+```
+
+### Resource Creation
+
+The Kubernetes domain also supports creating, reading, and destroying test resources in the cluster. This feature should be used with caution since it's writing to the cluster and ideally should be implemented on separate namespaces to make any erroneous outcomes easier to mitigate.
+
+```yaml
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    create-resources:
+      - name: testPod                   # Required - Identifier to be read by the policy
+        namespace: validation-test      # Optional - Namespace to be created if applicable (no need to specify if ns exists OR resource is non-namespaced)
+        manifest: |                     # Optional - Manifest string for resource(s) to create; Only optional if file is not specified
+          <some manifest(s)>
+        file: '<some url>'              # Optional - File name where resource(s) to create are stored; Only optional if manifest is not specified
 ```
 
 ## Lists vs Named Resource

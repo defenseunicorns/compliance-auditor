@@ -3,12 +3,16 @@ package composition
 import (
 	"bytes"
 	"fmt"
+	"io"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
 func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
@@ -43,14 +47,12 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 			}
 
 			// Handle multi-docs
-			split := bytes.Split(response, []byte(common.YAML_DELIMITER))
+			componentDefs, err := readComponentDefinitionsFromYaml(response)
+			if err != nil {
+				return err
+			}
 			// Unmarshal the component definition
-			for _, file := range split {
-				importDef, err := oscal.NewOscalComponentDefinition(file)
-				if err != nil {
-					return err
-				}
-
+			for _, importDef := range componentDefs {
 				err = ComposeComponentDefinitions(importDef)
 				if err != nil {
 					return err
@@ -100,7 +102,10 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 						if common.IsLulaLink(link) {
 							ids, err := resourceMap.AddFromLink(&link)
 							if err != nil {
-								return err
+								// return err
+								newId := uuid.NewUUID()
+								message.Debugf("Error adding validation %s from link %s: %v", newId, link.Href, err)
+								ids = []string{newId}
 							}
 							for _, id := range ids {
 								link := oscalTypes_1_1_2.Link{
@@ -134,4 +139,22 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 	compDef.Metadata.LastModified = versioning.GetTimestamp()
 
 	return nil
+}
+
+// ReadComponentDefinitionsFromYaml reads a yaml file of validations to an array of validations
+func readComponentDefinitionsFromYaml(componentDefinitionBytes []byte) (componentDefinitionsArray []*oscalTypes_1_1_2.ComponentDefinition, err error) {
+	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(componentDefinitionBytes), 4096)
+
+	for {
+		oscalComplete := &oscalTypes_1_1_2.OscalCompleteSchema{}
+		if err := decoder.Decode(oscalComplete); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		componentDefinitionsArray = append(componentDefinitionsArray, oscalComplete.ComponentDefinition)
+	}
+
+	return componentDefinitionsArray, nil
 }

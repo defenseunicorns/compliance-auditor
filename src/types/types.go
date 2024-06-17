@@ -1,7 +1,10 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type LulaValidationType string
@@ -12,6 +15,9 @@ const (
 )
 
 type LulaValidation struct {
+	// Name of the Validation
+	Name string
+
 	// Provider is the provider that is evaluating the validation
 	Provider *Provider
 
@@ -31,12 +37,34 @@ type LulaValidation struct {
 	Result *Result
 }
 
+// CreateFailingLulaValidation creates a placeholder LulaValidation object that is always failing
+func CreateFailingLulaValidation(name string) *LulaValidation {
+	return &LulaValidation{
+		Name:      name,
+		Evaluated: true,
+		Result:    &Result{Failing: 1},
+	}
+}
+
+// CreatePassingLulaValidation creates a placeholder LulaValidation object that is always passing
+func CreatePassingLulaValidation(name string) *LulaValidation {
+	return &LulaValidation{
+		Name:      name,
+		Evaluated: true,
+		Result:    &Result{Passing: 1},
+	}
+}
+
 // LulaValidationMap is a map of LulaValidation objects
 type LulaValidationMap = map[string]LulaValidation
 
 // Lula Validation Options settings
 type lulaValidationOptions struct {
-	staticResources DomainResources
+	staticResources  DomainResources
+	executionAllowed bool
+	isInteractive    bool
+	onlyResources    bool
+	spinner          *message.Spinner
 }
 
 type LulaValidationOption func(*lulaValidationOptions)
@@ -45,6 +73,34 @@ type LulaValidationOption func(*lulaValidationOptions)
 func WithStaticResources(resources DomainResources) LulaValidationOption {
 	return func(opts *lulaValidationOptions) {
 		opts.staticResources = resources
+	}
+}
+
+// ExecutionAllowed sets the value of the executionAllowed field in the LulaValidation object
+func ExecutionAllowed(executionAllowed bool) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.executionAllowed = executionAllowed
+	}
+}
+
+// Interactive is a function that returns a boolean indicating if the validation should be interactive
+func Interactive(isInteractive bool) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.isInteractive = isInteractive
+	}
+}
+
+// WithSpinner returns a LulaValidationOption that sets the spinner for the LulaValidation object
+func WithSpinner(spinner *message.Spinner) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.spinner = spinner
+	}
+}
+
+// RequireExecutionConfirmation is a function that returns a boolean indicating if the validation requires confirmation before execution
+func GetResourcesOnly(onlyResources bool) LulaValidationOption {
+	return func(opts *lulaValidationOptions) {
+		opts.onlyResources = onlyResources
 	}
 }
 
@@ -62,10 +118,28 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
-			staticResources: nil,
+			staticResources:  nil,
+			executionAllowed: false,
+			isInteractive:    false,
+			onlyResources:    false,
+			spinner:          nil,
 		}
 		for _, opt := range opts {
 			opt(config)
+		}
+
+		// Check if confirmation needed before execution
+		if (*val.Domain).IsExecutable() && config.staticResources == nil {
+			if !config.executionAllowed {
+				if config.isInteractive {
+					// Run confirmation user prompt
+					if confirm := message.PromptForConfirmation(config.spinner); !confirm {
+						return errors.New("execution not allowed")
+					}
+				} else {
+					return errors.New("execution not allowed")
+				}
+			}
 		}
 
 		// Get the resources
@@ -75,6 +149,9 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 			resources, err = (*val.Domain).GetResources()
 			if err != nil {
 				return fmt.Errorf("domain GetResources error: %v", err)
+			}
+			if config.onlyResources {
+				return nil
 			}
 		}
 
@@ -87,10 +164,16 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 	return nil
 }
 
+// Check if the validation requires confirmation before possible execution code is run
+func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
+	return !(*val.Domain).IsExecutable()
+}
+
 type DomainResources map[string]interface{}
 
 type Domain interface {
 	GetResources() (DomainResources, error)
+	IsExecutable() bool
 }
 
 type Provider interface {

@@ -104,13 +104,7 @@ func GetResourcesDynamically(ctx context.Context,
 		}
 	}
 
-	// Removes metadata.managedFields from each item in the collection
-	// Field is long and seemingly useless for our purposes, removing to reduce noise
-	for _, c := range collection {
-		if metadata, ok := c["metadata"].(map[string]interface{}); ok {
-			delete(metadata, "managedFields")
-		}
-	}
+	cleanResources(&collection)
 
 	return collection, nil
 }
@@ -222,6 +216,17 @@ func getFieldValue(item map[string]interface{}, field *Field) (map[string]interf
 			return nil, fmt.Errorf("expected YAML to decode field %s", field.Jsonpath)
 		}
 		return result, nil
+	}
+}
+
+// cleanResources() clears out unnecceary fields from the resources that contribute to noise
+func cleanResources(resources *[]map[string]interface{}) {
+	// Removes metadata.managedFields from each item in the collection
+	// Field is long and seemingly useless for our purposes, removing to reduce noise
+	for _, c := range *resources {
+		if metadata, ok := c["metadata"].(map[string]interface{}); ok {
+			delete(metadata, "managedFields")
+		}
 	}
 }
 

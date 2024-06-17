@@ -13,6 +13,11 @@ func (a ApiDomain) GetResources() (types.DomainResources, error) {
 	return MakeRequests(a.Spec.Requests)
 }
 
+func (a ApiDomain) IsExecutable() bool {
+	// Domain is not currently executable
+	return false
+}
+
 type ApiSpec struct {
 	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
 }

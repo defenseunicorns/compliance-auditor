@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/config"
@@ -17,15 +15,13 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const STDIN = "0"
-const NO_TIMEOUT = -1
-const DEFAULT_TIMEOUT = 1
-
 var validateHelp = `
 To run validations using a lula validation manifest:
 	lula dev validate -f <path to manifest>
 To run validations using a custom resources file:
 	lula dev validate -f <path to manifest> -r <path to resources file>
+To run validations and automatically confirm execution
+	lula dev get-resources -f /path/to/manifest.json --confirm-execution
 To run validations using stdin:
 	cat <path to manifest> | lula dev validate
 To hang indefinitely for stdin:
@@ -37,7 +33,6 @@ To hang for timeout of 5 seconds:
 type ValidateFlags struct {
 	flags
 	ExpectedResult bool   // -e --expected-result
-	Timeout        int    // -t --timeout
 	ResourcesFile  string // -r --resources-file
 }
 
@@ -62,36 +57,14 @@ func init() {
 			var resourcesBytes []byte
 			var err error
 
-			if validateOpts.InputFile == STDIN {
-				var inputReader io.Reader = cmd.InOrStdin()
-
-				// If the timeout is not -1, wait for the timeout then close and return an error
-				go func() {
-					if validateOpts.Timeout != NO_TIMEOUT {
-						time.Sleep(time.Duration(validateOpts.Timeout) * time.Second)
-						cmd.Help()
-						message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
-					}
-				}()
-
-				// Update the spinner message
-				spinner.Updatef("reading from stdin...")
-				// Read from stdin
-				validationBytes, err = io.ReadAll(inputReader)
-				if err != nil || len(validationBytes) == 0 {
-					message.Fatalf(err, "error reading from stdin: %v", err)
-				}
-				// Reset the spinner message
-				spinner.Updatef(spinnerMessage)
-			} else if !strings.HasSuffix(validateOpts.InputFile, ".yaml") {
-				message.Fatalf(fmt.Errorf("input file must be a yaml file"), "input file must be a yaml file")
-			} else {
-				// Read the validation file
-				validationBytes, err = common.ReadFileToBytes(validateOpts.InputFile)
-				if err != nil {
-					message.Fatalf(err, "error reading file: %v", err)
-				}
+			// Read the validation data from STDIN or provided file
+			validationBytes, err = ReadValidation(cmd, spinner, validateOpts.InputFile, validateOpts.Timeout)
+			if err != nil {
+				message.Fatalf(err, "error reading validation: %v", err)
 			}
+
+			// Reset the spinner message
+			spinner.Updatef(spinnerMessage)
 
 			// If a resources file is provided, read the resources file
 			if validateOpts.ResourcesFile != "" {
@@ -106,7 +79,7 @@ func init() {
 				}
 			}
 
-			validation, err := DevValidate(ctx, validationBytes, resourcesBytes)
+			validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
 			if err != nil {
 				message.Fatalf(err, "error running dev validate: %v", err)
 			}
@@ -143,24 +116,12 @@ func init() {
 	validateCmd.Flags().StringVarP(&validateOpts.OutputFile, "output-file", "o", "", "the path to write the validation with results")
 	validateCmd.Flags().IntVarP(&validateOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
 	validateCmd.Flags().BoolVarP(&validateOpts.ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
-
+	validateCmd.Flags().BoolVar(&validateOpts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 }
 
 // DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it
 // Returns the LulaValidation struct and any error encountered
-func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte) (lulaValidation types.LulaValidation, err error) {
-	var validation common.Validation
-
-	err = yaml.Unmarshal(validationBytes, &validation)
-	if err != nil {
-		return lulaValidation, err
-	}
-
-	lulaValidation, err = validation.ToLulaValidation()
-	if err != nil {
-		return lulaValidation, err
-	}
-
+func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte, spinner *message.Spinner) (lulaValidation types.LulaValidation, err error) {
 	// Set resources if resourcesBytes is not empty
 	var resources types.DomainResources
 	if len(resourcesBytes) > 0 {
@@ -171,7 +132,13 @@ func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []b
 		}
 	}
 
-	err = lulaValidation.Validate(types.WithStaticResources(resources))
+	lulaValidation, err = RunSingleValidation(
+		validationBytes,
+		types.WithStaticResources(resources),
+		types.ExecutionAllowed(validateOpts.ConfirmExecution),
+		types.Interactive(RunInteractively),
+		types.WithSpinner(spinner),
+	)
 	if err != nil {
 		return lulaValidation, err
 	}
