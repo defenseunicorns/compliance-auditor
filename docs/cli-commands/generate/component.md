@@ -1,4 +1,4 @@
-# OSCAL Generation
+# Component
 
 Lula can generate OSCAL templates to help with authoring OSCAL artifacts. These generation processes help with initial build and maintenance of OSCAL artifacts and keeps with the vision of modular compliance artifacts that live with the source code. 
 
