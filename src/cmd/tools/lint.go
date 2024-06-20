@@ -1,6 +1,8 @@
 package tools
 
 import (
+	"encoding/json"
+
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -36,39 +38,21 @@ func init() {
 				spinner := message.NewProgressSpinner("Linting %s\n", inputFile)
 				defer spinner.Stop()
 
-				validationResp, err := validation.ValidationCommand(inputFile)
+			validationResp, err := validation.ValidationCommand(opts.InputFile)
 
-				if err != nil {
-					if validatorErr, ok := err.(wrappedValidatorError); ok {
-						message.Fatalf(err, "Validation error occurred while linting %s: %v\n", inputFile, validatorErr)
-					} else {
-						message.Warnf("Failed to lint %s: %v\n", inputFile, err)
-						errorsOccurred = true
-					}
-				}
-
-				validationResults = append(validationResults, validationResp.Result)
-
-				if validationResp.Result.Valid {
-					message.Infof("Successfully lint %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
-					spinner.Success()
-				} else {
-					message.Warnf("Failed to lint %s\n", inputFile)
-				}
+			for _, warning := range validationResp.Warnings {
+				message.Warn(warning)
 			}
 
 			if opts.ResultFile != "" {
-				err := validation.WriteValidationResults(validationResults, opts.ResultFile)
-				if err != nil {
-					message.Fatalf(err, "Failed to write linting results to %s with error: %s\n", opts.ResultFile, err.Error())
-				}
+				validation.WriteValidationResult(validationResp.Result, opts.ResultFile)
 			}
 
-			if errorsOccurred {
-				message.Fatalf(nil, "Some files failed to lint. Check the error messages above.\n")
-			} else {
-				message.Infof("All files successfully linted.\n")
+			if err != nil {
+				message.Fatalf(err, "Failed to lint %s", opts.InputFile)
 			}
+			message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", opts.InputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
+			spinner.Success()
 		},
 	}
 

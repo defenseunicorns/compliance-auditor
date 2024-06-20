@@ -227,7 +227,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
-	if err != nil {
+	if err != nil || validatorResponse.JsonSchemaError != nil {
 		t.Fatal("File failed linting")
 	}
 	message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validatorResponse.Validator.GetSchemaVersion(), validatorResponse.Validator.GetModelType())
