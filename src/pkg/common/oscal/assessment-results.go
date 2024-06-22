@@ -199,6 +199,12 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 					result = false
 					findings["no-longer-satisfied"] = append(findings["no-longer-satisfied"], finding)
 				}
+			} else {
+				// was previously not-satisfied but now is satisfied
+				if findingMapNew[targetId].Target.Status.State == "satisfied" {
+					// If the new finding is now satisfied - add to new-passing-findings
+					findings["new-passing-findings"] = append(findings["new-passing-findings"], finding)
+				}
 			}
 			delete(findingMapNew, targetId)
 		}
