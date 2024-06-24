@@ -10,15 +10,15 @@ import (
 )
 
 type flags struct {
-	InputFiles []string // -f --input-files
-	ResultFile string   // -r --result-file
+	InputFile  string // -f --input-file
+	ResultFile string // -r --result-file
 }
 
 var opts = &flags{}
 
 var lintHelp = `
-To lint existing OSCAL files:
-	lula tools lint -f <path to oscal file1>,<path to oscal file2>,...
+To lint an existing OSCAL file:
+	lula tools lint -f <path to oscal>
 `
 
 func init() {
@@ -28,15 +28,17 @@ func init() {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			config.SkipLogFile = true
 		},
-		Long:    "Validate OSCAL documents are properly configured against the OSCAL schema",
+		Long:    "Validate an OSCAL document is properly configured against the OSCAL schema",
 		Example: lintHelp,
 		Run: func(cmd *cobra.Command, args []string) {
-			var validationResults []validation.ValidationResult
-			var errorsOccurred bool
+			spinner := message.NewProgressSpinner("Linting %s", opts.InputFile)
+			defer spinner.Stop()
 
-			for _, inputFile := range opts.InputFiles {
-				spinner := message.NewProgressSpinner("Linting %s\n", inputFile)
-				defer spinner.Stop()
+			validationResp, err := validation.ValidationCommand(opts.InputFile)
+			// fatal for non-validation errors
+			if err != nil {
+				message.Fatalf(err, "Failed to lint %s: %s", opts.InputFile, err)
+			}
 
 			for _, warning := range validationResp.Warnings {
 				message.Warn(warning)
@@ -62,6 +64,6 @@ func init() {
 
 	toolsCmd.AddCommand(lintCmd)
 
-	lintCmd.Flags().StringSliceVarP(&opts.InputFiles, "input-files", "f", []string{}, "the paths to oscal json schema files")
+	lintCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to a oscal json schema file")
 	lintCmd.Flags().StringVarP(&opts.ResultFile, "result-file", "r", "", "the path to write the validation result")
 }
