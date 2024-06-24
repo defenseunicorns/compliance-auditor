@@ -67,7 +67,7 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 		{
 			Ns:    "https://docs.lula.dev/ns",
 			Name:  "threshold",
-			Value: "true",
+			Value: "false",
 		},
 	}
 

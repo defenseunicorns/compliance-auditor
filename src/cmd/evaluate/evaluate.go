@@ -98,6 +98,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 					message.Infof("%s", finding.Target.TargetId)
 				}
 			}
+			message.Info("Evaluation Passed Successfully")
 
 		} else {
 			message.Warn("Evaluation Failed against the following findings:")
