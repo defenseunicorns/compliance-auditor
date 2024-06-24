@@ -38,23 +38,8 @@ func init() {
 				spinner := message.NewProgressSpinner("Linting %s\n", inputFile)
 				defer spinner.Stop()
 
-				validationResp, err := validation.ValidationCommand(inputFile)
-
-
-				if err != nil {
-					message.Warnf("Failed to lint %s: %v\n", inputFile, err)
-					errorsOccurred = true
-					continue
-				}
-
-				for _, warning := range validationResp.Warnings {
-					message.Warn(warning)
-				}
-
-				validationResults = append(validationResults, validationResp.Result)
-
-				message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
-				spinner.Success()
+			for _, warning := range validationResp.Warnings {
+				message.Warn(warning)
 			}
 
 			if opts.ResultFile != "" {
