@@ -33,7 +33,7 @@ func NewOscalModel(data []byte) (*oscalTypes_1_1_2.OscalModels, error) {
 // supports both json and yaml
 func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
 
-	modelType, err := getOscalModel(model)
+	modelType, err := GetOscalModel(model)
 	if err != nil {
 		return err
 	}
@@ -56,6 +56,15 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		existingModel, err := NewOscalModel(existingFileBytes)
 		if err != nil {
 			return err
+		}
+
+		existingModelType, err := GetOscalModel(existingModel)
+		if err != nil {
+			return nil
+		}
+
+		if existingModelType != modelType {
+			return fmt.Errorf("cannot merge model %s with existing model %s", modelType, existingModelType)
 		}
 		// Merge the existing model with the new model
 		// re-assign to perform common operations below
@@ -119,7 +128,7 @@ func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *osc
 	return existingModel, err
 }
 
-func getOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err error) {
+func GetOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err error) {
 
 	// Check if one model present and all other nil - is there a better way to do this?
 	models := make([]string, 0)
