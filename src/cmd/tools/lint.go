@@ -31,6 +31,7 @@ func init() {
 		Long:    "Validate OSCAL documents are properly configured against the OSCAL schema",
 		Example: lintHelp,
 		Run: func(cmd *cobra.Command, args []string) {
+			var validationResults []validation.ValidationResult
 			if len(opts.InputFiles) == 0 {
 				message.Fatalf(nil, "No input files specified")
 			}
@@ -50,7 +51,7 @@ func init() {
 				}
 
 				if opts.ResultFile != "" {
-					validation.WriteValidationResult(validationResp.Result, opts.ResultFile)
+					validationResults = append(validationResults, validationResp.Result)
 				} else {
 					jsonBytes, err := json.MarshalIndent(validationResp.Result, "", "  ")
 					if err != nil {
@@ -71,6 +72,17 @@ func init() {
 					message.Fatalf(nil, "Failed linting for %s", inputFile)
 				}
 			}
+
+			// If result file is specified, write the validation results to the file
+			if opts.ResultFile != "" {
+				// If there is only one validation result, write it to the file
+				if len(validationResults) == 1 {
+					validation.WriteValidationResult(validationResults[0], opts.ResultFile)
+				} else {
+					// If there are multiple validation results, write them to the file
+					validation.WriteValidationResults(validationResults, opts.ResultFile)
+				}
+			}
 		},
 	}
 
@@ -79,4 +91,3 @@ func init() {
 	lintCmd.Flags().StringSliceVarP(&opts.InputFiles, "input-files", "f", []string{}, "the paths to oscal json schema files (comma-separated)")
 	lintCmd.Flags().StringVarP(&opts.ResultFile, "result-file", "r", "", "the path to write the validation result")
 }
-					
