@@ -68,7 +68,7 @@ func init() {
 					message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
 					spinner.Success()
 				} else {
-					message.WarnErrf(nil, "Failed to validate %s", inputFile)
+					message.WarnErrf(nil, "Failed to lint %s", inputFile)
 					spinner.Stop()
 				}
 			}
