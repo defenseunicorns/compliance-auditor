@@ -68,7 +68,7 @@ func init() {
 					message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
 					spinner.Success()
 				} else {
-					spinner.Errorf(nil, "Failed to validate %s", inputFile)
+					message.WarnErrf(nil, "Failed to validate %s", inputFile)
 					spinner.Stop()
 				}
 			}
@@ -92,7 +92,7 @@ func init() {
 				}
 			}
 			if len(failedFiles) > 0 {
-				message.Fatal(nil, fmt.Sprintf("The following files failed validation: %s", strings.Join(failedFiles, ", ")))
+				message.Fatal(nil, fmt.Sprintf("The following files failed linting: %s", strings.Join(failedFiles, ", ")))
 			}
 		},
 	}
