@@ -2,6 +2,8 @@ package tools
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/config"
@@ -50,26 +52,24 @@ func init() {
 					message.Warn(warning)
 				}
 
-				if opts.ResultFile != "" {
-					validationResults = append(validationResults, validationResp.Result)
-				} else {
+				// append the validation result to the results array
+				validationResults = append(validationResults, validationResp.Result)
+
+				// If result file is not specified, print the validation result
+				if opts.ResultFile == "" {
 					jsonBytes, err := json.MarshalIndent(validationResp.Result, "", "  ")
 					if err != nil {
 						message.Fatalf(err, "Failed to marshal validation result")
 					}
 					message.Infof("Validation result for %s: %s", inputFile, string(jsonBytes))
 				}
-
-				if validationResp.JsonSchemaError != nil {
-					message.Fatalf(err, "Failed to lint %s", inputFile)
-				}
-
 				// New conditional for logging success or failed linting
 				if validationResp.Result.Valid {
 					message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", inputFile, validationResp.Validator.GetSchemaVersion(), validationResp.Validator.GetModelType())
 					spinner.Success()
 				} else {
-					message.Fatalf(nil, "Failed linting for %s", inputFile)
+					spinner.Errorf(nil, "Failed to validate %s", inputFile)
+					spinner.Stop()
 				}
 			}
 
@@ -82,6 +82,17 @@ func init() {
 					// If there are multiple validation results, write them to the file
 					validation.WriteValidationResults(validationResults, opts.ResultFile)
 				}
+			}
+
+			// If there is at least one validation result that is not valid, exit with a fatal error
+			failedFiles := []string{}
+			for _, result := range validationResults {
+				if !result.Valid {
+					failedFiles = append(failedFiles, result.Metadata.DocumentPath)
+				}
+			}
+			if len(failedFiles) > 0 {
+				message.Fatal(nil, fmt.Sprintf("The following files failed validation: %s", strings.Join(failedFiles, ", ")))
 			}
 		},
 	}
