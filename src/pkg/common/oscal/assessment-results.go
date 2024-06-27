@@ -67,7 +67,7 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 		{
 			Ns:    "https://docs.lula.dev/ns",
 			Name:  "threshold",
-			Value: "true",
+			Value: "false",
 		},
 	}
 
@@ -198,6 +198,12 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 					// If the new finding is now not-satisfied - set result to false and add to findings
 					result = false
 					findings["no-longer-satisfied"] = append(findings["no-longer-satisfied"], finding)
+				}
+			} else {
+				// was previously not-satisfied but now is satisfied
+				if findingMapNew[targetId].Target.Status.State == "satisfied" {
+					// If the new finding is now satisfied - add to new-passing-findings
+					findings["new-passing-findings"] = append(findings["new-passing-findings"], finding)
 				}
 			}
 			delete(findingMapNew, targetId)

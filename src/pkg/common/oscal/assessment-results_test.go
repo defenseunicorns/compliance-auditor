@@ -241,13 +241,17 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("Expected threshold result to be before latest result")
 		}
 
-		status, _, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		status, findings, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
 			t.Fatalf("Expected error for inability to evaluate multiple results : %v", err)
 		}
 
 		if !status {
 			t.Fatalf("Expected results to be evaluated as failing")
+		}
+
+		if len(findings["new-passing-findings"]) == 0 {
+			t.Fatalf("Expected new passing findings to be found")
 		}
 	})
 
