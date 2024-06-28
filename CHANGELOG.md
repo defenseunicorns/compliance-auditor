@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.4.0](https://github.com/defenseunicorns/lula/compare/v0.3.0...v0.4.0) (2024-06-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **validate:** #408 create resources in kubernetes domain ([#415](https://github.com/defenseunicorns/lula/issues/415))
+
+### Features
+
+* **tools:** add looping for lint ([#481](https://github.com/defenseunicorns/lula/issues/481)) ([0d69a45](https://github.com/defenseunicorns/lula/commit/0d69a45b6c8001a3923b9a66d5cfd7fcce3e1037))
+* **validate:** [#408](https://github.com/defenseunicorns/lula/issues/408) create resources in kubernetes domain ([#415](https://github.com/defenseunicorns/lula/issues/415)) ([bd8d72b](https://github.com/defenseunicorns/lula/commit/bd8d72b1d3c31bbcf7fb9cdbc8fdfc38fccfcabb))
+
+
+### Bug Fixes
+
+* **commitlint:** pinned dependency issue by extracting into package(-… ([#454](https://github.com/defenseunicorns/lula/issues/454)) ([17ac8ca](https://github.com/defenseunicorns/lula/commit/17ac8ca76c081f2d385a8dca4bd35ced8cbbf70d))
+* **evaluate:** add support for existing control-id becoming satisfied ([#498](https://github.com/defenseunicorns/lula/issues/498)) ([471e9c5](https://github.com/defenseunicorns/lula/commit/471e9c5a1b731b03adb64343954326b3ed4a4a3d))
+* **evaluate:** establish threshold for assessment results result ([#457](https://github.com/defenseunicorns/lula/issues/457)) ([4571cb8](https://github.com/defenseunicorns/lula/commit/4571cb88a7fa1828387edbb7f35b44b65e09ad4f))
+* **generate:** resolve parent flag options properly ([#442](https://github.com/defenseunicorns/lula/issues/442)) ([5850115](https://github.com/defenseunicorns/lula/commit/585011577ffcc9426a694296d631d29bc88b1f99))
+* **oscal:** single model write operations support ([#502](https://github.com/defenseunicorns/lula/issues/502)) ([3646650](https://github.com/defenseunicorns/lula/commit/36466509aeff3aa53e08cb90454547537440b172))
+* **validate:** fix related observations when empty ([#448](https://github.com/defenseunicorns/lula/issues/448)) ([f6f6993](https://github.com/defenseunicorns/lula/commit/f6f699312b1dfaa1190292143a039c105f5d5293))
+
+
+### Miscellaneous
+
+* **actions:** fix code scanning alerts ([#446](https://github.com/defenseunicorns/lula/issues/446)) ([aa568c7](https://github.com/defenseunicorns/lula/commit/aa568c76f9667195a0f106a4762f3ff315dc1666))
+* **deps:** add tag to release please action ([#496](https://github.com/defenseunicorns/lula/issues/496)) ([3596491](https://github.com/defenseunicorns/lula/commit/35964912a7138721817b2ad136fe858fdb5dc8d3))
+* **deps:** update actions/checkout action to v4.1.7 ([#479](https://github.com/defenseunicorns/lula/issues/479)) ([962fd2f](https://github.com/defenseunicorns/lula/commit/962fd2f6e694df92eb1a29735dd9750c13e3a0d9))
+* **deps:** update dependency linkinator to v6.0.5 ([#458](https://github.com/defenseunicorns/lula/issues/458)) ([dfa1cbe](https://github.com/defenseunicorns/lula/commit/dfa1cbef30c40ccdba1b46915fd63aebc080f6e0))
+* **deps:** update dependency markdownlint-cli to v0.41.0 ([#443](https://github.com/defenseunicorns/lula/issues/443)) ([27c0e94](https://github.com/defenseunicorns/lula/commit/27c0e947d3e9cf92a24687251acd786732e1a441))
+* **deps:** update dependency prettier to v3.3.1 ([#459](https://github.com/defenseunicorns/lula/issues/459)) ([c999b78](https://github.com/defenseunicorns/lula/commit/c999b78c945e73ea1c5e93d269341e7c2c953e17))
+* **deps:** update github/codeql-action action to v3.25.10 ([#476](https://github.com/defenseunicorns/lula/issues/476)) ([e2e74eb](https://github.com/defenseunicorns/lula/commit/e2e74eb473a6b2a315f908f21c4e2e56bd9e8b82))
+* **deps:** update github/codeql-action action to v3.25.7 ([#452](https://github.com/defenseunicorns/lula/issues/452)) ([2583eea](https://github.com/defenseunicorns/lula/commit/2583eea6200f305c74ae214576188c424d39f749))
+* **deps:** update github/codeql-action action to v3.25.8 ([#463](https://github.com/defenseunicorns/lula/issues/463)) ([0e7f844](https://github.com/defenseunicorns/lula/commit/0e7f844079826ac7fde2f5572cc5c48f377917a0))
+* **deps:** update googleapis/release-please-action digest to 7987652 ([#472](https://github.com/defenseunicorns/lula/issues/472)) ([d50b034](https://github.com/defenseunicorns/lula/commit/d50b034802114ac3b1f3f26f50ec90640ee2f88a))
+* **deps:** update goreleaser/goreleaser-action action to v6 ([#464](https://github.com/defenseunicorns/lula/issues/464)) ([e74b9d5](https://github.com/defenseunicorns/lula/commit/e74b9d53add588a4ddb83138b04e4e9ca263dae6))
+* **deps:** update kubernetes packages to v0.30.2 ([#477](https://github.com/defenseunicorns/lula/issues/477)) ([679d2c8](https://github.com/defenseunicorns/lula/commit/679d2c8b684f07c7098465c14ffbbfd1c3e7d73b))
+* **deps:** update module github.com/defenseunicorns/go-oscal to v0.4.3 ([#470](https://github.com/defenseunicorns/lula/issues/470)) ([5c78254](https://github.com/defenseunicorns/lula/commit/5c782545cdbd400f88a8e6e5e306a4a80207c0a2))
+* **deps:** update module github.com/defenseunicorns/go-oscal to v0.5.0 ([#492](https://github.com/defenseunicorns/lula/issues/492)) ([c5d128f](https://github.com/defenseunicorns/lula/commit/c5d128ffaa831f4acdf6f6250732762eeb7d7397))
+* **deps:** update module github.com/kyverno/kyverno-json to v0.0.3 ([#453](https://github.com/defenseunicorns/lula/issues/453)) ([1dc96e8](https://github.com/defenseunicorns/lula/commit/1dc96e832aa29a1d126a2b4f4d620aa006c8fec1))
+* **deps:** update module github.com/open-policy-agent/opa to v0.65.0 ([#451](https://github.com/defenseunicorns/lula/issues/451)) ([7867a3c](https://github.com/defenseunicorns/lula/commit/7867a3c36826eaa264106434f993f37597ffd8e7))
+* **deps:** update module github.com/open-policy-agent/opa to v0.66.0 ([#505](https://github.com/defenseunicorns/lula/issues/505)) ([7692e33](https://github.com/defenseunicorns/lula/commit/7692e3393bfa1ce26a3aca3acea125cf4928e61e))
+* **deps:** update module github.com/spf13/cobra to v1.8.1 ([#485](https://github.com/defenseunicorns/lula/issues/485)) ([aaeba70](https://github.com/defenseunicorns/lula/commit/aaeba704b966ec65725f606647304482a77b9212))
+* **docs:** cleanup unused readme conflicting in docs build ([#489](https://github.com/defenseunicorns/lula/issues/489)) ([19a3f61](https://github.com/defenseunicorns/lula/commit/19a3f61738a3812fa859aefcc86fdc53fa7c8246))
+* **docs:** re-organize docs for docs website consumption ([#495](https://github.com/defenseunicorns/lula/issues/495)) ([24c24f0](https://github.com/defenseunicorns/lula/commit/24c24f0c8b5f40cd436c77e665fc068012ae41dc))
+* fix documentation links ([#487](https://github.com/defenseunicorns/lula/issues/487)) ([4f96ec5](https://github.com/defenseunicorns/lula/commit/4f96ec5a8ebcbd9a7eb921a5e96db396c4967a02))
+
 ## [0.3.0](https://github.com/defenseunicorns/lula/compare/v0.2.1...v0.3.0) (2024-05-24)
 
 
