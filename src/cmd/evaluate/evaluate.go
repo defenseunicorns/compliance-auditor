@@ -68,6 +68,8 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
 		defer spinner.Stop()
 
+		message.Debugf("threshold UUID: %s / latest UUID: %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
+
 		status, findings, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
 			message.Fatal(err, err.Error())
@@ -84,6 +86,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 				// Update latest threshold prop
 				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["latest"].Props)
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", resultMap["threshold"].Props)
 			} else {
 				// retain result as threshold
 				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
@@ -95,6 +98,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 					message.Infof("%s", finding.Target.TargetId)
 				}
 			}
+			message.Info("Evaluation Passed Successfully")
 
 		} else {
 			message.Warn("Evaluation Failed against the following findings:")
