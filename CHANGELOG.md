@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/defenseunicorns/lula/compare/v0.4.0...v0.4.1) (2024-06-29)
+
+
+### Bug Fixes
+
+* **release:** proper flag utilization ([#511](https://github.com/defenseunicorns/lula/issues/511)) ([ecefd9a](https://github.com/defenseunicorns/lula/commit/ecefd9ac094a590dd3d76212695605f26f4c3dcb))
+
 ## [0.4.0](https://github.com/defenseunicorns/lula/compare/v0.3.0...v0.4.0) (2024-06-28)
 
 
