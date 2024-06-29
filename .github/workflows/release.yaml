@@ -98,6 +98,6 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean ----verbose
+          args: release --clean --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
