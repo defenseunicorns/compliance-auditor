@@ -3,6 +3,7 @@ package oscal
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -32,13 +33,18 @@ func NewOscalModel(data []byte) (*oscalTypes_1_1_2.OscalModels, error) {
 // supports both json and yaml
 func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
 
-	// if no path or directory add default filename
-	if filepath.Ext(filePath) == "" {
-		filePath = filepath.Join(filePath, "oscal.yaml")
+	modelType, err := GetOscalModel(model)
+	if err != nil {
+		return err
 	}
 
-	if err := files.IsJsonOrYaml(filePath); err != nil {
-		return err
+	// if no path or directory add default filename
+	if filepath.Ext(filePath) == "" {
+		filePath = filepath.Join(filePath, fmt.Sprintf("%s.yaml", modelType))
+	} else {
+		if err := files.IsJsonOrYaml(filePath); err != nil {
+			return err
+		}
 	}
 
 	if _, err := os.Stat(filePath); err == nil {
@@ -51,9 +57,18 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		if err != nil {
 			return err
 		}
+
+		existingModelType, err := GetOscalModel(existingModel)
+		if err != nil {
+			return nil
+		}
+
+		if existingModelType != modelType {
+			return fmt.Errorf("cannot merge model %s with existing model %s", modelType, existingModelType)
+		}
 		// Merge the existing model with the new model
 		// re-assign to perform common operations below
-		model, err = MergeOscalModels(existingModel, model)
+		model, err = MergeOscalModels(existingModel, model, modelType)
 		if err != nil {
 			return err
 		}
@@ -71,7 +86,7 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		yamlEncoder.Encode(model)
 	}
 
-	err := files.WriteOutput(b.Bytes(), filePath)
+	err = files.WriteOutput(b.Bytes(), filePath)
 	if err != nil {
 		return err
 	}
@@ -82,12 +97,12 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 
 }
 
-func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *oscalTypes_1_1_2.OscalModels) (*oscalTypes_1_1_2.OscalModels, error) {
+func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *oscalTypes_1_1_2.OscalModels, modelType string) (*oscalTypes_1_1_2.OscalModels, error) {
 	var err error
 	// Now to check each model type - currently only component definition and assessment-results apply
 
 	// Component definition
-	if existingModel.ComponentDefinition != nil && newModel.ComponentDefinition != nil {
+	if modelType == "component" {
 		merged, err := MergeComponentDefinitions(existingModel.ComponentDefinition, newModel.ComponentDefinition)
 		if err != nil {
 			return nil, err
@@ -99,7 +114,7 @@ func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *osc
 	}
 
 	// Assessment Results
-	if existingModel.AssessmentResults != nil && newModel.AssessmentResults != nil {
+	if modelType == "assessment-results" {
 		merged, err := MergeAssessmentResults(existingModel.AssessmentResults, newModel.AssessmentResults)
 		if err != nil {
 			return existingModel, err
@@ -111,4 +126,45 @@ func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *osc
 	}
 
 	return existingModel, err
+}
+
+func GetOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err error) {
+
+	// Check if one model present and all other nil - is there a better way to do this?
+	models := make([]string, 0)
+
+	if model.Catalog != nil {
+		models = append(models, "catalog")
+	}
+
+	if model.Profile != nil {
+		models = append(models, "profile")
+	}
+
+	if model.ComponentDefinition != nil {
+		models = append(models, "component")
+	}
+
+	if model.SystemSecurityPlan != nil {
+		models = append(models, "system-security-plan")
+	}
+
+	if model.AssessmentPlan != nil {
+		models = append(models, "assessment-plan")
+	}
+
+	if model.AssessmentResults != nil {
+		models = append(models, "assessment-results")
+	}
+
+	if model.PlanOfActionAndMilestones != nil {
+		models = append(models, "poam")
+	}
+
+	if len(models) > 1 {
+		return "", fmt.Errorf("%v models identified when only oneOf is permitted", len(models))
+	} else {
+		return models[0], nil
+	}
+
 }
