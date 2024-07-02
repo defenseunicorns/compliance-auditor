@@ -6,19 +6,19 @@ Evaluate serves as a method for verifying the compliance of a component/system a
 
 ### No Existing Data
 
-When no previous assessment exists, the initial assessment is made and stored with `lula validate`. This initial assessment by itself will always pass `lula evaluate` as there is no threshold for evaluation. Lula will automatically apply the `threshold` prop to the assessment result when writing the assessment result to a file that does not contain an existing assessment results artifact.
+When no previous assessment exists, the initial assessment is made and stored with `lula validate`. Lula will automatically apply the `threshold` prop to the assessment result when writing the assessment result to a file that does not contain an existing assessment results artifact. This initial assessment by itself will always pass `lula evaluate` as there is no threshold for evaluation, and the threshold prop with be set to `true`.
 
 steps:
-1. `lula validate`
-2. `lula evaluate` -> Passes with no Threshold
+1. `lula validate -f component.yaml -o assessment-results.yaml`
+2. `lula evaluate -f assessment-results.yaml` -> Passes with no Threshold -> Establishes Threshold
 
 ### Existing Data (Intended Workflow)
 
 In workflows run manually or with automation (such as CI/CD), there is an expectation that the threshold exists, and evaluate will perform an analysis of the compliance of the system/component against the established threshold.
 
 steps:
-1. `lula validate`
-2. `lula evaluate` -> Passes or Fails based on threshold
+1. `lula validate -f component.yaml -o assessment-results.yaml`
+2. `lula evaluate -f assessment-results.yaml` -> Passes or Fails based on threshold
 
 
 ## Scenarios for Consideration
