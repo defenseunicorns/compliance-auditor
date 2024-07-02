@@ -57,6 +57,10 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 		if err.Error() == "less than 2 results found - no comparison possible" {
 			// Catch and warn of insufficient results
 			message.Warn(err.Error())
+			if len(resultMap) > 0 {
+				// Indicates that there is at least one assessment result
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["latest"].Props)
+			}
 			return
 		} else {
 			message.Fatal(err, err.Error())
