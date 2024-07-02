@@ -137,7 +137,7 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 	// Handle single result found in the assessment-results
 	if len(sortedResults) == 1 {
 		// Only one result found - set latest and return
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
+		resultMap["threshold"] = sortedResults[len(sortedResults)-1]
 		return resultMap, fmt.Errorf("less than 2 results found - no comparison possible")
 	}
 
