@@ -17,8 +17,7 @@
                 "uuid": {
                     "$ref": "#/definitions/uuid"
                 }
-            },
-            "additionalProperties": false
+            }
         },
         "domain": {
             "$ref": "#/definitions/domain"
@@ -72,60 +71,13 @@
                 }
             }
         },
-        "provider": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "opa",
-                        "kyverno"
-                    ],
-                    "description": "Required"
-                },
-                "opa-spec": {
-                    "$ref": "#/definitions/opaSpec"
-                },
-                "kyverno-spec": {
-                    "$ref": "#/definitions/kyvernoSpec"
-                }
-            },
-            "required": [
-                "type"
-            ],
-            "oneOf": [
-                {
-                    "required": [
-                        "opa-spec"
-                    ]
-                },
-                {
-                    "required": [
-                        "kyverno-spec"
-                    ]
-                }
-            ]
-        },
         "kubernetes-spec": {
             "type": "object",
             "properties": {
                 "resources": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "Identifier to be read by the policy"
-                            },
-                            "resource-rule": {
-                                "$ref": "#/definitions/resource-rule"
-                            }
-                        },
-                        "required": [
-                            "name",
-                            "resource-rule"
-                        ]
+                        "$ref": "#/definitions/resource"
                     }
                 },
                 "create-resources": {
@@ -204,6 +156,22 @@
                         "create-resources"
                     ]
                 }
+            ]
+        },
+        "resource": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Identifier to be read by the policy"
+                },
+                "resource-rule": {
+                    "$ref": "#/definitions/resource-rule"
+                }
+            },
+            "required": [
+                "name",
+                "resource-rule"
             ]
         },
         "resource-rule": {
@@ -319,6 +287,40 @@
                     }
                 }
             }
+        },
+        "provider": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "opa",
+                        "kyverno"
+                    ],
+                    "description": "Required"
+                },
+                "opa-spec": {
+                    "$ref": "#/definitions/opaSpec"
+                },
+                "kyverno-spec": {
+                    "$ref": "#/definitions/kyvernoSpec"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "oneOf": [
+                {
+                    "required": [
+                        "opa-spec"
+                    ]
+                },
+                {
+                    "required": [
+                        "kyverno-spec"
+                    ]
+                }
+            ]
         },
         "opaSpec": {
             "type": "object",

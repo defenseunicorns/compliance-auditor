@@ -56,7 +56,7 @@ func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err erro
 	return resource, nil
 }
 
-// TODO: Perhaps extend this structure with other needed information, such as UUID or type of validation if workflow is needed
+// Metadata is a structure that contains the name and uuid of a validation
 type Metadata struct {
 	Name string `json:"name" yaml:"name"`
 	UUID string `json:"uuid,omitempty" yaml:"uuid,omitempty"`

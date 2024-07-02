@@ -7,7 +7,6 @@ domain:
   kubernetes-spec:
     resources:
       - name: podsvt
-        description: Validate pods with label foo=bar
         resource-rule:
           name: ""
           group: ""
