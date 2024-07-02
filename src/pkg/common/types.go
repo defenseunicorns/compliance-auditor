@@ -62,10 +62,14 @@ type Metadata struct {
 	UUID string `json:"uuid,omitempty" yaml:"uuid,omitempty"`
 }
 
+// Domain is a structure that contains the domain type and the corresponding spec
 type Domain struct {
-	Type           string               `json:"type" yaml:"type"`
+	// Type is the type of domain: enum: kubernetes, api
+	Type string `json:"type" yaml:"type"`
+	// KubernetesSpec is the specification for a Kubernetes domain, required if type is kubernetes
 	KubernetesSpec *kube.KubernetesSpec `json:"kubernetes-spec,omitempty" yaml:"kubernetes-spec,omitempty"`
-	ApiSpec        *api.ApiSpec         `json:"api-spec,omitempty" yaml:"api-spec,omitempty"`
+	// ApiSpec is the specification for an API domain, required if type is api
+	ApiSpec *api.ApiSpec `json:"api-spec,omitempty" yaml:"api-spec,omitempty"`
 }
 
 type Provider struct {
