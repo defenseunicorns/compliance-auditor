@@ -14,7 +14,6 @@ domain:
           namespaces: [validation-test]
       - name: configs
         resource-rule:
-          name: ""
           version: v1
           resource: configmaps
           namespaces: [validation-test]

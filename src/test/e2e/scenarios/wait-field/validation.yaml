@@ -5,7 +5,6 @@ domain:
       - name: podsvt
         resource-rule:
           resource: pods
-          name: ""
           version: v1
           namespaces: [validation-test]
     wait:
