@@ -57,7 +57,12 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 		if err.Error() == "less than 2 results found - no comparison possible" {
 			// Catch and warn of insufficient results
 			message.Warn(err.Error())
-			return
+			if len(resultMap) > 0 {
+				// Indicates that there is at least one assessment result
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
+			} else {
+				return
+			}
 		} else {
 			message.Fatal(err, err.Error())
 		}
@@ -115,8 +120,6 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 	} else if resultMap["threshold"] == nil {
 		message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
-	} else {
-		message.Fatal(fmt.Errorf("no latest assessment results could be identified"), "no latest assessment results could be identified")
 	}
 
 	// Write each file back in the case of modification
