@@ -39,21 +39,6 @@
         },
         "domain": {
             "type": "object",
-            "required": [
-                "type"
-            ],
-            "oneOf": [
-                {
-                    "required": [
-                        "kubernetes-spec"
-                    ]
-                },
-                {
-                    "required": [
-                        "api-spec"
-                    ]
-                }
-            ],
             "properties": {
                 "type": {
                     "type": "string",
@@ -69,7 +54,42 @@
                 "api-spec": {
                     "$ref": "#/definitions/api-spec"
                 }
-            }
+            },
+            "allOf": [
+                {
+                    "required": [
+                        "type"
+                    ]
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "kubernetes"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "kubernetes-spec"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "api"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "api-spec"
+                        ]
+                    }
+                }
+            ]
         },
         "kubernetes-spec": {
             "type": "object",
@@ -270,19 +290,39 @@
                     "$ref": "#/definitions/kyvernoSpec"
                 }
             },
-            "required": [
-                "type"
-            ],
-            "oneOf": [
+            "allOf": [
                 {
                     "required": [
-                        "opa-spec"
+                        "type"
                     ]
                 },
                 {
-                    "required": [
-                        "kyverno-spec"
-                    ]
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "opa"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "opa-spec"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "kyverno"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "kyverno-spec"
+                        ]
+                    }
                 }
             ]
         },
@@ -290,7 +330,8 @@
             "type": "object",
             "properties": {
                 "rego": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": ".*\\S\\s\\n.*"
                 },
                 "output": {
                     "type": "object",

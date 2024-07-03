@@ -22,12 +22,18 @@ func (o OpaProvider) Evaluate(resources types.DomainResources) (types.Result, er
 	return results, nil
 }
 
+// OpaSpec is the specification of the OPA policy, required if the provider type is opa
 type OpaSpec struct {
-	Rego   string     `json:"rego" yaml:"rego"`
+	// Required: Rego is the OPA policy
+	Rego string `json:"rego" yaml:"rego"`
+	// Optional: Output is the output of the OPA policy
 	Output *OpaOutput `json:"output,omitempty" yaml:"output,omitempty"`
 }
 
+// OpaOutput Defines the output structure for OPA validation results, including validation status and additional observations.
 type OpaOutput struct {
-	Validation   string   `json:"validation" yaml:"validation"`
+	// optional: Specifies the JSON path to a boolean value indicating the validation result.
+	Validation string `json:"validation" yaml:"validation"`
+	// optional: any additional observations to include (fields must resolve to strings)
 	Observations []string `json:"observations" yaml:"observations"`
 }
