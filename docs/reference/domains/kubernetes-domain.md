@@ -17,7 +17,7 @@ domain:
     - name: podsvt                      # Required - Identifier to be read by the policy
       resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
         name:                           # Optional - Used to retrieve a specific resource in a single namespace
-        group:                          #  - empty or "" for core group
+        group:                          # Optional - empty or "" for core group
         version: v1                     # Required - Version of resource
         resource: pods                  # Required - Resource type (API-recognized type, not Kind)
         namespaces: [validation-test]   # Optional - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
