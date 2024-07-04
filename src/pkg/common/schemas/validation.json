@@ -224,6 +224,42 @@
                     "$ref": "#/definitions/field"
                 }
             },
+            "allOf": [
+                {
+                    "required": [
+                        "version",
+                        "resource"
+                    ]
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "field": {
+                                "$ref": "#/definitions/field"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "namespaces"
+                        ]
+                    }
+                }
+            ],
             "description": "Resource selection criteria, at least one resource rule is required"
         },
         "field": {

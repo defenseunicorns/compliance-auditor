@@ -108,8 +108,6 @@ func Validate(schema string, data model.InterfaceOrBytes) error {
 	return nil
 }
 
-// func handleTopLevelMissingProperties()
-
 // Creates a []ValidatorError from a jsonschema.Basic
 // The jsonschema.Basic contains the errors from the validation
 func ExtractErrors(originalObject map[string]interface{}, validationError jsonschema.Basic) (validationErrors []validation.ValidatorError) {
