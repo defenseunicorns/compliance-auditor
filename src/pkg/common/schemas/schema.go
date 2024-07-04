@@ -101,42 +101,9 @@ func Validate(schema string, data model.InterfaceOrBytes) error {
 		// Extract the specific errors from the schema error
 		// Return the errors as a string
 		basicOutput := validationErr.BasicOutput()
-		basicErrors := ExtractErrors(jsonMap, basicOutput)
+		basicErrors := validation.ExtractErrors(jsonMap, basicOutput)
 		formattedErrors, _ := json.MarshalIndent(basicErrors, "", "  ")
 		return errors.New(string(formattedErrors))
 	}
 	return nil
-}
-
-// Creates a []ValidatorError from a jsonschema.Basic
-// The jsonschema.Basic contains the errors from the validation
-func ExtractErrors(originalObject map[string]interface{}, validationError jsonschema.Basic) (validationErrors []validation.ValidatorError) {
-	validationErrors = []validation.ValidatorError{}
-	for _, basicError := range validationError.Errors {
-
-		if !strings.HasPrefix(basicError.Error, "missing properties:") && (basicError.InstanceLocation == "" || basicError.Error == "" || strings.HasPrefix(basicError.Error, "doesn't validate with")) {
-			continue
-		}
-		if len(validationErrors) > 0 && validationErrors[len(validationErrors)-1].InstanceLocation == basicError.InstanceLocation {
-			validationErrors[len(validationErrors)-1].Error += ", " + basicError.Error
-		} else {
-			failedValue := model.FindValue(originalObject, strings.Split(basicError.InstanceLocation, "/")[1:])
-			_, mapOk := failedValue.(map[string]interface{})
-			_, sliceOk := failedValue.([]interface{})
-			if mapOk || sliceOk {
-				failedValue = nil
-			}
-			// Create a ValidatorError from the jsonschema.BasicError
-			validationError := validation.ValidatorError{
-				KeywordLocation:         basicError.KeywordLocation,
-				AbsoluteKeywordLocation: basicError.AbsoluteKeywordLocation,
-				InstanceLocation:        basicError.InstanceLocation,
-				Error:                   basicError.Error,
-				FailedValue:             failedValue,
-			}
-			validationErrors = append(validationErrors, validationError)
-		}
-	}
-	return validationErrors
-
 }
