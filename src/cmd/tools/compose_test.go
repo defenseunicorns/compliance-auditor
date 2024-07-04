@@ -38,9 +38,9 @@ func TestComposeComponentDefinition(t *testing.T) {
 			t.Fatal("composed component definition is nil")
 		}
 
-		// if len(*compiledModel.ComponentDefinition.BackMatter.Resources) <= 1 {
-		// 	t.Fatalf("expected 2 resources, got %d", len(*compiledModel.ComponentDefinition.BackMatter.Resources))
-		// }
+		if len(*compiledModel.ComponentDefinition.BackMatter.Resources) <= 1 {
+			t.Fatalf("expected 2 resources, got %d", len(*compiledModel.ComponentDefinition.BackMatter.Resources))
+		}
 	})
 
 	t.Run("invalid component definition throws error", func(t *testing.T) {
