@@ -41,11 +41,11 @@ func TestBackMatterToMap(t *testing.T) {
 		backMatter oscalTypes.BackMatter
 		want       map[string]string
 	}{
-		// {
-		// 	name:       "Test No Resources",
-		// 	backMatter: oscalTypes.BackMatter{},
-		// 	want:       make(map[string]string),
-		// },
+		{
+			name:       "Test No Resources",
+			backMatter: oscalTypes.BackMatter{},
+			want:       make(map[string]string),
+		},
 		{
 			name:       "Test Valid Component",
 			backMatter: *validComponent.ComponentDefinition.BackMatter,
