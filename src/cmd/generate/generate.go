@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -59,13 +60,16 @@ var generateComponentCmd = &cobra.Command{
 	Args:    cobra.MaximumNArgs(1),
 	Short:   "Generate a component definition OSCAL template",
 	Example: componentHelp,
-	Run: func(_ *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
+
 		var remarks []string
 		var title = "Component Title"
+
 		// check for Catalog Source - this field is required
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
 		}
+		source := componentOpts.CatalogSource
 
 		// Assign remarks from flag or default to "statement"
 		if len(componentOpts.Remarks) == 0 {
@@ -79,7 +83,13 @@ var generateComponentCmd = &cobra.Command{
 			title = componentOpts.Component
 		}
 
-		source := componentOpts.CatalogSource
+		// Ensure there are controls provided
+		if len(componentOpts.Requirements) == 0 {
+			message.Fatalf(fmt.Errorf("comma-delimited list of control-ids required"), "comma-delimited list of control-ids required")
+		}
+
+		// Used to reproduce the command for documentation
+		command := fmt.Sprintf("%s --catalog-source %s --component '%s' --requirements %s --remarks %s", cmd.CommandPath(), source, title, strings.Join(componentOpts.Requirements, ","), strings.Join(remarks, ","))
 
 		// Fetch the catalog source
 		data, err := network.Fetch(source)
@@ -98,6 +108,10 @@ var generateComponentCmd = &cobra.Command{
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
+
+		// Add the command to the remarks - this will always overwrite the existing remarks content
+		components := *comp.Components
+		components[0].Remarks = fmt.Sprintf("This component was generated using the following command:\n\t %s", command)
 
 		var model = oscalTypes_1_1_2.OscalModels{
 			ComponentDefinition: comp,

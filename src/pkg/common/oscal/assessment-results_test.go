@@ -52,6 +52,27 @@ var observations = []oscalTypes_1_1_2.Observation{
 func TestIdentifyResults(t *testing.T) {
 	t.Parallel()
 
+	// Expecting an error when evaluating assessment without results
+	t.Run("Handle invalid assessment containing no results", func(t *testing.T) {
+
+		var assessment = &oscalTypes_1_1_2.AssessmentResults{
+			UUID: uuid.NewUUID(),
+		}
+		// key name does not matter here
+		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+			"valid.yaml": assessment,
+		}
+
+		resultMap, err := oscal.IdentifyResults(assessmentMap)
+		if err == nil {
+			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+
+		if resultMap != nil {
+			t.Fatalf("Expected resultMap to be nil")
+		}
+	})
+
 	// Expecting an error when evaluating a single result
 	t.Run("Handle valid assessment containing a single result", func(t *testing.T) {
 
@@ -65,9 +86,17 @@ func TestIdentifyResults(t *testing.T) {
 			"valid.yaml": assessment,
 		}
 
-		_, err = oscal.IdentifyResults(assessmentMap)
+		resultMap, err := oscal.IdentifyResults(assessmentMap)
 		if err == nil {
 			t.Fatalf("Expected error for inability to identify multiple results : %v", err)
+		}
+
+		if resultMap == nil {
+			t.Fatalf("Expected resultMap to be non-nil")
+		}
+
+		if len(resultMap) == 0 {
+			t.Fatalf("Expected resultMap to contain the single result")
 		}
 	})
 

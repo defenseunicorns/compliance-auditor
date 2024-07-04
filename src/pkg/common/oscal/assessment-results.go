@@ -129,8 +129,16 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 
 	thresholds, sortedResults := findAndSortResults(assessmentMap)
 
-	if len(sortedResults) <= 1 {
+	// Handle no results found in the assessment-results
+	if len(sortedResults) == 0 {
 		return nil, fmt.Errorf("less than 2 results found - no comparison possible")
+	}
+
+	// Handle single result found in the assessment-results
+	if len(sortedResults) == 1 {
+		// Only one result found - set latest and return
+		resultMap["threshold"] = sortedResults[len(sortedResults)-1]
+		return resultMap, fmt.Errorf("less than 2 results found - no comparison possible")
 	}
 
 	if len(thresholds) == 0 {
