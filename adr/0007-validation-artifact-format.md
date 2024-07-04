@@ -91,11 +91,11 @@ domain:
     resources:                                  
     - name: podsvt                          # Required 
       resource-rule:                        # Required
-        name:                               # Optional 
+        name:                               # Optional (Required with "field")
         group:                              # Optional (not all k8s resources have a group, the main ones are "")
         version: v1                         # Required
         resource: pods                      # Required
-        namespaces: [validation-test]       # Optional 
+        namespaces: [validation-test]       # Optional (Required with "name")
         field:                              # Optional 
           jsonpath:                         # Required
           type:                             # Optional 
