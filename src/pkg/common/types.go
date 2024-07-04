@@ -26,12 +26,7 @@ type Validation struct {
 }
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
-// Runs linting against the provided []byte before unmarshal
 func (v *Validation) UnmarshalYaml(data []byte) error {
-	err := schemas.Validate("validation", data)
-	if err != nil {
-		return err
-	}
 	return yaml.Unmarshal(data, v)
 }
 
@@ -79,6 +74,15 @@ type Provider struct {
 	KyvernoSpec *kyverno.KyvernoSpec `json:"kyverno-spec,omitempty" yaml:"kyverno-spec,omitempty"`
 }
 
+// Lint is a convenience method to lint a Validation object
+func (validation *Validation) Lint() error {
+	validationBytes, err := validation.MarshalYaml()
+	if err != nil {
+		return err
+	}
+	return schemas.Validate("validation", validationBytes)
+}
+
 // ToLulaValidation converts a Validation object to a LulaValidation object
 func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValidation, err error) {
 	// Do version checking here to establish if the version is correct/acceptable
@@ -89,11 +93,9 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 		versionConstraint = validation.LulaVersion
 	}
 
-	if validation.Domain == nil {
-		return lulaValidation, fmt.Errorf("required domain is nil")
-	}
-	if validation.Provider == nil {
-		return lulaValidation, fmt.Errorf("required provider is nil")
+	err = validation.Lint()
+	if err != nil {
+		return lulaValidation, err
 	}
 
 	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)

@@ -29,8 +29,8 @@
     "definitions": {
         "semver": {
             "type": "string",
-            "description": "Semantic versioning string following the pattern major.minor.patch with optional pre-release and build metadata.",
-            "pattern": "^(?:[><=]*\\s*|~|\\^)?v?([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+            "description": "Semantic versioning string following the pattern major.minor.patch with optional pre-release and build metadata or an empty string.",
+            "pattern": "^$|^(?:[><=]*\\s*|~|\\^)?v?([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
         },
         "uuid": {
             "type": "string",
@@ -95,13 +95,19 @@
             "type": "object",
             "properties": {
                 "resources": {
-                    "type": "array",
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "items": {
                         "$ref": "#/definitions/resource"
                     }
                 },
                 "create-resources": {
-                    "type": "array",
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "items": {
                         "type": "object",
                         "properties": {
@@ -125,16 +131,34 @@
                         "required": [
                             "name"
                         ],
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "required": [
-                                    "manifest"
-                                ]
+                                "if": {
+                                    "properties": {
+                                        "manifest": {
+                                            "const": null
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "file"
+                                    ]
+                                }
                             },
                             {
-                                "required": [
-                                    "file"
-                                ]
+                                "if": {
+                                    "properties": {
+                                        "file": {
+                                            "const": null
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "manifest"
+                                    ]
+                                }
                             }
                         ]
                     }
@@ -165,7 +189,7 @@
                     }
                 }
             },
-            "oneOf": [
+            "anyOf": [
                 {
                     "required": [
                         "resources"
