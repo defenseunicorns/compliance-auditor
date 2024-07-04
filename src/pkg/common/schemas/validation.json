@@ -233,9 +233,14 @@
                 },
                 {
                     "if": {
-                        "properties": {
-                            "field": {
-                                "$ref": "#/definitions/field"
+                        "not": {
+                            "properties": {
+                                "field": {
+                                    "const": [
+                                        null,
+                                        {}
+                                    ]
+                                }
                             }
                         }
                     },
