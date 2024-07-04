@@ -26,6 +26,7 @@ type Validation struct {
 }
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
+// Runs schema validation against the provided []byte before unmarshal
 func (v *Validation) UnmarshalYaml(data []byte) error {
 	err := schemas.Validate("validation", data)
 	if err != nil {
