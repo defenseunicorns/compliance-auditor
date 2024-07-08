@@ -1,9 +1,4 @@
-# Lula - The Cloud-Native Compliance Engine
-
-[![Go version](https://img.shields.io/github/go-mod/go-version/defenseunicorns/lula?filename=go.mod)](https://go.dev/)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/lula/badge)](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/lula)
-
-<img align="right" alt="lula logo" src="lula.svg" height="256" />
+# About
 
 Lula is a tool designed to bridge the gap between expected configuration required for compliance and **_actual_** configuration.
 
@@ -26,8 +21,6 @@ These controls can be well established and regulated standards such as NIST 800-
 
 Lula operates on a framework of proof by adding custom overlays mapped to the these controls, [`Lula Validations`](link), to measure system compliance. These `Validations` are constructed by establishing the collection of measurements about a system, given by the specified **Domain**, and the evaluation of adherence, performed by the **Provider**. 
 
-### Providers and Domains
-
 **Domain** is the identifier for where and which data to collect as "evidence". Below are the active and planned domains:
 
 | Domain | Current | Roadmap |
@@ -42,7 +35,3 @@ Lula operates on a framework of proof by adding custom overlays mapped to the th
 |----------|----------|----------|
 | [OPA](./docs/reference/provideres/opa-provider.md) | ✅ | - |
 | [Kyverno](./docs/reference/provideres/kyverno-provider.md) | ✅ | - |
-
-## Getting Started
-
-[Install Lula](./docs/getting-started/README.md) and check out the [Simple Demo](./docs/getting-started/tutorials/simple-demo.md) to get familiar with Lula's `validate` and `evaluate` workflow to assess system compliance and establish thresholds. See the other tutorials for more advanced Lula use cases and information on how to develop your own `Lula Validations`! 
