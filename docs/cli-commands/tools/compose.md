@@ -11,7 +11,7 @@ lula tools compose -f <input-file> -o <output-file>
 ## Options
 
 - `-f, --input-file`: The path to the target OSCAL component definition.
-- `-o, --output-file`: The path to the output file. If not specified, the output file will be the original filename with `-composed` appended.
+- `-o, --output-file`: The path to the output file. If not specified, the output file will be the original filename with `-composed` appended (ie. `oscal-component.yaml` will be composed to `oscal-component-composed.yaml`).
 
 ## Examples
 

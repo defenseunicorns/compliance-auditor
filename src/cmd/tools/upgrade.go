@@ -40,6 +40,9 @@ func init() {
 			}
 
 			revisionResponse, err := revision.RevisionCommand(&upgradeOpts.RevisionOptions)
+			if err != nil {
+				message.Fatalf(err, "Failed to upgrade %s to OSCAL version %s %s", upgradeOpts.InputFile, upgradeOpts.Version, err)
+			}
 
 			if upgradeOpts.ValidationResult != "" {
 				validation.WriteValidationResult(revisionResponse.Result, upgradeOpts.ValidationResult)

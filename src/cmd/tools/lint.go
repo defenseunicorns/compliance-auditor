@@ -3,10 +3,13 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +17,7 @@ import (
 type flags struct {
 	InputFiles []string // -f --input-files
 	ResultFile string   // -r --result-file
+	Composed   bool     // -c --composed (default false)
 }
 
 var opts = &flags{}
@@ -21,6 +25,9 @@ var opts = &flags{}
 var lintHelp = `
 To lint existing OSCAL files:
 	lula tools lint -f <path1>,<path2>,<path3>
+To lint composed OSCAL models:
+	**WARNING** Only use if you are sure that the OSCAL model is already composed, (i.e. it has no imports or remote validations)
+	lula tools lint -c true -f <path1>,<path2>,<path3>
 `
 
 func init() {
@@ -34,15 +41,35 @@ func init() {
 		Example: lintHelp,
 		Run: func(cmd *cobra.Command, args []string) {
 			var validationResults []validation.ValidationResult
+			var tmpDir string
 			if len(opts.InputFiles) == 0 {
 				message.Fatalf(nil, "No input files specified")
 			}
 
+			// Create a temporary directory to store the composed OSCAL models
+			tmpDir, err := composition.CreateTempDir()
+			if err != nil {
+				message.Fatalf(err, "Failed to create temporary directory")
+			}
+			defer os.RemoveAll(tmpDir)
+
 			for _, inputFile := range opts.InputFiles {
+
 				spinner := message.NewProgressSpinner("Linting %s", inputFile)
 				defer spinner.Stop()
 
-				validationResp, err := validation.ValidationCommand(inputFile)
+				// ensure the input file is composed
+				composedFile := inputFile
+				if !opts.Composed {
+					composedFile = path.Join(tmpDir, path.Base(inputFile))
+
+					err := Compose(inputFile, composedFile)
+					if err != nil {
+						message.Fatalf(err, "Failed to compose %s", inputFile)
+					}
+				}
+
+				validationResp, err := validation.ValidationCommand(composedFile)
 				// fatal for non-validation errors
 				if err != nil {
 					message.Fatalf(err, "Failed to lint %s: %s", inputFile, err)
