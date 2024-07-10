@@ -39,10 +39,17 @@ func init() {
 				upgradeOpts.OutputFile = upgradeOpts.InputFile
 			}
 
-			revisionResponse, err := revision.RevisionCommand(&upgradeOpts.RevisionOptions)
+			revisionResponse, revisionErr := revision.RevisionCommand(&upgradeOpts.RevisionOptions)
 
 			if upgradeOpts.ValidationResult != "" {
-				validation.WriteValidationResult(revisionResponse.Result, upgradeOpts.ValidationResult)
+				err := validation.WriteValidationResult(revisionResponse.Result, upgradeOpts.ValidationResult)
+				if err != nil {
+					message.Fatalf("Failed to write validation result to %s: %s\n", upgradeOpts.ValidationResult, err)
+				}
+			}
+
+			if revisionErr != nil {
+				message.Fatalf(revisionErr, "Failed to upgrade %s: %s", upgradeOpts.InputFile, revisionErr)
 			}
 
 			if len(revisionResponse.Warnings) > 0 {
@@ -51,7 +58,7 @@ func init() {
 				}
 			}
 
-			err = files.WriteOutput(revisionResponse.RevisedBytes, upgradeOpts.OutputFile)
+			err := files.WriteOutput(revisionResponse.RevisedBytes, upgradeOpts.OutputFile)
 			if err != nil {
 				message.Fatalf(err, "Failed to write upgraded %s with: %s", upgradeOpts.OutputFile, err)
 			}
@@ -67,6 +74,7 @@ func init() {
 	toolsCmd.AddCommand(upgradeCmd)
 
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.InputFile, "input-file", "f", "", "the path to a oscal json schema file")
+	upgradeCmd.MarkFlagRequired("input-file")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.OutputFile, "output-file", "o", "", "the path to write the linted oscal json schema file (default is the input file)")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.Version, "version", "v", versioning.GetLatestSupportedVersion(), "the version of the oscal schema to validate against (default is the latest supported version)")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.ValidationResult, "validation-result", "r", "", "the path to write the validation result file")
