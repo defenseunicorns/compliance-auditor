@@ -2,14 +2,14 @@ package schemas
 
 import (
 	"embed"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io/fs"
 	"strings"
+	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/model"
-	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
@@ -74,20 +74,21 @@ func GetSchema(path string) ([]byte, error) {
 	return Schemas.ReadFile(path)
 }
 
-func Validate(schema string, data model.InterfaceOrBytes) error {
+func Validate(schema string, data model.InterfaceOrBytes) oscalValidation.ValidationResult {
+
 	jsonMap, err := model.CoerceToJsonMap(data)
 	if err != nil {
-		return err
+		return validationResult.NewNonSchemaValidationError(err, "validation")
 	}
 
 	schemaBytes, err := GetSchema(schema)
 	if err != nil {
-		return err
+		return validationResult.NewNonSchemaValidationError(err, "validation")
 	}
 
 	sch, err := jsonschema.CompileString(schema, string(schemaBytes))
 	if err != nil {
-		return err
+		return validationResult.NewNonSchemaValidationError(err, "validation")
 	}
 
 	err = sch.Validate(jsonMap)
@@ -95,15 +96,25 @@ func Validate(schema string, data model.InterfaceOrBytes) error {
 		// If the error is not a validation error, return the error
 		validationErr, ok := err.(*jsonschema.ValidationError)
 		if !ok {
-			return err
+			return validationResult.NewNonSchemaValidationError(err, "validation")
 		}
 
 		// Extract the specific errors from the schema error
 		// Return the errors as a string
 		basicOutput := validationErr.BasicOutput()
-		basicErrors := validation.ExtractErrors(jsonMap, basicOutput)
-		formattedErrors, _ := json.MarshalIndent(basicErrors, "", "  ")
-		return errors.New(string(formattedErrors))
+		basicErrors := oscalValidation.ExtractErrors(jsonMap, basicOutput)
+		return oscalValidation.ValidationResult{
+			Valid:     false,
+			TimeStamp: time.Now(),
+			Errors:    basicErrors,
+		}
 	}
-	return nil
+	return oscalValidation.ValidationResult{
+		Valid:     true,
+		TimeStamp: time.Now(),
+		Errors:    []oscalValidation.ValidatorError{},
+		Metadata: oscalValidation.ValidationResultMetadata{
+			DocumentType: "validation",
+		},
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
+	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 )
 
 func TestToMap(t *testing.T) {
@@ -72,18 +73,18 @@ func TestValidate(t *testing.T) {
 	t.Run("Should validate a schema", func(t *testing.T) {
 		t.Parallel() // Enable parallel execution of subtests
 		schema := "validation"
-		err := schemas.Validate(schema, validationData)
-		if err != nil {
-			t.Errorf("Expected no error, got %v", err)
+		result := schemas.Validate(schema, validationData)
+		if validationResult.GetNonSchemaError(result) != nil {
+			t.Errorf("expected result to be valid, got %v", result)
 		}
 	})
 
-	t.Run("Should return an error if the schema is missing required properties", func(t *testing.T) {
+	t.Run("Should return an ValidationResult if the schema is missing required properties", func(t *testing.T) {
 		t.Parallel() // Enable parallel execution of subtests
 		schema := "validation"
-		err := schemas.Validate(schema, []byte("{\n\t\"name\": \"test\"\n}"))
-		if err == nil {
-			t.Errorf("Expected error, got nil")
+		result := schemas.Validate(schema, []byte("{\n\t\"name\": \"test\"\n}"))
+		if result.Valid == true {
+			t.Errorf("expected result to be invalid, got %v", result)
 		}
 	})
 }

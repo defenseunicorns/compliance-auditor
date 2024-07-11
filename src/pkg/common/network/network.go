@@ -23,9 +23,18 @@ var HttpClient = &http.Client{
 
 // parseUrl parses a URL string into a url.URL object.
 func parseUrl(inputURL string) (*url.URL, error) {
-	parsedUrl, err := url.ParseRequestURI(inputURL)
-	if err != nil || parsedUrl.Scheme == "" || (parsedUrl.Scheme != "file" && parsedUrl.Host == "") {
-		return nil, errors.New("invalid URL")
+	if inputURL == "" {
+		return nil, errors.New("empty URL")
+	}
+	parsedUrl, err := url.Parse(inputURL)
+	if err != nil {
+		return nil, err
+	}
+	if parsedUrl.Scheme == "" {
+		return parseUrl(fmt.Sprintf("file:%s", inputURL))
+	}
+	if parsedUrl.Scheme != "file" && parsedUrl.Host == "" {
+		return nil, errors.New("invalid URL, must be a file path, http(s) URL, or a valid URL with a host")
 	}
 	return parsedUrl, nil
 }

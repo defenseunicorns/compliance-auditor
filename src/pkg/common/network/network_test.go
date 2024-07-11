@@ -23,9 +23,27 @@ func TestParseUrl(t *testing.T) {
 			wantChecksum: false,
 		},
 		{
-			name:         "invalid url",
-			input:        "backmatter/resources",
+			name:         "Invalid URL scheme",
+			input:        "ht@tp://example.com",
 			wantErr:      true,
+			wantChecksum: false,
+		},
+		{
+			name:         "Empty URL",
+			input:        "",
+			wantErr:      true,
+			wantChecksum: false,
+		},
+		{
+			name:         "URL with spaces",
+			input:        "http://example .com",
+			wantErr:      true,
+			wantChecksum: false,
+		},
+		{
+			name:         "Adds file if no scheme",
+			input:        "path/to/file",
+			wantErr:      false,
 			wantChecksum: false,
 		},
 		{
@@ -183,7 +201,7 @@ func TestParseChecksum(t *testing.T) {
 		},
 		{
 			name:             "Invalid URL",
-			inputURL:         "invalid",
+			inputURL:         "",
 			expectedURL:      nil,
 			expectedChecksum: "",
 			wantErr:          true,

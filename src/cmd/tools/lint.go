@@ -3,12 +3,10 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/config"
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -36,25 +34,17 @@ func init() {
 		Long:    "Validate OSCAL documents are properly configured against the OSCAL schema",
 		Example: lintHelp,
 		Run: func(cmd *cobra.Command, args []string) {
-			var validationResults []validation.ValidationResult
-			var tmpDir string
+			var validationResults []oscalValidation.ValidationResult
 			if len(opts.InputFiles) == 0 {
 				message.Fatalf(nil, "No input files specified")
 			}
-
-			// Create a temporary directory to store the composed OSCAL models
-			tmpDir, err := composition.CreateTempDir()
-			if err != nil {
-				message.Fatalf(err, "Failed to create temporary directory")
-			}
-			defer os.RemoveAll(tmpDir)
 
 			for _, inputFile := range opts.InputFiles {
 
 				spinner := message.NewProgressSpinner("Linting %s", inputFile)
 				defer spinner.Stop()
 
-				validationResp, err := validation.ValidationCommand(inputFile)
+				validationResp, err := oscalValidation.ValidationCommand(inputFile)
 				// fatal for non-validation errors
 				if err != nil {
 					message.Fatalf(err, "Failed to lint %s: %s", inputFile, err)
@@ -89,10 +79,10 @@ func init() {
 			if opts.ResultFile != "" {
 				// If there is only one validation result, write it to the file
 				if len(validationResults) == 1 {
-					validation.WriteValidationResult(validationResults[0], opts.ResultFile)
+					oscalValidation.WriteValidationResult(validationResults[0], opts.ResultFile)
 				} else {
 					// If there are multiple validation results, write them to the file
-					validation.WriteValidationResults(validationResults, opts.ResultFile)
+					oscalValidation.WriteValidationResults(validationResults, opts.ResultFile)
 				}
 			}
 
