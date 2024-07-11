@@ -1,29 +1,25 @@
 # Lint Command
 
-The `lint` command is used to validate OSCAL files against the OSCAL schema. It can validate both composed and non-composed OSCAL models.
+The `lula tools lint` command is used to validate OSCAL files against the OSCAL schema. It can validate both composed and non-composed OSCAL models.
+> **Note**: the `lint` command does not compose the OSCAL model.
+> If you want to validate a composed OSCAL model, you should use the [`lula tools compose`](../compose/README.md) command first.
 
 ## Usage
 
 ```bash
-lula tools lint -f <input-files> [-r <result-file>] [-c]
+lula tools lint -f <input-files> [-r <result-file>]
 ```
 
 ## Options
 
-- `-f, --input-files`: The paths to the target OSCAL files (comma-separated).
+- `-f, --input-files`: The paths to the tar get OSCAL files (comma-separated).
 - `-r, --result-file`: The path to the result file. If not specified, the validation results will be printed to the console.
-- `-c, --composed`: Disable composition before linting. Use this option only if you are sure that the OSCAL model is already composed (i.e., it has no imports or remote validations, default is false).
 
 ## Examples
 
 To lint existing OSCAL files:
 ```bash
 lula tools lint -f ./oscal-component1.yaml,./oscal-component2.yaml
-```
-
-To lint composed OSCAL models:
-```bash
-lula tools lint -c -f ./oscal-component1.yaml,./oscal-component2.yaml
 ```
 
 To specify a result file:

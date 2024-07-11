@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
@@ -17,17 +16,14 @@ import (
 type flags struct {
 	InputFiles []string // -f --input-files
 	ResultFile string   // -r --result-file
-	Composed   bool     // -c --composed (default false)
 }
 
 var opts = &flags{}
 
 var lintHelp = `
 To lint existing OSCAL files:
-	lula tools lint -f <path1>,<path2>,<path3>
-To lint composed OSCAL models:
-	**WARNING** Only use if you are sure that the OSCAL model is already composed, (i.e. it has no imports or remote validations)
-	lula tools lint -c true -f <path1>,<path2>,<path3>
+	lula tools lint -f <path1>,<path2>,<path3> [-r <result-file>]
+
 `
 
 func init() {
@@ -58,18 +54,7 @@ func init() {
 				spinner := message.NewProgressSpinner("Linting %s", inputFile)
 				defer spinner.Stop()
 
-				// ensure the input file is composed
-				composedFile := inputFile
-				if !opts.Composed {
-					composedFile = path.Join(tmpDir, path.Base(inputFile))
-
-					err := Compose(inputFile, composedFile)
-					if err != nil {
-						message.Fatalf(err, "Failed to compose %s", inputFile)
-					}
-				}
-
-				validationResp, err := validation.ValidationCommand(composedFile)
+				validationResp, err := validation.ValidationCommand(inputFile)
 				// fatal for non-validation errors
 				if err != nil {
 					message.Fatalf(err, "Failed to lint %s: %s", inputFile, err)
