@@ -69,7 +69,7 @@ func Compose(inputFile, outputFile string) error {
 
 	// Change Cwd to the directory of the component definition
 	dirPath := filepath.Dir(inputFile)
-	message.Infof("changing cwd to %s", dirPath)
+	message.Debugf("changing cwd to %s", dirPath)
 	resetCwd, err := common.SetCwdToFileDir(dirPath)
 	if err != nil {
 		return err

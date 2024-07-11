@@ -31,22 +31,11 @@ func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, err
 	return oscalModels.AssessmentResults, nil
 }
 
-func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var assessmentResults = &oscalTypes_1_1_2.AssessmentResults{}
 
 	// Single time used for all time related fields
 	rfc3339Time := time.Now()
-	controlList := make([]oscalTypes_1_1_2.AssessedControlsSelectControlById, 0)
-	findings := make([]oscalTypes_1_1_2.Finding, 0)
-
-	// Convert control map to slice of SelectControlById
-	for controlId, finding := range findingMap {
-		control := oscalTypes_1_1_2.AssessedControlsSelectControlById{
-			ControlId: controlId,
-		}
-		controlList = append(controlList, control)
-		findings = append(findings, finding)
-	}
 
 	// Always create a new UUID for the assessment results (for now)
 	assessmentResults.UUID = uuid.NewUUID()
@@ -62,37 +51,8 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 		LastModified: rfc3339Time,
 	}
 
-	// Here we are going to add the threshold property by default
-	props := []oscalTypes_1_1_2.Property{
-		{
-			Ns:    "https://docs.lula.dev/ns",
-			Name:  "threshold",
-			Value: "false",
-		},
-	}
-
 	// Create results object
-	assessmentResults.Results = []oscalTypes_1_1_2.Result{
-		{
-			UUID:        uuid.NewUUID(),
-			Title:       "Lula Validation Result",
-			Start:       rfc3339Time,
-			Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
-			Props:       &props,
-			ReviewedControls: oscalTypes_1_1_2.ReviewedControls{
-				Description: "Controls validated",
-				Remarks:     "Validation performed may indicate full or partial satisfaction",
-				ControlSelections: []oscalTypes_1_1_2.AssessedControls{
-					{
-						Description:     "Controls Assessed by Lula",
-						IncludeControls: &controlList,
-					},
-				},
-			},
-			Findings:     &findings,
-			Observations: &observations,
-		},
-	}
+	assessmentResults.Results = results
 
 	return assessmentResults, nil
 }
@@ -269,4 +229,52 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
+}
+
+// Creates a result from findings and observations
+func CreateResult(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (oscalTypes_1_1_2.Result, error) {
+
+	// Single time used for all time related fields
+	rfc3339Time := time.Now()
+	controlList := make([]oscalTypes_1_1_2.AssessedControlsSelectControlById, 0)
+	findings := make([]oscalTypes_1_1_2.Finding, 0)
+
+	// Convert control map to slice of SelectControlById
+	for controlId, finding := range findingMap {
+		control := oscalTypes_1_1_2.AssessedControlsSelectControlById{
+			ControlId: controlId,
+		}
+		controlList = append(controlList, control)
+		findings = append(findings, finding)
+	}
+
+	props := []oscalTypes_1_1_2.Property{
+		{
+			Ns:    "https://docs.lula.dev/ns",
+			Name:  "threshold",
+			Value: "false",
+		},
+	}
+
+	result := oscalTypes_1_1_2.Result{
+		UUID:        uuid.NewUUID(),
+		Title:       "Lula Validation Result",
+		Start:       rfc3339Time,
+		Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
+		Props:       &props,
+		ReviewedControls: oscalTypes_1_1_2.ReviewedControls{
+			Description: "Controls validated",
+			Remarks:     "Validation performed may indicate full or partial satisfaction",
+			ControlSelections: []oscalTypes_1_1_2.AssessedControls{
+				{
+					Description:     "Controls Assessed by Lula",
+					IncludeControls: &controlList,
+				},
+			},
+		},
+		Findings:     &findings,
+		Observations: &observations,
+	}
+
+	return result, nil
 }
