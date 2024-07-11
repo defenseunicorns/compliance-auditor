@@ -52,13 +52,15 @@ After downloading the binary and checksums.txt, you should verify the integrity 
 
 ## Quick Start
 
-See the following tutorials for some introductory tutorials on how to use Lula. If you are unfamiliar with Lula, the best place to start is the "Simple Demo". 
+See the following tutorials for some introductory lessons on how to use Lula. If you are unfamiliar with Lula, the best place to start is the "Simple Demo". 
 
 ### Tutorials
 
-* [Simple Demo](./tutorials/simple-demo.md)
-* [Developing a Lula Validation]()
-* [Remote Validations]()
-* [Updating a Threshold]()
-* [Generating a Component Definition]()
+* [Simple Demo](./simple-demo.md)
+* [Using Lula in CI](./lula-in-ci.md)
 
+### Lula Validations
+
+Lula Validation manifests are the underlying mechanisms that dictates the evaluation of a system against a control as resulting in `satisfied` or `not satisfied`. A Lula Validation is linked to a control within a component definition via the OSCAL-specific property, [links](../oscal/oscal-validation-links.md).
+
+Developing Lula Validations can sometimes be more art than science, but generally they should aim to be clear, concise, and robust to system changes. See our guide for [developing Lula Validations](./develop-a-validation.md) and the [references](../reference/README.md) for additional information.

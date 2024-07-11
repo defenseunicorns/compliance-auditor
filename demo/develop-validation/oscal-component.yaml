@@ -1,0 +1,29 @@
+component-definition:
+  uuid: a506014d-cb8a-4db9-ac48-ef72f7209a60
+  metadata:
+    last-modified: 2024-07-11T13:38:09.633174-04:00
+    oscal-version: 1.1.2
+    published: 2024-07-11T13:38:09.633174-04:00
+    remarks: Lula Generated Component Definition
+    title: Component Title
+    version: 0.0.1
+  components:
+  - uuid: 75859c1e-30f5-4fde-9ad4-c79f863b049f
+    type: software
+    title: podinfo
+    description: Sample application
+    control-implementations:
+    - uuid: a3039927-839c-5745-ac4e-a9993bcd60ed
+      source: https://github.com/defenseunicorns/lula
+      description: Control Implementation Description
+      implemented-requirements:
+      - uuid: 257d2b2a-fda7-49c5-9a2b-acdc995bc8e5
+        control-id: ID-1
+        description: >-
+          Podinfo, a sample application, is deployed into the cluster and exposed for testing purposes.
+        remarks: >-
+          System implements test application as target for development purposes.
+        links:
+          - href: 'file:./validation.yaml'
+            rel: lula
+            text: Check that Podinfo is healthy

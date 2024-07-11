@@ -1,4 +1,4 @@
-# Assess - TBD
+# Assess - PLANNED
 
 This command performs the `assessment` between a `component-definition` for a system-level component, outputing the `assessment-plan` OSCAL artifact.
 

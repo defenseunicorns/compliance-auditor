@@ -1,0 +1,177 @@
+{
+  "podinfoDeployment": {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "annotations": {
+        "deployment.kubernetes.io/revision": "1",
+        "meta.helm.sh/release-name": "my-release",
+        "meta.helm.sh/release-namespace": "podinfo"
+      },
+      "creationTimestamp": "2024-07-11T17:36:53Z",
+      "generation": 1,
+      "labels": {
+        "app.kubernetes.io/managed-by": "Helm",
+        "app.kubernetes.io/name": "my-release-podinfo",
+        "app.kubernetes.io/version": "6.7.0",
+        "helm.sh/chart": "podinfo-6.7.0"
+      },
+      "name": "my-release-podinfo",
+      "namespace": "podinfo",
+      "resourceVersion": "1445826",
+      "uid": "443f38fa-9f7a-4df0-9fe9-098561c0ba77"
+    },
+    "spec": {
+      "progressDeadlineSeconds": 600,
+      "replicas": 1,
+      "revisionHistoryLimit": 10,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/name": "my-release-podinfo"
+        }
+      },
+      "strategy": {
+        "rollingUpdate": {
+          "maxSurge": "25%",
+          "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+      },
+      "template": {
+        "metadata": {
+          "annotations": {
+            "prometheus.io/port": "9898",
+            "prometheus.io/scrape": "true"
+          },
+          "creationTimestamp": null,
+          "labels": {
+            "app.kubernetes.io/name": "my-release-podinfo"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "command": [
+                "./podinfo",
+                "--port=9898",
+                "--cert-path=/data/cert",
+                "--port-metrics=9797",
+                "--grpc-port=9999",
+                "--grpc-service-name=podinfo",
+                "--level=info",
+                "--random-delay=false",
+                "--random-error=false"
+              ],
+              "env": [
+                {
+                  "name": "PODINFO_UI_COLOR",
+                  "value": "#34577c"
+                }
+              ],
+              "image": "ghcr.io/stefanprodan/podinfo:6.7.0",
+              "imagePullPolicy": "IfNotPresent",
+              "livenessProbe": {
+                "exec": {
+                  "command": [
+                    "podcli",
+                    "check",
+                    "http",
+                    "localhost:9898/healthz"
+                  ]
+                },
+                "failureThreshold": 3,
+                "initialDelaySeconds": 1,
+                "periodSeconds": 10,
+                "successThreshold": 1,
+                "timeoutSeconds": 5
+              },
+              "name": "podinfo",
+              "ports": [
+                {
+                  "containerPort": 9898,
+                  "name": "http",
+                  "protocol": "TCP"
+                },
+                {
+                  "containerPort": 9797,
+                  "name": "http-metrics",
+                  "protocol": "TCP"
+                },
+                {
+                  "containerPort": 9999,
+                  "name": "grpc",
+                  "protocol": "TCP"
+                }
+              ],
+              "readinessProbe": {
+                "exec": {
+                  "command": [
+                    "podcli",
+                    "check",
+                    "http",
+                    "localhost:9898/readyz"
+                  ]
+                },
+                "failureThreshold": 3,
+                "initialDelaySeconds": 1,
+                "periodSeconds": 10,
+                "successThreshold": 1,
+                "timeoutSeconds": 5
+              },
+              "resources": {
+                "requests": {
+                  "cpu": "1m",
+                  "memory": "16Mi"
+                }
+              },
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File",
+              "volumeMounts": [
+                {
+                  "mountPath": "/data",
+                  "name": "data"
+                }
+              ]
+            }
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "restartPolicy": "Always",
+          "schedulerName": "default-scheduler",
+          "securityContext": {},
+          "terminationGracePeriodSeconds": 30,
+          "volumes": [
+            {
+              "emptyDir": {},
+              "name": "data"
+            }
+          ]
+        }
+      }
+    },
+    "status": {
+      "availableReplicas": 1,
+      "conditions": [
+        {
+          "lastTransitionTime": "2024-07-11T17:36:53Z",
+          "lastUpdateTime": "2024-07-11T17:36:53Z",
+          "message": "Deployment has minimum availability.",
+          "reason": "MinimumReplicasAvailable",
+          "status": "True",
+          "type": "Available"
+        },
+        {
+          "lastTransitionTime": "2024-07-11T17:36:53Z",
+          "lastUpdateTime": "2024-07-11T17:36:56Z",
+          "message": "ReplicaSet \"my-release-podinfo-fb6d4888f\" has successfully progressed.",
+          "reason": "NewReplicaSetAvailable",
+          "status": "True",
+          "type": "Progressing"
+        }
+      ],
+      "observedGeneration": 1,
+      "readyReplicas": 1,
+      "replicas": 0,
+      "updatedReplicas": 1
+    }
+  }
+}

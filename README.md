@@ -32,7 +32,7 @@ Lula operates on a framework of proof by adding custom overlays mapped to the th
 
 | Domain | Current | Roadmap |
 |----------|----------|----------|
-| [Kubernetes](./docs/reference/domains/kubernetes.md) | ✅ | - |
+| [Kubernetes](./docs/reference/domains/kubernetes-domain.md) | ✅ | - |
 | [API](./docs/reference/domains/api-domain.md) | ✅ | - |
 | Cloud Infrastructure | ❌ | ✅ |
 
@@ -45,4 +45,4 @@ Lula operates on a framework of proof by adding custom overlays mapped to the th
 
 ## Getting Started
 
-[Install Lula](./docs/getting-started/README.md) and check out the [Simple Demo](./docs/getting-started/tutorials/simple-demo.md) to get familiar with Lula's `validate` and `evaluate` workflow to assess system compliance and establish thresholds. See the other tutorials for more advanced Lula use cases and information on how to develop your own `Lula Validations`! 
+[Install Lula](./docs/getting-started/README.md) and check out the [Simple Demo](./docs/getting-started/simple-demo.md) to get familiar with Lula's `validate` and `evaluate` workflow to assess system compliance and establish thresholds. See the other tutorials for more advanced Lula use cases and information on how to develop your own `Lula Validations`! 
