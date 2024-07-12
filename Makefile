@@ -18,6 +18,7 @@ CLI_VERSION ?= $(if $(shell git describe --tags),$(shell git describe --tags),"u
 
 # Go CLI options
 PKG         := ./...
+UNIT_PKG    := $(shell go list ./... | grep -v 'e2e')
 TAGS        :=
 TESTS       := .
 TESTFLAGS   := -race -v
@@ -63,6 +64,10 @@ $(BINDIR)/$(BINNAME): $(SRC)
 test: 
 	go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
 
+.PHONY: test-unit
+test-unit: # Run tests excluding those in the e2e folder.
+	go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(UNIT_PKG) $(TESTFLAGS)
+
 .PHONY: test-e2e
 test-e2e: 
 	cd src/test/e2e && go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
@@ -74,4 +79,3 @@ test-cmd:
 .PHONY: install
 install: ## Install binary to $INSTALL_PATH.
 	@install "$(BINDIR)/$(BINNAME)" "$(INSTALL_PATH)/$(BINNAME)"
-

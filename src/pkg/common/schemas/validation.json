@@ -1,0 +1,593 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Validation",
+    "type": "object",
+    "properties": {
+        "lula-version": {
+            "$ref": "#/definitions/semver",
+            "description": "Optional (use to maintain backward compatibility)"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Optional (short description to use in output of validations could be useful)"
+                },
+                "uuid": {
+                    "$ref": "#/definitions/uuid"
+                }
+            }
+        },
+        "domain": {
+            "$ref": "#/definitions/domain"
+        },
+        "provider": {
+            "$ref": "#/definitions/provider"
+        }
+    },
+    "definitions": {
+        "semver": {
+            "type": "string",
+            "description": "Semantic versioning string following the pattern major.minor.patch with optional pre-release and build metadata or an empty string.",
+            "pattern": "^$|^(?:[><=]*\\s*|~|\\^)?v?([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+        },
+        "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+        },
+        "domain": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "kubernetes",
+                        "api"
+                    ],
+                    "description": "The type of domain (Required)"
+                },
+                "kubernetes-spec": {
+                    "$ref": "#/definitions/kubernetes-spec"
+                },
+                "api-spec": {
+                    "$ref": "#/definitions/api-spec"
+                }
+            },
+            "allOf": [
+                {
+                    "required": [
+                        "type"
+                    ]
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "kubernetes"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "kubernetes-spec"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "api"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "api-spec"
+                        ]
+                    }
+                }
+            ]
+        },
+        "kubernetes-spec": {
+            "type": "object",
+            "properties": {
+                "resources": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/definitions/resource"
+                    }
+                },
+                "create-resources": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Required - Identifier to be read by the policy"
+                            },
+                            "namespace": {
+                                "type": "string",
+                                "description": "Optional - Namespace to be created if applicable (no need to specify if ns exists OR resource is non-namespaced)"
+                            },
+                            "manifest": {
+                                "type": "string",
+                                "description": "Optional - Manifest string for resource(s) to create; Only optional if file is not specified"
+                            },
+                            "file": {
+                                "type": "string",
+                                "description": "Optional - File name where resource(s) to create are stored; Only optional if manifest is not specified"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ],
+                        "allOf": [
+                            {
+                                "if": {
+                                    "properties": {
+                                        "manifest": {
+                                            "const": null
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "file"
+                                    ]
+                                }
+                            },
+                            {
+                                "if": {
+                                    "properties": {
+                                        "file": {
+                                            "const": null
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "required": [
+                                        "manifest"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "wait": {
+                    "type": "object",
+                    "properties": {
+                        "condition": {
+                            "type": "string",
+                            "description": "Condition to wait for ie. 'Ready'"
+                        },
+                        "jsonpath": {
+                            "type": "string",
+                            "description": "Jsonpath specifier of where to find the condition from the top level object"
+                        },
+                        "kind": {
+                            "type": "string",
+                            "description": "Kind of resource to wait for"
+                        },
+                        "namespace": {
+                            "type": "string",
+                            "description": "Namespace to wait for the resource in"
+                        },
+                        "timeout": {
+                            "type": "string",
+                            "description": "Timeout for the wait"
+                        }
+                    }
+                }
+            },
+            "anyOf": [
+                {
+                    "required": [
+                        "resources"
+                    ]
+                },
+                {
+                    "required": [
+                        "create-resources"
+                    ]
+                }
+            ]
+        },
+        "resource": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Identifier to be read by the policy"
+                },
+                "resource-rule": {
+                    "$ref": "#/definitions/resource-rule"
+                }
+            },
+            "required": [
+                "name",
+                "resource-rule"
+            ]
+        },
+        "resource-rule": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Used to retrieve a specific resource in a single namespace required if field is specified"
+                },
+                "group": {
+                    "type": "string",
+                    "description": "Empty or \"\" for core group"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "Version of resource"
+                },
+                "resource": {
+                    "type": "string",
+                    "description": "Resource type (API-recognized type, not Kind)"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Namespaces to validate the above resources in. Empty or \"\" for all namespace or non-namespaced resources. Required if name is specified"
+                },
+                "field": {
+                    "$ref": "#/definitions/field"
+                }
+            },
+            "allOf": [
+                {
+                    "required": [
+                        "version",
+                        "resource"
+                    ]
+                },
+                {
+                    "if": {
+                        "not": {
+                            "properties": {
+                                "field": {
+                                    "const": [
+                                        null,
+                                        {}
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "namespaces"
+                        ]
+                    }
+                }
+            ],
+            "description": "Resource selection criteria, at least one resource rule is required"
+        },
+        "field": {
+            "type": "object",
+            "properties": {
+                "jsonpath": {
+                    "type": "string",
+                    "description": "Jsonpath specifier of where to find the field from the top level object"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "json",
+                        "yaml"
+                    ],
+                    "default": "json",
+                    "description": "Accepts \"json\" or \"yaml\". Default is \"json\"."
+                },
+                "base64": {
+                    "type": "boolean",
+                    "description": "Boolean whether field is base64 encoded"
+                }
+            },
+            "required": [
+                "jsonpath"
+            ],
+            "description": "Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use."
+        },
+        "api-spec": {
+            "type": "object",
+            "properties": {
+                "requests": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string",
+                                "format": "uri"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "provider": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "opa",
+                        "kyverno"
+                    ],
+                    "description": "Required"
+                },
+                "opa-spec": {
+                    "$ref": "#/definitions/opaSpec"
+                },
+                "kyverno-spec": {
+                    "$ref": "#/definitions/kyvernoSpec"
+                }
+            },
+            "allOf": [
+                {
+                    "required": [
+                        "type"
+                    ]
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "opa"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "opa-spec"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "kyverno"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "kyverno-spec"
+                        ]
+                    }
+                }
+            ]
+        },
+        "opaSpec": {
+            "type": "object",
+            "properties": {
+                "rego": {
+                    "type": "string",
+                    "pattern": ".*\\S\\s\\n.*"
+                },
+                "output": {
+                    "type": "object",
+                    "properties": {
+                        "validation": {
+                            "type": "string"
+                        },
+                        "observations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "required": [
+                "rego"
+            ]
+        },
+        "kyvernoSpec": {
+            "type": "object",
+            "properties": {
+                "policy": {
+                    "type": "object",
+                    "properties": {
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "namespace": {
+                                    "type": "string"
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                },
+                                "annotations": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "spec": {
+                            "$ref": "#/definitions/validatingPolicySpec"
+                        }
+                    },
+                    "required": [
+                        "metadata",
+                        "spec"
+                    ]
+                },
+                "output": {
+                    "type": "object",
+                    "properties": {
+                        "validation": {
+                            "type": "string"
+                        },
+                        "observations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": [
+                        "validation"
+                    ]
+                }
+            },
+            "required": [
+                "policy"
+            ]
+        },
+        "validatingPolicySpec": {
+            "type": "object",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/validatingRule"
+                    }
+                }
+            },
+            "required": [
+                "rules"
+            ]
+        },
+        "validatingRule": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 63
+                },
+                "context": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/contextEntry"
+                    }
+                },
+                "match": {
+                    "$ref": "#/definitions/match"
+                },
+                "exclude": {
+                    "$ref": "#/definitions/match"
+                },
+                "identifier": {
+                    "type": "string"
+                },
+                "assert": {
+                    "$ref": "#/definitions/assert"
+                }
+            },
+            "required": [
+                "name",
+                "assert"
+            ]
+        },
+        "contextEntry": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "variable": {
+                    "type": "object"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "match": {
+            "type": "object",
+            "properties": {
+                "any": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "all": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "assert": {
+            "type": "object",
+            "properties": {
+                "any": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/assertion"
+                    }
+                },
+                "all": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/assertion"
+                    }
+                }
+            }
+        },
+        "assertion": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "check": {
+                    "type": "object"
+                }
+            },
+            "required": [
+                "check"
+            ]
+        }
+    },
+    "required": [
+        "domain",
+        "provider"
+    ],
+    "additionalProperties": false
+}

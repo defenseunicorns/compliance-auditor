@@ -6,8 +6,11 @@ import (
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
+	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
+	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
@@ -51,22 +54,35 @@ func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err erro
 	return resource, nil
 }
 
-// TODO: Perhaps extend this structure with other needed information, such as UUID or type of validation if workflow is needed
+// Metadata is a structure that contains the name and uuid of a validation
 type Metadata struct {
 	Name string `json:"name" yaml:"name"`
 	UUID string `json:"uuid,omitempty" yaml:"uuid,omitempty"`
 }
 
+// Domain is a structure that contains the domain type and the corresponding spec
 type Domain struct {
-	Type           string               `json:"type" yaml:"type"`
+	// Type is the type of domain: enum: kubernetes, api
+	Type string `json:"type" yaml:"type"`
+	// KubernetesSpec is the specification for a Kubernetes domain, required if type is kubernetes
 	KubernetesSpec *kube.KubernetesSpec `json:"kubernetes-spec,omitempty" yaml:"kubernetes-spec,omitempty"`
-	ApiSpec        *api.ApiSpec         `json:"api-spec,omitempty" yaml:"api-spec,omitempty"`
+	// ApiSpec is the specification for an API domain, required if type is api
+	ApiSpec *api.ApiSpec `json:"api-spec,omitempty" yaml:"api-spec,omitempty"`
 }
 
 type Provider struct {
 	Type        string               `json:"type" yaml:"type"`
 	OpaSpec     *opa.OpaSpec         `json:"opa-spec,omitempty" yaml:"opa-spec,omitempty"`
 	KyvernoSpec *kyverno.KyvernoSpec `json:"kyverno-spec,omitempty" yaml:"kyverno-spec,omitempty"`
+}
+
+// Lint is a convenience method to lint a Validation object
+func (validation *Validation) Lint() oscalValidation.ValidationResult {
+	validationBytes, err := validation.MarshalYaml()
+	if err != nil {
+		return validationResult.NewNonSchemaValidationError(err, "validation")
+	}
+	return schemas.Validate("validation", validationBytes)
 }
 
 // ToLulaValidation converts a Validation object to a LulaValidation object
@@ -79,11 +95,12 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 		versionConstraint = validation.LulaVersion
 	}
 
-	if validation.Domain == nil {
-		return lulaValidation, fmt.Errorf("required domain is nil")
-	}
-	if validation.Provider == nil {
-		return lulaValidation, fmt.Errorf("required provider is nil")
+	lintResult := validation.Lint()
+	// If the validation is not valid, return the error
+	if validationResult.IsNonSchemaValidationError(lintResult) {
+		return lulaValidation, validationResult.GetNonSchemaError(lintResult)
+	} else if !lintResult.Valid {
+		return lulaValidation, fmt.Errorf("validation failed: %v", lintResult.Errors)
 	}
 
 	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)

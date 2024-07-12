@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
@@ -15,6 +17,38 @@ import (
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
+// ComposeFromPath composes an OSCAL model from a file path
+func ComposeFromPath(inputFile string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
+	data, err := os.ReadFile(inputFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Change Cwd to the directory of the component definition
+	// This is needed to resolve relative paths in the remote validations
+	dirPath := filepath.Dir(inputFile)
+	message.Infof("changing cwd to %s", dirPath)
+	resetCwd, err := common.SetCwdToFileDir(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	model, err = oscal.NewOscalModel(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ComposeComponentDefinitions(model.ComponentDefinition)
+	if err != nil {
+		return nil, err
+	}
+
+	// Reset Cwd to original before outputting
+	resetCwd()
+	return model, nil
+}
+
+// ComposeComponentDefinitions composes an OSCAL component definition by adding the remote resources to the back matter and updating with back matter links.
 func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
@@ -139,6 +173,11 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 	compDef.Metadata.LastModified = versioning.GetTimestamp()
 
 	return nil
+}
+
+// CreateTempDir creates a temporary directory to store the composed OSCAL models
+func CreateTempDir() (string, error) {
+	return os.MkdirTemp("", "lula-composed-*")
 }
 
 // ReadComponentDefinitionsFromYaml reads a yaml file of validations to an array of validations

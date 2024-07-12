@@ -19,6 +19,45 @@ const (
 	compDefMultiImport = "../../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 )
 
+func TestComposeFromPath(t *testing.T) {
+	t.Run("No imports, local validations", func(t *testing.T) {
+		model, err := composition.ComposeFromPath(allLocal)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if model == nil {
+			t.Error("expected the model to be composed")
+		}
+	})
+
+	t.Run("No imports, remote validations", func(t *testing.T) {
+		model, err := composition.ComposeFromPath(allRemote)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if model == nil {
+			t.Error("expected the model to be composed")
+		}
+	})
+
+	t.Run("Errors when file does not exist", func(t *testing.T) {
+		_, err := composition.ComposeFromPath("nonexistent")
+		if err == nil {
+			t.Error("expected an error")
+		}
+	})
+
+	t.Run("Resolves relative paths", func(t *testing.T) {
+		model, err := composition.ComposeFromPath(localAndRemote)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if model == nil {
+			t.Error("expected the model to be composed")
+		}
+	})
+}
+
 func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("No imports, local validations", func(t *testing.T) {
 		og := getComponentDef(allLocal, t)

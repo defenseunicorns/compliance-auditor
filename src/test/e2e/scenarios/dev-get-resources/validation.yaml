@@ -1,4 +1,8 @@
-domain: 
+lula-version: ">= v0.2.0"
+metadata:
+  name: test validation
+  uuid: 7f4b12a9-3b8e-4f0a-8a5c-1f2b5b2c9e4d
+domain:
   type: kubernetes
   kubernetes-spec:
     resources:
@@ -13,10 +17,10 @@ domain:
           version: v1
           resource: configmaps
           namespaces: [validation-test]
-provider: 
+provider:
   type: opa
   opa-spec:
     rego: |
       package validate
-      
+
       default validate = false
