@@ -175,19 +175,40 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 		}
 	}
 
-	// loop over the controlImplementations map & validate
-	for source, controlImplementation := range controlImplementations {
-		findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore)
-		if err != nil {
-			return results, err
+	// target one specific slice of controlImplementations
+	if target != "" {
+		if controlImplementation, ok := controlImplementations[target]; ok {
+			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore)
+			if err != nil {
+				return results, err
+			}
+			result, err := oscal.CreateResult(findings, observations)
+			if err != nil {
+				return results, err
+			}
+			// add/update the source to the result props
+			oscal.UpdateProps("source", "https://docs.lula.dev/ns", target, result.Props)
+			oscal.UpdateProps("framework", "https://docs.lula.dev/ns", target, result.Props)
+			results = append(results, result)
+		} else {
+			return results, fmt.Errorf("target %s not found", target)
 		}
-		result, err := oscal.CreateResult(findings, observations)
-		if err != nil {
-			return results, err
+	} else {
+		// loop over the controlImplementations map & validate
+		// we lose context of source if not contained within the loop
+		for source, controlImplementation := range controlImplementations {
+			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore)
+			if err != nil {
+				return results, err
+			}
+			result, err := oscal.CreateResult(findings, observations)
+			if err != nil {
+				return results, err
+			}
+			// add/update the source to the result props
+			oscal.UpdateProps("source", "https://docs.lula.dev/ns", source, result.Props)
+			results = append(results, result)
 		}
-		// add/update the source to the result props
-		oscal.UpdateProps("source", "https://docs.lula.dev/ns", source, result.Props)
-		results = append(results, result)
 	}
 
 	return results, nil
