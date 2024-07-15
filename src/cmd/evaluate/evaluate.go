@@ -75,16 +75,18 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 		message.Debugf("threshold UUID: %s / latest UUID: %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
 
-		status, findings, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		status, resultPairs, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
 
 		if status {
-			if len(findings["new-passing-findings"]) > 0 {
+			if len(resultPairs["new-passing-findings"]) > 0 {
 				message.Info("New passing finding Target-Ids:")
-				for _, finding := range findings["new-passing-findings"] {
-					message.Infof("%s", finding.Target.TargetId)
+				for _, rp := range resultPairs["new-passing-findings"] {
+					message.Infof("%s", rp.ControlId)
+					message.Detail(rp.GetMismatchedObservations())
+					message.Debug(rp.GetResultPairDetails())
 				}
 
 				message.Infof("New threshold identified - threshold will be updated to result %s", resultMap["latest"].UUID)
@@ -97,18 +99,22 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
 			}
 
-			if len(findings["new-failing-findings"]) > 0 {
+			if len(resultPairs["new-failing-findings"]) > 0 {
 				message.Info("New failing finding Target-Ids:")
-				for _, finding := range findings["new-failing-findings"] {
-					message.Infof("%s", finding.Target.TargetId)
+				for _, rp := range resultPairs["new-failing-findings"] {
+					message.Infof("%s", rp.ControlId)
+					message.Detail(rp.GetMismatchedObservations())
+					message.Debug(rp.GetResultPairDetails())
 				}
 			}
 			message.Info("Evaluation Passed Successfully")
 
 		} else {
 			message.Warn("Evaluation Failed against the following findings:")
-			for _, finding := range findings["no-longer-satisfied"] {
-				message.Warnf("%s", finding.Target.TargetId)
+			for _, rp := range resultPairs["no-longer-satisfied"] {
+				message.Warnf("%s", rp.ControlId)
+				message.Detail(rp.GetMismatchedObservations())
+				message.Debug(rp.GetResultPairDetails())
 			}
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 

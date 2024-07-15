@@ -189,6 +189,19 @@ func Infof(format string, a ...any) {
 	}
 }
 
+// Detail prints detail message.
+func Detail(message string) {
+	Detailf("%s", message)
+}
+
+// Detailf prints a detail message preserving newlines
+func Detailf(format string, a ...any) {
+	if logLevel > 0 {
+		message := fmt.Sprintf(format, a...)
+		pterm.Info.Println(message)
+	}
+}
+
 // Success prints a success message.
 func Success(message string) {
 	Successf("%s", message)
