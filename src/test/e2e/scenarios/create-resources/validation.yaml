@@ -1,80 +1,80 @@
-domain: 
+domain:
   type: kubernetes
   kubernetes-spec:
     create-resources:
-    - name: successPods
-      namespace: validation-test
-      manifest: |
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          name: success-1
-          namespace: validation-test
-        spec:
-          containers:
-          - name: test-container
-            image: nginx
-        ---
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          name: success-2
-          namespace: validation-test
-        spec:
-          containers:
-          - name: test-container
-            image: nginx
-    - name: failPods
-      namespace: secure-ns
-      manifest: |
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          name: fail-1
-          namespace: secure-ns
-        spec:
-          containers:
-          - name: test-container
-            image: nginx
+      - name: successPods
+        namespace: validation-test
+        manifest: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: success-1
+            namespace: validation-test
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+          ---
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: success-2
+            namespace: validation-test
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+      - name: failPods
+        namespace: secure-ns
+        manifest: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: fail-1
+            namespace: secure-ns
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
+              securityContext:
+                privileged: true
+          ---
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: fail-2
+            namespace: secure-ns
+          spec:
+            containers:
+            - name: test-container
+              image: nginx
             securityContext:
-              privileged: true
-        ---
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          name: fail-2
-          namespace: secure-ns
-        spec:
-          containers:
-          - name: test-container
-            image: nginx
-          securityContext:
-            runAsUser: 0
-    - name: netpolTestJob
-      namespace: another-ns
-      manifest: |
-        apiVersion: batch/v1
-        kind: Job
-        metadata:
-          name: test-job
-          namespace: another-ns
-        spec:
-          template:
-            spec:
-              containers:
-              - name: test-container
-                image: nginx
-                command: ["curl", "http://fake-service:80"]
-              restartPolicy: Never
-    - name: remotePod
-      namespace: validation-test
-      file: 'file:../pod-label/pod.pass.yaml'
-provider: 
+              runAsUser: 0
+      - name: netpolTestJob
+        namespace: another-ns
+        manifest: |
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: test-job
+            namespace: another-ns
+          spec:
+            template:
+              spec:
+                containers:
+                - name: test-container
+                  image: nginx
+                  command: ["curl", "http://fake-service:80"]
+                restartPolicy: Never
+      - name: remotePod
+        namespace: validation-test
+        file: "file:../pod-label/pod.pass.yaml"
+provider:
   type: opa
   opa-spec:
     rego: |
       package validate
-      
+
       default validate = false
       validate {
         check_success_pods

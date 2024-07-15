@@ -4,6 +4,7 @@ import (
 	"github.com/defenseunicorns/lula/src/types"
 )
 
+// ApiDomain is a domain that is defined by a list of API requests
 type ApiDomain struct {
 	// Spec is the specification of the API requests
 	Spec *ApiSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
@@ -18,10 +19,12 @@ func (a ApiDomain) IsExecutable() bool {
 	return false
 }
 
+// ApiSpec contains a list of API requests
 type ApiSpec struct {
 	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
 }
 
+// Request is a single API request
 type Request struct {
 	Name string `json:"name" yaml:"name"`
 	URL  string `json:"url" yaml:"url"`

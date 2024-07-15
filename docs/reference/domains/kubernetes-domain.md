@@ -17,10 +17,10 @@ domain:
     - name: podsvt                      # Required - Identifier to be read by the policy
       resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
         name:                           # Optional - Used to retrieve a specific resource in a single namespace
-        group:                          # Required - empty or "" for core group
+        group:                          # Optional - empty or "" for core group
         version: v1                     # Required - Version of resource
         resource: pods                  # Required - Resource type (API-recognized type, not Kind)
-        namespaces: [validation-test]   # Required - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
+        namespaces: [validation-test]   # Optional - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
         field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
           jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
           type:                         # Optional - Accepts "json" or "yaml". Default is "json".

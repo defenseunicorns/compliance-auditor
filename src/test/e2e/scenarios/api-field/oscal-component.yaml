@@ -43,6 +43,9 @@ component-definition:
     resources:
       - uuid: C30E849E-C262-42DF-8C84-EA1B62A6AD90
         description: >-
+          metadata:
+            name: test pass
+            uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
           domain:
             type: api
             api-spec:

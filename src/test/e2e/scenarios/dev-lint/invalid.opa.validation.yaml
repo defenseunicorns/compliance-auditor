@@ -1,7 +1,7 @@
-lula-version: ">= v0.1.0"
+lula-version: ">=v0.2.0"
 metadata:
   name: Validate pods with label foo=bar
-  uuid: 7f4b12a9-3b8f-4a8e-9f6e-8c8f506c851e
+  uuid: 123e4567-e89b-12d3-a456-426655440000
 domain:
   type: kubernetes
   kubernetes-spec:
@@ -12,7 +12,6 @@ domain:
           resource: pods
           namespaces: [validation-test]
 provider:
-  type: opa
   opa-spec:
     rego: |
       package validate
