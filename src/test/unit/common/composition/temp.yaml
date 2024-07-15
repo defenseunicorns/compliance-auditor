@@ -1,0 +1,50 @@
+assessment-results:
+  import-ap:
+    href: ""
+  metadata:
+    last-modified: 2024-07-15T15:13:00.926907334Z
+    oscal-version: 1.1.2
+    published: 2024-07-15T15:13:00.926907334Z
+    remarks: Assessment Results generated from Lula
+    title: '[System Name] Security Assessment Results (SAR)'
+    version: 0.0.1
+  results:
+    - description: Assessment results for performing Validations with Lula version v0.4.2
+      findings:
+        - description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: 36c5b3fb-0c4a-472a-97b9-0eb5a517b858
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Component:A9D5204C-7E5B-4C43-BD49-34DF759B9F04 / Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Control:  ID-1'
+          uuid: d25f44ad-de40-446f-ba1e-79a535edb4ac
+      observations:
+        - collected: 2024-07-15T15:13:00.926190071Z
+          description: |
+            [TEST]: a7377430-2328-4dc4-a9e2-b3f31dc1dff9 - lula-validation
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                OPA validation not performed: No resources to validate
+          uuid: 36c5b3fb-0c4a-472a-97b9-0eb5a517b858
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "false"
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-07-15T15:13:00.926907334Z
+      title: Lula Validation Result
+      uuid: 131fb9c0-ec02-4b2a-8d53-9f52b72ba62c
+  uuid: 5eb03395-3b2e-4ba8-b624-ff569f351bca
