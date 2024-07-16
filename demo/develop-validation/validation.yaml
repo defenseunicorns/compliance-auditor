@@ -1,0 +1,42 @@
+metadata:
+  name: check-podinfo-health
+  uuid: ad38ef57-99f6-4ac6-862e-e0bc9f55eebe
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podinfoDeployment
+        resource-rule:
+          name: my-release-podinfo
+          namespaces: [podinfo]
+          group: apps
+          version: v1
+          resource: deployments
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+      import rego.v1
+
+      # Default values
+      default validate := false
+      default msg := "Not evaluated"
+
+      # Validation result
+      validate if {
+        check_podinfo_healthy.result
+      }
+      msg = check_podinfo_healthy.msg
+
+      check_podinfo_healthy = {"result": true, "msg": msg} if {
+        input.podinfoDeployment.status.replicas > 0
+        input.podinfoDeployment.status.availableReplicas == input.podinfoDeployment.status.replicas
+        msg := "Number of replicas > 0 and all replicas are available."
+      } else = {"result": false, "msg": msg} if {
+        msg := "Podinfo not available."
+      }
+    output:
+      validation: validate.validate
+      observations:
+        - validate.msg

@@ -1,4 +1,4 @@
-# Compose Command
+# Compose
 
 The `lula tools compose` command is used to compose an OSCAL component definition. It is used to compose remote validations within a component definition in order to resolve any references for portability.
 

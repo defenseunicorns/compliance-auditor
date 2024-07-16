@@ -1,21 +1,23 @@
 # Kubernetes Domain
 
-The Kubernetes domain provides Lula with a common interface for data collection of Kubernetes artifacts for use across many Lula Providers. 
+The Kubernetes domain provides Lula access to data collection of Kubernetes resources.
 
 >[!Important]
 >This domain supports both read and write operations on the Kubernetes cluster in the current context, so use with care
 
 ## Specification
 
-Resources are read from the Kubernetes cluster when using the Kubernetes domain specification as follows:
+The Kubernetes specification can be used to return Kubernetes resources as JSON data to the providers. The specification allows for both manifest and resource field data to be retreived.
+
+The following sample `kubernetes-spec` yields a list of all pods in the `validation-test` namespace.
 
 ```yaml
 domain:
   type: kubernetes
   kubernetes-spec:
-    resources:
-    - name: podsvt                      # Required - Identifier to be read by the policy
-      resource-rule:                    # Required - resource selection criteria, at least one resource rule is required
+    resources:                          # Optional - Group of resources to read from Kubernetes
+    - name: podsvt                      # Required - Identifier to the list or set read by the policy
+      resource-rule:                    # Required - Resource selection criteria, at least one resource rule is required
         name:                           # Optional - Used to retrieve a specific resource in a single namespace
         group:                          # Optional - empty or "" for core group
         version: v1                     # Required - Version of resource
@@ -25,25 +27,27 @@ domain:
           jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
           type:                         # Optional - Accepts "json" or "yaml". Default is "json".
           base64:                       # Optional - Boolean whether field is base64 encoded
-
 ```
 
 > [!Tip]
 > Lula supports eventual-consistency through use of an optional `wait` field in the `kubernetes-spec`. 
 
 ```yaml
-wait:
-  condition: Ready
-  kind: pod/test-pod-wait
-  namespace: validation-test
-  timeout: 30s
-resources:
-- name: podsvt
-  resource-rule:
-    group:
-    version: v1
-    resource: pods
-    namespaces: [validation-test]
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    wait:                               # Optional - Group of resources to read from Kubernetes
+      condition: Ready                  # ...
+      kind: pod/test-pod-wait           # ...
+      namespace: validation-test        # ...
+      timeout: 30s                      # ...
+    resources:
+    - name: podsvt
+      resource-rule:
+        group:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
 ```
 
 ### Resource Creation
@@ -54,7 +58,7 @@ The Kubernetes domain also supports creating, reading, and destroying test resou
 domain:
   type: kubernetes
   kubernetes-spec:
-    create-resources:
+    create-resources:                   # Optional - Group of resources to be created/read/destroyed in Kubernetes
       - name: testPod                   # Required - Identifier to be read by the policy
         namespace: validation-test      # Optional - Namespace to be created if applicable (no need to specify if ns exists OR resource is non-namespaced)
         manifest: |                     # Optional - Manifest string for resource(s) to create; Only optional if file is not specified
@@ -129,7 +133,7 @@ provider:
 > Note how the rego now evaluates a single object called `podvt`. This is the name of the resource that is being validated.
 
 ## Extracting Resource Field Data
-Many of the tool-specific configuration data is stored as json or yaml text inside configmaps and secrets. Some valuable data may also be stored in json or yaml strings in other resource locations, such as annotations. The "Field" parameter of the "ResourceRule" allows this data to be extracted and used by the Rego.
+Many of the tool-specific configuration data is stored as json or yaml text inside configmaps and secrets. Some valuable data may also be stored in json or yaml strings in other resource locations, such as annotations. The `field` parameter of the `resource-rule` allows this data to be extracted and used by the Rego.
 
 Here's an example of extracting `config.yaml` from a test configmap:
 ```yaml
@@ -142,7 +146,7 @@ domain:
         name: test-configmap
         group:
         version: v1
-        resource: pods
+        resource: configmaps
         namespaces: [validation-test]
         field:
           jsonpath: .data.my-config.yaml
@@ -164,4 +168,22 @@ configuration:
   foo: bar
   anotherValue:
     subValue: ba
+```
+This field also supports grabbing secret data using the optional `base64` field as follows
+```yaml
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: secretdata
+      resource-rule:
+        name: test-secret
+        group:
+        version: v1
+        resource: secrets
+        namespaces: [validation-test]
+        field: 
+          jsonpath: .data.secret-value.json
+          type: json
+          base64: true
 ```
