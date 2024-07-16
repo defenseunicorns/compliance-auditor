@@ -422,6 +422,29 @@ func ControlImplementationstToRequirementsMap(controlImplementations *[]oscalTyp
 	return requirementMap
 }
 
+func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (controlMap map[string][]oscalTypes_1_1_2.ControlImplementationSet) {
+	controlMap = make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
+
+	if componentDefinition.Components != nil {
+		// Build a map[source/framework][]control-implementations
+		for _, component := range *componentDefinition.Components {
+			if component.ControlImplementations != nil {
+				for _, controlImplementation := range *component.ControlImplementations {
+					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
+					controlMap[controlImplementation.Source] = append(controlMap[controlImplementation.Source], controlImplementation)
+					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					if status {
+						controlMap[value] = append(controlMap[value], controlImplementation)
+					}
+				}
+			}
+		}
+	}
+
+	return controlMap
+
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

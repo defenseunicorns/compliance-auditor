@@ -20,7 +20,8 @@ To evaluate two results (threshold and latest) in a single OSCAL file:
 `
 
 type flags struct {
-	files []string
+	InputFile []string // -f --input-file
+	Target    string   // -t --target
 }
 
 var opts = &flags{}
@@ -34,23 +35,25 @@ var evaluateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Build map of filepath -> assessment results
-		assessmentMap, err := readManyAssessmentResults(opts.files)
+		assessmentMap, err := readManyAssessmentResults(opts.InputFile)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
 
-		EvaluateAssessments(assessmentMap)
+		EvaluateAssessments(assessmentMap, opts.Target)
 	},
 }
 
 func EvaluateCommand() *cobra.Command {
 
-	evaluateCmd.Flags().StringArrayVarP(&opts.files, "file", "f", []string{}, "Path to the file to be evaluated")
+	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
+	evaluateCmd.MarkFlagRequired("input-file")
+	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	// insert flag options here
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string) {
 	// Identify the threshold & latest for comparison
 	resultMap, err := oscal.IdentifyResults(assessmentMap)
 	if err != nil {

@@ -75,7 +75,8 @@ func ValidateCommand() *cobra.Command {
 	// insert flag options here
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	validateCmd.Flags().StringVarP(&opts.InputFile, "target", "t", "", "the specific control implementations or framework to validate against")
+	validateCmd.MarkFlagRequired("input-file")
+	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
 	return validateCmd
@@ -148,7 +149,7 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 }
 
 // ValidateOnCompDef takes a single ComponentDefinition object
-// It will perform a validation and add data to a referenced report object
+// It will perform a validation and return a slice of results that can be written to an assessment-results object
 func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
 	err = composition.ComposeComponentDefinitions(compDef)
 	if err != nil {
@@ -163,19 +164,17 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	// Create a validation store from the back-matter if it exists
 	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-	controlImplementations := make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
-	for _, component := range *compDef.Components {
-		for _, controlImplementation := range *component.ControlImplementations {
-			// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
-			controlImplementations[controlImplementation.Source] = append(controlImplementations[controlImplementation.Source], controlImplementation)
-			status, value := oscal.GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
-			if status {
-				controlImplementations[value] = append(controlImplementations[value], controlImplementation)
-			}
-		}
+	// Create a map of control implementations from the component definition
+	// This combines all same source/framework control implementations into an []Control-Implementation
+	controlImplementations := oscal.FilterControlImplementations(compDef)
+
+	if len(controlImplementations) == 0 {
+		return results, fmt.Errorf("no control implementations found in component definition")
 	}
 
-	// target one specific slice of controlImplementations
+	// target one specific controlImplementation
+	// this could be either a framework or source property
+	// this will only produce a single result
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
 			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore)
@@ -186,14 +185,14 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 			if err != nil {
 				return results, err
 			}
-			// add/update the source to the result props
-			oscal.UpdateProps("source", "https://docs.lula.dev/ns", target, result.Props)
-			oscal.UpdateProps("framework", "https://docs.lula.dev/ns", target, result.Props)
+			// add/update the source to the result props - make source = framework or omit?
+			oscal.UpdateProps("target", "https://docs.lula.dev/ns", target, result.Props)
 			results = append(results, result)
 		} else {
 			return results, fmt.Errorf("target %s not found", target)
 		}
 	} else {
+		// default behavior - create a result for each unique source/framework
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
@@ -206,7 +205,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 				return results, err
 			}
 			// add/update the source to the result props
-			oscal.UpdateProps("source", "https://docs.lula.dev/ns", source, result.Props)
+			oscal.UpdateProps("target", "https://docs.lula.dev/ns", source, result.Props)
 			results = append(results, result)
 		}
 	}
