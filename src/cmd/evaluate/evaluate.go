@@ -7,6 +7,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +21,8 @@ To evaluate two results (threshold and latest) in a single OSCAL file:
 `
 
 type flags struct {
-	files []string
+	files   []string
+	summary bool
 }
 
 var opts = &flags{}
@@ -39,18 +41,19 @@ var evaluateCmd = &cobra.Command{
 			message.Fatal(err, err.Error())
 		}
 
-		EvaluateAssessments(assessmentMap)
+		EvaluateAssessments(assessmentMap, opts.summary)
 	},
 }
 
 func EvaluateCommand() *cobra.Command {
 
 	evaluateCmd.Flags().StringArrayVarP(&opts.files, "file", "f", []string{}, "Path to the file to be evaluated")
+	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", false, "Print a summary of the evaluation")
 	// insert flag options here
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, summary bool) {
 	// Identify the threshold & latest for comparison
 	resultMap, err := oscal.IdentifyResults(assessmentMap)
 	if err != nil {
@@ -75,18 +78,20 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 		message.Debugf("threshold UUID: %s / latest UUID: %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
 
-		status, resultPairs, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		status, resultComparison, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
 
+		// Check 'status' - Result if evaluation is passing or failing
+		// Fails if anything went from satisfied -> not-satisfied OR if any old findings are removed (doesn't matter whether they were satisfied or not)
 		if status {
-			if len(resultPairs["new-passing-findings"]) > 0 {
+			// Print new-passing-findings
+			newPassing := resultComparison["new-passing-findings"]
+			if len(newPassing) > 0 {
 				message.Info("New passing finding Target-Ids:")
-				for _, rp := range resultPairs["new-passing-findings"] {
-					message.Infof("%s", rp.ControlId)
-					message.Detail(rp.GetMismatchedObservations())
-					message.Debug(rp.GetResultPairDetails())
+				for id := range newPassing {
+					message.Infof("%s", id)
 				}
 
 				message.Infof("New threshold identified - threshold will be updated to result %s", resultMap["latest"].UUID)
@@ -99,23 +104,52 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
 			}
 
-			if len(resultPairs["new-failing-findings"]) > 0 {
+			// Print new-failing-findings
+			newFailing := resultComparison["new-failing-findings"]
+			if len(newFailing) > 0 {
 				message.Info("New failing finding Target-Ids:")
-				for _, rp := range resultPairs["new-failing-findings"] {
-					message.Infof("%s", rp.ControlId)
-					message.Detail(rp.GetMismatchedObservations())
-					message.Debug(rp.GetResultPairDetails())
+				for id := range newFailing {
+					message.Infof("%s", id)
 				}
 			}
-			message.Info("Evaluation Passed Successfully")
 
-		} else {
-			message.Warn("Evaluation Failed against the following findings:")
-			for _, rp := range resultPairs["no-longer-satisfied"] {
-				message.Warnf("%s", rp.ControlId)
-				message.Detail(rp.GetMismatchedObservations())
-				message.Debug(rp.GetResultPairDetails())
+			// Print summary
+			if summary {
+				message.Info("Summary of Evaluation:")
+				result.Collapse(resultComparison).PrintObservationComparisonTable(false)
 			}
+
+			message.Info("Evaluation Passed Successfully")
+		} else {
+			// Print no-longer-satisfied
+			message.Warn("Evaluation Failed against the following findings:")
+			// failedFindings := map[string]result.ResultComparisonMap{}
+			// failedFindings.PrintResultComparisonTable(true)
+
+			noLongerSatisfied := resultComparison["no-longer-satisfied"]
+			for id, rc := range noLongerSatisfied {
+				message.Infof("%s", id)
+				rc.PrintResultComparisonTable(true)
+			}
+
+			// Print removed findings
+			removedSatisfied := resultComparison["satified-removed"]
+			for id, rc := range removedSatisfied {
+				message.Infof("%s", id)
+				rc.PrintResultComparisonTable(true)
+			}
+			removedNotSatisfied := resultComparison["not-satified-removed"]
+			for id, rc := range removedNotSatisfied {
+				message.Infof("%s", id)
+				rc.PrintResultComparisonTable(true)
+			}
+
+			// Print summary
+			if summary {
+				message.Info("Summary of Evaluation:")
+				result.Collapse(resultComparison).PrintObservationComparisonTable(false)
+			}
+
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 
 			// retain result as threshold

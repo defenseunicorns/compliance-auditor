@@ -318,11 +318,17 @@ func Truncate(text string, length int, invert bool) string {
 }
 
 // Table prints a padded table containing the specified header and data
-func Table(header []string, data [][]string) {
+// Note - columnSize should be an array of ints that add up to 100
+func Table(header []string, data [][]string, columnSize []int) {
 	pterm.Println()
+	termWidth := pterm.GetTerminalWidth()
 
-	if len(header) > 0 {
-		header[0] = fmt.Sprintf("     %s", header[0])
+	if len(columnSize) != len(header) {
+		Warn("The number of columns does not match the number of headers")
+		columnSize = make([]int, len(header))
+		for i := range columnSize {
+			columnSize[i] = (len(header) / termWidth) * 100 // make them all equal
+		}
 	}
 
 	table := pterm.TableData{
@@ -330,13 +336,41 @@ func Table(header []string, data [][]string) {
 	}
 
 	for _, row := range data {
-		if len(row) > 0 {
-			row[0] = fmt.Sprintf("     %s", row[0])
+		for i, cell := range row {
+			row[i] = addLineBreaks(strings.Replace(cell, "\n", " ", -1), (columnSize[i]*termWidth)/100)
 		}
 		table = append(table, pterm.TableData{row}...)
 	}
 
-	pterm.DefaultTable.WithHasHeader().WithData(table).Render()
+	pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render()
+}
+
+// Add line breaks for table
+func addLineBreaks(input string, maxLineLength int) string {
+	words := strings.Fields(input) // Split the input into words
+	var result strings.Builder     // Use a strings.Builder for efficient string concatenation
+	currentLineLength := 0
+
+	for i, word := range words {
+		if currentLineLength+len(word) > maxLineLength {
+			result.WriteString("\n")
+			currentLineLength = 0
+		}
+		if currentLineLength > 0 {
+			result.WriteString(" ")
+			currentLineLength++
+		}
+		result.WriteString(word)
+		currentLineLength += len(word)
+
+		// Handle the case where a single word is longer than the maxLineLength
+		if len(word) > maxLineLength && i < len(words)-1 {
+			result.WriteString("\n")
+			currentLineLength = 0
+		}
+	}
+
+	return result.String()
 }
 
 func debugPrinter(offset int, a ...any) {

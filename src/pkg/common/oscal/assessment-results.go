@@ -8,59 +8,11 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"gopkg.in/yaml.v3"
 )
 
 const OSCAL_VERSION = "1.1.2"
-
-type ResultPair struct {
-	ControlId       string
-	oldFinding      *oscalTypes_1_1_2.Finding
-	newFinding      *oscalTypes_1_1_2.Finding
-	oldObservations []*oscalTypes_1_1_2.Observation
-	newObservations []*oscalTypes_1_1_2.Observation
-}
-
-// newResultPair creates a new result pair object
-func newResultPair(controlId string, oldFinding *oscalTypes_1_1_2.Finding, newFinding *oscalTypes_1_1_2.Finding, oldObservations []*oscalTypes_1_1_2.Observation, newObservations []*oscalTypes_1_1_2.Observation) ResultPair {
-	return ResultPair{
-		ControlId:       controlId,
-		oldFinding:      oldFinding,
-		newFinding:      newFinding,
-		oldObservations: oldObservations,
-		newObservations: newObservations,
-	}
-}
-
-// GetResultPairDetails returns a string of the result pair observations
-func (rp *ResultPair) GetResultPairDetails() string {
-	var details string
-	if rp.oldFinding != nil {
-		details += fmt.Sprintf("Threshold Finding UUID: %s\n", rp.oldFinding.UUID)
-		details += fmt.Sprintf("Threshold Observations: %s\n", getObservationsDetails(rp.oldObservations))
-	}
-	if rp.newFinding != nil {
-		details += fmt.Sprintf("New Finding UUID: %s\n", rp.newFinding.UUID)
-		details += fmt.Sprintf("New Observations: %s\n", getObservationsDetails(rp.newObservations))
-	}
-	return details
-}
-
-// GetMismatchedObservations returns a string of the mismatched observations
-func (rp *ResultPair) GetMismatchedObservations() string {
-	var details string
-	if rp.oldFinding != nil && rp.newFinding != nil {
-		details += fmt.Sprintf("Observations Deltas: %s\n", getObservationsDeltasDetails(rp.oldObservations, rp.newObservations))
-	} else if rp.oldFinding != nil {
-		details += "No New Findings\n"
-		details += fmt.Sprintf("Threshold Observations: %s\n", getObservationsDetails(rp.oldObservations))
-	} else if rp.newFinding != nil {
-		details += "No Threshold Findings\n"
-		details += fmt.Sprintf("New Observations: %s\n", getObservationsDetails(rp.oldObservations))
-	}
-
-	return details
-}
 
 // NewAssessmentResults creates a new assessment results object from the given data.
 func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, error) {
@@ -164,23 +116,6 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 	return original, nil
 }
 
-func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTypes_1_1_2.Finding {
-	findingsMap := make(map[string]oscalTypes_1_1_2.Finding)
-	for _, finding := range findings {
-		findingsMap[finding.Target.TargetId] = finding
-	}
-	return findingsMap
-}
-
-// Helper function to create observations map
-func GenerateObservationsMap(observations []oscalTypes_1_1_2.Observation) map[string]*oscalTypes_1_1_2.Observation {
-	observationMap := make(map[string]*oscalTypes_1_1_2.Observation)
-	for _, observation := range observations {
-		observationMap[observation.UUID] = &observation
-	}
-	return observationMap
-}
-
 // IdentifyResults produces a map containing the threshold result and a result used for comparison
 func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
 	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
@@ -235,66 +170,83 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 	}
 }
 
-func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string][]ResultPair, error) {
+func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string]result.ResultComparisonMap, error) {
+	var status bool = true
+
 	if thresholdResult.Findings == nil || newResult.Findings == nil {
-		return false, nil, fmt.Errorf("results must contain findings to evaluate")
+		return status, nil, fmt.Errorf("results must contain findings to evaluate")
 	}
 
-	// Store unique findings for review here
-	resultPairs := make(map[string][]ResultPair, 0)
-	result := true
-	var tempRp ResultPair
+	// Compare threshold result to new result and vice versa
+	comparedToThreshold := result.NewResultComparisonMap(*newResult, *thresholdResult)
 
-	findingMapThreshold := GenerateFindingsMap(*thresholdResult.Findings)
-	findingMapNew := GenerateFindingsMap(*newResult.Findings)
-	observationMapThreshold := GenerateObservationsMap(*thresholdResult.Observations)
-	observationMapNew := GenerateObservationsMap(*newResult.Observations)
+	// Group by categories
+	categories := []struct {
+		name        string
+		stateChange result.StateChange
+		satisfied   bool
+		status      bool
+	}{
+		{
+			name:        "new-passing-findings",
+			stateChange: result.NEW,
+			satisfied:   true,
+			status:      true,
+		},
+		{
+			name:        "new-failing-findings",
+			stateChange: result.NEW,
+			satisfied:   false,
+			status:      true,
+		},
+		{
+			name:        "no-longer-satisfied",
+			stateChange: result.SATISFIED_TO_NOT_SATISFIED,
+			satisfied:   false,
+			status:      false,
+		},
+		{
+			name:        "now-satisfied",
+			stateChange: result.NOT_SATISFIED_TO_SATISFIED,
+			satisfied:   true,
+			status:      true,
+		},
+		{
+			name:        "not-satisfied-unchanged",
+			stateChange: result.UNCHANGED,
+			satisfied:   false,
+			status:      true,
+		},
+		{
+			name:        "satisfied-unchanged",
+			stateChange: result.UNCHANGED,
+			satisfied:   true,
+			status:      true,
+		},
+		{
+			name:        "not-satified-removed",
+			stateChange: result.REMOVED,
+			satisfied:   false,
+			status:      false,
+		},
+		{
+			name:        "satified-removed",
+			stateChange: result.REMOVED,
+			satisfied:   true,
+			status:      false,
+		},
+	}
 
-	// For a given oldResult - we need to prove that the newResult implements all of the oldResult findings/controls
-	// We are explicitly iterating through the findings in order to collect a delta to display
-
-	for targetId, finding := range findingMapThreshold {
-		if _, ok := findingMapNew[targetId]; !ok {
-			// If the new result does not contain the finding of the old result
-			// set result to fail, add finding to the findings map and continue
-			result = false
-			tempRp = newResultPair(targetId, &finding, nil, getObservations(finding, observationMapThreshold), nil)
-			resultPairs["no-longer-satisfied"] = append(resultPairs["no-longer-satisfied"], tempRp)
-		} else {
-			newFinding := findingMapNew[targetId]
-			tempRp = newResultPair(targetId, &finding, &newFinding, getObservations(finding, observationMapThreshold), getObservations(newFinding, observationMapNew))
-
-			// If the finding is present in each map - we need to check if the state has changed from "not-satisfied" to "satisfied"
-			if finding.Target.Status.State == "satisfied" {
-				// Was previously satisfied - compare state
-				if newFinding.Target.Status.State == "not-satisfied" {
-					// If the new finding is now not-satisfied - set result to false and add to findings
-					result = false
-					resultPairs["no-longer-satisfied"] = append(resultPairs["no-longer-satisfied"], tempRp)
-				}
-			} else {
-				// was previously not-satisfied but now is satisfied
-				if newFinding.Target.Status.State == "satisfied" {
-					// If the new finding is now satisfied - add to new-passing-findings
-					resultPairs["new-passing-findings"] = append(resultPairs["new-passing-findings"], tempRp)
-				}
-			}
-			delete(findingMapNew, targetId)
+	categorizedResultComparisons := make(map[string]result.ResultComparisonMap)
+	for _, c := range categories {
+		results := result.GetResultComparisonMap(comparedToThreshold, c.stateChange, c.satisfied)
+		categorizedResultComparisons[c.name] = results
+		if len(results) > 0 && !c.status {
+			status = false
 		}
 	}
 
-	// All remaining findings in the new map are new findings
-	for _, finding := range findingMapNew {
-		tempRp = newResultPair(finding.Target.TargetId, nil, &finding, nil, getObservations(finding, observationMapNew))
-		if finding.Target.Status.State == "satisfied" {
-			resultPairs["new-passing-findings"] = append(resultPairs["new-passing-findings"], tempRp)
-		} else {
-			resultPairs["new-failing-findings"] = append(resultPairs["new-failing-findings"], tempRp)
-		}
-
-	}
-
-	return result, resultPairs, nil
+	return status, categorizedResultComparisons, nil
 }
 
 // findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
@@ -335,105 +287,4 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
-}
-
-// getObservations gets a finding's observations
-func getObservations(finding oscalTypes_1_1_2.Finding, observations map[string]*oscalTypes_1_1_2.Observation) []*oscalTypes_1_1_2.Observation {
-	var relatedObservations []*oscalTypes_1_1_2.Observation
-	if finding.RelatedObservations != nil {
-		for _, observation := range *finding.RelatedObservations {
-			if _, ok := observations[observation.ObservationUuid]; ok {
-				relatedObservations = append(relatedObservations, observations[observation.ObservationUuid])
-			}
-		}
-	}
-
-	return relatedObservations
-}
-
-// getObservationsDetails returns a string of the observations details
-func getObservationsDetails(observations []*oscalTypes_1_1_2.Observation) string {
-	var details string
-	for _, observation := range observations {
-		details += fmt.Sprintf("\nObservation UUID: %s\n", observation.UUID)
-		details += fmt.Sprintf("Observation Description: %s", observation.Description)
-		if observation.RelevantEvidence != nil {
-			for _, re := range *observation.RelevantEvidence {
-				details += fmt.Sprintf("Observation %s", re.Description)
-				details += fmt.Sprintf("Observation Evidence: %s", re.Remarks)
-			}
-		}
-	}
-	return details
-}
-
-// getObservationsDeltas retuns the observations that are different between the two observations arrays
-func getObservationsDeltas(aObservations []*oscalTypes_1_1_2.Observation, bObservations []*oscalTypes_1_1_2.Observation) ([]*oscalTypes_1_1_2.Observation, []*oscalTypes_1_1_2.Observation) {
-	var different []*oscalTypes_1_1_2.Observation
-	var missing []*oscalTypes_1_1_2.Observation
-	var foundInB bool
-
-	for _, aOb := range aObservations {
-		foundInB = false
-		for _, bOb := range bObservations {
-			// Get different A observations
-			if aOb.Description == bOb.Description {
-				if !isSameResult(aOb, bOb) {
-					different = append(different, aOb)
-				}
-				foundInB = true
-				break
-			}
-		}
-		// Get missing A observations
-		if !foundInB {
-			missing = append(missing, aOb)
-		}
-	}
-
-	return different, missing
-}
-
-// compareRelevantEvidence compares the relevant evidence of two observations
-func isSameResult(oldObservation *oscalTypes_1_1_2.Observation, newObservation *oscalTypes_1_1_2.Observation) bool {
-	oldRelevantEvidence := oldObservation.RelevantEvidence
-	newRelevantEvidence := newObservation.RelevantEvidence
-
-	if oldRelevantEvidence != nil && newRelevantEvidence != nil {
-		for _, oldRe := range *oldRelevantEvidence {
-			for _, newRe := range *newRelevantEvidence {
-				if oldRe.Description == newRe.Description {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
-// getObservationsDeltasDetails returns a string of the observations details for the delta observations
-func getObservationsDeltasDetails(oldObservations []*oscalTypes_1_1_2.Observation, newObservations []*oscalTypes_1_1_2.Observation) string {
-	var details string
-	oldDifferentFromNew, oldMissingFromNew := getObservationsDeltas(oldObservations, newObservations)
-	newDifferentFromOld, newMissingFromOld := getObservationsDeltas(newObservations, oldObservations)
-
-	// Print out the observations that are different between the two observations arrays
-	if len(oldDifferentFromNew) > 0 {
-		details += "\nThreshold Observations != New:\n"
-		details += getObservationsDetails(oldDifferentFromNew)
-	}
-	if len(oldMissingFromNew) > 0 {
-		details += "\nThreshold Observations missing from New:\n"
-		details += getObservationsDetails(oldMissingFromNew)
-	}
-	if len(newDifferentFromOld) > 0 {
-		details += "\nNew Observations != Threshold:\n"
-		details += getObservationsDetails(newDifferentFromOld)
-	}
-	if len(newMissingFromOld) > 0 {
-		details += "\nNew Observations missing from Threshold:\n"
-		details += getObservationsDetails(newMissingFromOld)
-	}
-
-	return details
 }
