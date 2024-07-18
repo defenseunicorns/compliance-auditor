@@ -33,16 +33,16 @@ func (r ResultComparison) PrintResultComparisonTable(changedOnly bool) {
 	columnSize := []int{20, 10, 15, 25, 30}
 
 	for _, observationPair := range r.ObservationPairs {
-		if changedOnly && observationPair.stateChange == UNCHANGED {
+		if changedOnly && observationPair.StateChange == UNCHANGED {
 			continue
 		}
 
 		rows = append(rows, []string{
-			observationPair.name,
-			convertSatisfied(observationPair.satisfied, observationPair.stateChange),
-			string(observationPair.stateChange),
-			observationPair.observation,
-			observationPair.comparedObservation,
+			observationPair.Name,
+			convertSatisfied(observationPair.Satisfied, observationPair.StateChange),
+			string(observationPair.StateChange),
+			observationPair.Observation,
+			observationPair.ComparedObservation,
 		})
 	}
 	if len(rows) != 0 {
@@ -62,23 +62,23 @@ func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool, 
 	observationPairMap, controlObservationMap, noObservations := refactorObservationsByControls(rm)
 
 	for id, observationPair := range observationPairMap {
-		if changedOnly && observationPair.stateChange == UNCHANGED {
+		if changedOnly && observationPair.StateChange == UNCHANGED {
 			continue
 		}
-		if skipRemoved && observationPair.stateChange == REMOVED {
+		if skipRemoved && observationPair.StateChange == REMOVED {
 			continue
 		}
-		if failedOnly && observationPair.satisfied {
+		if failedOnly && observationPair.Satisfied {
 			continue
 		}
 		controlIds := strings.Join(controlObservationMap[id], ", ")
 		rows = append(rows, []string{
 			controlIds,
-			observationPair.name,
-			convertSatisfied(observationPair.satisfied, observationPair.stateChange),
-			string(observationPair.stateChange),
-			observationPair.observation,
-			observationPair.comparedObservation,
+			observationPair.Name,
+			convertSatisfied(observationPair.Satisfied, observationPair.StateChange),
+			string(observationPair.StateChange),
+			observationPair.Observation,
+			observationPair.ComparedObservation,
 		})
 	}
 	if len(rows) != 0 {
@@ -117,8 +117,8 @@ func refactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (ma
 
 	for targetId, r := range ResultComparisonMap {
 		for _, o := range r.ObservationPairs {
-			observationPairMap[o.name] = *o
-			controlObservationMap[o.name] = append(controlObservationMap[o.name], targetId)
+			observationPairMap[o.Name] = *o
+			controlObservationMap[o.Name] = append(controlObservationMap[o.Name], targetId)
 		}
 		if len(r.ObservationPairs) == 0 {
 			noObservations = append(noObservations, targetId)

@@ -7,11 +7,11 @@ import (
 )
 
 type ObservationPair struct {
-	stateChange         StateChange
-	satisfied           bool
-	name                string
-	observation         string
-	comparedObservation string
+	StateChange         StateChange
+	Satisfied           bool
+	Name                string
+	Observation         string
+	ComparedObservation string
 }
 
 // CreateObservationPairs creates a slice of observation pairs from a slice of observations and compared observations
@@ -65,11 +65,11 @@ func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObser
 	}
 
 	return &ObservationPair{
-		stateChange:         state,
-		satisfied:           result,
-		name:                name,
-		observation:         observationRemarks,
-		comparedObservation: comparedObservationRemarks,
+		StateChange:         state,
+		Satisfied:           result,
+		Name:                name,
+		Observation:         observationRemarks,
+		ComparedObservation: comparedObservationRemarks,
 	}
 }
 
