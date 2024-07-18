@@ -14,30 +14,54 @@ type ObservationPair struct {
 	comparedObservation string
 }
 
+// CreateObservationPairs creates a slice of observation pairs from a slice of observations and compared observations
+func CreateObservationPairs(observations []*oscalTypes_1_1_2.Observation, comparedObservations []*oscalTypes_1_1_2.Observation) []*ObservationPair {
+	observationPairs := make([]*ObservationPair, 0)
+
+	// Add all observations to the observation pairs
+	for _, observation := range observations {
+		comparedObservation := findObservation(observation, comparedObservations)
+		observationPair := newObservationPair(observation, comparedObservation)
+		observationPairs = append(observationPairs, observationPair)
+	}
+
+	// Add all compared observations that are not in the observations
+	for _, comparedObservation := range comparedObservations {
+		observation := findObservation(comparedObservation, observations)
+		if observation == nil {
+			observationPair := newObservationPair(nil, comparedObservation)
+			observationPairs = append(observationPairs, observationPair)
+		}
+	}
+	return observationPairs
+}
+
 // NewObservationPair -> create a new observation pair from a given observation and slice of comparedObservations
-func NewObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObservations []*oscalTypes_1_1_2.Observation) *ObservationPair {
+func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObservation *oscalTypes_1_1_2.Observation) *ObservationPair {
 	// Calculate the state change
 	var state StateChange
 	var result bool
 	var observationRemarks, comparedObservationRemarks, name string
-	comparedObservation := findObservation(observation, comparedObservations)
-	if observation == nil && comparedObservation == nil {
-		state = UNCHANGED
-	} else if observation != nil && comparedObservation == nil {
-		state = NEW
+	prefix := "[TEST]: "
+
+	if observation != nil {
+		name = strings.TrimPrefix(observation.Description, prefix)
 		observationRemarks = getRemarks(observation.RelevantEvidence)
-		name = strings.TrimPrefix(observation.Description, "[TEST]: ")
-	} else if observation == nil && comparedObservation != nil {
-		state = REMOVED
-		comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
-		name = strings.TrimPrefix(comparedObservation.Description, "[TEST]: ")
-	} else {
-		// Check if the observation has changed
-		observationRemarks = getRemarks(observation.RelevantEvidence)
-		comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
-		name = strings.TrimPrefix(observation.Description, "[TEST]: ")
-		state = getStateChange(observation, comparedObservation)
 		result = getObservationResult(observation.RelevantEvidence)
+		if comparedObservation == nil {
+			state = NEW
+		} else {
+			comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
+			state = getStateChange(observation, comparedObservation)
+		}
+	} else {
+		if comparedObservation != nil {
+			name = strings.TrimPrefix(comparedObservation.Description, prefix)
+			comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
+			state = REMOVED
+		} else {
+			state = UNCHANGED
+		}
 	}
 
 	return &ObservationPair{

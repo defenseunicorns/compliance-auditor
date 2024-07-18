@@ -2,6 +2,7 @@ package evaluate
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -72,6 +73,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 	}
 
 	if resultMap["threshold"] != nil && resultMap["latest"] != nil {
+		var findingsWithoutObservations []string
 		// Compare the assessment results
 		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
 		defer spinner.Stop()
@@ -83,14 +85,28 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 			message.Fatal(err, err.Error())
 		}
 
+		// Print summary
+		if summary {
+			message.Info("Summary of All Observations:")
+			findingsWithoutObservations = result.Collapse(resultComparison).PrintObservationComparisonTable(false, true, false)
+			if len(findingsWithoutObservations) > 0 {
+				message.Warnf("%d Finding(s) Without Observations", len(findingsWithoutObservations))
+				message.Info(strings.Join(findingsWithoutObservations, ", "))
+			}
+		}
+
 		// Check 'status' - Result if evaluation is passing or failing
 		// Fails if anything went from satisfied -> not-satisfied OR if any old findings are removed (doesn't matter whether they were satisfied or not)
 		if status {
 			// Print new-passing-findings
-			newPassing := resultComparison["new-passing-findings"]
-			if len(newPassing) > 0 {
+			newSatisfied := resultComparison["new-satisfied"]
+			nowSatisfied := resultComparison["now-satisfied"]
+			if len(newSatisfied) > 0 || len(nowSatisfied) > 0 {
 				message.Info("New passing finding Target-Ids:")
-				for id := range newPassing {
+				for id := range newSatisfied {
+					message.Infof("%s", id)
+				}
+				for id := range nowSatisfied {
 					message.Infof("%s", id)
 				}
 
@@ -104,8 +120,8 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
 			}
 
-			// Print new-failing-findings
-			newFailing := resultComparison["new-failing-findings"]
+			// Print new-not-satisfied
+			newFailing := resultComparison["new-not-satisfied"]
 			if len(newFailing) > 0 {
 				message.Info("New failing finding Target-Ids:")
 				for id := range newFailing {
@@ -113,42 +129,40 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 				}
 			}
 
-			// Print summary
-			if summary {
-				message.Info("Summary of Evaluation:")
-				result.Collapse(resultComparison).PrintObservationComparisonTable(false)
-			}
-
 			message.Info("Evaluation Passed Successfully")
 		} else {
 			// Print no-longer-satisfied
-			message.Warn("Evaluation Failed against the following findings:")
-			// failedFindings := map[string]result.ResultComparisonMap{}
-			// failedFindings.PrintResultComparisonTable(true)
+			message.Warn("Evaluation Failed against the following:")
 
-			noLongerSatisfied := resultComparison["no-longer-satisfied"]
-			for id, rc := range noLongerSatisfied {
-				message.Infof("%s", id)
-				rc.PrintResultComparisonTable(true)
+			// Alternative printing in a single table
+			failedFindings := map[string]result.ResultComparisonMap{
+				"no-longer-satisfied":  resultComparison["no-longer-satisfied"],
+				"removed-satified":     resultComparison["removed-satified"],
+				"removed-not-satified": resultComparison["removed-not-satified"],
 			}
-
-			// Print removed findings
-			removedSatisfied := resultComparison["satified-removed"]
-			for id, rc := range removedSatisfied {
-				message.Infof("%s", id)
-				rc.PrintResultComparisonTable(true)
-			}
-			removedNotSatisfied := resultComparison["not-satified-removed"]
-			for id, rc := range removedNotSatisfied {
-				message.Infof("%s", id)
-				rc.PrintResultComparisonTable(true)
+			findingsWithoutObservations = result.Collapse(failedFindings).PrintObservationComparisonTable(true, false, true)
+			// handle controls that failed but didn't have observations
+			if len(findingsWithoutObservations) > 0 {
+				message.Warnf("%d Failed Finding(s) Without Observations", len(findingsWithoutObservations))
+				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
 
-			// Print summary
-			if summary {
-				message.Info("Summary of Evaluation:")
-				result.Collapse(resultComparison).PrintObservationComparisonTable(false)
-			}
+			// Print by individual table
+			// noLongerSatisfied := resultComparison["no-longer-satisfied"]
+			// for id, rc := range noLongerSatisfied {
+			// 	message.Infof("%s", id)
+			// 	rc.PrintResultComparisonTable(true)
+			// }
+			// removedSatisfied := resultComparison["removed-satified"]
+			// for id, rc := range removedSatisfied {
+			// 	message.Infof("%s", id)
+			// 	rc.PrintResultComparisonTable(true)
+			// }
+			// removedNotSatisfied := resultComparison["removed-not-satified"]
+			// for id, rc := range removedNotSatisfied {
+			// 	message.Infof("%s", id)
+			// 	rc.PrintResultComparisonTable(true)
+			// }
 
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 

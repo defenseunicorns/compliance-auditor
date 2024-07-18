@@ -279,7 +279,7 @@ func TestIdentifyResults(t *testing.T) {
 			t.Fatalf("Expected results to be evaluated as failing")
 		}
 
-		if len(findings["new-passing-findings"]) == 0 {
+		if len(findings["now-satisfied"]) == 0 {
 			t.Fatalf("Expected new passing findings to be found")
 		}
 	})
@@ -443,7 +443,7 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		t.Fatal("error - evaluation failed")
 	}
 
-	if len(findings["new-passing-findings"]) != 1 {
+	if len(findings["new-satisfied"]) != 1 {
 		t.Fatal("error - expected 1 new finding, got ", len(findings["new-passing-findings"]))
 	}
 

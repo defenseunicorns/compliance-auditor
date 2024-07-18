@@ -26,11 +26,9 @@ type ResultComparison struct {
 	ObservationPairs []*ObservationPair
 }
 
-type ResultComparisonMap map[string]ResultComparison
-
 // PrintResultComparisonTable prints a table output of compared results
 func (r ResultComparison) PrintResultComparisonTable(changedOnly bool) {
-	header := []string{"Observation", "Satisfied", "Change", "Threshold Remarks", "New Remarks"}
+	header := []string{"Observation", "Satisfied", "Change", "New Remarks", "Threshold Remarks"}
 	rows := make([][]string, 0)
 	columnSize := []int{20, 10, 15, 25, 30}
 
@@ -41,40 +39,62 @@ func (r ResultComparison) PrintResultComparisonTable(changedOnly bool) {
 
 		rows = append(rows, []string{
 			observationPair.name,
-			strconv.FormatBool(observationPair.satisfied),
+			convertSatisfied(observationPair.satisfied, observationPair.stateChange),
 			string(observationPair.stateChange),
 			observationPair.observation,
 			observationPair.comparedObservation,
 		})
 	}
-	message.Table(header, rows, columnSize)
+	if len(rows) != 0 {
+		message.Table(header, rows, columnSize)
+	}
 }
 
+type ResultComparisonMap map[string]ResultComparison
+
 // PrintObservationComparisonTable prints a table output of compared observations, per control
-func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool) {
-	header := []string{"Control ID(s)", "Observation", "Satisfied", "Change", "Threshold Remarks", "New Remarks"}
+func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool, skipRemoved bool, failedOnly bool) []string {
+	header := []string{"Control ID(s)", "Observation", "Satisfied", "Change", "New Remarks", "Threshold Remarks"}
 	rows := make([][]string, 0)
 	columnSize := []int{10, 20, 5, 15, 25, 25}
 
 	// map[string]ObservationPairs (observationUUIDs -> observationPairs), map[string][]string (observationUUIDs -> controlIds)
-	observationPairMap, controlObservationMap := refactorObservationsByControls(rm)
+	observationPairMap, controlObservationMap, noObservations := refactorObservationsByControls(rm)
 
 	for id, observationPair := range observationPairMap {
 		if changedOnly && observationPair.stateChange == UNCHANGED {
+			continue
+		}
+		if skipRemoved && observationPair.stateChange == REMOVED {
+			continue
+		}
+		if failedOnly && observationPair.satisfied {
 			continue
 		}
 		controlIds := strings.Join(controlObservationMap[id], ", ")
 		rows = append(rows, []string{
 			controlIds,
 			observationPair.name,
-			strconv.FormatBool(observationPair.satisfied),
+			convertSatisfied(observationPair.satisfied, observationPair.stateChange),
 			string(observationPair.stateChange),
 			observationPair.observation,
 			observationPair.comparedObservation,
 		})
 	}
+	if len(rows) != 0 {
+		message.Table(header, rows, columnSize)
+	}
 
-	message.Table(header, rows, columnSize)
+	return noObservations
+}
+
+// convertSatisfied converts the satisfied boolean to a string
+func convertSatisfied(satisfied bool, stateChange StateChange) string {
+	if stateChange == REMOVED {
+		return "N/A"
+	} else {
+		return strconv.FormatBool(satisfied)
+	}
 }
 
 // Collapse map[string]ResultComparisonMap to single ResultComparisonMap
@@ -89,29 +109,40 @@ func Collapse(mapResultComparisonMap map[string]ResultComparisonMap) ResultCompa
 }
 
 // Refactor observations by controls
-func refactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (map[string]ObservationPair, map[string][]string) {
+func refactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (map[string]ObservationPair, map[string][]string, []string) {
 	// for each category, add the observationpair and add controlId
 	observationPairMap := make(map[string]ObservationPair)
 	controlObservationMap := make(map[string][]string)
+	noObservations := make([]string, 0)
 
-	for _, r := range ResultComparisonMap {
+	for targetId, r := range ResultComparisonMap {
 		for _, o := range r.ObservationPairs {
 			observationPairMap[o.name] = *o
-			controlObservationMap[o.name] = append(controlObservationMap[o.name], r.Finding.Target.TargetId)
+			controlObservationMap[o.name] = append(controlObservationMap[o.name], targetId)
+		}
+		if len(r.ObservationPairs) == 0 {
+			noObservations = append(noObservations, targetId)
 		}
 	}
 
-	return observationPairMap, controlObservationMap
+	return observationPairMap, controlObservationMap, noObservations
 }
 
 // NewResultComparisonMap -> create a map of result comparisons from two OSCAL results
 func NewResultComparisonMap(result oscalTypes_1_1_2.Result, comparedResult oscalTypes_1_1_2.Result) map[string]ResultComparison {
 	findingMap := generateFindingMap(*result.Findings)
 	comparedFindingMap := generateFindingMap(*comparedResult.Findings)
-	relatedObservationsMap := generateRelatedObservationsMap(findingMap, generateObservationMap(*result.Observations))
-	comparedRelatedObservationsMap := generateRelatedObservationsMap(comparedFindingMap, generateObservationMap(*comparedResult.Observations))
 
+	relatedObservationsMap := make(map[string][]*oscalTypes_1_1_2.Observation)
+	comparedRelatedObservationsMap := make(map[string][]*oscalTypes_1_1_2.Observation)
 	resultComparisonMap := make(map[string]ResultComparison)
+
+	if result.Observations != nil {
+		relatedObservationsMap = generateRelatedObservationsMap(findingMap, generateObservationMap(*result.Observations))
+	}
+	if comparedResult.Observations != nil {
+		comparedRelatedObservationsMap = generateRelatedObservationsMap(findingMap, generateObservationMap(*comparedResult.Observations))
+	}
 
 	for targetId, finding := range findingMap {
 		comparedFinding, found := comparedFindingMap[targetId]
@@ -150,7 +181,7 @@ func GetResultComparisonMap(resultComparisonMap map[string]ResultComparison, sta
 func newResultComparison(finding *oscalTypes_1_1_2.Finding, comparedFinding *oscalTypes_1_1_2.Finding, relatedObservations []*oscalTypes_1_1_2.Observation, comparedRelatedObservations []*oscalTypes_1_1_2.Observation) ResultComparison {
 	var state StateChange
 	var satisfied bool
-	observationPairs := make([]*ObservationPair, 0)
+	observationPairs := CreateObservationPairs(relatedObservations, comparedRelatedObservations)
 
 	if comparedFinding == nil {
 		state = NEW
@@ -160,9 +191,6 @@ func newResultComparison(finding *oscalTypes_1_1_2.Finding, comparedFinding *osc
 	} else {
 		state = compareFindings(finding, comparedFinding)
 		satisfied = finding.Target.Status.State == "satisfied"
-		for _, o := range relatedObservations {
-			observationPairs = append(observationPairs, NewObservationPair(o, comparedRelatedObservations))
-		}
 	}
 
 	resultComparison := ResultComparison{

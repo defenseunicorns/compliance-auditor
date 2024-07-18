@@ -321,7 +321,7 @@ func Truncate(text string, length int, invert bool) string {
 // Note - columnSize should be an array of ints that add up to 100
 func Table(header []string, data [][]string, columnSize []int) {
 	pterm.Println()
-	termWidth := pterm.GetTerminalWidth()
+	termWidth := pterm.GetTerminalWidth() - 10 // Subtract 10 for padding
 
 	if len(columnSize) != len(header) {
 		Warn("The number of columns does not match the number of headers")
@@ -346,15 +346,29 @@ func Table(header []string, data [][]string, columnSize []int) {
 }
 
 // Add line breaks for table
+
 func addLineBreaks(input string, maxLineLength int) string {
-	words := strings.Fields(input) // Split the input into words
-	var result strings.Builder     // Use a strings.Builder for efficient string concatenation
+	// words := splitWords(input) // Split the input into words, handling hyphens
+	words := strings.Fields(input)
+	var result strings.Builder // Use a strings.Builder for efficient string concatenation
 	currentLineLength := 0
 
-	for i, word := range words {
+	for _, word := range words {
 		if currentLineLength+len(word) > maxLineLength {
+			// additionally split the word if it contains a hyphen
+			firstPart, secondPart := splitHyphenedWords(word, currentLineLength, maxLineLength)
+			if firstPart != "" {
+				if currentLineLength > 0 {
+					result.WriteString(" ")
+				}
+				result.WriteString(firstPart + "-")
+			}
 			result.WriteString("\n")
 			currentLineLength = 0
+
+			if secondPart != "" {
+				word = secondPart
+			}
 		}
 		if currentLineLength > 0 {
 			result.WriteString(" ")
@@ -362,15 +376,32 @@ func addLineBreaks(input string, maxLineLength int) string {
 		}
 		result.WriteString(word)
 		currentLineLength += len(word)
-
-		// Handle the case where a single word is longer than the maxLineLength
-		if len(word) > maxLineLength && i < len(words)-1 {
-			result.WriteString("\n")
-			currentLineLength = 0
-		}
 	}
 
 	return result.String()
+}
+
+func splitHyphenedWords(input string, currentLength int, maxLength int) (firstPart string, secondPart string) {
+	// get the indicies of all the hyphens
+	hyphenIndicies := []int{}
+	for i, char := range input {
+		if char == '-' {
+			hyphenIndicies = append(hyphenIndicies, i)
+		}
+	}
+
+	if len(hyphenIndicies) != 0 {
+		// starting from the last index, find the largest firstPart that fits within the maxLength
+		for i := len(hyphenIndicies) - 1; i >= 0; i-- {
+			hyphenIndex := hyphenIndicies[i]
+			firstPart = input[:hyphenIndex]
+			secondPart = input[hyphenIndex+1:]
+			if len(firstPart)+currentLength <= maxLength {
+				return firstPart, secondPart
+			}
+		}
+	}
+	return "", input
 }
 
 func debugPrinter(offset int, a ...any) {

@@ -174,7 +174,7 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 	var status bool = true
 
 	if thresholdResult.Findings == nil || newResult.Findings == nil {
-		return status, nil, fmt.Errorf("results must contain findings to evaluate")
+		return false, nil, fmt.Errorf("results must contain findings to evaluate")
 	}
 
 	// Compare threshold result to new result and vice versa
@@ -188,13 +188,13 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 		status      bool
 	}{
 		{
-			name:        "new-passing-findings",
+			name:        "new-satisfied",
 			stateChange: result.NEW,
 			satisfied:   true,
 			status:      true,
 		},
 		{
-			name:        "new-failing-findings",
+			name:        "new-not-satisfied",
 			stateChange: result.NEW,
 			satisfied:   false,
 			status:      true,
@@ -212,25 +212,25 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 			status:      true,
 		},
 		{
-			name:        "not-satisfied-unchanged",
+			name:        "unchanged-not-satisfied",
 			stateChange: result.UNCHANGED,
 			satisfied:   false,
 			status:      true,
 		},
 		{
-			name:        "satisfied-unchanged",
+			name:        "unchanged-satisfied",
 			stateChange: result.UNCHANGED,
 			satisfied:   true,
 			status:      true,
 		},
 		{
-			name:        "not-satified-removed",
+			name:        "removed-not-satified",
 			stateChange: result.REMOVED,
 			satisfied:   false,
 			status:      false,
 		},
 		{
-			name:        "satified-removed",
+			name:        "removed-satified",
 			stateChange: result.REMOVED,
 			satisfied:   true,
 			status:      false,
