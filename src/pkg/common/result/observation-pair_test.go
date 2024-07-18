@@ -3,7 +3,6 @@ package result_test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -12,14 +11,12 @@ import (
 
 func createObservation(description, satisfaction string) *oscalTypes_1_1_2.Observation {
 	return &oscalTypes_1_1_2.Observation{
-		Collected:   time.Now(),
-		Methods:     []string{"TEST"},
 		UUID:        uuid.NewUUID(),
 		Description: description,
 		RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
 			{
 				Description: fmt.Sprintf("Result: %s", satisfaction),
-				Remarks:     "Some remarks about this satisfied observation",
+				Remarks:     "Some remarks about this observation",
 			},
 		},
 	}
