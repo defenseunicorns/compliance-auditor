@@ -96,7 +96,7 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 	evalResultMap := filterResults(assessmentMap)
 
 	// Handle no results found in the assessment-results
-	if len(sortedResults) == 0 {
+	if len(evalResultMap) == 0 {
 		return nil, fmt.Errorf("less than 2 results found - no comparison possible")
 	}
 
@@ -226,38 +226,92 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 
 // filterResults consumes many assessment-results objects and builds out a map of EvalResults filtered by target
 // this function looks at the target prop as the key in the map
+// TODO: refactor the threshold check
 func filterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
 	evalResultMap := make(map[string]EvalResult)
 
 	for _, assessment := range resultMap {
 		for _, result := range assessment.Results {
 			if result.Props != nil {
-				status, value := GetProp("target", "https://docs.lula.dev/ns", result.Props)
-				if status {
+				hasTarget, targetValue := GetProp("target", "https://docs.lula.dev/ns", result.Props)
+				hasThreshold, thresholdValue := GetProp("threshold", "https://docs.lula.dev/ns", result.Props)
+				if hasTarget {
 					// target identified
-					if evalResult, ok := evalResultMap[value]; ok {
+					if evalResult, ok := evalResultMap[targetValue]; ok {
 						// EvalResult Exists - append
 						evalResult.Results = append(evalResult.Results, &result)
+
+						// check for threshold
+						if hasThreshold && thresholdValue == "true" {
+							if evalResult.Threshold == nil {
+								evalResult.Threshold = &result
+							} else {
+								// If threshold exists and this is a newer threshold
+								if result.Start.Compare(evalResult.Threshold.Start) > 0 {
+									UpdateProps("threshold", "https://docs.lula.dev/ns", "false", evalResult.Threshold.Props)
+									evalResult.Threshold = &result
+								}
+							}
+						}
 					} else {
 						// EvalResult Does Not Exist - create
 						results := make([]*oscalTypes_1_1_2.Result, 0)
 						results = append(results, &result)
-						evalResultMap[value] = EvalResult{
+						evalResult = EvalResult{
 							Results: results,
 						}
+						// check for threshold
+						if hasThreshold && thresholdValue == "true" {
+							if evalResult.Threshold == nil {
+								evalResult.Threshold = &result
+							} else {
+								// If threshold exists and this is a newer threshold
+								if result.Start.Compare(evalResult.Threshold.Start) > 0 {
+									UpdateProps("threshold", "https://docs.lula.dev/ns", "false", evalResult.Threshold.Props)
+									evalResult.Threshold = &result
+								}
+							}
+						}
+						evalResultMap[targetValue] = evalResult
 					}
 				} else {
 					// no target prop available - default scenario for backwards compatibility
+					hasThreshold, thresholdValue := GetProp("threshold", "https://docs.lula.dev/ns", result.Props)
 					if evalResult, ok := evalResultMap["default"]; ok {
 						// EvalResult Exists - append
 						evalResult.Results = append(evalResult.Results, &result)
+						// check for threshold
+						if hasThreshold && thresholdValue == "true" {
+							if evalResult.Threshold == nil {
+								evalResult.Threshold = &result
+							} else {
+								// If threshold exists and this is a newer threshold
+								if result.Start.Compare(evalResult.Threshold.Start) > 0 {
+									UpdateProps("threshold", "https://docs.lula.dev/ns", "false", evalResult.Threshold.Props)
+									evalResult.Threshold = &result
+								}
+							}
+						}
 					} else {
 						// EvalResult Does Not Exist - create
 						results := make([]*oscalTypes_1_1_2.Result, 0)
 						results = append(results, &result)
-						evalResultMap["default"] = EvalResult{
+						evalResult = EvalResult{
 							Results: results,
 						}
+						// check for threshold
+						if hasThreshold && thresholdValue == "true" {
+							if evalResult.Threshold == nil {
+								evalResult.Threshold = &result
+							} else {
+								// If threshold exists and this is a newer threshold
+								if result.Start.Compare(evalResult.Threshold.Start) > 0 {
+									UpdateProps("threshold", "https://docs.lula.dev/ns", "false", evalResult.Threshold.Props)
+									evalResult.Threshold = &result
+								}
+							}
+						}
+						evalResultMap["default"] = evalResult
 					}
 				}
 			}
