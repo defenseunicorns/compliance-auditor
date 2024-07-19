@@ -24,7 +24,7 @@ Based on the structure outlined, the results of the observations impact the find
 The way Lula performs evaluations default to a conservative reporting of a `not-satisified` observation. The only `satisfied` observations occur when a domain provides resources and those resources are evaluated by the policy such that the policy will pass. If a Lula Validation [cannot be evaluated](#not-satisfied-conditions) then it will by default return a `not-satisfied` result.
 
 ### Not-satisfied conditions
-The following conditions enumerate when the Lula Validation will result in a `not-satified` evaluation. These cases exclude the case where the Lula validation policy has been evaluated and returned a failure.
+The following conditions enumerate when the Lula Validation will result in a `not-satisfied` evaluation. These cases exclude the case where the Lula validation policy has been evaluated and returned a failure.
 - Malformed Lula validation -> bad validation structure
 - Missing resources -> No resources are found as input to the policy
 - Missing reference -> If a remote or local reference is invalid

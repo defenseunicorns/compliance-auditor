@@ -136,9 +136,9 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 			// Alternative printing in a single table
 			failedFindings := map[string]result.ResultComparisonMap{
-				"no-longer-satisfied":  resultComparison["no-longer-satisfied"],
-				"removed-satified":     resultComparison["removed-satified"],
-				"removed-not-satified": resultComparison["removed-not-satified"],
+				"no-longer-satisfied":   resultComparison["no-longer-satisfied"],
+				"removed-satisfied":     resultComparison["removed-satisfied"],
+				"removed-not-satisfied": resultComparison["removed-not-satisfied"],
 			}
 			findingsWithoutObservations = result.Collapse(failedFindings).PrintObservationComparisonTable(true, false, true)
 			// handle controls that failed but didn't have observations
@@ -153,12 +153,12 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 			// 	message.Infof("%s", id)
 			// 	rc.PrintResultComparisonTable(true)
 			// }
-			// removedSatisfied := resultComparison["removed-satified"]
+			// removedSatisfied := resultComparison["removed-satisfied"]
 			// for id, rc := range removedSatisfied {
 			// 	message.Infof("%s", id)
 			// 	rc.PrintResultComparisonTable(true)
 			// }
-			// removedNotSatisfied := resultComparison["removed-not-satified"]
+			// removedNotSatisfied := resultComparison["removed-not-satisfied"]
 			// for id, rc := range removedNotSatisfied {
 			// 	message.Infof("%s", id)
 			// 	rc.PrintResultComparisonTable(true)

@@ -224,13 +224,13 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 			status:      true,
 		},
 		{
-			name:        "removed-not-satified",
+			name:        "removed-not-satisfied",
 			stateChange: result.REMOVED,
 			satisfied:   false,
 			status:      false,
 		},
 		{
-			name:        "removed-satified",
+			name:        "removed-satisfied",
 			stateChange: result.REMOVED,
 			satisfied:   true,
 			status:      false,
