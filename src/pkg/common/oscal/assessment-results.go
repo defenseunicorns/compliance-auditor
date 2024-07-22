@@ -90,13 +90,13 @@ func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTy
 }
 
 // IdentifyResults produces a map containing the threshold result and a result used for comparison
-func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]EvalResult, error) {
+func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
+	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
 
-	// thresholds, sortedResults := findAndSortResults(assessmentMap)
-	evalResultMap := filterResults(assessmentMap)
+	thresholds, sortedResults := findAndSortResults(assessmentMap)
 
 	// Handle no results found in the assessment-results
-	if len(evalResultMap) == 0 {
+	if len(sortedResults) == 0 {
 		return nil, fmt.Errorf("less than 2 results found - no comparison possible")
 	}
 
@@ -227,7 +227,7 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 // filterResults consumes many assessment-results objects and builds out a map of EvalResults filtered by target
 // this function looks at the target prop as the key in the map
 // TODO: refactor the threshold check
-func filterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
+func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
 	evalResultMap := make(map[string]EvalResult)
 
 	for _, assessment := range resultMap {
@@ -253,6 +253,7 @@ func filterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 								}
 							}
 						}
+						evalResultMap[targetValue] = evalResult
 					} else {
 						// EvalResult Does Not Exist - create
 						results := make([]*oscalTypes_1_1_2.Result, 0)
@@ -292,6 +293,7 @@ func filterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 								}
 							}
 						}
+						evalResultMap["default"] = evalResult
 					} else {
 						// EvalResult Does Not Exist - create
 						results := make([]*oscalTypes_1_1_2.Result, 0)
@@ -316,8 +318,14 @@ func filterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 				}
 			}
 		}
-
 	}
+	// Now that all results are processed - iterate through each EvalResult, sort and assign latest
+	for key, evalResult := range evalResultMap {
+		slices.SortFunc(evalResult.Results, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
+		evalResult.Latest = evalResult.Results[len(evalResult.Results)-1]
+		evalResultMap[key] = evalResult
+	}
+
 	return evalResultMap
 }
 

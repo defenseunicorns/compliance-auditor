@@ -2,623 +2,1297 @@ assessment-results:
   import-ap:
     href: ""
   metadata:
-    last-modified: 2024-07-16T21:39:35.445548543Z
+    last-modified: 2024-07-22T22:24:40.539707739Z
     oscal-version: 1.1.2
-    published: 2024-07-16T21:39:35.445548543Z
+    published: 2024-07-22T22:23:45.473484707Z
     remarks: Assessment Results generated from Lula
     title: '[System Name] Security Assessment Results (SAR)'
     version: 0.0.1
   results:
-    - description: Assessment results for performing Validations with Lula version v0.4.1-11-ge3862c4
+    - description: Assessment results for performing Validations with Lula version v0.4.1-13-gce3d031
       findings:
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 254e236e-7eb3-4001-a75e-e5034412ca76
-             Keycloak employs a multifaceted approach to ensure the encryption and protection of data, supporting compliance requirements.  It communicates over HTTPS, leveraging Transport Layer Security (TLS) to safeguard the confidentiality and integrity of data while  in transit. Additionally, Keycloak's token-based authentication mechanism utilizes JSON Web Tokens (JWT) to assert identity.  These tokens are cryptographically signed, and optionally encrypted, to validate their integrity and shield their contents.  As an identity provider, Keycloak also supports the Security Assertion Markup Language (SAML) 2.0, a robust authentication and  authorization protocol that uses cryptographic methods for secure single sign-on processes. By incorporating these mechanisms,  Keycloak provides a secure environment that aligns with compliance control requirements related to encryption and data protection.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 85df9e6c-3d94-4c60-9a20-8c481831f1e0
+             # Control Implementation
+              Istio is configured to provide managed interfaces for external telecommunication services, establish traffic flow policies, and protect the confidentiality and integrity of transmitted information. It also prevents unauthorized exchange of control plane traffic and filters unauthorized control plane traffic.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 194f77a8-c7fb-4af8-ad1e-84223d56991f
+            - observation-uuid: c8136bd9-57a8-4e9e-9dd2-26405289e42a
+            - observation-uuid: 86dee950-cafb-4372-8d59-b30304d9ef4f
           target:
             status:
-              state: not-satisfied
-            target-id: ac-17.2
+              state: satisfied
+            target-id: sc-7.4
             type: objective-id
-          title: 'Validation Result - Control:  ac-17.2'
-          uuid: 3c210976-a946-4b1a-8fdb-211a69b8facf
+          title: 'Validation Result - Control:  sc-7.4'
+          uuid: f12f117a-2878-45ae-9114-b259b1668401
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 52776faa-3bf0-4b9c-ac51-27329006002a
-             Keycloak as an IDM / IAM provider supports least privilege through user / group management (ABAC / RBAC) service offerings with no public access.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 7548b4ee-e4a3-4e3c-a34b-95eccad45f92
+             # Control Implementation
+              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
           target:
             status:
-              state: not-satisfied
-            target-id: ac-6.1
+              state: satisfied
+            target-id: sc-8
             type: objective-id
-          title: 'Validation Result - Control:  ac-6.1'
-          uuid: bb13f84e-0ffd-4624-b58c-f08a585d4044
+          title: 'Validation Result - Control:  sc-8'
+          uuid: 79b6781d-029f-4d2f-ab77-f9845bd046d6
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 23e31f50-7ef1-4fff-8d73-1693f430f285
-             Keycloak provides audit records.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 6d8a6c80-2844-4bfd-bc9d-0f5a71e5c979
+             # Control Implementation
+              Istio produces logs for all traffic in the information system.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 6948ffc8-7a4d-4ba8-9680-383951dbaa8b
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
           target:
             status:
-              state: not-satisfied
-            target-id: au-7
-            type: objective-id
-          title: 'Validation Result - Control:  au-7'
-          uuid: f91d53a5-9e23-4b5c-b78e-a334007686b1
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 5df00124-c0f9-41d3-b38e-ad4ecbd27a56
-             Keycloak supports authorizing the execution of privileged commands through remote access using RBAC roles. While providing remote access is handled through other means to the system, Keycloak authorizes the access and provides the privileges attached.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-17.4
-            type: objective-id
-          title: 'Validation Result - Control:  ac-17.4'
-          uuid: 578f07ed-42a7-4059-8bf6-7db9f57a6512
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 83bef4f9-f322-4ad0-a2ed-e865acd43015
-             Keycloak provides password-policies to support control. https://github.com/keycloak/keycloak-documentation/blob/main/server_admin/topics/authentication/password-policies.adoc
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-5.1
-            type: objective-id
-          title: 'Validation Result - Control:  ia-5.1'
-          uuid: 5b6558ab-a036-4bcd-8ae9-4cd862304b5a
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 7588ce75-9d71-4cf8-8775-c9329ff11e2a
-             Keycloak has a standard DOD login banner see https://login.dso.mil
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-8
-            type: objective-id
-          title: 'Validation Result - Control:  ac-8'
-          uuid: 8b473ef8-d51a-41da-bfc1-189806d48166
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: e918b4cf-c7e9-4a10-b1f9-c0b932c656cb
-             Keycloak supports MFA using mobile and x509 mTLS for both privileged and non-privileged account management.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-2.1
-            type: objective-id
-          title: 'Validation Result - Control:  ia-2.1'
-          uuid: 924adef3-7e5f-42d6-bf53-2db788f1c376
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: ccedc338-e59b-4ed1-b70d-50a03e9e4b1b
-             Keycloak automatically logs and audits account-related events, including account creation, modifications, enabling, disabling, and removal. These logs capture all essential details, from changes to attributes and  roles to changes in account status.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-2.4
-            type: objective-id
-          title: 'Validation Result - Control:  ac-2.4'
-          uuid: f90d8911-34c5-4073-9bad-c534684635cf
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 884e469a-1e49-4972-bee8-6e1cfa765a31
-             Keycloak can terminate user sessions after defined session disconnect.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-11
-            type: objective-id
-          title: 'Validation Result - Control:  ac-11'
-          uuid: e19b04c1-8b7b-4675-924c-bffac8b28c82
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: a2e33e11-1b7d-4391-b7f5-7752dfe147e6
-             Keycloak captures user and admin events and ships them out to a logging server for analysis or trigger an action on specific event via customizable EventListeners.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-2
-            type: objective-id
-          title: 'Validation Result - Control:  au-2'
-          uuid: e81f7e00-91e0-45fe-8e2d-be8bbbdbf33f
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 4e1dedd3-3114-4955-bcb8-95fad5b3a073
-             Keycloak supports OIDC/SAML which support expiration dates in tokens/assertions.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-11
-            type: objective-id
-          title: 'Validation Result - Control:  ia-11'
-          uuid: 5b5a5c33-356f-4e00-b9ff-ce169d21ad6e
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: d6287b1e-ed08-420b-ad30-80f79ddc158a
-             Keycloak can limit the number of concurrent user sessions.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-10
-            type: objective-id
-          title: 'Validation Result - Control:  ac-10'
-          uuid: c5c477ae-558c-4365-befe-43d915405665
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 9d5e5dea-2716-432a-9b41-19b3a7394473
-             Keycloak provides RBAC to restrict management of logs.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-9.4
-            type: objective-id
-          title: 'Validation Result - Control:  au-9.4'
-          uuid: ebb44727-b38c-4a99-a3a5-8934d9f22a09
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 4ab728cb-4d0c-4383-a5f5-46d760138c98
-             Keycloak utilizes RBAC to define system access authorizations to support system account access.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-2.11
-            type: objective-id
-          title: 'Validation Result - Control:  ac-2.11'
-          uuid: cf20789b-d1b0-45b2-a4c8-19afb46448b4
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: eb70ceb5-5cc7-4748-b65c-fb8fd6d3b219
-             Keycloak supports MFA login.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-2.6
-            type: objective-id
-          title: 'Validation Result - Control:  ia-2.6'
-          uuid: 26973764-47b4-4f4e-868c-1647b05df7fa
-        - description: |
-            Control Implementation: 4cc42982-37f0-48ba-b038-3bde7e22f40e / Implemented Requirement: 15af97f8-fb72-4b9c-97ec-2d8c0591aefc
-             Keycloak only allows connections from trusted certificate authorities to establish secure sessions.
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-23.5
-            type: objective-id
-          title: 'Validation Result - Control:  sc-23.5'
-          uuid: f2f583b8-448e-4d68-8593-37784e48b3fc
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: f5fc2af2-31d2-465b-b6ea-b561c2152021
-             Keycloak as an IDM / IAM provider supports least privilege through user / group management (ABAC / RBAC) service offerings
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.10
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.10'
-          uuid: d6f7de69-3034-4c04-8a40-6402b539b03b
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: d3dfd5a2-461b-4f57-8bdb-e4efd9cbfa6d
-             Keycloak can terminate user sessions after defined session disconnect.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-12
-            type: objective-id
-          title: 'Validation Result - Control:  ac-12'
-          uuid: 1e0e5af8-f829-4001-8956-6f51a99d8032
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 4fa5a9c9-5c6a-4aef-8668-5f55c6069d70
-             Keycloak allows the creation of clients that provide login to app via Keycloak, allowing account management to be inherited from keycloak and the enforcement of approved authorizations for logical access to information and system resources.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-3
-            type: objective-id
-          title: 'Validation Result - Control:  ac-3'
-          uuid: 87293c61-55ef-430a-9f7c-203d5b5ae9de
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 51e4bd78-eebb-48f1-9152-65c4caebb74e
-             Keycloak manages remote access to other applications through IAM.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-17.1
-            type: objective-id
-          title: 'Validation Result - Control:  ac-17.1'
-          uuid: 66f96ba2-f7cf-4909-9249-6402795e865c
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 84022485-4825-4770-b4ad-ab77e7576923
-             Within Keycloak records, sorting and searching are supported.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-7.1
-            type: objective-id
-          title: 'Validation Result - Control:  au-7.1'
-          uuid: e1177581-512f-4e89-af3e-240e4db63766
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 810053a7-b1d3-4476-8b0b-2eeed796c0f7
-             Keycloak utilizes RBAC to define system access authorizations to support separation of duties.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-5
-            type: objective-id
-          title: 'Validation Result - Control:  ac-5'
-          uuid: e2d70a56-cb2a-4b21-ad0a-8add2abadc11
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 302d6ca9-5e85-40bc-ab2d-103366466e53
-             Keycloak event logs include Time, Event Type, Details (Client, User, IP Address). Events are shipped to logging.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3.1
-            type: objective-id
-          title: 'Validation Result - Control:  au-3.1'
-          uuid: 813d4cef-09c1-402c-b9e6-34dfab14d8ad
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 9fbe4b4a-ac70-4a16-b7b9-24c5b64e4cef
-             Keycloak utilizes RBAC to define system access authorizations to support least privilege.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6'
-          uuid: 20f93231-733b-416a-b649-ccc724658684
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 56c1a7e5-54ac-4df4-b54b-245ffdceb802
-             Keycloak encrypts event logs.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-9.3
-            type: objective-id
-          title: 'Validation Result - Control:  au-9.3'
-          uuid: fe1328c2-b68f-41b0-9a7b-7a5c893aec53
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 4e47e8f8-eb77-4c4f-9812-ab133d3565ad
-             Keycloak automatically logs and audits account-related events, including account creation, modifications, enabling, disabling,  and removal. These logs capture all essential details, from changes to attributes and roles to changes in account status including privileged functions.
-          target:
-            status:
-              state: not-satisfied
+              state: satisfied
             target-id: ac-6.9
             type: objective-id
           title: 'Validation Result - Control:  ac-6.9'
-          uuid: 83f816a8-d838-4852-aeed-0e856a0a105e
+          uuid: 363e77de-fa95-43d6-bba9-bfad8080ba1b
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 2898a2f5-905a-4ab6-b66b-4a42dec239f5
-             Keycloak supports OCSP checking, and truststore/chain validation for x509 PKI access.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 16cc258e-d907-47bb-97d9-4e92677cf075
+             # Control Implementation
+              Istio has been configured to implement event logging within our environment. This includes capturing metrics related to the duration of sessions, connections, transactions, or activities. Specifically, Istio's telemetry features are utilized to capture these metrics, which provide valuable data that can be used to infer the duration of sessions or connections.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: f81610c0-b5f9-4829-b275-ffbc68eeca4c
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
+            - observation-uuid: 5c8afa06-73d4-4567-907b-c34f6d61b6d5
+          target:
+            status:
+              state: satisfied
+            target-id: au-3.1
+            type: objective-id
+          title: 'Validation Result - Control:  au-3.1'
+          uuid: ac49fa89-241a-4e99-8a93-9f535b76ced2
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 169c9ad3-0a6c-46ee-80cd-cd8cef5eca5c
+             # Control Implementation
+              Istio is configured to manage network connections associated with specific communication sessions. It can be set up to automatically terminate these connections after periods of inactivity, providing an additional layer of security.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 801ac072-e1a7-433a-93fa-30de1b29e7ad
           target:
             status:
               state: not-satisfied
-            target-id: ia-5.2
+            target-id: sc-10
             type: objective-id
-          title: 'Validation Result - Control:  ia-5.2'
-          uuid: 5e39f87d-bf33-4a4a-8b0a-7d4c26a2e395
+          title: 'Validation Result - Control:  sc-10'
+          uuid: 235de30e-aa75-4089-adce-faf8519bb8f1
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: d16a42e4-15c0-49ac-b476-fae598fb7948
-             Keycloak supports control through its IAM/SSO service.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 625bfdc1-0b20-45f3-919b-91afbac77799
+             # Control Implementation
+              Istio is configured to protect session authenticity, establishing confidence in the ongoing identities of other parties and the validity of transmitted information. This is achieved through Istio's mutual TLS, which ensures secure communication.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+          target:
+            status:
+              state: satisfied
+            target-id: sc-23
+            type: objective-id
+          title: 'Validation Result - Control:  sc-23'
+          uuid: d6de6bbe-8670-49c2-b79d-54261681fc5b
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 88f300a6-aa21-41b4-919d-29ef3e4381bb
+             # Control Implementation
+              Istio logs all Istio event logs within the system's mesh network.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 6948ffc8-7a4d-4ba8-9680-383951dbaa8b
+          target:
+            status:
+              state: satisfied
+            target-id: au-2
+            type: objective-id
+          title: 'Validation Result - Control:  au-2'
+          uuid: 51965684-150e-4cac-9822-f29cb4806e60
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
+             # Control Implementation
+              Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
+            - observation-uuid: 22f739fc-19fe-4e06-80b4-c6ff258865f6
+          target:
+            status:
+              state: satisfied
+            target-id: ac-4
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4'
+          uuid: 3c77583f-15b5-4770-8c38-6501542edbe4
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e2894a3-2452-4f7a-b8a5-f72b89b23c87
+             # Control Implementation
+              Namespaces, Istio gateways, and network policies collectively by providing resource isolation, secure traffic routing, and network segmentation to prevent unauthorized and unintended information transfer.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 41cb61b5-8a7b-4623-90d0-d7d4d1493d63
+            - observation-uuid: 86dee950-cafb-4372-8d59-b30304d9ef4f
+          target:
+            status:
+              state: satisfied
+            target-id: sc-3
+            type: objective-id
+          title: 'Validation Result - Control:  sc-3'
+          uuid: 18604400-aca8-4a6e-8b75-9aa82d46957f
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 2bf5c525-af5f-4b8b-8349-3f6a91e0aab9
+             # Control Implementation
+              Istio provides FIPS encryption in transit for all applications in the mesh, TLS termination at ingress, and TLS origination at egress.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 22f739fc-19fe-4e06-80b4-c6ff258865f6
+            - observation-uuid: 98e87071-12cd-4a0c-8b1b-5dc3b23b9f78
+            - observation-uuid: bc31b247-f1e4-4aff-9281-230b71097473
           target:
             status:
               state: not-satisfied
-            target-id: ia-2
+            target-id: sc-13
             type: objective-id
-          title: 'Validation Result - Control:  ia-2'
-          uuid: 72e4e4c3-0176-4a2f-b7b5-dedc50900d3f
+          title: 'Validation Result - Control:  sc-13'
+          uuid: 64d16b14-7a64-4fe7-949d-c43892947154
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 4dde82ad-0e64-4a25-862c-6693e6dd94be
-             Keycloak allows the creation of clients that provide login to app via Keycloak, allowing account management to be inherited from keycloak. There are roughly 30 different event types in keycloak and an event listener can be configured to notify when an account is created, enabled, modified, disabled, or removed, or when users are terminated or transferred.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 4b930af3-ae84-43ff-b751-448fe1c2eec8
+             # Control Implementation
+               is configured to route internal communications traffic to external networks through authenticated proxy servers at managed interfaces, using its Egress Gateway.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: a9686cb0-28fe-481e-a541-a6cf01f29d04
+            - observation-uuid: 90e9ebdd-ada5-4ef1-8cb6-c437e6beb808
           target:
             status:
               state: not-satisfied
-            target-id: ac-2.1
+            target-id: sc-7.8
             type: objective-id
-          title: 'Validation Result - Control:  ac-2.1'
-          uuid: 981f7973-4eaf-41a9-a76c-687e7d93b1e4
+          title: 'Validation Result - Control:  sc-7.8'
+          uuid: 8db16074-e264-4a38-bf5c-0d7bf727ce0f
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 826a6538-e2a1-470e-87ee-c1954c0ac701
-             Keycloak employs FIPS approved encryption for authentication.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 8f645835-6538-4327-a7aa-453b398f5ef4
+             # Control Implementation
+              Istio provides audit record generation capabilities for a variety of event types, including session, connection, transaction, or activity durations, and the number of bytes received and sent.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 6948ffc8-7a4d-4ba8-9680-383951dbaa8b
           target:
             status:
-              state: not-satisfied
-            target-id: ia-7
+              state: satisfied
+            target-id: au-12
             type: objective-id
-          title: 'Validation Result - Control:  ia-7'
-          uuid: 1218ed37-992e-4caf-85c7-6e93fa1aaf3f
+          title: 'Validation Result - Control:  au-12'
+          uuid: c62cf8df-c366-4f9c-8755-a70a334c9aaf
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: f31018fe-03b7-4eda-9aaf-6926cb1b2849
-             Keycloak events contain what, when, where, source, and objects/entities for policy violations.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c3e13abc-3c19-4f08-a2f8-40fcbef5daa7
+             # Control Implementation
+              All encrypted HTTPS connections are terminated at the Istio ingress gateway.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
+            - observation-uuid: 22f739fc-19fe-4e06-80b4-c6ff258865f6
+          target:
+            status:
+              state: satisfied
+            target-id: ac-4.4
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4.4'
+          uuid: 7363fe1b-3ded-459c-a47a-f237b53e20e3
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 6e32feb5-ce43-465f-9422-e3ef3276bf5d
+             # Control Implementation
+              Istio is configured to use ingress and egress gateways to provide logical flow separation.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: ba6fc1da-4729-4e8b-9541-4661f84bbb7a
+            - observation-uuid: 41cb61b5-8a7b-4623-90d0-d7d4d1493d63
+            - observation-uuid: 86dee950-cafb-4372-8d59-b30304d9ef4f
+          target:
+            status:
+              state: satisfied
+            target-id: ac-4.21
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4.21'
+          uuid: 8b7aaf04-5543-47f6-bcf3-b09f2979b7bb
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 52756a01-6f5c-49b1-8a6b-972b74a01da4
+             # Control Implementation
+              Istio logs all Istio event logs within the system's mesh network.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 2cc8731e-cf5f-4843-9fca-8ff057b1f810
           target:
             status:
               state: not-satisfied
             target-id: au-3
             type: objective-id
           title: 'Validation Result - Control:  au-3'
-          uuid: 7827a2fb-8487-44b8-b785-303dd067d72f
+          uuid: 70392d6a-ca96-4358-af37-a5959133f231
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: df820b32-27cb-4b8d-bebf-0ce1e769913d
-             Keycloak events can be both saved to database and shipped to logging server. Both systems are external to Keycloaks application server.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: f972ef8d-1eb0-403b-8db8-e65a4f4e2aaa
+             # Control Implementation
+              Istio is configured to maintain separate execution domains for each executing process. This is achieved through Istio's sidecar proxy design, where each service in the mesh has its own dedicated sidecar proxy to handle its inbound and outbound traffic. This ensures that communication between processes is controlled and one process cannot modify the executing code of another process.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
           target:
             status:
-              state: not-satisfied
-            target-id: au-4
+              state: satisfied
+            target-id: sc-39
             type: objective-id
-          title: 'Validation Result - Control:  au-4'
-          uuid: dcd18733-cfd7-403c-b628-48585b82e7f8
+          title: 'Validation Result - Control:  sc-39'
+          uuid: a9d13cce-0060-4cce-bea3-5c760496dd38
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 844ecfc3-fd1e-4e88-a7ae-f31940979204
-             Keycloak saves timestamps in event logs
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 32e53a18-4b64-4a24-935c-11cbac2c62be
+             # Control Implementation
+              Istio enforces logical access restrictions associated with changes to the system. Istio's Role-Based Access Control (RBAC) features are used to define and enforce access controls, ensuring that only approved personnel can make changes to the system.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 9792d306-488f-4211-b043-535327cbf512
+            - observation-uuid: 906ae340-2854-4614-a607-0f86a3529062
           target:
             status:
               state: not-satisfied
-            target-id: au-8
+            target-id: cm-5
             type: objective-id
-          title: 'Validation Result - Control:  au-8'
-          uuid: 5c315bdf-95dd-403c-a39c-54325cf53899
+          title: 'Validation Result - Control:  cm-5'
+          uuid: cb0303c1-e6db-4d4f-ab03-bd0eb45f5ecc
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 552d3d1c-bb27-4e73-975f-ab425a4cdc19
-             Keycloak has the ability to allow anonymous access to resource if Client Access Type is set to public.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 30b49a3e-ad38-441d-8c07-5a9018848a02
+             # Control Implementation
+              Istio is configured to dynamically isolate certain internal system components when necessary. This is achieved through Istio's network policies, which allow us to partition or separate system components
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
           target:
             status:
-              state: not-satisfied
+              state: satisfied
+            target-id: sc-7.20
+            type: objective-id
+          title: 'Validation Result - Control:  sc-7.20'
+          uuid: b7f1aa39-f2ff-4884-bd17-6cd4709cd35b
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c158b75a-cefc-4794-b124-f1e56ff5646d
+             # Control Implementation
+              Istio implements with global configuration.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
+            - observation-uuid: c8136bd9-57a8-4e9e-9dd2-26405289e42a
+          target:
+            status:
+              state: satisfied
+            target-id: sc-8.2
+            type: objective-id
+          title: 'Validation Result - Control:  sc-8.2'
+          uuid: 791e739b-1871-44b2-bb73-d1fa85251ace
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c8c03abd-244d-4813-a966-3feece1bad6a
+             # Control Implementation
+              Istio implements with service to service and provides authorization policies that require authentication to access any non-public features.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: c8136bd9-57a8-4e9e-9dd2-26405289e42a
+          target:
+            status:
+              state: satisfied
             target-id: ac-14
             type: objective-id
           title: 'Validation Result - Control:  ac-14'
-          uuid: 3e7321d6-c903-4f3b-9ae2-0b9f9b37149d
+          uuid: 9b4ad089-6692-452e-9861-2d8bbb4108a2
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: e9eaaf1d-f400-4a50-babd-b166d22f77e1
-             Keycloak supports authenticating non-organizational users through supporting mTLS signed by external certificate authorities.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 0081f95a-3233-4e07-a6cd-95cb1905c318
+             # Control Implementation
+              Configured with an "admin" gateway to restrict access to applications that only need administrative access.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 41cb61b5-8a7b-4623-90d0-d7d4d1493d63
+          target:
+            status:
+              state: satisfied
+            target-id: ac-6.3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-6.3'
+          uuid: 987064f0-cffe-4c18-9b9b-771b33af9727
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 86bc4fb7-f91b-4f2c-b914-65427951018c
+             # Control Implementation
+              Istio enforces outbound traffic goes through an Egress Gateway with a Network Policy.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: b2168cd8-9a5a-40c7-81c1-51868e74750e
+            - observation-uuid: a9686cb0-28fe-481e-a541-a6cf01f29d04
           target:
             status:
               state: not-satisfied
-            target-id: ia-8.1
+            target-id: sc-4
             type: objective-id
-          title: 'Validation Result - Control:  ia-8.1'
-          uuid: 70e3f547-fa61-40a5-95b4-5d7711ca312a
+          title: 'Validation Result - Control:  sc-4'
+          uuid: 78dbce81-5456-489c-9073-7c093e801a49
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: aff80192-b250-43ef-a544-fdb92408e1ad
-             Keycloak automatically logs and audits account-related events, including account creation, modifications, enabling, disabling, and removal. These logs capture all essential details, from changes to attributes and  roles to changes in account status. There are roughly 30 different event types in keycloak and an event listener can be configured and automated via email, external webhook, and logging stack monitored by admins to notify when an account is created, enabled, modified, disabled, or removed, or when users are terminated or transferred.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c9a1e9bc-3caa-44ce-a300-ecd722487987
+             # Control Implementation
+               Istio is configured to isolate system components that perform different mission or business functions. This is achieved through Istio's network policies and mutual TLS, which allow us to control information flows and provide enhanced protection.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
           target:
             status:
-              state: not-satisfied
-            target-id: ac-2.12
+              state: satisfied
+            target-id: sc-7.21
             type: objective-id
-          title: 'Validation Result - Control:  ac-2.12'
-          uuid: cc2fef1c-1eef-49f4-beb4-1a091638a20b
+          title: 'Validation Result - Control:  sc-7.21'
+          uuid: 12155107-96bd-4865-9ae7-26ad7188d443
         - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: a958ea9a-5e4d-4aac-92dd-2b7ec82e592b
-             Keycloak automatically logs and audits account-related events, including account creation, modifications, enabling, disabling, and removal. These logs capture all essential details, from changes to attributes and  roles to changes in account status.
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 69415B92-0490-4A14-9E0F-E1EE61951F9C
+             # Control Implementation
+              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
+          related-observations:
+            - observation-uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+            - observation-uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+            - observation-uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
           target:
             status:
-              state: not-satisfied
-            target-id: ac-2.7
+              state: satisfied
+            target-id: sc-8.1
             type: objective-id
-          title: 'Validation Result - Control:  ac-2.7'
-          uuid: f262cc13-4718-4e97-bf08-2d13b1e71b07
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: d4c029a1-fef8-44b2-b0e8-df4f839c8473
-             Keycloak assigns users, groups, roles, services, or devices with a UUID that is unique to each.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-4.4
-            type: objective-id
-          title: 'Validation Result - Control:  ia-4.4'
-          uuid: e843b891-672e-41ee-8fd6-3a95b6dbc6c1
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 71674376-69be-4d05-8486-33654630b2b5
-             Keycloak employs SSO to manage the risk of multiple accounts.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-5.8
-            type: objective-id
-          title: 'Validation Result - Control:  ia-5.8'
-          uuid: 3d88ee53-a29b-4e6a-a96a-3ff0fa7ed1ad
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 391de0d3-d891-4fbf-b652-8932c4ef2c5b
-             Keycloak as an IDM / IAM provider supports least privilege through user / group management (ABAC / RBAC) service offerings
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.2
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.2'
-          uuid: 2c2da66f-a44f-4665-bc4e-cd4b59b4183d
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 333da8fb-b64a-4e27-bd8a-b701d48971f1
-             Keycloak utilizes unique authentication identities that contain UUIDs to ensure uniqueness.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-12
-            type: objective-id
-          title: 'Validation Result - Control:  ia-12'
-          uuid: ffe448eb-9121-4795-a70a-b4cef82c9adb
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 9e19167c-b29f-44c8-8075-95fe53770f05
-             Keycloak is designed and recommended to be deployed in a stand-alone DUBBD cluster with TLS passthrough for OIDC/SAML integration. Controls are inherited from istio via network policies, virtual services and gateway configs.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-4.4
-            type: objective-id
-          title: 'Validation Result - Control:  ac-4.4'
-          uuid: eb168621-5aa9-4351-8233-dbd684bed47f
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 5a338130-62da-4e51-a895-fb83c9ac89d9
-             Keycloak provides RBAC to restrict management of logs.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-10
-            type: objective-id
-          title: 'Validation Result - Control:  au-10'
-          uuid: b45c4171-d540-4f99-9325-200602ffd089
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 950de57b-be72-449b-9089-3c5c72865109
-             Keycloak as an IDM / IAM provider supports least privilege through user / group management (ABAC / RBAC) service offerings with no public access.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.7
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.7'
-          uuid: 98389e7a-9250-4dc6-8226-f4670a603258
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: b9d2c6dc-36a2-484b-a4e2-b49c8bfba28f
-             Keycloak is deployed in a stand-alone DUBBD cluster with TLS passthrough for OIDC/SAML integration. Controls are inherited from istio via network policies, virtual services and gateway configs.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-4
-            type: objective-id
-          title: 'Validation Result - Control:  ac-4'
-          uuid: 34c0c959-2952-41b8-bbd8-8ad7186a2585
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 7625bd08-d840-4131-aed4-b592cbdb9d19
-             Keycloak provides RBAC to restrict management of logs.
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-9
-            type: objective-id
-          title: 'Validation Result - Control:  au-9'
-          uuid: cf58bf19-d489-46a5-ad83-1afebb3362a0
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 7d70915d-7302-45f8-b53c-85de8fd9e523
-             Keycloak assigns users, groups, roles, services, or devices with a UUID that is unique to each.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-4
-            type: objective-id
-          title: 'Validation Result - Control:  ia-4'
-          uuid: 2f6008ed-7e6d-46a8-9997-f2965a595ae4
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: bb0b7d48-7d5c-4df0-8b1d-28c0d1c188d2
-             Keycloak is configured with login timeout, session tokens, etc. and are managed in realm settings/tokens
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-2.5
-            type: objective-id
-          title: 'Validation Result - Control:  ac-2.5'
-          uuid: 8303cadc-a2c9-465c-9ba1-2326f1dcbb7b
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 8a292874-d407-41cb-9b07-3003b2261039
-             Keycloak implements replay-resistant authentication mechanisms by utilizing JWT (JSON Web Tokens) which have inherent replay-resistant properties due to their limited lifetime.  Furthermore, Keycloak promotes the use of HTTPS, ensuring a secure communication channel resistant to packet replay. To enhance security, especially for privileged accounts, Keycloak  supports multi-factor authentication, including one-time passwords (OTP), which, by nature, are immune to replay attacks since they're valid for just one session or transaction.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-2.8
-            type: objective-id
-          title: 'Validation Result - Control:  ia-2.8'
-          uuid: 3d8f5bc4-9ae8-409c-835f-a256dc932ccd
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 888e1a48-0738-416e-ac87-f6c2fcabc40b
-             Keycloak supports MFA using mobile and x509 mTLS for both privileged and non-privileged account management.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-2.2
-            type: objective-id
-          title: 'Validation Result - Control:  ia-2.2'
-          uuid: f54482ca-d658-4b7e-91e7-035b11157699
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 04f6d2ed-9168-41fb-b540-acdd91144e8c
-             Keycloak as an IDM / IAM provider supports least privilege through user / group management (ABAC / RBAC) service offerings
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.5
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.5'
-          uuid: d9a129e7-65e9-4f79-be51-ca96b76f4e49
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 205ba589-efa3-4394-87e2-589ba5a18355
-             Keycloak supports PIV credentials.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ia-2.12
-            type: objective-id
-          title: 'Validation Result - Control:  ia-2.12'
-          uuid: fc156ae6-b0ab-4584-9ba7-e35cf337545b
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: bf4cbb54-9e2f-4f5c-bc4e-9c9e2ba14e7f
-             a/c. Non-privileged and privilege users are prohibited by the keycloak unless granted access through membership of RBAC roles.  b. Keycloak can be configured for fine grain permissions to assign account managers. d (1-3). Declarative groups specify authorized users, groups, and roles. Access authorizations and assignment is determined by the organization. e. Account creation requests are handled by Day 2 operations of keycloak. f. Declarative groups assist in the handling of accounts, but ultimate is is a day 2 operation. g. Keycloak web UI has a queryable audit logging feature and backend logs can be monitored. h (1-3). Account Manager notification when accounts are no longer needed, users are terminated, or need to know changes are handled by Day 2 operations of keycloak. i (1-3). Authorized access to the system based on valid access, intended usage, and other org defined Attribute-based is handled by Day 2 operations of keycloak. j. Account reviews for compliance is handled by day 2 operations. k. Account and group authenticators removal notification is Handled by Day 2 operations of keycloak. l. Account management process alignment with personnel terminations and transfers is handled by Day 2 operations of keycloak.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-2
-            type: objective-id
-          title: 'Validation Result - Control:  ac-2'
-          uuid: fbbae11c-3c76-4711-90d8-78b128e10623
-        - description: |
-            Control Implementation: 44bb0268-355d-455b-be33-7fc6ecc89668 / Implemented Requirement: 210b1a83-fc62-43cd-b3f2-89a94f75ed15
-             Keycloak remote access traffic is routed through secure Istio network.
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-17.3
-            type: objective-id
-          title: 'Validation Result - Control:  ac-17.3'
-          uuid: d209beed-73ca-411f-8938-8d3b0516120f
+          title: 'Validation Result - Control:  sc-8.1'
+          uuid: 0cf19a89-a7f1-4004-8610-73d2c8fb0d84
+      observations:
+        - collected: 2024-07-22T22:24:40.157531776Z
+          description: |
+            [TEST]: 0da39859-a91a-4ca6-bd8b-9b117689188f - all-namespaces-istio-injected
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All namespaces are Istio-injected
+                validate.exempted_namespaces_msg: Exempted Namespaces: default, istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-node-lease, kube-public, kube-system, uds-crds, uds-dev-stack, uds-policy-exemptions, zarf
+          uuid: ba6fc1da-4729-4e8b-9541-4661f84bbb7a
+        - collected: 2024-07-22T22:24:40.161992303Z
+          description: |
+            [TEST]: 70d99754-2918-400c-ac9a-319f874fff90 - istio-metrics-logging-configured
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Metrics logging supported.
+          uuid: f81610c0-b5f9-4829-b275-ffbc68eeca4c
+        - collected: 2024-07-22T22:24:40.167927031Z
+          description: |
+            [TEST]: c6c9daf1-4196-406d-8679-312c0512ab2e - check-istio-admin-gateway-and-usage
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Admin gateway exists. Admin virtual services are using admin gateway.
+          uuid: 41cb61b5-8a7b-4623-90d0-d7d4d1493d63
+        - collected: 2024-07-22T22:24:40.170407788Z
+          description: |
+            [TEST]: fbd877c8-d6b6-4d88-8685-2c4aaaab02a1 - istio-enforces-authorized-keycloak-access
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: AuthorizationPolicy restricts access to Keycloak admin.
+          uuid: c8136bd9-57a8-4e9e-9dd2-26405289e42a
+        - collected: 2024-07-22T22:24:40.170439744Z
+          description: |
+            [TEST]: 8be1601e-5870-4573-ab4f-c1c199944815 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #8be1601e-5870-4573-ab4f-c1c199944815: required domain is nil
+          uuid: 98e87071-12cd-4a0c-8b1b-5dc3b23b9f78
+        - collected: 2024-07-22T22:24:40.170453031Z
+          description: |
+            [TEST]: 7455f86d-b79c-4226-9ce3-f3fb7d9348c8 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #7455f86d-b79c-4226-9ce3-f3fb7d9348c8: required domain is nil
+          uuid: b2168cd8-9a5a-40c7-81c1-51868e74750e
+        - collected: 2024-07-22T22:24:40.176527263Z
+          description: |
+            [TEST]: 67456ae8-4505-4c93-b341-d977d90cb125 - istio-health-check
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                istiohealth.deployment_message: All deployment conditions are true.
+                istiohealth.hpa_message: HPA has sufficient replicas.
+          uuid: 4800d326-1c8d-42ab-81c9-7b19a0c0144e
+        - collected: 2024-07-22T22:24:40.1846606Z
+          description: |
+            [TEST]: fd071676-6b92-4e1c-a4f0-4c8d2bd55aed - ingress-traffic-encrypted
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All gateways encrypt ingress traffic
+                validate.msg_exempt: Exempted Gateways: istio-passthrough-gateway/passthrough-gateway
+          uuid: 22f739fc-19fe-4e06-80b4-c6ff258865f6
+        - collected: 2024-07-22T22:24:40.184777493Z
+          description: |
+            [TEST]: 663f5e92-6db4-4042-8b5a-eba3ebe5a622 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #663f5e92-6db4-4042-8b5a-eba3ebe5a622: required domain is nil
+          uuid: 801ac072-e1a7-433a-93fa-30de1b29e7ad
+        - collected: 2024-07-22T22:24:40.19492409Z
+          description: |
+            [TEST]: ca49ac97-487a-446a-a0b7-92b20e2c83cb - enforce-mtls-strict
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All PeerAuthentications have mtls mode set to STRICT.
+          uuid: 5be0611d-4141-41d8-807a-8168a34903aa
+        - collected: 2024-07-22T22:24:40.20502387Z
+          description: |
+            [TEST]: 7b045b2a-106f-4c8c-85d9-ae3d7a8e0e28 - istio-rbac-enforcement-check
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Istio RBAC enforced
+                validate.msg_authPolicies: Authorization Policies: keycloak/keycloak-block-admin-access-from-public-gateway
+          uuid: 9792d306-488f-4211-b043-535327cbf512
+        - collected: 2024-07-22T22:24:40.205123534Z
+          description: |
+            [TEST]: 9b361d7b-4e07-40db-8b86-3854ed499a4b - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #9b361d7b-4e07-40db-8b86-3854ed499a4b: required domain is nil
+          uuid: 906ae340-2854-4614-a607-0f86a3529062
+        - collected: 2024-07-22T22:24:40.238832072Z
+          description: |
+            [TEST]: 570e2dc7-e6c2-4ad5-8ea3-f07974f59747 - secure-communication-with-istiod
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg_correct: NetworkPolicies correctly configured for istiod in namespaces: authservice, grafana, keycloak, loki, metrics-server, monitoring, neuvector, promtail, velero.
+                validate.msg_incorrect: No incorrect istiod NetworkPolicies found.
+          uuid: 194f77a8-c7fb-4af8-ad1e-84223d56991f
+        - collected: 2024-07-22T22:24:40.238889782Z
+          description: |
+            [TEST]: 19faf69a-de74-4b78-a628-64a9f244ae13 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #19faf69a-de74-4b78-a628-64a9f244ae13: required domain is nil
+          uuid: 90e9ebdd-ada5-4ef1-8cb6-c437e6beb808
+        - collected: 2024-07-22T22:24:40.251724657Z
+          description: |
+            [TEST]: 90738c86-6315-450a-ac69-cc50eb4859cc - check-istio-logging-all-traffic
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Istio is logging all traffic
+          uuid: 6948ffc8-7a4d-4ba8-9680-383951dbaa8b
+        - collected: 2024-07-22T22:24:40.265156479Z
+          description: |
+            [TEST]: b0a8f21e-b12f-47ea-a967-2f4a3ec69e44 - gateway-configuration-check
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Only allowed gateways found. All gateway types found.
+                validate.msg_existing_gateways: istio-admin-gateway/admin-gateway, istio-passthrough-gateway/passthrough-gateway, istio-tenant-gateway/tenant-gateway
+                validate.msg_allowed_gateways: admin, passthrough, tenant
+          uuid: 86dee950-cafb-4372-8d59-b30304d9ef4f
+        - collected: 2024-07-22T22:24:40.388944544Z
+          description: |
+            [TEST]: f345c359-3208-46fb-9348-959bd628301e - istio-prometheus-annotations-validation
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.exempt_namespaces_msg: Exempted Namespaces: istio-system, kube-system, uds-dev-stack, zarf
+                validate.msg: All pods have correct prometheus annotations.
+          uuid: 5c8afa06-73d4-4567-907b-c34f6d61b6d5
+        - collected: 2024-07-22T22:24:40.388981178Z
+          description: |
+            [TEST]: ecdb90c7-971a-4442-8f29-a8b0f6076bc9 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #ecdb90c7-971a-4442-8f29-a8b0f6076bc9: required domain is nil
+          uuid: a9686cb0-28fe-481e-a541-a6cf01f29d04
+        - collected: 2024-07-22T22:24:40.454743488Z
+          description: |
+            [TEST]: 1761ac07-80dd-47d2-947e-09f67943b986 - all-pods-istio-injected
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All pods have Istio sidecar proxy.
+                validate.exempt_namespaces_msg: Exempted Namespaces: istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-system, uds-dev-stack, zarf
+          uuid: 31f21e93-8bf8-4c97-be6c-69bd5b99c818
+        - collected: 2024-07-22T22:24:40.464477743Z
+          description: |
+            [TEST]: f346b797-be35-40a8-a93a-585db6fd56ec - istio-tracing-logging-support
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                validate.msg: Tracing logging not supported.
+          uuid: 2cc8731e-cf5f-4843-9fca-8ff057b1f810
+        - collected: 2024-07-22T22:24:40.464533367Z
+          description: |
+            [TEST]: 73434890-2751-4894-b7b2-7e583b4a8977 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #73434890-2751-4894-b7b2-7e583b4a8977: required domain is nil
+          uuid: bc31b247-f1e4-4aff-9281-230b71097473
       props:
         - name: threshold
           ns: https://docs.lula.dev/ns
           value: "false"
         - name: target
           ns: https://docs.lula.dev/ns
-          value: fedramp-high
+          value: https://raw.githubusercontent.com/GSA/fedramp-automation/93ca0e20ff5e54fc04140613476fba80f08e3c7d/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline-resolved-profile_catalog.json
       reviewed-controls:
         control-selections:
           - description: Controls Assessed by Lula
             include-controls:
-              - control-id: ac-17.2
-              - control-id: ac-6.1
-              - control-id: au-7
-              - control-id: ac-17.4
-              - control-id: ia-5.1
-              - control-id: ac-8
-              - control-id: ia-2.1
-              - control-id: ac-2.4
-              - control-id: ac-11
-              - control-id: au-2
-              - control-id: ia-11
-              - control-id: ac-10
-              - control-id: au-9.4
-              - control-id: ac-2.11
-              - control-id: ia-2.6
-              - control-id: sc-23.5
-              - control-id: ac-6.10
-              - control-id: ac-12
-              - control-id: ac-3
-              - control-id: ac-17.1
-              - control-id: au-7.1
-              - control-id: ac-5
-              - control-id: au-3.1
-              - control-id: ac-6
-              - control-id: au-9.3
+              - control-id: sc-7.4
+              - control-id: sc-8
               - control-id: ac-6.9
-              - control-id: ia-5.2
-              - control-id: ia-2
-              - control-id: ac-2.1
-              - control-id: ia-7
-              - control-id: au-3
-              - control-id: au-4
-              - control-id: au-8
-              - control-id: ac-14
-              - control-id: ia-8.1
-              - control-id: ac-2.12
-              - control-id: ac-2.7
-              - control-id: ia-4.4
-              - control-id: ia-5.8
-              - control-id: ac-6.2
-              - control-id: ia-12
-              - control-id: ac-4.4
-              - control-id: au-10
-              - control-id: ac-6.7
+              - control-id: au-3.1
+              - control-id: sc-10
+              - control-id: sc-23
+              - control-id: au-2
               - control-id: ac-4
-              - control-id: au-9
-              - control-id: ia-4
-              - control-id: ac-2.5
-              - control-id: ia-2.8
-              - control-id: ia-2.2
-              - control-id: ac-6.5
-              - control-id: ia-2.12
-              - control-id: ac-2
-              - control-id: ac-17.3
+              - control-id: sc-3
+              - control-id: sc-13
+              - control-id: sc-7.8
+              - control-id: au-12
+              - control-id: ac-4.4
+              - control-id: ac-4.21
+              - control-id: au-3
+              - control-id: sc-39
+              - control-id: cm-5
+              - control-id: sc-7.20
+              - control-id: sc-8.2
+              - control-id: ac-14
+              - control-id: ac-6.3
+              - control-id: sc-4
+              - control-id: sc-7.21
+              - control-id: sc-8.1
         description: Controls validated
         remarks: Validation performed may indicate full or partial satisfaction
-      start: 2024-07-16T21:39:35.445537747Z
+      start: 2024-07-22T22:24:40.467764214Z
       title: Lula Validation Result
-      uuid: dcc850af-69f2-434f-8e79-b77648ce49f0
-  uuid: 242f408a-5e30-4035-912a-c598b37317c6
+      uuid: 7b5435d5-ba6d-4042-b334-2b92d19be220
+    - description: Assessment results for performing Validations with Lula version v0.4.1-13-gce3d031
+      findings:
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 6d8a6c80-2844-4bfd-bc9d-0f5a71e5c979
+             # Control Implementation
+              Istio produces logs for all traffic in the information system.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 9865577c-c80a-48a6-83b3-d6a10f1d1964
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+          target:
+            status:
+              state: satisfied
+            target-id: ac-6.9
+            type: objective-id
+          title: 'Validation Result - Control:  ac-6.9'
+          uuid: e7e5d04b-ef8b-4f84-a53e-b60a544501b6
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e2894a3-2452-4f7a-b8a5-f72b89b23c87
+             # Control Implementation
+              Namespaces, Istio gateways, and network policies collectively by providing resource isolation, secure traffic routing, and network segmentation to prevent unauthorized and unintended information transfer.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: df077110-a14e-4cc6-bd73-aa0487d1fbce
+            - observation-uuid: aa1fb7ba-5034-4b4c-b385-aedcfe86f1f7
+          target:
+            status:
+              state: satisfied
+            target-id: sc-3
+            type: objective-id
+          title: 'Validation Result - Control:  sc-3'
+          uuid: 03bb22e2-bd01-4619-9be4-3ee9cfd7b096
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 169c9ad3-0a6c-46ee-80cd-cd8cef5eca5c
+             # Control Implementation
+              Istio is configured to manage network connections associated with specific communication sessions. It can be set up to automatically terminate these connections after periods of inactivity, providing an additional layer of security.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: b001f09a-537a-4c50-85fa-9b5c1781bc21
+          target:
+            status:
+              state: satisfied
+            target-id: sc-10
+            type: objective-id
+          title: 'Validation Result - Control:  sc-10'
+          uuid: b8f95162-6972-4fc1-9e65-0dc4e5be290b
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c158b75a-cefc-4794-b124-f1e56ff5646d
+             # Control Implementation
+              Istio implements with global configuration.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+            - observation-uuid: 1b65df93-73bb-47b3-80be-366ea92e9345
+          target:
+            status:
+              state: satisfied
+            target-id: sc-8.2
+            type: objective-id
+          title: 'Validation Result - Control:  sc-8.2'
+          uuid: 7d3f1fa4-2ba7-40a4-94e6-c97af1338a99
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 88f300a6-aa21-41b4-919d-29ef3e4381bb
+             # Control Implementation
+              Istio logs all Istio event logs within the system's mesh network.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 9865577c-c80a-48a6-83b3-d6a10f1d1964
+          target:
+            status:
+              state: satisfied
+            target-id: au-2
+            type: objective-id
+          title: 'Validation Result - Control:  au-2'
+          uuid: 99e43a1a-8777-41e5-a74f-203295916b37
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c9a1e9bc-3caa-44ce-a300-ecd722487987
+             # Control Implementation
+               Istio is configured to isolate system components that perform different mission or business functions. This is achieved through Istio's network policies and mutual TLS, which allow us to control information flows and provide enhanced protection.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+          target:
+            status:
+              state: satisfied
+            target-id: sc-7.21
+            type: objective-id
+          title: 'Validation Result - Control:  sc-7.21'
+          uuid: fa988706-95f3-4f74-ac08-cc883e66c735
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 625bfdc1-0b20-45f3-919b-91afbac77799
+             # Control Implementation
+              Istio is configured to protect session authenticity, establishing confidence in the ongoing identities of other parties and the validity of transmitted information. This is achieved through Istio's mutual TLS, which ensures secure communication.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+          target:
+            status:
+              state: satisfied
+            target-id: sc-23
+            type: objective-id
+          title: 'Validation Result - Control:  sc-23'
+          uuid: a263eb90-a0fa-420b-8657-0185fe88b948
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 4b930af3-ae84-43ff-b751-448fe1c2eec8
+             # Control Implementation
+               is configured to route internal communications traffic to external networks through authenticated proxy servers at managed interfaces, using its Egress Gateway.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 4040495c-0fd3-40b9-8555-b32f8a7711d1
+            - observation-uuid: 15521317-08c7-4efa-80d4-9ba8aa380d84
+          target:
+            status:
+              state: not-satisfied
+            target-id: sc-7.8
+            type: objective-id
+          title: 'Validation Result - Control:  sc-7.8'
+          uuid: ef3f964d-6d0e-4624-b2c0-6fdd6577cc03
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 6e32feb5-ce43-465f-9422-e3ef3276bf5d
+             # Control Implementation
+              Istio is configured to use ingress and egress gateways to provide logical flow separation.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 43298231-511e-4c97-8b71-bfecfe0232b3
+            - observation-uuid: df077110-a14e-4cc6-bd73-aa0487d1fbce
+            - observation-uuid: aa1fb7ba-5034-4b4c-b385-aedcfe86f1f7
+          target:
+            status:
+              state: satisfied
+            target-id: ac-4.21
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4.21'
+          uuid: 676e44da-96d6-4900-be98-5b38648e55d1
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 16cc258e-d907-47bb-97d9-4e92677cf075
+             # Control Implementation
+              Istio has been configured to implement event logging within our environment. This includes capturing metrics related to the duration of sessions, connections, transactions, or activities. Specifically, Istio's telemetry features are utilized to capture these metrics, which provide valuable data that can be used to infer the duration of sessions or connections.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 709d8c90-3f7b-4341-9969-1e5ea9480a80
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+            - observation-uuid: 4e6960be-ef71-43b7-9d26-f2bb598c997e
+          target:
+            status:
+              state: satisfied
+            target-id: au-3.1
+            type: objective-id
+          title: 'Validation Result - Control:  au-3.1'
+          uuid: 860fd685-f161-49af-8025-f5d2b27d6551
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 85df9e6c-3d94-4c60-9a20-8c481831f1e0
+             # Control Implementation
+              Istio is configured to provide managed interfaces for external telecommunication services, establish traffic flow policies, and protect the confidentiality and integrity of transmitted information. It also prevents unauthorized exchange of control plane traffic and filters unauthorized control plane traffic.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: fa7cf712-1231-491a-860a-c0ae87e10239
+            - observation-uuid: 1b65df93-73bb-47b3-80be-366ea92e9345
+            - observation-uuid: aa1fb7ba-5034-4b4c-b385-aedcfe86f1f7
+          target:
+            status:
+              state: satisfied
+            target-id: sc-7.4
+            type: objective-id
+          title: 'Validation Result - Control:  sc-7.4'
+          uuid: a76a240e-519e-40ba-80b0-75fc37f444f1
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 30b49a3e-ad38-441d-8c07-5a9018848a02
+             # Control Implementation
+              Istio is configured to dynamically isolate certain internal system components when necessary. This is achieved through Istio's network policies, which allow us to partition or separate system components
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+          target:
+            status:
+              state: satisfied
+            target-id: sc-7.20
+            type: objective-id
+          title: 'Validation Result - Control:  sc-7.20'
+          uuid: 44c0ebb9-2089-40fe-910e-76be0c6532b8
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 7548b4ee-e4a3-4e3c-a34b-95eccad45f92
+             # Control Implementation
+              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+          target:
+            status:
+              state: satisfied
+            target-id: sc-8
+            type: objective-id
+          title: 'Validation Result - Control:  sc-8'
+          uuid: 87c98c63-cd12-4262-b9ce-ad6bf471aa53
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 52756a01-6f5c-49b1-8a6b-972b74a01da4
+             # Control Implementation
+              Istio logs all Istio event logs within the system's mesh network.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 1e2439cb-df12-4ce8-8bf1-7c1e0a056354
+          target:
+            status:
+              state: not-satisfied
+            target-id: au-3
+            type: objective-id
+          title: 'Validation Result - Control:  au-3'
+          uuid: 91eeb563-7100-4ebc-9a3f-508cbf4f64be
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 8f645835-6538-4327-a7aa-453b398f5ef4
+             # Control Implementation
+              Istio provides audit record generation capabilities for a variety of event types, including session, connection, transaction, or activity durations, and the number of bytes received and sent.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 9865577c-c80a-48a6-83b3-d6a10f1d1964
+          target:
+            status:
+              state: satisfied
+            target-id: au-12
+            type: objective-id
+          title: 'Validation Result - Control:  au-12'
+          uuid: f0e08d61-092a-429a-986f-a0b488b07aa4
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c3e13abc-3c19-4f08-a2f8-40fcbef5daa7
+             # Control Implementation
+              All encrypted HTTPS connections are terminated at the Istio ingress gateway.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+            - observation-uuid: 970886d8-fcd7-46d7-a621-e566ba9ecd3c
+          target:
+            status:
+              state: satisfied
+            target-id: ac-4.4
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4.4'
+          uuid: f5a0b7f6-de6d-46cd-af87-3bcaabdfec59
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
+             # Control Implementation
+              Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+            - observation-uuid: 970886d8-fcd7-46d7-a621-e566ba9ecd3c
+          target:
+            status:
+              state: satisfied
+            target-id: ac-4
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4'
+          uuid: 8d257f19-5ea7-43a4-8ce9-96d8a05ef83f
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 0081f95a-3233-4e07-a6cd-95cb1905c318
+             # Control Implementation
+              Configured with an "admin" gateway to restrict access to applications that only need administrative access.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: df077110-a14e-4cc6-bd73-aa0487d1fbce
+          target:
+            status:
+              state: satisfied
+            target-id: ac-6.3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-6.3'
+          uuid: cdeb2714-4c7f-4dfb-a718-5561ae73d2d5
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 69415B92-0490-4A14-9E0F-E1EE61951F9C
+             # Control Implementation
+              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+          target:
+            status:
+              state: satisfied
+            target-id: sc-8.1
+            type: objective-id
+          title: 'Validation Result - Control:  sc-8.1'
+          uuid: 76cd7a5b-6947-48c3-ab70-0bf79547e173
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 2bf5c525-af5f-4b8b-8349-3f6a91e0aab9
+             # Control Implementation
+              Istio provides FIPS encryption in transit for all applications in the mesh, TLS termination at ingress, and TLS origination at egress.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+            - observation-uuid: 970886d8-fcd7-46d7-a621-e566ba9ecd3c
+            - observation-uuid: 529fbfa4-fe2f-4334-a8e1-35c1aa43eca7
+            - observation-uuid: e7f8efb7-1eb3-4e40-9fb8-10479ef19825
+          target:
+            status:
+              state: not-satisfied
+            target-id: sc-13
+            type: objective-id
+          title: 'Validation Result - Control:  sc-13'
+          uuid: 929b119d-c163-47c7-a5fe-cb3c3d8d80de
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: f972ef8d-1eb0-403b-8db8-e65a4f4e2aaa
+             # Control Implementation
+              Istio is configured to maintain separate execution domains for each executing process. This is achieved through Istio's sidecar proxy design, where each service in the mesh has its own dedicated sidecar proxy to handle its inbound and outbound traffic. This ensures that communication between processes is controlled and one process cannot modify the executing code of another process.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+          target:
+            status:
+              state: satisfied
+            target-id: sc-39
+            type: objective-id
+          title: 'Validation Result - Control:  sc-39'
+          uuid: be9d47ae-9e68-405f-b163-cf97ec8efa6c
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 32e53a18-4b64-4a24-935c-11cbac2c62be
+             # Control Implementation
+              Istio enforces logical access restrictions associated with changes to the system. Istio's Role-Based Access Control (RBAC) features are used to define and enforce access controls, ensuring that only approved personnel can make changes to the system.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: cdc6d318-4d8f-4c77-a8cc-438c0c9f2a83
+            - observation-uuid: 688979db-679b-4547-bdc0-b81fc5e4eb0b
+          target:
+            status:
+              state: not-satisfied
+            target-id: cm-5
+            type: objective-id
+          title: 'Validation Result - Control:  cm-5'
+          uuid: b4436a73-91c5-4d52-bd4c-2fa369dc73a1
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c8c03abd-244d-4813-a966-3feece1bad6a
+             # Control Implementation
+              Istio implements with service to service and provides authorization policies that require authentication to access any non-public features.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: 1b65df93-73bb-47b3-80be-366ea92e9345
+          target:
+            status:
+              state: satisfied
+            target-id: ac-14
+            type: objective-id
+          title: 'Validation Result - Control:  ac-14'
+          uuid: 3a2d87e7-556f-4833-8e97-da0aaa27c62a
+        - description: |
+            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 86bc4fb7-f91b-4f2c-b914-65427951018c
+             # Control Implementation
+              Istio enforces outbound traffic goes through an Egress Gateway with a Network Policy.
+          related-observations:
+            - observation-uuid: e0da09fc-0258-42af-b598-293f828133f7
+            - observation-uuid: e6db0749-f86f-4de0-bf1b-f759751a6a32
+            - observation-uuid: 4040495c-0fd3-40b9-8555-b32f8a7711d1
+          target:
+            status:
+              state: not-satisfied
+            target-id: sc-4
+            type: objective-id
+          title: 'Validation Result - Control:  sc-4'
+          uuid: 59b8e17a-43da-498d-a4cf-f8c3889f5e80
+      observations:
+        - collected: 2024-07-22T22:23:45.134120485Z
+          description: |
+            [TEST]: c6c9daf1-4196-406d-8679-312c0512ab2e - check-istio-admin-gateway-and-usage
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Admin gateway exists. Admin virtual services are using admin gateway.
+          uuid: df077110-a14e-4cc6-bd73-aa0487d1fbce
+        - collected: 2024-07-22T22:23:45.139568255Z
+          description: |
+            [TEST]: f346b797-be35-40a8-a93a-585db6fd56ec - istio-tracing-logging-support
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                validate.msg: Tracing logging not supported.
+          uuid: 1e2439cb-df12-4ce8-8bf1-7c1e0a056354
+        - collected: 2024-07-22T22:23:45.145104559Z
+          description: |
+            [TEST]: ca49ac97-487a-446a-a0b7-92b20e2c83cb - enforce-mtls-strict
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All PeerAuthentications have mtls mode set to STRICT.
+          uuid: f607ecc2-356e-4c1e-ab45-b654f9919f45
+        - collected: 2024-07-22T22:23:45.228625082Z
+          description: |
+            [TEST]: 1761ac07-80dd-47d2-947e-09f67943b986 - all-pods-istio-injected
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All pods have Istio sidecar proxy.
+                validate.exempt_namespaces_msg: Exempted Namespaces: istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-system, uds-dev-stack, zarf
+          uuid: 62c19784-f12e-4337-83f0-b5107f9ed4bc
+        - collected: 2024-07-22T22:23:45.228692187Z
+          description: |
+            [TEST]: 19faf69a-de74-4b78-a628-64a9f244ae13 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #19faf69a-de74-4b78-a628-64a9f244ae13: required domain is nil
+          uuid: 15521317-08c7-4efa-80d4-9ba8aa380d84
+        - collected: 2024-07-22T22:23:45.22870755Z
+          description: |
+            [TEST]: 663f5e92-6db4-4042-8b5a-eba3ebe5a622 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #663f5e92-6db4-4042-8b5a-eba3ebe5a622: required domain is nil
+          uuid: b001f09a-537a-4c50-85fa-9b5c1781bc21
+        - collected: 2024-07-22T22:23:45.236407948Z
+          description: |
+            [TEST]: 70d99754-2918-400c-ac9a-319f874fff90 - istio-metrics-logging-configured
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Metrics logging supported.
+          uuid: 709d8c90-3f7b-4341-9969-1e5ea9480a80
+        - collected: 2024-07-22T22:23:45.342832494Z
+          description: |
+            [TEST]: f345c359-3208-46fb-9348-959bd628301e - istio-prometheus-annotations-validation
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All pods have correct prometheus annotations.
+                validate.exempt_namespaces_msg: Exempted Namespaces: istio-system, kube-system, uds-dev-stack, zarf
+          uuid: 4e6960be-ef71-43b7-9d26-f2bb598c997e
+        - collected: 2024-07-22T22:23:45.342870494Z
+          description: |
+            [TEST]: 9b361d7b-4e07-40db-8b86-3854ed499a4b - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #9b361d7b-4e07-40db-8b86-3854ed499a4b: required domain is nil
+          uuid: 688979db-679b-4547-bdc0-b81fc5e4eb0b
+        - collected: 2024-07-22T22:23:45.349032769Z
+          description: |
+            [TEST]: 67456ae8-4505-4c93-b341-d977d90cb125 - istio-health-check
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                istiohealth.deployment_message: All deployment conditions are true.
+                istiohealth.hpa_message: HPA has sufficient replicas.
+          uuid: e0da09fc-0258-42af-b598-293f828133f7
+        - collected: 2024-07-22T22:23:45.349069681Z
+          description: |
+            [TEST]: 7455f86d-b79c-4226-9ce3-f3fb7d9348c8 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #7455f86d-b79c-4226-9ce3-f3fb7d9348c8: required domain is nil
+          uuid: e6db0749-f86f-4de0-bf1b-f759751a6a32
+        - collected: 2024-07-22T22:23:45.349088065Z
+          description: |
+            [TEST]: ecdb90c7-971a-4442-8f29-a8b0f6076bc9 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #ecdb90c7-971a-4442-8f29-a8b0f6076bc9: required domain is nil
+          uuid: 4040495c-0fd3-40b9-8555-b32f8a7711d1
+        - collected: 2024-07-22T22:23:45.355274132Z
+          description: |
+            [TEST]: fd071676-6b92-4e1c-a4f0-4c8d2bd55aed - ingress-traffic-encrypted
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: All gateways encrypt ingress traffic
+                validate.msg_exempt: Exempted Gateways: istio-passthrough-gateway/passthrough-gateway
+          uuid: 970886d8-fcd7-46d7-a621-e566ba9ecd3c
+        - collected: 2024-07-22T22:23:45.355333445Z
+          description: |
+            [TEST]: 73434890-2751-4894-b7b2-7e583b4a8977 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #73434890-2751-4894-b7b2-7e583b4a8977: required domain is nil
+          uuid: e7f8efb7-1eb3-4e40-9fb8-10479ef19825
+        - collected: 2024-07-22T22:23:45.361238788Z
+          description: |
+            [TEST]: 7b045b2a-106f-4c8c-85d9-ae3d7a8e0e28 - istio-rbac-enforcement-check
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Istio RBAC enforced
+                validate.msg_authPolicies: Authorization Policies: keycloak/keycloak-block-admin-access-from-public-gateway
+          uuid: cdc6d318-4d8f-4c77-a8cc-438c0c9f2a83
+        - collected: 2024-07-22T22:23:45.414607939Z
+          description: |
+            [TEST]: 570e2dc7-e6c2-4ad5-8ea3-f07974f59747 - secure-communication-with-istiod
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg_incorrect: No incorrect istiod NetworkPolicies found.
+                validate.msg_correct: NetworkPolicies correctly configured for istiod in namespaces: authservice, grafana, keycloak, loki, metrics-server, monitoring, neuvector, promtail, velero.
+          uuid: fa7cf712-1231-491a-860a-c0ae87e10239
+        - collected: 2024-07-22T22:23:45.421721318Z
+          description: |
+            [TEST]: 0da39859-a91a-4ca6-bd8b-9b117689188f - all-namespaces-istio-injected
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.exempted_namespaces_msg: Exempted Namespaces: default, istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-node-lease, kube-public, kube-system, uds-crds, uds-dev-stack, uds-policy-exemptions, zarf
+                validate.msg: All namespaces are Istio-injected
+          uuid: 43298231-511e-4c97-8b71-bfecfe0232b3
+        - collected: 2024-07-22T22:23:45.437593659Z
+          description: |
+            [TEST]: b0a8f21e-b12f-47ea-a967-2f4a3ec69e44 - gateway-configuration-check
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Only allowed gateways found. All gateway types found.
+                validate.msg_existing_gateways: istio-admin-gateway/admin-gateway, istio-passthrough-gateway/passthrough-gateway, istio-tenant-gateway/tenant-gateway
+                validate.msg_allowed_gateways: admin, passthrough, tenant
+          uuid: aa1fb7ba-5034-4b4c-b385-aedcfe86f1f7
+        - collected: 2024-07-22T22:23:45.455671143Z
+          description: |
+            [TEST]: 90738c86-6315-450a-ac69-cc50eb4859cc - check-istio-logging-all-traffic
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: Istio is logging all traffic
+          uuid: 9865577c-c80a-48a6-83b3-d6a10f1d1964
+        - collected: 2024-07-22T22:23:45.465725177Z
+          description: |
+            [TEST]: fbd877c8-d6b6-4d88-8685-2c4aaaab02a1 - istio-enforces-authorized-keycloak-access
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                validate.msg: AuthorizationPolicy restricts access to Keycloak admin.
+          uuid: 1b65df93-73bb-47b3-80be-366ea92e9345
+        - collected: 2024-07-22T22:23:45.465829652Z
+          description: |
+            [TEST]: 8be1601e-5870-4573-ab4f-c1c199944815 - lula-validation-error
+          methods:
+            - TEST
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error getting Lula validation #8be1601e-5870-4573-ab4f-c1c199944815: required domain is nil
+          uuid: 529fbfa4-fe2f-4334-a8e1-35c1aa43eca7
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "true"
+        - name: target
+          ns: https://docs.lula.dev/ns
+          value: https://raw.githubusercontent.com/GSA/fedramp-automation/93ca0e20ff5e54fc04140613476fba80f08e3c7d/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline-resolved-profile_catalog.json
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ac-6.9
+              - control-id: sc-3
+              - control-id: sc-10
+              - control-id: sc-8.2
+              - control-id: au-2
+              - control-id: sc-7.21
+              - control-id: sc-23
+              - control-id: sc-7.8
+              - control-id: ac-4.21
+              - control-id: au-3.1
+              - control-id: sc-7.4
+              - control-id: sc-7.20
+              - control-id: sc-8
+              - control-id: au-3
+              - control-id: au-12
+              - control-id: ac-4.4
+              - control-id: ac-4
+              - control-id: ac-6.3
+              - control-id: sc-8.1
+              - control-id: sc-13
+              - control-id: sc-39
+              - control-id: cm-5
+              - control-id: ac-14
+              - control-id: sc-4
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-07-22T22:23:45.473454712Z
+      title: Lula Validation Result
+      uuid: cb891e01-dd48-497b-9742-f66f87fbd250
+  uuid: 1c39705b-e190-49db-8fe4-7fb2c9dcde3f
