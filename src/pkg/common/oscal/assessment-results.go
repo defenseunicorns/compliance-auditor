@@ -3,6 +3,7 @@ package oscal
 import (
 	"fmt"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -229,6 +230,43 @@ func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalT
 	}
 
 	return result, findings, nil
+}
+
+func MakeAssessmentResultsDeterministic(assessment *oscalTypes_1_1_2.AssessmentResults) {
+
+	// Sort Results
+	slices.SortFunc(assessment.Results, func(a, b oscalTypes_1_1_2.Result) int { return b.Start.Compare(a.Start) })
+
+	// Sort Targets
+	for _, result := range assessment.Results {
+		// sort findings by target id
+		if result.Findings != nil {
+			findings := *result.Findings
+			sort.Slice(findings, func(i, j int) bool {
+				return findings[i].Target.TargetId < findings[j].Target.TargetId
+			})
+			result.Findings = &findings
+		}
+		// sort observations by collected time
+		if result.Observations != nil {
+			observations := *result.Observations
+			slices.SortFunc(observations, func(a, b oscalTypes_1_1_2.Observation) int { return a.Collected.Compare(b.Collected) })
+			result.Observations = &observations
+		}
+
+		// Sort the include-controls in the control selections
+		controlSelections := result.ReviewedControls.ControlSelections
+		for _, selection := range controlSelections {
+			if selection.IncludeControls != nil {
+				controls := *selection.IncludeControls
+				sort.Slice(controls, func(i, j int) bool {
+					return controls[i].ControlId < controls[j].ControlId
+				})
+				selection.IncludeControls = &controls
+			}
+		}
+	}
+
 }
 
 // findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
