@@ -267,6 +267,19 @@ func MakeAssessmentResultsDeterministic(assessment *oscalTypes_1_1_2.AssessmentR
 		}
 	}
 
+	// sort backmatter
+	if assessment.BackMatter != nil {
+		backmatter := *assessment.BackMatter
+		if backmatter.Resources != nil {
+			resources := *backmatter.Resources
+			sort.Slice(resources, func(i, j int) bool {
+				return resources[i].Title < resources[j].Title
+			})
+			backmatter.Resources = &resources
+		}
+		assessment.BackMatter = &backmatter
+	}
+
 }
 
 // findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
