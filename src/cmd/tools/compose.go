@@ -11,6 +11,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -81,7 +82,7 @@ func Compose(inputFile, outputFile string) error {
 	}
 
 	// Write the composed OSCAL model to a file
-	err = WriteComposedOscalModel(model, outputFile, inputFile)
+	err = oscal.WriteOscalModel(outputFile, model)
 	if err != nil {
 		return err
 	}
