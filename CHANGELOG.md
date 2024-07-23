@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.3](https://github.com/defenseunicorns/lula/compare/v0.4.2...v0.4.3) (2024-07-19)
+
+
+### Features
+
+* **common:** json schema linting for common validation(s) ([#473](https://github.com/defenseunicorns/lula/issues/473)) ([23a45b6](https://github.com/defenseunicorns/lula/commit/23a45b696a3c24653ad2001dc4b883f40e9685c1))
+
+
+### Bug Fixes
+
+* **release:** add option to milestone for release process ([#535](https://github.com/defenseunicorns/lula/issues/535)) ([6fe64d8](https://github.com/defenseunicorns/lula/commit/6fe64d82ac4950214749b5f49a1ada12f43d193a))
+* **test:** updated uuid in kyverno validation ([#539](https://github.com/defenseunicorns/lula/issues/539)) ([81446d9](https://github.com/defenseunicorns/lula/commit/81446d9441e1f062c57fa922e7d3cca833cbfd3e))
+
+
+### Miscellaneous
+
+* **deps:** update anchore/sbom-action action to v0.17.0 ([#541](https://github.com/defenseunicorns/lula/issues/541)) ([7c29fb7](https://github.com/defenseunicorns/lula/commit/7c29fb7dbbab163c648b4c04c89a1568206b8407))
+* **deps:** update github/codeql-action action to v3.25.13 ([#507](https://github.com/defenseunicorns/lula/issues/507)) ([dc6cb88](https://github.com/defenseunicorns/lula/commit/dc6cb88eb8cda95c4f000988fc88e7ff1493d3cb))
+* **deps:** update kubernetes packages to v0.30.3 ([#543](https://github.com/defenseunicorns/lula/issues/543)) ([1bdefce](https://github.com/defenseunicorns/lula/commit/1bdefce3f3e2af86f985f5b5e95d8d5f2c0c3c39))
+* **docs:** initial docs structure/changes for feedback ([#524](https://github.com/defenseunicorns/lula/issues/524)) ([c276fdd](https://github.com/defenseunicorns/lula/commit/c276fdd3d390719e0a7825e0aabcdc50f0c33a0a))
+
 ## [0.4.2](https://github.com/defenseunicorns/lula/compare/v0.4.1...v0.4.2) (2024-07-10)
 
 
