@@ -73,6 +73,10 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 			return err
 		}
 	}
+	switch modelType {
+	case "component":
+		MakeComponentDeterminstic(model.ComponentDefinition)
+	}
 
 	var b bytes.Buffer
 
