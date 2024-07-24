@@ -2,7 +2,7 @@
 
 The `lula tools lint` command is used to validate OSCAL files against the OSCAL schema. It can validate both composed and non-composed OSCAL models.
 > **Note**: the `lint` command does not compose the OSCAL model.
-> If you want to validate a composed OSCAL model, you should use the [`lula tools compose`](../compose/README.md) command first.
+> If you want to validate a composed OSCAL model, you should use the [`lula tools compose`](./compose/README.md) command first.
 
 ## Usage
 
