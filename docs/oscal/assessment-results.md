@@ -5,8 +5,8 @@ An [Assessment Result](https://pages.nist.gov/OSCAL/resources/concepts/layer/ass
 flowchart TD
     A[Assessment Results]-->|compose|C[Finding 1]
     A[Assessment Results]-->|compose|G[Finding 2]
-    B(Control)-->|satsified by|C
-    B(Control)-->|satsified by|G
+    B(Control)-->|satisfied by|C
+    B(Control)-->|satisfied by|G
     C -->|compose|D[Observation 1]
     C -->|compose|E[Observation 2]
     C -->|compose|F[Observation 3]

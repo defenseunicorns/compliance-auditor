@@ -237,7 +237,6 @@ func MakeAssessmentResultsDeterministic(assessment *oscalTypes_1_1_2.AssessmentR
 	// Sort Results
 	slices.SortFunc(assessment.Results, func(a, b oscalTypes_1_1_2.Result) int { return b.Start.Compare(a.Start) })
 
-	// Sort Targets
 	for _, result := range assessment.Results {
 		// sort findings by target id
 		if result.Findings != nil {

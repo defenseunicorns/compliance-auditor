@@ -1,6 +1,8 @@
 package oscal_test
 
 import (
+	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -34,18 +36,38 @@ var findingMapFail = map[string]oscalTypes_1_1_2.Finding{
 	},
 }
 
+var findings = []oscalTypes_1_1_2.Finding{
+	{
+		Target: oscalTypes_1_1_2.FindingTarget{
+			TargetId: "ID-1",
+			Status: oscalTypes_1_1_2.ObjectiveStatus{
+				State: "satisfied",
+			},
+		},
+	},
+	{
+		Target: oscalTypes_1_1_2.FindingTarget{
+			TargetId: "ID-2",
+			Status: oscalTypes_1_1_2.ObjectiveStatus{
+				State: "not-satisfied",
+			},
+		},
+	},
+}
+
+// Delineate between these two observations based on the description
 var observations = []oscalTypes_1_1_2.Observation{
 	{
 		Collected:   time.Now(),
 		Methods:     []string{"TEST"},
-		UUID:        uuid.NewUUID(),
-		Description: "test description",
+		UUID:        "4344e734-63d7-4bda-81f1-b805f60fdbf5",
+		Description: "test description first",
 	},
 	{
 		Collected:   time.Now(),
 		Methods:     []string{"TEST"},
-		UUID:        uuid.NewUUID(),
-		Description: "test description",
+		UUID:        "1ac95fcc-1adb-4a25-89a7-08a708def2f3",
+		Description: "test description second",
 	},
 }
 
@@ -447,4 +469,86 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		t.Fatal("error - expected 1 new finding, got ", len(findings["new-passing-findings"]))
 	}
 
+}
+
+func TestMakeAssessmentResultsDeterministic(t *testing.T) {
+	// reverse the order
+	slices.Reverse(findings)
+	slices.Reverse(observations)
+
+	// Will already be in reverse order
+	var results = []oscalTypes_1_1_2.Result{
+		{
+			Start:        time.Now(),
+			UUID:         "d66c9509-cb92-4597-86f8-6e6623ea9154",
+			Findings:     &findings,
+			Observations: &observations,
+		},
+		{
+			Start:        time.Now(),
+			UUID:         "28174d67-06a7-4c7c-be04-1edf437d4ece",
+			Findings:     &findings,
+			Observations: &observations,
+		},
+	}
+
+	var assessment = oscalTypes_1_1_2.AssessmentResults{
+		Results: results,
+	}
+
+	oscal.MakeAssessmentResultsDeterministic(&assessment)
+
+	fmt.Printf("%v", assessment.Results)
+
+	if len(assessment.Results) < 2 {
+		t.Fatalf("Expected 2 results, got %d", len(assessment.Results))
+	}
+
+	// Assessment-Results.Results are sorted newest to oldest
+	var resultExpected = []string{"28174d67-06a7-4c7c-be04-1edf437d4ece", "d66c9509-cb92-4597-86f8-6e6623ea9154"}
+	//Verify order
+
+	for key, id := range resultExpected {
+
+		if assessment.Results[key].UUID != id {
+			t.Fatalf("Expected UUID %q, got %q", id, assessment.Results[key].UUID)
+		}
+
+		assessmentResult := assessment.Results[key]
+		if assessmentResult.Findings == nil {
+			t.Fatal("Expected findings, got nil")
+		}
+
+		assesmentFindings := *assessmentResult.Findings
+
+		if len(assesmentFindings) != 2 {
+			t.Fatalf("Expected 2 findings, got %d", len(findings))
+		}
+
+		var findingExpected = []string{"ID-1", "ID-2"}
+
+		for key, id := range findingExpected {
+			if assesmentFindings[key].Target.TargetId != id {
+				t.Fatalf("Expected finding %q, got %q", id, assesmentFindings[key].Target.TargetId)
+			}
+		}
+
+		if assessmentResult.Observations == nil {
+			t.Fatal("Expected observations, got nil")
+		}
+
+		assessmentObservations := *assessmentResult.Observations
+
+		if len(assessmentObservations) != 2 {
+			t.Fatalf("Expected 2 observations, got %d", len(assessmentObservations))
+		}
+
+		var observationExpected = []string{"4344e734-63d7-4bda-81f1-b805f60fdbf5", "1ac95fcc-1adb-4a25-89a7-08a708def2f3"}
+
+		for key, id := range observationExpected {
+			if assessmentObservations[key].UUID != id {
+				t.Fatalf("Expected observation %q, got %q", id, assessmentObservations[key].UUID)
+			}
+		}
+	}
 }
