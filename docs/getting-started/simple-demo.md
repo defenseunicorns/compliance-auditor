@@ -177,7 +177,7 @@ The following simple demo will step through a process to validate and evaluate K
 
 7. Now that two assessment-results are established, the `threshold` can be evaluated. Perform an `evaluate` to compare the old and new state of the cluster:
     ```shell
-    lula evaluate -f oscal-component-opa.yaml
+    lula evaluate -f assessment-results.yaml
     ```
 
     The output will show that now the new threshold for the system assessment is the more _compliant_ evaluation of the control - i.e., the `satisfied` value of the Control ID-1 is the threshold.
