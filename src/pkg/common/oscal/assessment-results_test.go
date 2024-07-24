@@ -1,7 +1,6 @@
 package oscal_test
 
 import (
-	"fmt"
 	"slices"
 	"testing"
 	"time"
@@ -497,8 +496,6 @@ func TestMakeAssessmentResultsDeterministic(t *testing.T) {
 	}
 
 	oscal.MakeAssessmentResultsDeterministic(&assessment)
-
-	fmt.Printf("%v", assessment.Results)
 
 	if len(assessment.Results) < 2 {
 		t.Fatalf("Expected 2 results, got %d", len(assessment.Results))
