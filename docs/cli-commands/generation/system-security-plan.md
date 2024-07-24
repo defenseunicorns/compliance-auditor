@@ -1,6 +1,22 @@
-# System-Security-Plan Generation
+# System Security Plan
 
-## Description
+## System Security Plan Generate
+
+To generate a system security plan, you need the following context:
+- The componet definition `--component`
+- The profile source `-p` or `--profile-source`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json`
+- The `LulaOscalConfig` file `--config`
+
+The following command will generate a system security plan with the above context:
+```
+lula generate system-security-plan --component .src/test/unit/valid-component.yaml -c https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json --config ./LulaOscalConfig
+```
+
+There are optional flags that can be added to the command to generate a system security plan:
+
+- The output file of the component `-o` or `--output`; `oscal-component.yaml`
+
+## System Security Plan Generate Config Context
 
 The `system-security-plan` can be generated using the upstream catalog/profile in conjunction with the `component-definition`. There are net new fields that are apart of the `system-security-plan` that are not within the `component-definition` or catalog/profile that do not make sense to add as props. Those items are under the section `Elements in SSP Not in Component Definition`. There are items that are not in the `system-security-plan` but also not in the `component-definition` that do make sense to create as props. Those items are under the section `Elements NOT in Component Definition that need added for SSP Generate`. Lastly as a note there are items within the `component-definition` that are not used in the `system-security-plan` that can be found under the section Elements NOT in `Component Definition that need added for SSP Generate`.
 
