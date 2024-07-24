@@ -70,7 +70,7 @@ Linting is done by Lula when a `Validation` object is converted to a `LulaValida
 The `common.Validation.Lint` method is a convenience method to lint a `Validation` object. It performs the following step:
 
 1. **Marshalling**: The method marshals the `Validation` object into a YAML byte array using the `common.Validation.MarshalYaml` function.
-2. **Linting**: The method runs linting against the marshalled `Validation` object. This is done using the `schemas.Validate` function, which ensures that the YAML data conforms to the expected [schema](../../src/pkg/common/schemas/validation.json).
+2. **Linting**: The method runs linting against the marshalled `Validation` object. This is done using the `schemas.Validate` function, which ensures that the YAML data conforms to the expected [schema](https://raw.githubusercontent.com/defenseunicorns/lula/main/src/pkg/common/schemas/validation.json).
 
 ___
 The `schemas.Validate` function is responsible for validating the provided data against a specified JSON schema using [github.com/santhosh-tekuri/jsonschema/v5](https://github.com/santhosh-tekuri/jsonschema). The process involves the following steps:

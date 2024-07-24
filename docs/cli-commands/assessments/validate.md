@@ -19,4 +19,4 @@ lula validate -f /path/to/oscal-component.yaml
 
 This command is used both locally as an evaluation of the Component Definition to understand the component's compliance. It's also implemented in CI workflows to continually evaluate the evolution of a system during development. See the following relevant tutorials:
 
-- ...
+* [Simple Demo](../../getting-started/simple-demo.md)
