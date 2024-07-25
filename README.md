@@ -1,9 +1,10 @@
 # Lula - The Cloud-Native Compliance Engine
 
+[![Lula Documentation](https://img.shields.io/badge/docs--d25ba1)](https://docs.lula.dev)
 [![Go version](https://img.shields.io/github/go-mod/go-version/defenseunicorns/lula?filename=go.mod)](https://go.dev/)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/lula/badge)](https://api.securityscorecards.dev/projects/github.com/defenseunicorns/lula)
 
-<img align="right" alt="lula logo" src="./images/lula.svg" height="256" />
+<img align="right" src="./images/lula.svg" alt="lula logo" style="width:25%; height:auto;">
 
 Lula is a tool designed to bridge the gap between expected configuration required for compliance and **_actual_** configuration.
 
