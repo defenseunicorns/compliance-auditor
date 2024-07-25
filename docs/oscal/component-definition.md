@@ -1,6 +1,6 @@
 # Component Definition
 
-a [Component Definition]() is an OSCAL model for capturing control information that pertains to a specific component/capability of a potential system. It can largely be considered the modular and re-usable model for use across many systems. In Lula, the `validate` command will process a `component-definition`, iterate through all `implemented-requirements` to discover Lula validations, and execute those validations to produce `observations`. 
+A [Component Definition](https://pages.nist.gov/OSCAL/resources/concepts/layer/implementation/component-definition/) is an OSCAL model for capturing control information that pertains to a specific component/capability of a potential system. It can largely be considered the modular and re-usable model for use across many systems. In Lula, the `validate` command will process a `component-definition`, iterate through all `implemented-requirements` to discover Lula validations, and execute those validations to produce `observations`. 
 
 ## Components/Capabilities and Control-Implementations
 
