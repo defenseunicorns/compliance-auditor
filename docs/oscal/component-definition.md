@@ -10,7 +10,7 @@ By allowing for many `control-implementations`, a given component or capability 
 
 ## Structure
 The primary structure for Lula production and operations of `component-definitions` for determinism is as follows:
-- Components/Capabilities are sorted by `title` in ascending order.
+- Components/Capabilities are sorted by `title` in ascending order (Case Sensitive Sorting).
 - Control Implementations are sorted by `source` in ascending order.
 - Implemented Requirements are sorted by `control-id` in ascending order.
-- Back Matter Resources are sorted by `title` in ascending order.
+- Back Matter Resources are sorted by `title` in ascending order (Case Sensitive Sorting).
