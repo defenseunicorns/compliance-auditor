@@ -63,14 +63,14 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 	if target != "" {
 		if result, ok := resultMap[target]; ok {
-			err := evaluateTarget(result, summary)
+			err := evaluateTarget(result, target, summary)
 			if err != nil {
 				message.Warn(err.Error())
 			}
 		}
 	} else {
-		for _, result := range resultMap {
-			err := evaluateTarget(result, summary)
+		for source, result := range resultMap {
+			err := evaluateTarget(result, source, summary)
 			if err != nil {
 				message.Warn(err.Error())
 			}
@@ -87,7 +87,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 	}
 }
 
-func evaluateTarget(target oscal.EvalResult, summary bool) error {
+func evaluateTarget(target oscal.EvalResult, source string, summary bool) error {
 
 	if len(target.Results) == 0 {
 		return fmt.Errorf("no results found")
@@ -96,7 +96,7 @@ func evaluateTarget(target oscal.EvalResult, summary bool) error {
 	if len(target.Results) == 1 {
 		// Only one result identified - update to make it the threshold
 		oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Results[0].Props)
-		message.Warn("less than 2 results found - no comparison possible")
+		message.Warnf("less than 2 results found for target: %s - no comparison possible", source)
 		return nil
 	}
 
@@ -156,7 +156,7 @@ func evaluateTarget(target oscal.EvalResult, summary bool) error {
 					message.Infof("%s", id)
 				}
 			}
-
+			spinner.Stop()
 			message.Info("Evaluation Passed Successfully")
 		} else {
 			// Print no-longer-satisfied

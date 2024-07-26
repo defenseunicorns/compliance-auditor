@@ -177,7 +177,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	// this will only produce a single result
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore)
+			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
 			if err != nil {
 				return results, err
 			}
@@ -196,7 +196,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore)
+			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
 			if err != nil {
 				return results, err
 			}
@@ -214,14 +214,11 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 
 }
 
-func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	// Initialize findings and observations
-	findings := make(map[string]oscalTypes_1_1_2.Finding)
-	observations := make([]oscalTypes_1_1_2.Observation, 0)
+func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
-	message.Title("\n🔍 Collecting Requirements and Validations", "")
+	message.Title("\n🔍 Collecting Requirements and Validations for Target: ", target)
 	requirementStore.ResolveLulaValidations(validationStore)
 	reqtStats := requirementStore.GetStats(validationStore)
 	message.Infof("Found %d Implemented Requirements", reqtStats.TotalRequirements)
@@ -244,9 +241,9 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations = validationStore.RunValidations(ConfirmExecution)
+	observations := validationStore.RunValidations(ConfirmExecution)
 	message.Title("\n💡 Findings", "")
-	findings = requirementStore.GenerateFindings(validationStore)
+	findings := requirementStore.GenerateFindings(validationStore)
 
 	// Print findings here to prevent repetition of findings in the output
 	for id, finding := range findings {

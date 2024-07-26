@@ -1,12 +1,11 @@
 # Standards Optionality
 
 ## Next Steps
-- Begin interrogating the evalResultMap in identifyResults()
-  - EvalResultMap is a map[target] of EvalResults
-  - This contains All results belonging to a given target
-  - To include Threshold and Latest
+- Find a testing target (IE component with multiple components)
 
 ## ToDo
 - rework the threshold check in filterResults()
-- sort and assign latest
+- Build documentation for oscal `ns` fields as well as top-level docs
+- write tests
+
 
