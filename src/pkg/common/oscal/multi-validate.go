@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/model"
-	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 )
 
 func multiModelValidate(data []byte) (err error) {
@@ -20,7 +20,7 @@ func multiModelValidate(data []byte) (err error) {
 	for key, value := range jsonMap {
 		jsonModel := make(map[string]interface{})
 		jsonModel[key] = value
-		validator, err := validation.NewValidator(jsonModel)
+		validator, err := oscalValidation.NewValidator(jsonModel)
 		if err != nil {
 			return err
 		}

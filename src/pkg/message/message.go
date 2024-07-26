@@ -189,6 +189,19 @@ func Infof(format string, a ...any) {
 	}
 }
 
+// Detail prints detail message.
+func Detail(message string) {
+	Detailf("%s", message)
+}
+
+// Detailf prints a detail message preserving newlines
+func Detailf(format string, a ...any) {
+	if logLevel > 0 {
+		message := fmt.Sprintf(format, a...)
+		pterm.Info.Println(message)
+	}
+}
+
 // Success prints a success message.
 func Success(message string) {
 	Successf("%s", message)
@@ -305,11 +318,17 @@ func Truncate(text string, length int, invert bool) string {
 }
 
 // Table prints a padded table containing the specified header and data
-func Table(header []string, data [][]string) {
+// Note - columnSize should be an array of ints that add up to 100
+func Table(header []string, data [][]string, columnSize []int) {
 	pterm.Println()
+	termWidth := pterm.GetTerminalWidth() - 10 // Subtract 10 for padding
 
-	if len(header) > 0 {
-		header[0] = fmt.Sprintf("     %s", header[0])
+	if len(columnSize) != len(header) {
+		Warn("The number of columns does not match the number of headers")
+		columnSize = make([]int, len(header))
+		for i := range columnSize {
+			columnSize[i] = (len(header) / termWidth) * 100 // make them all equal
+		}
 	}
 
 	table := pterm.TableData{
@@ -317,13 +336,72 @@ func Table(header []string, data [][]string) {
 	}
 
 	for _, row := range data {
-		if len(row) > 0 {
-			row[0] = fmt.Sprintf("     %s", row[0])
+		for i, cell := range row {
+			row[i] = addLineBreaks(strings.Replace(cell, "\n", " ", -1), (columnSize[i]*termWidth)/100)
 		}
 		table = append(table, pterm.TableData{row}...)
 	}
 
-	pterm.DefaultTable.WithHasHeader().WithData(table).Render()
+	pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render()
+}
+
+// Add line breaks for table
+
+func addLineBreaks(input string, maxLineLength int) string {
+	// words := splitWords(input) // Split the input into words, handling hyphens
+	words := strings.Fields(input)
+	var result strings.Builder // Use a strings.Builder for efficient string concatenation
+	currentLineLength := 0
+
+	for _, word := range words {
+		if currentLineLength+len(word) > maxLineLength {
+			// additionally split the word if it contains a hyphen
+			firstPart, secondPart := splitHyphenedWords(word, currentLineLength, maxLineLength)
+			if firstPart != "" {
+				if currentLineLength > 0 {
+					result.WriteString(" ")
+				}
+				result.WriteString(firstPart + "-")
+			}
+			result.WriteString("\n")
+			currentLineLength = 0
+
+			if secondPart != "" {
+				word = secondPart
+			}
+		}
+		if currentLineLength > 0 {
+			result.WriteString(" ")
+			currentLineLength++
+		}
+		result.WriteString(word)
+		currentLineLength += len(word)
+	}
+
+	return result.String()
+}
+
+func splitHyphenedWords(input string, currentLength int, maxLength int) (firstPart string, secondPart string) {
+	// get the indicies of all the hyphens
+	hyphenIndicies := []int{}
+	for i, char := range input {
+		if char == '-' {
+			hyphenIndicies = append(hyphenIndicies, i)
+		}
+	}
+
+	if len(hyphenIndicies) != 0 {
+		// starting from the last index, find the largest firstPart that fits within the maxLength
+		for i := len(hyphenIndicies) - 1; i >= 0; i-- {
+			hyphenIndex := hyphenIndicies[i]
+			firstPart = input[:hyphenIndex]
+			secondPart = input[hyphenIndex+1:]
+			if len(firstPart)+currentLength <= maxLength {
+				return firstPart, secondPart
+			}
+		}
+	}
+	return "", input
 }
 
 func debugPrinter(offset int, a ...any) {

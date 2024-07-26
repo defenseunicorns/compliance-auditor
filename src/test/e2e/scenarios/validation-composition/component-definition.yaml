@@ -13,7 +13,7 @@ component-definition:
                 - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.kyverno.yaml
                   rel: lula
                 # single validation w/ checksum
-                - href: file://./validation.opa.yaml@9d09d88105eae1e0349b157c5ba98c4c4fb322e9e15e397ba794beabd5f05d44
+                - href: file://./validation.opa.yaml@169b2ffb1e682c713381538abac7caff04a9271f8758af17ad68f7ed30a07b38
                   rel: lula
                 # Single validation from multi-validations.yaml
                 - href: file://./multi-validations.yaml

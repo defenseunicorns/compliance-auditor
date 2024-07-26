@@ -15,13 +15,13 @@ var getResourcesOpts = &flags{}
 
 var getResourcesHelp = `
 To get resources from lula validation manifest:
-	lula dev get-resources -f <path to manifest>
+	lula dev get-resources -f /path/to/validation.yaml
 To get resources from lula validation manifest and write to file:
-	lula dev get-resources -f /path/to/manifest.json -o /path/to/output.json
+	lula dev get-resources -f /path/to/validation.yaml -o /path/to/output.json
 To get resources from lula validation and automatically confirm execution
-	lula dev get-resources -f /path/to/manifest.json --confirm-execution
+	lula dev get-resources -f /path/to/validation.yaml --confirm-execution
 To run validations using stdin:
-	cat <path to manifest> | lula dev validate
+	cat /path/to/validation.yaml | lula dev get-resources
 To hang indefinitely for stdin:
 	lula get-resources -t -1
 To hang for timeout of 5 seconds:

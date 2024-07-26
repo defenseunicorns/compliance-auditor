@@ -1,20 +1,16 @@
 package tools
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 type composeFlags struct {
@@ -39,14 +35,26 @@ func init() {
 		Long:    "Lula Composition of an OSCAL component definition. Used to compose remote validations within a component definition in order to resolve any references for portability.",
 		Example: composeHelp,
 		Run: func(cmd *cobra.Command, args []string) {
+			composeSpinner := message.NewProgressSpinner("Composing %s", composeOpts.InputFile)
+			defer composeSpinner.Stop()
+
 			if composeOpts.InputFile == "" {
 				message.Fatal(errors.New("flag input-file is not set"),
 					"Please specify an input file with the -f flag")
 			}
-			err := Compose(composeOpts.InputFile, composeOpts.OutputFile)
+
+			outputFile := composeOpts.OutputFile
+			if outputFile == "" {
+				outputFile = GetDefaultOutputFile(composeOpts.InputFile)
+			}
+
+			err := Compose(composeOpts.InputFile, outputFile)
 			if err != nil {
 				message.Fatalf(err, "Composition error: %s", err)
 			}
+
+			message.Infof("Composed OSCAL Component Definition to: %s", outputFile)
+			composeSpinner.Success()
 		},
 	}
 
@@ -56,55 +64,29 @@ func init() {
 	composeCmd.Flags().StringVarP(&composeOpts.OutputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-composed` appended")
 }
 
+// Compose composes an OSCAL model from a file path
 func Compose(inputFile, outputFile string) error {
 	_, err := os.Stat(inputFile)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("input file: %v does not exist - unable to compose document", inputFile)
 	}
 
-	data, err := os.ReadFile(inputFile)
+	// Compose the OSCAL model
+	model, err := composition.ComposeFromPath(inputFile)
 	if err != nil {
 		return err
 	}
 
-	// Change Cwd to the directory of the component definition
-	dirPath := filepath.Dir(inputFile)
-	message.Debugf("changing cwd to %s", dirPath)
-	resetCwd, err := common.SetCwdToFileDir(dirPath)
-	if err != nil {
-		return err
-	}
-
-	model, err := oscal.NewOscalModel(data)
-	if err != nil {
-		return err
-	}
-
-	err = composition.ComposeComponentDefinitions(model.ComponentDefinition)
-	if err != nil {
-		return err
-	}
-
-	// Reset Cwd to original before outputting
-	resetCwd()
-
-	var b bytes.Buffer
-	// Format the output
-	yamlEncoder := yaml.NewEncoder(&b)
-	yamlEncoder.SetIndent(2)
-	yamlEncoder.Encode(model)
-
-	outputFileName := outputFile
-	if outputFileName == "" {
-		outputFileName = strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + "-composed" + filepath.Ext(inputFile)
-	}
-
-	message.Infof("Writing Composed OSCAL Component Definition to: %s", outputFileName)
-
-	err = files.WriteOutput(b.Bytes(), outputFileName)
+	// Write the composed OSCAL model to a file
+	err = oscal.WriteOscalModel(outputFile, model)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// GetDefaultOutputFile returns the default output file name
+func GetDefaultOutputFile(inputFile string) string {
+	return strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + "-composed" + filepath.Ext(inputFile)
 }

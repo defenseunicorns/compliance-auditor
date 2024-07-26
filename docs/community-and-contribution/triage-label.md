@@ -1,3 +1,5 @@
+# Triage
+
 ## Using the Triage Label for Effective Issue Tracking
 
 ### Overview

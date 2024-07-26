@@ -3,11 +3,13 @@ package oscal
 import (
 	"fmt"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"gopkg.in/yaml.v3"
 )
 
@@ -81,14 +83,6 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 	return original, nil
 }
 
-func GenerateFindingsMap(findings []oscalTypes_1_1_2.Finding) map[string]oscalTypes_1_1_2.Finding {
-	findingsMap := make(map[string]oscalTypes_1_1_2.Finding)
-	for _, finding := range findings {
-		findingsMap[finding.Target.TargetId] = finding
-	}
-	return findingsMap
-}
-
 // IdentifyResults produces a map containing the threshold result and a result used for comparison
 func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
 	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
@@ -143,58 +137,132 @@ func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResult
 	}
 }
 
-func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string][]oscalTypes_1_1_2.Finding, error) {
+func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string]result.ResultComparisonMap, error) {
+	var status bool = true
+
 	if thresholdResult.Findings == nil || newResult.Findings == nil {
 		return false, nil, fmt.Errorf("results must contain findings to evaluate")
 	}
 
-	// Store unique findings for review here
-	findings := make(map[string][]oscalTypes_1_1_2.Finding, 0)
-	result := true
+	// Compare threshold result to new result and vice versa
+	comparedToThreshold := result.NewResultComparisonMap(*newResult, *thresholdResult)
 
-	findingMapThreshold := GenerateFindingsMap(*thresholdResult.Findings)
-	findingMapNew := GenerateFindingsMap(*newResult.Findings)
+	// Group by categories
+	categories := []struct {
+		name        string
+		stateChange result.StateChange
+		satisfied   bool
+		status      bool
+	}{
+		{
+			name:        "new-satisfied",
+			stateChange: result.NEW,
+			satisfied:   true,
+			status:      true,
+		},
+		{
+			name:        "new-not-satisfied",
+			stateChange: result.NEW,
+			satisfied:   false,
+			status:      true,
+		},
+		{
+			name:        "no-longer-satisfied",
+			stateChange: result.SATISFIED_TO_NOT_SATISFIED,
+			satisfied:   false,
+			status:      false,
+		},
+		{
+			name:        "now-satisfied",
+			stateChange: result.NOT_SATISFIED_TO_SATISFIED,
+			satisfied:   true,
+			status:      true,
+		},
+		{
+			name:        "unchanged-not-satisfied",
+			stateChange: result.UNCHANGED,
+			satisfied:   false,
+			status:      true,
+		},
+		{
+			name:        "unchanged-satisfied",
+			stateChange: result.UNCHANGED,
+			satisfied:   true,
+			status:      true,
+		},
+		{
+			name:        "removed-not-satisfied",
+			stateChange: result.REMOVED,
+			satisfied:   false,
+			status:      false,
+		},
+		{
+			name:        "removed-satisfied",
+			stateChange: result.REMOVED,
+			satisfied:   true,
+			status:      false,
+		},
+	}
 
-	// For a given oldResult - we need to prove that the newResult implements all of the oldResult findings/controls
-	// We are explicitly iterating through the findings in order to collect a delta to display
+	categorizedResultComparisons := make(map[string]result.ResultComparisonMap)
+	for _, c := range categories {
+		results := result.GetResultComparisonMap(comparedToThreshold, c.stateChange, c.satisfied)
+		categorizedResultComparisons[c.name] = results
+		if len(results) > 0 && !c.status {
+			status = false
+		}
+	}
 
-	for targetId, finding := range findingMapThreshold {
-		if _, ok := findingMapNew[targetId]; !ok {
-			// If the new result does not contain the finding of the old result
-			// set result to fail, add finding to the findings map and continue
-			result = false
-			findings[targetId] = append(findings["no-longer-satisfied"], finding)
-		} else {
-			// If the finding is present in each map - we need to check if the state has changed from "not-satisfied" to "satisfied"
-			if finding.Target.Status.State == "satisfied" {
-				// Was previously satisfied - compare state
-				if findingMapNew[targetId].Target.Status.State == "not-satisfied" {
-					// If the new finding is now not-satisfied - set result to false and add to findings
-					result = false
-					findings["no-longer-satisfied"] = append(findings["no-longer-satisfied"], finding)
-				}
-			} else {
-				// was previously not-satisfied but now is satisfied
-				if findingMapNew[targetId].Target.Status.State == "satisfied" {
-					// If the new finding is now satisfied - add to new-passing-findings
-					findings["new-passing-findings"] = append(findings["new-passing-findings"], finding)
-				}
+	return status, categorizedResultComparisons, nil
+}
+
+func MakeAssessmentResultsDeterministic(assessment *oscalTypes_1_1_2.AssessmentResults) {
+
+	// Sort Results
+	slices.SortFunc(assessment.Results, func(a, b oscalTypes_1_1_2.Result) int { return b.Start.Compare(a.Start) })
+
+	for _, result := range assessment.Results {
+		// sort findings by target id
+		if result.Findings != nil {
+			findings := *result.Findings
+			sort.Slice(findings, func(i, j int) bool {
+				return findings[i].Target.TargetId < findings[j].Target.TargetId
+			})
+			result.Findings = &findings
+		}
+		// sort observations by collected time
+		if result.Observations != nil {
+			observations := *result.Observations
+			slices.SortFunc(observations, func(a, b oscalTypes_1_1_2.Observation) int { return a.Collected.Compare(b.Collected) })
+			result.Observations = &observations
+		}
+
+		// Sort the include-controls in the control selections
+		controlSelections := result.ReviewedControls.ControlSelections
+		for _, selection := range controlSelections {
+			if selection.IncludeControls != nil {
+				controls := *selection.IncludeControls
+				sort.Slice(controls, func(i, j int) bool {
+					return controls[i].ControlId < controls[j].ControlId
+				})
+				selection.IncludeControls = &controls
 			}
-			delete(findingMapNew, targetId)
 		}
 	}
 
-	// All remaining findings in the new map are new findings
-	for _, finding := range findingMapNew {
-		if finding.Target.Status.State == "satisfied" {
-			findings["new-passing-findings"] = append(findings["new-passing-findings"], finding)
-		} else {
-			findings["new-failing-findings"] = append(findings["new-failing-findings"], finding)
+	// sort backmatter
+	if assessment.BackMatter != nil {
+		backmatter := *assessment.BackMatter
+		if backmatter.Resources != nil {
+			resources := *backmatter.Resources
+			sort.Slice(resources, func(i, j int) bool {
+				return resources[i].Title < resources[j].Title
+			})
+			backmatter.Resources = &resources
 		}
-
+		assessment.BackMatter = &backmatter
 	}
 
-	return result, findings, nil
 }
 
 // findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
