@@ -63,14 +63,14 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 	if target != "" {
 		if result, ok := resultMap[target]; ok {
-			err := evaluateTarget(result)
+			err := evaluateTarget(result, summary)
 			if err != nil {
 				message.Warn(err.Error())
 			}
 		}
 	} else {
 		for _, result := range resultMap {
-			err := evaluateTarget(result)
+			err := evaluateTarget(result, summary)
 			if err != nil {
 				message.Warn(err.Error())
 			}
@@ -87,7 +87,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 	}
 }
 
-func evaluateTarget(target oscal.EvalResult) error {
+func evaluateTarget(target oscal.EvalResult, summary bool) error {
 
 	if len(target.Results) == 0 {
 		return fmt.Errorf("no results found")

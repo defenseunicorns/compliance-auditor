@@ -443,6 +443,8 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	}
 
 	return controlMap
+}
+
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
 	// sort components by title
 
