@@ -88,7 +88,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 }
 
 func evaluateTarget(target oscal.EvalResult, source string, summary bool) error {
-
+	message.Debugf("Length of results: %d", len(target.Results))
 	if len(target.Results) == 0 {
 		return fmt.Errorf("no results found")
 	}
@@ -101,9 +101,12 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 	}
 
 	if target.Threshold != nil && target.Latest != nil {
+		if target.Threshold.UUID == target.Latest.UUID {
+			message.Fatal("cannot compare the same assessment result against itself")
+		}
 		var findingsWithoutObservations []string
 		// Compare the assessment results
-		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", target.Threshold.UUID, target.Latest.UUID)
+		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s\n", target.Threshold.UUID, target.Latest.UUID)
 		defer spinner.Stop()
 
 		message.Debugf("threshold UUID: %s / latest UUID: %s", target.Threshold.UUID, target.Latest.UUID)
@@ -156,7 +159,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 					message.Infof("%s", id)
 				}
 			}
-			spinner.Stop()
+			spinner.Success()
 			message.Info("Evaluation Passed Successfully")
 		} else {
 			// Print no-longer-satisfied

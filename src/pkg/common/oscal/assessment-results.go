@@ -387,11 +387,16 @@ func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 			}
 		}
 	}
-	// Now that all results are processed - iterate through each EvalResult, sort and assign latest
+	// Now that all results are processed - iterate through each EvalResult, sort and assign latest/threshold
 	for key, evalResult := range evalResultMap {
 		slices.SortFunc(evalResult.Results, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
 		evalResult.Latest = evalResult.Results[len(evalResult.Results)-1]
+		if evalResult.Threshold == nil && len(evalResult.Results) > 1 {
+			// length of results > 1 and no established threshold - set threshold to the preceding result of latest
+			evalResult.Threshold = evalResult.Results[len(evalResult.Results)-2]
+		}
 		evalResultMap[key] = evalResult
+
 	}
 
 	return evalResultMap
