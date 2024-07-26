@@ -147,23 +147,6 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
 
-			// Print by individual table
-			// noLongerSatisfied := resultComparison["no-longer-satisfied"]
-			// for id, rc := range noLongerSatisfied {
-			// 	message.Infof("%s", id)
-			// 	rc.PrintResultComparisonTable(true)
-			// }
-			// removedSatisfied := resultComparison["removed-satisfied"]
-			// for id, rc := range removedSatisfied {
-			// 	message.Infof("%s", id)
-			// 	rc.PrintResultComparisonTable(true)
-			// }
-			// removedNotSatisfied := resultComparison["removed-not-satisfied"]
-			// for id, rc := range removedNotSatisfied {
-			// 	message.Infof("%s", id)
-			// 	rc.PrintResultComparisonTable(true)
-			// }
-
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 
 			// retain result as threshold
