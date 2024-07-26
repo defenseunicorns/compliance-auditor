@@ -21,7 +21,7 @@ lula evaluate -f assessment-results.yaml --summary
 
 ## Options
 
-- `-f, -file`: The path to the file(s) to be evaluated.
+- `-f, --file`: The path to the file(s) to be evaluated.
 - `-s, --summary`: [Optional] Prints a summary of the evaluation.
 
 ## Expected Process
