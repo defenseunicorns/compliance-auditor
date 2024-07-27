@@ -102,7 +102,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 
 	if target.Threshold != nil && target.Latest != nil {
 		if target.Threshold.UUID == target.Latest.UUID {
-			message.Fatal("cannot compare the same assessment result against itself")
+			message.Fatal(fmt.Errorf("cannot compare the same assessment result against itself"), "cannot compare the same assessment result against itself")
 		}
 		var findingsWithoutObservations []string
 		// Compare the assessment results
