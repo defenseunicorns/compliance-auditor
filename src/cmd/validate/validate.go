@@ -138,7 +138,6 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 		return assessmentResult, err
 	}
 
-	// TODO: generate an assessment-results object from []results
 	assessmentResult, err = oscal.GenerateAssessmentResults(results)
 	if err != nil {
 		return assessmentResult, err

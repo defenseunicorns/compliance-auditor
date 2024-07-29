@@ -2,2599 +2,431 @@ assessment-results:
   import-ap:
     href: ""
   metadata:
-    last-modified: 2024-07-27T04:01:02.670113887Z
+    last-modified: 2024-07-29T21:00:47.655164766Z
     oscal-version: 1.1.2
-    published: 2024-07-27T04:00:30.584841838Z
+    published: 2024-07-29T21:00:32.507444366Z
     remarks: Assessment Results generated from Lula
     title: '[System Name] Security Assessment Results (SAR)'
     version: 0.0.1
   results:
-    - description: Assessment results for performing Validations with Lula version v0.4.3-19-g48b3e4e
+    - description: Assessment results for performing Validations with Lula version v0.4.3-20-g6f61019
       findings:
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c8c03abd-244d-4813-a966-3feece1bad6a
-             # Control Implementation
-              Istio implements with service to service and provides authorization policies that require authentication to access any non-public features.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: e73bd51d-32eb-439e-b308-7d044933a0d6
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 67dd59c4-0340-4aed-a49d-002815b50157
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-14
+            target-id: ac-1
             type: objective-id
-          title: 'Validation Result - Control:  ac-14'
-          uuid: 1bce82a3-fbe3-40a7-b98d-33b54cd99c36
+          title: 'Validation Result - Control:  ac-1'
+          uuid: 7c3e40a3-b057-49cb-88b3-8a170e7e89ae
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
-             # Control Implementation
-              Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-            - observation-uuid: 09b88432-fe2b-402a-a778-2febc69a5a53
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 663e7c26-3bfe-4c71-b423-10d8338d5445
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-2
+            type: objective-id
+          title: 'Validation Result - Control:  ac-2'
+          uuid: bf6da9fa-cc37-4ff2-9849-6a32c7231ac1
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 07e1e996-5ae7-4b0b-b4c0-01f35729e442
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-3'
+          uuid: 732e9994-2ad9-46b9-8412-0c4b97834e8d
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: ea9f3b4d-64c2-4631-ace5-55428552f9aa
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
             target-id: ac-4
             type: objective-id
           title: 'Validation Result - Control:  ac-4'
-          uuid: 477b959a-bb33-459b-83af-7c2342b6c435
+          uuid: 86d1553f-6eea-45c4-aa30-994a793da1f8
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 6e32feb5-ce43-465f-9422-e3ef3276bf5d
-             # Control Implementation
-              Istio is configured to use ingress and egress gateways to provide logical flow separation.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 4ecf334c-f4c3-48c7-a5ea-0d4fcc00839c
-            - observation-uuid: 8d94dd1a-5c4c-45c8-9968-8617bba891bb
-            - observation-uuid: 33a98a37-8767-41ec-a9e5-29759a9091b0
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 1976b301-115f-48a4-b847-3374aa3b98d5
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-4.21
+            target-id: ac-5
             type: objective-id
-          title: 'Validation Result - Control:  ac-4.21'
-          uuid: c0c84d46-ca0e-44d2-921d-2d0a0b1bbe74
+          title: 'Validation Result - Control:  ac-5'
+          uuid: 2c2cc241-1f08-4d41-8908-1fed2713f671
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c3e13abc-3c19-4f08-a2f8-40fcbef5daa7
-             # Control Implementation
-              All encrypted HTTPS connections are terminated at the Istio ingress gateway.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-            - observation-uuid: 09b88432-fe2b-402a-a778-2febc69a5a53
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: be129429-290b-4516-9390-f4d38067fbd0
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-4.4
+            target-id: ac-6
             type: objective-id
-          title: 'Validation Result - Control:  ac-4.4'
-          uuid: 9601223a-a378-42e3-98a5-cb2160341d62
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 0081f95a-3233-4e07-a6cd-95cb1905c318
-             # Control Implementation
-              Configured with an "admin" gateway to restrict access to applications that only need administrative access.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 8d94dd1a-5c4c-45c8-9968-8617bba891bb
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.3
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.3'
-          uuid: 5a3dbec2-3560-4b77-abad-4e958a6a607e
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 6d8a6c80-2844-4bfd-bc9d-0f5a71e5c979
-             # Control Implementation
-              Istio produces logs for all traffic in the information system.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 1e2dde40-59dd-49a7-a357-979a12a3dc55
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.9
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.9'
-          uuid: 2ff06b36-6086-4072-ba8c-59e8ad91fcad
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 8f645835-6538-4327-a7aa-453b398f5ef4
-             # Control Implementation
-              Istio provides audit record generation capabilities for a variety of event types, including session, connection, transaction, or activity durations, and the number of bytes received and sent.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 1e2dde40-59dd-49a7-a357-979a12a3dc55
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-12
-            type: objective-id
-          title: 'Validation Result - Control:  au-12'
-          uuid: 01f4584f-f736-4465-aa15-40e40d98803f
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 88f300a6-aa21-41b4-919d-29ef3e4381bb
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 1e2dde40-59dd-49a7-a357-979a12a3dc55
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-2
-            type: objective-id
-          title: 'Validation Result - Control:  au-2'
-          uuid: 9f505c7b-9ba2-4302-9eb0-0dfa09530125
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 52756a01-6f5c-49b1-8a6b-972b74a01da4
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 1bde413e-c50e-4de5-bbd0-4db5c80ad705
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3
-            type: objective-id
-          title: 'Validation Result - Control:  au-3'
-          uuid: 218014d6-8d8d-4583-9028-c8bdcd63c6b1
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 16cc258e-d907-47bb-97d9-4e92677cf075
-             # Control Implementation
-              Istio has been configured to implement event logging within our environment. This includes capturing metrics related to the duration of sessions, connections, transactions, or activities. Specifically, Istio's telemetry features are utilized to capture these metrics, which provide valuable data that can be used to infer the duration of sessions or connections.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: cfa78176-22aa-4e4f-bb9b-19cbf5700fc3
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-            - observation-uuid: 598a22e8-9166-4f40-b7fd-194f54d4ae21
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3.1
-            type: objective-id
-          title: 'Validation Result - Control:  au-3.1'
-          uuid: 4afa95b6-9b8b-4403-8022-2bb4a29c8613
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 32e53a18-4b64-4a24-935c-11cbac2c62be
-             # Control Implementation
-              Istio enforces logical access restrictions associated with changes to the system. Istio's Role-Based Access Control (RBAC) features are used to define and enforce access controls, ensuring that only approved personnel can make changes to the system.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: ba52ae0a-7f26-499a-92de-d142c6ee24e6
-            - observation-uuid: 70823991-c621-4d3b-bd21-6f92440669fe
-          target:
-            status:
-              state: not-satisfied
-            target-id: cm-5
-            type: objective-id
-          title: 'Validation Result - Control:  cm-5'
-          uuid: 9cb71721-507a-41d3-ba95-89f07e4866c8
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 169c9ad3-0a6c-46ee-80cd-cd8cef5eca5c
-             # Control Implementation
-              Istio is configured to manage network connections associated with specific communication sessions. It can be set up to automatically terminate these connections after periods of inactivity, providing an additional layer of security.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: b00b65d9-346e-4a77-a11c-c2c1de25746d
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-10
-            type: objective-id
-          title: 'Validation Result - Control:  sc-10'
-          uuid: 8fd16440-79e0-4221-996b-6d7db89f9858
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 2bf5c525-af5f-4b8b-8349-3f6a91e0aab9
-             # Control Implementation
-              Istio provides FIPS encryption in transit for all applications in the mesh, TLS termination at ingress, and TLS origination at egress.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: 09b88432-fe2b-402a-a778-2febc69a5a53
-            - observation-uuid: 75d4e0d5-a9eb-4da8-b9df-848e3eca8251
-            - observation-uuid: b01101d2-5885-401c-ab5e-b1b5e2c22f08
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-13
-            type: objective-id
-          title: 'Validation Result - Control:  sc-13'
-          uuid: 3b4f3046-3d10-457d-aceb-4cddef2e63e6
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 625bfdc1-0b20-45f3-919b-91afbac77799
-             # Control Implementation
-              Istio is configured to protect session authenticity, establishing confidence in the ongoing identities of other parties and the validity of transmitted information. This is achieved through Istio's mutual TLS, which ensures secure communication.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-23
-            type: objective-id
-          title: 'Validation Result - Control:  sc-23'
-          uuid: 526229ce-ae73-49e3-9d88-536e0f446c1d
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 9e2894a3-2452-4f7a-b8a5-f72b89b23c87
-             # Control Implementation
-              Namespaces, Istio gateways, and network policies collectively by providing resource isolation, secure traffic routing, and network segmentation to prevent unauthorized and unintended information transfer.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 8d94dd1a-5c4c-45c8-9968-8617bba891bb
-            - observation-uuid: 33a98a37-8767-41ec-a9e5-29759a9091b0
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-3
-            type: objective-id
-          title: 'Validation Result - Control:  sc-3'
-          uuid: b9a7ec07-b8eb-44b6-844f-a6fc1dccf051
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: f972ef8d-1eb0-403b-8db8-e65a4f4e2aaa
-             # Control Implementation
-              Istio is configured to maintain separate execution domains for each executing process. This is achieved through Istio's sidecar proxy design, where each service in the mesh has its own dedicated sidecar proxy to handle its inbound and outbound traffic. This ensures that communication between processes is controlled and one process cannot modify the executing code of another process.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-39
-            type: objective-id
-          title: 'Validation Result - Control:  sc-39'
-          uuid: e948790c-04a1-4aa1-bde0-c20d0cbbdf50
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 86bc4fb7-f91b-4f2c-b914-65427951018c
-             # Control Implementation
-              Istio enforces outbound traffic goes through an Egress Gateway with a Network Policy.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: d127d703-f3aa-4164-b7a2-dbd51b5d008b
-            - observation-uuid: 01cb320e-bb01-444f-b67c-3f750fa35203
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-4'
-          uuid: 312d0ddf-7b99-42b8-b594-76124403b98c
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 30b49a3e-ad38-441d-8c07-5a9018848a02
-             # Control Implementation
-              Istio is configured to dynamically isolate certain internal system components when necessary. This is achieved through Istio's network policies, which allow us to partition or separate system components
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.20
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.20'
-          uuid: 6abdbded-93fa-473f-9b28-f1128788a7a6
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c9a1e9bc-3caa-44ce-a300-ecd722487987
-             # Control Implementation
-               Istio is configured to isolate system components that perform different mission or business functions. This is achieved through Istio's network policies and mutual TLS, which allow us to control information flows and provide enhanced protection.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.21
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.21'
-          uuid: 9e807c17-9b57-49e4-9fa5-72dcdc632d81
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 85df9e6c-3d94-4c60-9a20-8c481831f1e0
-             # Control Implementation
-              Istio is configured to provide managed interfaces for external telecommunication services, establish traffic flow policies, and protect the confidentiality and integrity of transmitted information. It also prevents unauthorized exchange of control plane traffic and filters unauthorized control plane traffic.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: d47568c7-6345-41c4-8ea3-75244a0e9d3a
-            - observation-uuid: e73bd51d-32eb-439e-b308-7d044933a0d6
-            - observation-uuid: 33a98a37-8767-41ec-a9e5-29759a9091b0
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.4'
-          uuid: 14236820-2822-41e1-bd2b-75759f36bdb9
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 4b930af3-ae84-43ff-b751-448fe1c2eec8
-             # Control Implementation
-               is configured to route internal communications traffic to external networks through authenticated proxy servers at managed interfaces, using its Egress Gateway.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: 01cb320e-bb01-444f-b67c-3f750fa35203
-            - observation-uuid: b0486722-2092-4daf-b50c-66952ee3de36
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.8'
-          uuid: 001578a5-2e4b-495f-8857-958d45ceede8
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 7548b4ee-e4a3-4e3c-a34b-95eccad45f92
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8'
-          uuid: c18d61ea-8d97-4c07-a692-f4a171b68ee6
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 69415B92-0490-4A14-9E0F-E1EE61951F9C
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.1
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.1'
-          uuid: 3037ef7e-f0c0-482b-a500-b9dd40c9b200
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c158b75a-cefc-4794-b124-f1e56ff5646d
-             # Control Implementation
-              Istio implements with global configuration.
-          related-observations:
-            - observation-uuid: e96d14ed-746e-4256-afbd-42d746050c31
-            - observation-uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-            - observation-uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-            - observation-uuid: e73bd51d-32eb-439e-b308-7d044933a0d6
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.2
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.2'
-          uuid: fb7e93a9-e100-420f-a625-683c1547e5a7
-      observations:
-        - collected: 2024-07-27T04:01:02.384023472Z
-          description: |
-            [TEST]: 8be1601e-5870-4573-ab4f-c1c199944815 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #8be1601e-5870-4573-ab4f-c1c199944815: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # How to prove TLS origination is configured at egress
-                # DestinationRule?
-                }]
-          uuid: 75d4e0d5-a9eb-4da8-b9df-848e3eca8251
-        - collected: 2024-07-27T04:01:02.384077215Z
-          description: |
-            [TEST]: 73434890-2751-4894-b7b2-7e583b4a8977 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #73434890-2751-4894-b7b2-7e583b4a8977: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: b01101d2-5885-401c-ab5e-b1b5e2c22f08
-        - collected: 2024-07-27T04:01:02.399654035Z
-          description: |
-            [TEST]: f346b797-be35-40a8-a93a-585db6fd56ec - istio-tracing-logging-support
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Tracing logging not supported.
-          uuid: 1bde413e-c50e-4de5-bbd0-4db5c80ad705
-        - collected: 2024-07-27T04:01:02.399758279Z
-          description: |
-            [TEST]: 9b361d7b-4e07-40db-8b86-3854ed499a4b - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #9b361d7b-4e07-40db-8b86-3854ed499a4b: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 70823991-c621-4d3b-bd21-6f92440669fe
-        - collected: 2024-07-27T04:01:02.403108958Z
-          description: |
-            [TEST]: fbd877c8-d6b6-4d88-8685-2c4aaaab02a1 - istio-enforces-authorized-keycloak-access
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name keycloak-block-admin-access-from-public-gateway
-          uuid: e73bd51d-32eb-439e-b308-7d044933a0d6
-        - collected: 2024-07-27T04:01:02.403165939Z
-          description: |
-            [TEST]: 7455f86d-b79c-4226-9ce3-f3fb7d9348c8 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #7455f86d-b79c-4226-9ce3-f3fb7d9348c8: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: d127d703-f3aa-4164-b7a2-dbd51b5d008b
-        - collected: 2024-07-27T04:01:02.447439108Z
-          description: |
-            [TEST]: 1761ac07-80dd-47d2-947e-09f67943b986 - all-pods-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio sidecar proxy not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-system, uds-dev-stack, zarf
-          uuid: d3b924cc-4bd4-42a2-bcc7-1f6f70c2737b
-        - collected: 2024-07-27T04:01:02.456052772Z
-          description: |
-            [TEST]: 90738c86-6315-450a-ac69-cc50eb4859cc - check-istio-logging-all-traffic
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio is not logging all traffic
-          uuid: 1e2dde40-59dd-49a7-a357-979a12a3dc55
-        - collected: 2024-07-27T04:01:02.456109704Z
-          description: |
-            [TEST]: ecdb90c7-971a-4442-8f29-a8b0f6076bc9 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #ecdb90c7-971a-4442-8f29-a8b0f6076bc9: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 01cb320e-bb01-444f-b67c-3f750fa35203
-        - collected: 2024-07-27T04:01:02.470355089Z
-          description: |
-            [TEST]: 67456ae8-4505-4c93-b341-d977d90cb125 - istio-health-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                istiohealth.deployment_message: All deployment conditions are true.
-                istiohealth.hpa_message: HPA has sufficient replicas.
-          uuid: e96d14ed-746e-4256-afbd-42d746050c31
-        - collected: 2024-07-27T04:01:02.473812887Z
-          description: |
-            [TEST]: ca49ac97-487a-446a-a0b7-92b20e2c83cb - enforce-mtls-strict
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: db6e7e84-5d17-4472-afe9-b1890f8d087b
-        - collected: 2024-07-27T04:01:02.473930672Z
-          description: |
-            [TEST]: 663f5e92-6db4-4042-8b5a-eba3ebe5a622 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #663f5e92-6db4-4042-8b5a-eba3ebe5a622: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>}]
-          uuid: b00b65d9-346e-4a77-a11c-c2c1de25746d
-        - collected: 2024-07-27T04:01:02.490710163Z
-          description: |
-            [TEST]: 70d99754-2918-400c-ac9a-319f874fff90 - istio-metrics-logging-configured
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                validate.msg: Metrics logging supported.
-          uuid: cfa78176-22aa-4e4f-bb9b-19cbf5700fc3
-        - collected: 2024-07-27T04:01:02.494024933Z
-          description: |
-            [TEST]: 7b045b2a-106f-4c8c-85d9-ae3d7a8e0e28 - istio-rbac-enforcement-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: ba52ae0a-7f26-499a-92de-d142c6ee24e6
-        - collected: 2024-07-27T04:01:02.497181665Z
-          description: |
-            [TEST]: 570e2dc7-e6c2-4ad5-8ea3-f07974f59747 - secure-communication-with-istiod
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: d47568c7-6345-41c4-8ea3-75244a0e9d3a
-        - collected: 2024-07-27T04:01:02.50080152Z
-          description: |
-            [TEST]: b0a8f21e-b12f-47ea-a967-2f4a3ec69e44 - gateway-configuration-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 33a98a37-8767-41ec-a9e5-29759a9091b0
-        - collected: 2024-07-27T04:01:02.511408143Z
-          description: |
-            [TEST]: 0da39859-a91a-4ca6-bd8b-9b117689188f - all-namespaces-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.exempted_namespaces_msg: Exempted Namespaces: default, istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-node-lease, kube-public, kube-system, uds-crds, uds-dev-stack, uds-policy-exemptions, zarf
-                validate.msg: Non-Istio-injected namespaces: {"local-path-storage", "mission"}
-          uuid: 4ecf334c-f4c3-48c7-a5ea-0d4fcc00839c
-        - collected: 2024-07-27T04:01:02.514707674Z
-          description: |
-            [TEST]: fd071676-6b92-4e1c-a4f0-4c8d2bd55aed - ingress-traffic-encrypted
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 09b88432-fe2b-402a-a778-2febc69a5a53
-        - collected: 2024-07-27T04:01:02.51822137Z
-          description: |
-            [TEST]: c6c9daf1-4196-406d-8679-312c0512ab2e - check-istio-admin-gateway-and-usage
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name admin-gateway
-          uuid: 8d94dd1a-5c4c-45c8-9968-8617bba891bb
-        - collected: 2024-07-27T04:01:02.571912072Z
-          description: |
-            [TEST]: f345c359-3208-46fb-9348-959bd628301e - istio-prometheus-annotations-validation
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Prometheus annotations not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-system, kube-system, uds-dev-stack, zarf
-          uuid: 598a22e8-9166-4f40-b7fd-194f54d4ae21
-        - collected: 2024-07-27T04:01:02.572023061Z
-          description: |
-            [TEST]: 19faf69a-de74-4b78-a628-64a9f244ae13 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #19faf69a-de74-4b78-a628-64a9f244ae13: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # This policy could check meshConfig.outboundTrafficPolicy.mode (default is ALLOW_ANY)
-                # Possibly would need a ServiceEntry(?)
-                # (https://istio.io/latest/docs/tasks/traffic-management/egress/egress-control/#envoy-passthrough-to-external-services)
-                }]
-          uuid: b0486722-2092-4daf-b50c-66952ee3de36
-      props:
-        - name: threshold
-          ns: https://docs.lula.dev/ns
-          value: "true"
-        - name: target
-          ns: https://docs.lula.dev/ns
-          value: https://raw.githubusercontent.com/GSA/fedramp-automation/main/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline-resolved-profile_catalog.json
-      reviewed-controls:
-        control-selections:
-          - description: Controls Assessed by Lula
-            include-controls:
-              - control-id: ac-14
-              - control-id: ac-4
-              - control-id: ac-4.21
-              - control-id: ac-4.4
-              - control-id: ac-6.3
-              - control-id: ac-6.9
-              - control-id: au-12
-              - control-id: au-2
-              - control-id: au-3
-              - control-id: au-3.1
-              - control-id: cm-5
-              - control-id: sc-10
-              - control-id: sc-13
-              - control-id: sc-23
-              - control-id: sc-3
-              - control-id: sc-39
-              - control-id: sc-4
-              - control-id: sc-7.20
-              - control-id: sc-7.21
-              - control-id: sc-7.4
-              - control-id: sc-7.8
-              - control-id: sc-8
-              - control-id: sc-8.1
-              - control-id: sc-8.2
-        description: Controls validated
-        remarks: Validation performed may indicate full or partial satisfaction
-      start: 2024-07-27T04:01:02.581270317Z
-      title: Lula Validation Result
-      uuid: a8ea122f-a289-46cb-ace4-db729df162f0
-    - description: Assessment results for performing Validations with Lula version v0.4.3-19-g48b3e4e
-      findings:
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c8c03abd-244d-4813-a966-3feece1bad6a
-             # Control Implementation
-              Istio implements with service to service and provides authorization policies that require authentication to access any non-public features.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 5af6c570-0c40-4d0c-b73e-fc1009c162ca
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-14
-            type: objective-id
-          title: 'Validation Result - Control:  ac-14'
-          uuid: 92d7af3b-311d-42b4-980e-b4707d45f6b2
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
-             # Control Implementation
-              Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-            - observation-uuid: 0a59b71a-1bee-4625-807f-1b1410021f63
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-4
-            type: objective-id
-          title: 'Validation Result - Control:  ac-4'
-          uuid: f12c6c89-8c17-4646-a6f5-b8daf019a5a7
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 6e32feb5-ce43-465f-9422-e3ef3276bf5d
-             # Control Implementation
-              Istio is configured to use ingress and egress gateways to provide logical flow separation.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 5a9c1998-40b8-4c1f-a582-48384153579b
-            - observation-uuid: 24ebdee7-4fa3-4baa-8041-2221b780c31d
-            - observation-uuid: eaa186a7-d3ee-4ab4-b8a5-6a15c8df4f63
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-4.21
-            type: objective-id
-          title: 'Validation Result - Control:  ac-4.21'
-          uuid: 9a5c0c31-803b-4910-8f79-d068c03e0989
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c3e13abc-3c19-4f08-a2f8-40fcbef5daa7
-             # Control Implementation
-              All encrypted HTTPS connections are terminated at the Istio ingress gateway.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-            - observation-uuid: 0a59b71a-1bee-4625-807f-1b1410021f63
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-4.4
-            type: objective-id
-          title: 'Validation Result - Control:  ac-4.4'
-          uuid: 891da77f-d68a-4f7a-bfaf-d37151f026d9
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 0081f95a-3233-4e07-a6cd-95cb1905c318
-             # Control Implementation
-              Configured with an "admin" gateway to restrict access to applications that only need administrative access.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 24ebdee7-4fa3-4baa-8041-2221b780c31d
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.3
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.3'
-          uuid: 94caada8-5a5e-4532-bb30-19f39408099e
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 6d8a6c80-2844-4bfd-bc9d-0f5a71e5c979
-             # Control Implementation
-              Istio produces logs for all traffic in the information system.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 08f890f2-89bd-4664-9156-d371d93933c6
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.9
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.9'
-          uuid: 312e16c2-f68f-499c-93de-de95ee344a00
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 8f645835-6538-4327-a7aa-453b398f5ef4
-             # Control Implementation
-              Istio provides audit record generation capabilities for a variety of event types, including session, connection, transaction, or activity durations, and the number of bytes received and sent.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 08f890f2-89bd-4664-9156-d371d93933c6
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-12
-            type: objective-id
-          title: 'Validation Result - Control:  au-12'
-          uuid: 2b8d60d0-bb42-4cad-82c1-89fd11437661
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 88f300a6-aa21-41b4-919d-29ef3e4381bb
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 08f890f2-89bd-4664-9156-d371d93933c6
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-2
-            type: objective-id
-          title: 'Validation Result - Control:  au-2'
-          uuid: 4f8cb7f1-7d9a-4e2d-97ed-e52f8374d47d
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 52756a01-6f5c-49b1-8a6b-972b74a01da4
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 70baf884-545f-4811-8cc1-3692c4c0fee6
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3
-            type: objective-id
-          title: 'Validation Result - Control:  au-3'
-          uuid: 3b052c68-938a-4a62-b986-457db89e4f42
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 16cc258e-d907-47bb-97d9-4e92677cf075
-             # Control Implementation
-              Istio has been configured to implement event logging within our environment. This includes capturing metrics related to the duration of sessions, connections, transactions, or activities. Specifically, Istio's telemetry features are utilized to capture these metrics, which provide valuable data that can be used to infer the duration of sessions or connections.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 9f62e7e9-5d29-42ed-bb03-4a423c5aa689
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-            - observation-uuid: 3f8c65d3-26e3-4fb8-86b1-a6fef84ba62a
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3.1
-            type: objective-id
-          title: 'Validation Result - Control:  au-3.1'
-          uuid: 9f1b156d-1b49-4616-a0b3-a80a44432fdd
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 32e53a18-4b64-4a24-935c-11cbac2c62be
-             # Control Implementation
-              Istio enforces logical access restrictions associated with changes to the system. Istio's Role-Based Access Control (RBAC) features are used to define and enforce access controls, ensuring that only approved personnel can make changes to the system.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 2907fbbf-8765-4ee0-a241-7856b61d7bb0
-            - observation-uuid: 473ac623-63c4-4d96-95d9-1ce9ccc09254
-          target:
-            status:
-              state: not-satisfied
-            target-id: cm-5
-            type: objective-id
-          title: 'Validation Result - Control:  cm-5'
-          uuid: e875b280-cbee-491d-b8b2-7bc0588e02db
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 169c9ad3-0a6c-46ee-80cd-cd8cef5eca5c
-             # Control Implementation
-              Istio is configured to manage network connections associated with specific communication sessions. It can be set up to automatically terminate these connections after periods of inactivity, providing an additional layer of security.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: ffe65ba8-31f2-4f6e-8410-f1c579783d29
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-10
-            type: objective-id
-          title: 'Validation Result - Control:  sc-10'
-          uuid: f188b50a-ea7a-4433-9029-c6906ef8e565
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 2bf5c525-af5f-4b8b-8349-3f6a91e0aab9
-             # Control Implementation
-              Istio provides FIPS encryption in transit for all applications in the mesh, TLS termination at ingress, and TLS origination at egress.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: 0a59b71a-1bee-4625-807f-1b1410021f63
-            - observation-uuid: 4d614853-16ad-4158-8024-d01bd12fce55
-            - observation-uuid: cf20d369-1835-4ee4-a44b-438ad732a2f8
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-13
-            type: objective-id
-          title: 'Validation Result - Control:  sc-13'
-          uuid: f5513b0f-4a87-4911-90e1-008b6dd61558
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 625bfdc1-0b20-45f3-919b-91afbac77799
-             # Control Implementation
-              Istio is configured to protect session authenticity, establishing confidence in the ongoing identities of other parties and the validity of transmitted information. This is achieved through Istio's mutual TLS, which ensures secure communication.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-23
-            type: objective-id
-          title: 'Validation Result - Control:  sc-23'
-          uuid: 2181601c-aac2-4e7a-a671-f07b1e338edd
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 9e2894a3-2452-4f7a-b8a5-f72b89b23c87
-             # Control Implementation
-              Namespaces, Istio gateways, and network policies collectively by providing resource isolation, secure traffic routing, and network segmentation to prevent unauthorized and unintended information transfer.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 24ebdee7-4fa3-4baa-8041-2221b780c31d
-            - observation-uuid: eaa186a7-d3ee-4ab4-b8a5-6a15c8df4f63
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-3
-            type: objective-id
-          title: 'Validation Result - Control:  sc-3'
-          uuid: bf061900-123e-49a9-9b6b-1c5977f824b9
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: f972ef8d-1eb0-403b-8db8-e65a4f4e2aaa
-             # Control Implementation
-              Istio is configured to maintain separate execution domains for each executing process. This is achieved through Istio's sidecar proxy design, where each service in the mesh has its own dedicated sidecar proxy to handle its inbound and outbound traffic. This ensures that communication between processes is controlled and one process cannot modify the executing code of another process.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-39
-            type: objective-id
-          title: 'Validation Result - Control:  sc-39'
-          uuid: 028c6aba-9b25-41c9-9308-def48ee4fb25
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 86bc4fb7-f91b-4f2c-b914-65427951018c
-             # Control Implementation
-              Istio enforces outbound traffic goes through an Egress Gateway with a Network Policy.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 49e2d2bb-4e77-400d-a500-c3bfd519f1a2
-            - observation-uuid: 56323515-7b7c-4e0d-8f6e-ae26528712ae
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-4'
-          uuid: c1861700-fdc9-4664-8fd3-97eccf648460
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 30b49a3e-ad38-441d-8c07-5a9018848a02
-             # Control Implementation
-              Istio is configured to dynamically isolate certain internal system components when necessary. This is achieved through Istio's network policies, which allow us to partition or separate system components
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.20
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.20'
-          uuid: b533ec51-4b17-4a1e-b365-aab3191b1f6b
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c9a1e9bc-3caa-44ce-a300-ecd722487987
-             # Control Implementation
-               Istio is configured to isolate system components that perform different mission or business functions. This is achieved through Istio's network policies and mutual TLS, which allow us to control information flows and provide enhanced protection.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.21
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.21'
-          uuid: 60e50524-615d-48e1-a1cc-5ffe863f769d
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 85df9e6c-3d94-4c60-9a20-8c481831f1e0
-             # Control Implementation
-              Istio is configured to provide managed interfaces for external telecommunication services, establish traffic flow policies, and protect the confidentiality and integrity of transmitted information. It also prevents unauthorized exchange of control plane traffic and filters unauthorized control plane traffic.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 9e31b165-6301-4086-bc54-43238b4c50a9
-            - observation-uuid: 5af6c570-0c40-4d0c-b73e-fc1009c162ca
-            - observation-uuid: eaa186a7-d3ee-4ab4-b8a5-6a15c8df4f63
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.4'
-          uuid: b0c5293d-5964-4fd6-a997-82e3f58ebfab
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 4b930af3-ae84-43ff-b751-448fe1c2eec8
-             # Control Implementation
-               is configured to route internal communications traffic to external networks through authenticated proxy servers at managed interfaces, using its Egress Gateway.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 56323515-7b7c-4e0d-8f6e-ae26528712ae
-            - observation-uuid: 5adc58dd-fd5a-4f3a-9106-205704206a11
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.8'
-          uuid: f77f463c-6b8b-4003-aa18-54eac520f81a
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 7548b4ee-e4a3-4e3c-a34b-95eccad45f92
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8'
-          uuid: 81822af6-1f00-4315-8036-0a87ff044dd5
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 69415B92-0490-4A14-9E0F-E1EE61951F9C
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.1
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.1'
-          uuid: 6002f077-41aa-4b72-a766-d1872f274732
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c158b75a-cefc-4794-b124-f1e56ff5646d
-             # Control Implementation
-              Istio implements with global configuration.
-          related-observations:
-            - observation-uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-            - observation-uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-            - observation-uuid: c4971872-7108-4692-8407-2cabc69680b1
-            - observation-uuid: 5af6c570-0c40-4d0c-b73e-fc1009c162ca
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.2
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.2'
-          uuid: a23a05da-93fa-4b84-8acb-3130113526e7
-      observations:
-        - collected: 2024-07-27T04:01:02.214648105Z
-          description: |
-            [TEST]: 7b045b2a-106f-4c8c-85d9-ae3d7a8e0e28 - istio-rbac-enforcement-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 2907fbbf-8765-4ee0-a241-7856b61d7bb0
-        - collected: 2024-07-27T04:01:02.217331435Z
-          description: |
-            [TEST]: 570e2dc7-e6c2-4ad5-8ea3-f07974f59747 - secure-communication-with-istiod
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 9e31b165-6301-4086-bc54-43238b4c50a9
-        - collected: 2024-07-27T04:01:02.220651146Z
-          description: |
-            [TEST]: b0a8f21e-b12f-47ea-a967-2f4a3ec69e44 - gateway-configuration-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: eaa186a7-d3ee-4ab4-b8a5-6a15c8df4f63
-        - collected: 2024-07-27T04:01:02.231837211Z
-          description: |
-            [TEST]: 0da39859-a91a-4ca6-bd8b-9b117689188f - all-namespaces-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Non-Istio-injected namespaces: {"local-path-storage", "mission"}
-                validate.exempted_namespaces_msg: Exempted Namespaces: default, istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-node-lease, kube-public, kube-system, uds-crds, uds-dev-stack, uds-policy-exemptions, zarf
-          uuid: 5a9c1998-40b8-4c1f-a582-48384153579b
-        - collected: 2024-07-27T04:01:02.248095103Z
-          description: |
-            [TEST]: 67456ae8-4505-4c93-b341-d977d90cb125 - istio-health-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                istiohealth.deployment_message: All deployment conditions are true.
-                istiohealth.hpa_message: HPA has sufficient replicas.
-          uuid: f43832fc-e3a5-44ab-818f-f76d1bca23bc
-        - collected: 2024-07-27T04:01:02.251975097Z
-          description: |
-            [TEST]: ca49ac97-487a-446a-a0b7-92b20e2c83cb - enforce-mtls-strict
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 4d44973a-1266-44c9-9b2d-f3d219c50452
-        - collected: 2024-07-27T04:01:02.252067915Z
-          description: |
-            [TEST]: 663f5e92-6db4-4042-8b5a-eba3ebe5a622 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #663f5e92-6db4-4042-8b5a-eba3ebe5a622: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>}]
-          uuid: ffe65ba8-31f2-4f6e-8410-f1c579783d29
-        - collected: 2024-07-27T04:01:02.268093415Z
-          description: |
-            [TEST]: 70d99754-2918-400c-ac9a-319f874fff90 - istio-metrics-logging-configured
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                validate.msg: Metrics logging supported.
-          uuid: 9f62e7e9-5d29-42ed-bb03-4a423c5aa689
-        - collected: 2024-07-27T04:01:02.272069183Z
-          description: |
-            [TEST]: fd071676-6b92-4e1c-a4f0-4c8d2bd55aed - ingress-traffic-encrypted
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 0a59b71a-1bee-4625-807f-1b1410021f63
-        - collected: 2024-07-27T04:01:02.275644328Z
-          description: |
-            [TEST]: c6c9daf1-4196-406d-8679-312c0512ab2e - check-istio-admin-gateway-and-usage
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name admin-gateway
-          uuid: 24ebdee7-4fa3-4baa-8041-2221b780c31d
-        - collected: 2024-07-27T04:01:02.308529868Z
-          description: |
-            [TEST]: f345c359-3208-46fb-9348-959bd628301e - istio-prometheus-annotations-validation
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Prometheus annotations not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-system, kube-system, uds-dev-stack, zarf
-          uuid: 3f8c65d3-26e3-4fb8-86b1-a6fef84ba62a
-        - collected: 2024-07-27T04:01:02.308617407Z
-          description: |
-            [TEST]: 19faf69a-de74-4b78-a628-64a9f244ae13 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #19faf69a-de74-4b78-a628-64a9f244ae13: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # This policy could check meshConfig.outboundTrafficPolicy.mode (default is ALLOW_ANY)
-                # Possibly would need a ServiceEntry(?)
-                # (https://istio.io/latest/docs/tasks/traffic-management/egress/egress-control/#envoy-passthrough-to-external-services)
-                }]
-          uuid: 5adc58dd-fd5a-4f3a-9106-205704206a11
-        - collected: 2024-07-27T04:01:02.311059501Z
-          description: |
-            [TEST]: fbd877c8-d6b6-4d88-8685-2c4aaaab02a1 - istio-enforces-authorized-keycloak-access
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name keycloak-block-admin-access-from-public-gateway
-          uuid: 5af6c570-0c40-4d0c-b73e-fc1009c162ca
-        - collected: 2024-07-27T04:01:02.311128481Z
-          description: |
-            [TEST]: 7455f86d-b79c-4226-9ce3-f3fb7d9348c8 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #7455f86d-b79c-4226-9ce3-f3fb7d9348c8: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 49e2d2bb-4e77-400d-a500-c3bfd519f1a2
-        - collected: 2024-07-27T04:01:02.311175619Z
-          description: |
-            [TEST]: 8be1601e-5870-4573-ab4f-c1c199944815 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #8be1601e-5870-4573-ab4f-c1c199944815: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # How to prove TLS origination is configured at egress
-                # DestinationRule?
-                }]
-          uuid: 4d614853-16ad-4158-8024-d01bd12fce55
-        - collected: 2024-07-27T04:01:02.31122189Z
-          description: |
-            [TEST]: 73434890-2751-4894-b7b2-7e583b4a8977 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #73434890-2751-4894-b7b2-7e583b4a8977: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: cf20d369-1835-4ee4-a44b-438ad732a2f8
-        - collected: 2024-07-27T04:01:02.327297809Z
-          description: |
-            [TEST]: f346b797-be35-40a8-a93a-585db6fd56ec - istio-tracing-logging-support
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Tracing logging not supported.
-          uuid: 70baf884-545f-4811-8cc1-3692c4c0fee6
-        - collected: 2024-07-27T04:01:02.32741087Z
-          description: |
-            [TEST]: 9b361d7b-4e07-40db-8b86-3854ed499a4b - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #9b361d7b-4e07-40db-8b86-3854ed499a4b: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 473ac623-63c4-4d96-95d9-1ce9ccc09254
-        - collected: 2024-07-27T04:01:02.364178063Z
-          description: |
-            [TEST]: 1761ac07-80dd-47d2-947e-09f67943b986 - all-pods-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio sidecar proxy not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-system, uds-dev-stack, zarf
-          uuid: c4971872-7108-4692-8407-2cabc69680b1
-        - collected: 2024-07-27T04:01:02.375058523Z
-          description: |
-            [TEST]: 90738c86-6315-450a-ac69-cc50eb4859cc - check-istio-logging-all-traffic
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio is not logging all traffic
-          uuid: 08f890f2-89bd-4664-9156-d371d93933c6
-        - collected: 2024-07-27T04:01:02.375176149Z
-          description: |
-            [TEST]: ecdb90c7-971a-4442-8f29-a8b0f6076bc9 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #ecdb90c7-971a-4442-8f29-a8b0f6076bc9: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 56323515-7b7c-4e0d-8f6e-ae26528712ae
+          title: 'Validation Result - Control:  ac-6'
+          uuid: d5e17ba6-ae0f-4708-9f06-279562df7067
       props:
         - name: threshold
           ns: https://docs.lula.dev/ns
           value: "false"
         - name: target
           ns: https://docs.lula.dev/ns
-          value: fedramp
+          value: rev4
       reviewed-controls:
         control-selections:
           - description: Controls Assessed by Lula
             include-controls:
-              - control-id: ac-14
+              - control-id: ac-1
+              - control-id: ac-2
+              - control-id: ac-3
               - control-id: ac-4
-              - control-id: ac-4.21
-              - control-id: ac-4.4
-              - control-id: ac-6.3
-              - control-id: ac-6.9
-              - control-id: au-12
-              - control-id: au-2
-              - control-id: au-3
-              - control-id: au-3.1
-              - control-id: cm-5
-              - control-id: sc-10
-              - control-id: sc-13
-              - control-id: sc-23
-              - control-id: sc-3
-              - control-id: sc-39
-              - control-id: sc-4
-              - control-id: sc-7.20
-              - control-id: sc-7.21
-              - control-id: sc-7.4
-              - control-id: sc-7.8
-              - control-id: sc-8
-              - control-id: sc-8.1
-              - control-id: sc-8.2
+              - control-id: ac-5
+              - control-id: ac-6
         description: Controls validated
         remarks: Validation performed may indicate full or partial satisfaction
-      start: 2024-07-27T04:01:02.383817302Z
+      start: 2024-07-29T21:00:47.586150986Z
       title: Lula Validation Result
-      uuid: 341d5c84-ff5a-47d0-aa04-f05a25b4e094
-    - description: Assessment results for performing Validations with Lula version v0.4.3-19-g48b3e4e
+      uuid: 09a75695-01f3-49f4-af86-6261240e6870
+    - description: Assessment results for performing Validations with Lula version v0.4.3-20-g6f61019
       findings:
         - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c8c03abd-244d-4813-a966-3feece1bad6a
-             # Control Implementation
-              Istio implements with service to service and provides authorization policies that require authentication to access any non-public features.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 64252d7e-607f-43f7-9204-ff4f3c920f16
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 67dd59c4-0340-4aed-a49d-002815b50157
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-14
+            target-id: ac-1
             type: objective-id
-          title: 'Validation Result - Control:  ac-14'
-          uuid: 377b96ea-d535-41eb-8aa9-75e83853ef88
+          title: 'Validation Result - Control:  ac-1'
+          uuid: 6ff4ef7c-5623-4edc-9e32-f04dbee9aeb0
         - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
-             # Control Implementation
-              Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-            - observation-uuid: b72ee7e5-fb8f-4da0-8667-b54b17139e2a
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 663e7c26-3bfe-4c71-b423-10d8338d5445
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-2
+            type: objective-id
+          title: 'Validation Result - Control:  ac-2'
+          uuid: 5b5203c1-987e-4ed6-a794-f013b2104fa7
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 07e1e996-5ae7-4b0b-b4c0-01f35729e442
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-3'
+          uuid: 7b41d2f5-4756-415b-bc58-75582a189a97
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: ea9f3b4d-64c2-4631-ace5-55428552f9aa
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
             target-id: ac-4
             type: objective-id
           title: 'Validation Result - Control:  ac-4'
-          uuid: d6ce2a94-f4ed-4398-9b31-16ae993cfdd4
+          uuid: f52166a8-b9fb-4dad-ad74-eb3f3d9c5afb
         - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 6e32feb5-ce43-465f-9422-e3ef3276bf5d
-             # Control Implementation
-              Istio is configured to use ingress and egress gateways to provide logical flow separation.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 5b63a687-f744-419a-b952-77a8f64315fc
-            - observation-uuid: 8e65449e-46f0-4891-8eb2-8a1f1d67088a
-            - observation-uuid: 6254e60c-f301-4bb8-ace1-a3d51e0b12a5
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 1976b301-115f-48a4-b847-3374aa3b98d5
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-4.21
+            target-id: ac-5
             type: objective-id
-          title: 'Validation Result - Control:  ac-4.21'
-          uuid: 219d708c-0686-41d9-96a8-0cdfbfea83a3
+          title: 'Validation Result - Control:  ac-5'
+          uuid: 35f9803f-8e48-43bb-8df5-177d2f0619e0
         - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c3e13abc-3c19-4f08-a2f8-40fcbef5daa7
-             # Control Implementation
-              All encrypted HTTPS connections are terminated at the Istio ingress gateway.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-            - observation-uuid: b72ee7e5-fb8f-4da0-8667-b54b17139e2a
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: be129429-290b-4516-9390-f4d38067fbd0
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-4.4
+            target-id: ac-6
             type: objective-id
-          title: 'Validation Result - Control:  ac-4.4'
-          uuid: 1e2dd210-48a8-4e9e-b15a-1da75f858d5a
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 0081f95a-3233-4e07-a6cd-95cb1905c318
-             # Control Implementation
-              Configured with an "admin" gateway to restrict access to applications that only need administrative access.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 8e65449e-46f0-4891-8eb2-8a1f1d67088a
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.3
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.3'
-          uuid: e8a888c3-ef12-4e87-8f4d-63149962a676
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 6d8a6c80-2844-4bfd-bc9d-0f5a71e5c979
-             # Control Implementation
-              Istio produces logs for all traffic in the information system.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: ec880b63-325b-4d38-bc72-aeb99708a5c3
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.9
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.9'
-          uuid: 3918ab72-a77e-4575-9fca-fe4e6aa7a8b4
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 8f645835-6538-4327-a7aa-453b398f5ef4
-             # Control Implementation
-              Istio provides audit record generation capabilities for a variety of event types, including session, connection, transaction, or activity durations, and the number of bytes received and sent.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: ec880b63-325b-4d38-bc72-aeb99708a5c3
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-12
-            type: objective-id
-          title: 'Validation Result - Control:  au-12'
-          uuid: 106b69e5-4703-4a99-b8ab-17125b02c63f
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 88f300a6-aa21-41b4-919d-29ef3e4381bb
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: ec880b63-325b-4d38-bc72-aeb99708a5c3
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-2
-            type: objective-id
-          title: 'Validation Result - Control:  au-2'
-          uuid: 0d133c6f-bea0-47c3-8dd4-e16e5230cb71
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 52756a01-6f5c-49b1-8a6b-972b74a01da4
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 1a05454a-a738-4548-b904-cf8acdd7eb2b
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3
-            type: objective-id
-          title: 'Validation Result - Control:  au-3'
-          uuid: cfe99b81-1372-4776-b3e5-d4ba428f2a08
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 16cc258e-d907-47bb-97d9-4e92677cf075
-             # Control Implementation
-              Istio has been configured to implement event logging within our environment. This includes capturing metrics related to the duration of sessions, connections, transactions, or activities. Specifically, Istio's telemetry features are utilized to capture these metrics, which provide valuable data that can be used to infer the duration of sessions or connections.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: ee9f6ec1-f787-4a0b-b507-e183ab1eff6e
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-            - observation-uuid: 72e518ed-a293-4149-9947-a29bf42abe92
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3.1
-            type: objective-id
-          title: 'Validation Result - Control:  au-3.1'
-          uuid: 7d202fcd-d157-48d2-b056-766f07ca3535
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 32e53a18-4b64-4a24-935c-11cbac2c62be
-             # Control Implementation
-              Istio enforces logical access restrictions associated with changes to the system. Istio's Role-Based Access Control (RBAC) features are used to define and enforce access controls, ensuring that only approved personnel can make changes to the system.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: c3348440-14c6-4b23-bde9-7ab851ffd573
-            - observation-uuid: b11cb8f7-3bd9-423d-9f8f-8b635a2b4b33
-          target:
-            status:
-              state: not-satisfied
-            target-id: cm-5
-            type: objective-id
-          title: 'Validation Result - Control:  cm-5'
-          uuid: 71534c95-dabd-4a37-b65e-0be6b12dc8de
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 169c9ad3-0a6c-46ee-80cd-cd8cef5eca5c
-             # Control Implementation
-              Istio is configured to manage network connections associated with specific communication sessions. It can be set up to automatically terminate these connections after periods of inactivity, providing an additional layer of security.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 0432b80d-5f01-4827-9a94-ba8a295a776c
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-10
-            type: objective-id
-          title: 'Validation Result - Control:  sc-10'
-          uuid: 8e459587-a945-4d44-aa72-19a384f3b8b6
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 2bf5c525-af5f-4b8b-8349-3f6a91e0aab9
-             # Control Implementation
-              Istio provides FIPS encryption in transit for all applications in the mesh, TLS termination at ingress, and TLS origination at egress.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: b72ee7e5-fb8f-4da0-8667-b54b17139e2a
-            - observation-uuid: 4876f5f8-9616-44e2-84f1-b9cefd929bab
-            - observation-uuid: 3b7f026d-b00d-4c6b-97b9-2e37743f2735
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-13
-            type: objective-id
-          title: 'Validation Result - Control:  sc-13'
-          uuid: 29cc80e3-748b-47f8-9a4d-1b535f026306
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 625bfdc1-0b20-45f3-919b-91afbac77799
-             # Control Implementation
-              Istio is configured to protect session authenticity, establishing confidence in the ongoing identities of other parties and the validity of transmitted information. This is achieved through Istio's mutual TLS, which ensures secure communication.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-23
-            type: objective-id
-          title: 'Validation Result - Control:  sc-23'
-          uuid: d95d63f4-a629-48e9-9867-c4386e04a1c8
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e2894a3-2452-4f7a-b8a5-f72b89b23c87
-             # Control Implementation
-              Namespaces, Istio gateways, and network policies collectively by providing resource isolation, secure traffic routing, and network segmentation to prevent unauthorized and unintended information transfer.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 8e65449e-46f0-4891-8eb2-8a1f1d67088a
-            - observation-uuid: 6254e60c-f301-4bb8-ace1-a3d51e0b12a5
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-3
-            type: objective-id
-          title: 'Validation Result - Control:  sc-3'
-          uuid: a237b47a-4067-4303-8bf5-582a8bf96209
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: f972ef8d-1eb0-403b-8db8-e65a4f4e2aaa
-             # Control Implementation
-              Istio is configured to maintain separate execution domains for each executing process. This is achieved through Istio's sidecar proxy design, where each service in the mesh has its own dedicated sidecar proxy to handle its inbound and outbound traffic. This ensures that communication between processes is controlled and one process cannot modify the executing code of another process.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-39
-            type: objective-id
-          title: 'Validation Result - Control:  sc-39'
-          uuid: 71adb26e-7d89-4dbb-8da8-4081c1b1adbe
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 86bc4fb7-f91b-4f2c-b914-65427951018c
-             # Control Implementation
-              Istio enforces outbound traffic goes through an Egress Gateway with a Network Policy.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 12102eb5-8a24-4b45-accb-90240cb502d5
-            - observation-uuid: 7cd11de2-638c-4c9e-b1fb-c8cedc382a5b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-4'
-          uuid: a69ff385-7dfa-443d-9cc2-ce564fddaf0a
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 30b49a3e-ad38-441d-8c07-5a9018848a02
-             # Control Implementation
-              Istio is configured to dynamically isolate certain internal system components when necessary. This is achieved through Istio's network policies, which allow us to partition or separate system components
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.20
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.20'
-          uuid: 3a63b98b-523a-4188-a389-a3eb3e524863
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c9a1e9bc-3caa-44ce-a300-ecd722487987
-             # Control Implementation
-               Istio is configured to isolate system components that perform different mission or business functions. This is achieved through Istio's network policies and mutual TLS, which allow us to control information flows and provide enhanced protection.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.21
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.21'
-          uuid: 3efb51a0-abef-4750-960e-69331fda4d19
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 85df9e6c-3d94-4c60-9a20-8c481831f1e0
-             # Control Implementation
-              Istio is configured to provide managed interfaces for external telecommunication services, establish traffic flow policies, and protect the confidentiality and integrity of transmitted information. It also prevents unauthorized exchange of control plane traffic and filters unauthorized control plane traffic.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 48aa2e79-d47c-4e7e-926e-165488b72e31
-            - observation-uuid: 64252d7e-607f-43f7-9204-ff4f3c920f16
-            - observation-uuid: 6254e60c-f301-4bb8-ace1-a3d51e0b12a5
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.4'
-          uuid: 863c7f0a-0303-4e87-be16-404ea812e2bc
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 4b930af3-ae84-43ff-b751-448fe1c2eec8
-             # Control Implementation
-               is configured to route internal communications traffic to external networks through authenticated proxy servers at managed interfaces, using its Egress Gateway.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: 7cd11de2-638c-4c9e-b1fb-c8cedc382a5b
-            - observation-uuid: 9f6d937a-e96d-437a-88e6-8dfd39ed4ce9
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.8'
-          uuid: 3898ff36-ff3b-414f-97fc-4f9ec8ef65a1
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 7548b4ee-e4a3-4e3c-a34b-95eccad45f92
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8'
-          uuid: 7f609966-72dd-42ff-b43e-dadee218c565
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 69415B92-0490-4A14-9E0F-E1EE61951F9C
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.1
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.1'
-          uuid: 6b07afc8-8ae0-4005-906f-ccec96ce2dcb
-        - description: |
-            Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: c158b75a-cefc-4794-b124-f1e56ff5646d
-             # Control Implementation
-              Istio implements with global configuration.
-          related-observations:
-            - observation-uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-            - observation-uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-            - observation-uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-            - observation-uuid: 64252d7e-607f-43f7-9204-ff4f3c920f16
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.2
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.2'
-          uuid: 4684613a-07b5-4bf1-896f-684e25fadc6d
-      observations:
-        - collected: 2024-07-27T04:01:02.093040822Z
-          description: |
-            [TEST]: fd071676-6b92-4e1c-a4f0-4c8d2bd55aed - ingress-traffic-encrypted
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: b72ee7e5-fb8f-4da0-8667-b54b17139e2a
-        - collected: 2024-07-27T04:01:02.094152061Z
-          description: |
-            [TEST]: c6c9daf1-4196-406d-8679-312c0512ab2e - check-istio-admin-gateway-and-usage
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name admin-gateway
-          uuid: 8e65449e-46f0-4891-8eb2-8a1f1d67088a
-        - collected: 2024-07-27T04:01:02.114426589Z
-          description: |
-            [TEST]: f345c359-3208-46fb-9348-959bd628301e - istio-prometheus-annotations-validation
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Prometheus annotations not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-system, kube-system, uds-dev-stack, zarf
-          uuid: 72e518ed-a293-4149-9947-a29bf42abe92
-        - collected: 2024-07-27T04:01:02.114458933Z
-          description: |
-            [TEST]: 19faf69a-de74-4b78-a628-64a9f244ae13 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #19faf69a-de74-4b78-a628-64a9f244ae13: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # This policy could check meshConfig.outboundTrafficPolicy.mode (default is ALLOW_ANY)
-                # Possibly would need a ServiceEntry(?)
-                # (https://istio.io/latest/docs/tasks/traffic-management/egress/egress-control/#envoy-passthrough-to-external-services)
-                }]
-          uuid: 9f6d937a-e96d-437a-88e6-8dfd39ed4ce9
-        - collected: 2024-07-27T04:01:02.115738321Z
-          description: |
-            [TEST]: fbd877c8-d6b6-4d88-8685-2c4aaaab02a1 - istio-enforces-authorized-keycloak-access
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name keycloak-block-admin-access-from-public-gateway
-          uuid: 64252d7e-607f-43f7-9204-ff4f3c920f16
-        - collected: 2024-07-27T04:01:02.115764745Z
-          description: |
-            [TEST]: 7455f86d-b79c-4226-9ce3-f3fb7d9348c8 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #7455f86d-b79c-4226-9ce3-f3fb7d9348c8: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 12102eb5-8a24-4b45-accb-90240cb502d5
-        - collected: 2024-07-27T04:01:02.115784208Z
-          description: |
-            [TEST]: 8be1601e-5870-4573-ab4f-c1c199944815 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #8be1601e-5870-4573-ab4f-c1c199944815: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # How to prove TLS origination is configured at egress
-                # DestinationRule?
-                }]
-          uuid: 4876f5f8-9616-44e2-84f1-b9cefd929bab
-        - collected: 2024-07-27T04:01:02.115828316Z
-          description: |
-            [TEST]: 73434890-2751-4894-b7b2-7e583b4a8977 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #73434890-2751-4894-b7b2-7e583b4a8977: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 3b7f026d-b00d-4c6b-97b9-2e37743f2735
-        - collected: 2024-07-27T04:01:02.122427242Z
-          description: |
-            [TEST]: f346b797-be35-40a8-a93a-585db6fd56ec - istio-tracing-logging-support
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Tracing logging not supported.
-          uuid: 1a05454a-a738-4548-b904-cf8acdd7eb2b
-        - collected: 2024-07-27T04:01:02.122490931Z
-          description: |
-            [TEST]: 9b361d7b-4e07-40db-8b86-3854ed499a4b - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #9b361d7b-4e07-40db-8b86-3854ed499a4b: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: b11cb8f7-3bd9-423d-9f8f-8b635a2b4b33
-        - collected: 2024-07-27T04:01:02.147538633Z
-          description: |
-            [TEST]: 1761ac07-80dd-47d2-947e-09f67943b986 - all-pods-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio sidecar proxy not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-system, uds-dev-stack, zarf
-          uuid: 415369a6-ef0c-43fc-985d-80be83b4692c
-        - collected: 2024-07-27T04:01:02.153967645Z
-          description: |
-            [TEST]: 90738c86-6315-450a-ac69-cc50eb4859cc - check-istio-logging-all-traffic
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio is not logging all traffic
-          uuid: ec880b63-325b-4d38-bc72-aeb99708a5c3
-        - collected: 2024-07-27T04:01:02.154030639Z
-          description: |
-            [TEST]: ecdb90c7-971a-4442-8f29-a8b0f6076bc9 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #ecdb90c7-971a-4442-8f29-a8b0f6076bc9: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 7cd11de2-638c-4c9e-b1fb-c8cedc382a5b
-        - collected: 2024-07-27T04:01:02.156548876Z
-          description: |
-            [TEST]: 7b045b2a-106f-4c8c-85d9-ae3d7a8e0e28 - istio-rbac-enforcement-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: c3348440-14c6-4b23-bde9-7ab851ffd573
-        - collected: 2024-07-27T04:01:02.159395705Z
-          description: |
-            [TEST]: 570e2dc7-e6c2-4ad5-8ea3-f07974f59747 - secure-communication-with-istiod
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 48aa2e79-d47c-4e7e-926e-165488b72e31
-        - collected: 2024-07-27T04:01:02.16250227Z
-          description: |
-            [TEST]: b0a8f21e-b12f-47ea-a967-2f4a3ec69e44 - gateway-configuration-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 6254e60c-f301-4bb8-ace1-a3d51e0b12a5
-        - collected: 2024-07-27T04:01:02.176697598Z
-          description: |
-            [TEST]: 0da39859-a91a-4ca6-bd8b-9b117689188f - all-namespaces-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Non-Istio-injected namespaces: {"local-path-storage", "mission"}
-                validate.exempted_namespaces_msg: Exempted Namespaces: default, istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-node-lease, kube-public, kube-system, uds-crds, uds-dev-stack, uds-policy-exemptions, zarf
-          uuid: 5b63a687-f744-419a-b952-77a8f64315fc
-        - collected: 2024-07-27T04:01:02.189473817Z
-          description: |
-            [TEST]: 67456ae8-4505-4c93-b341-d977d90cb125 - istio-health-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                istiohealth.deployment_message: All deployment conditions are true.
-                istiohealth.hpa_message: HPA has sufficient replicas.
-          uuid: 32d7c7b8-bdad-4573-9f8c-bce141bf50a5
-        - collected: 2024-07-27T04:01:02.191618687Z
-          description: |
-            [TEST]: ca49ac97-487a-446a-a0b7-92b20e2c83cb - enforce-mtls-strict
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: f0e163a4-60c2-4b81-918f-e0817a90b241
-        - collected: 2024-07-27T04:01:02.191673924Z
-          description: |
-            [TEST]: 663f5e92-6db4-4042-8b5a-eba3ebe5a622 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #663f5e92-6db4-4042-8b5a-eba3ebe5a622: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>}]
-          uuid: 0432b80d-5f01-4827-9a94-ba8a295a776c
-        - collected: 2024-07-27T04:01:02.200002521Z
-          description: |
-            [TEST]: 70d99754-2918-400c-ac9a-319f874fff90 - istio-metrics-logging-configured
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                validate.msg: Metrics logging supported.
-          uuid: ee9f6ec1-f787-4a0b-b507-e183ab1eff6e
+          title: 'Validation Result - Control:  ac-6'
+          uuid: a2de7606-3572-42f8-bc3c-d4746488efa9
       props:
         - name: threshold
           ns: https://docs.lula.dev/ns
           value: "true"
         - name: target
           ns: https://docs.lula.dev/ns
-          value: https://raw.githubusercontent.com/GSA/fedramp-automation/93ca0e20ff5e54fc04140613476fba80f08e3c7d/dist/content/rev5/baselines/json/FedRAMP_rev5_HIGH-baseline-resolved-profile_catalog.json
+          value: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml
       reviewed-controls:
         control-selections:
           - description: Controls Assessed by Lula
             include-controls:
-              - control-id: ac-14
+              - control-id: ac-1
+              - control-id: ac-2
+              - control-id: ac-3
               - control-id: ac-4
-              - control-id: ac-4.21
-              - control-id: ac-4.4
-              - control-id: ac-6.3
-              - control-id: ac-6.9
-              - control-id: au-12
-              - control-id: au-2
-              - control-id: au-3
-              - control-id: au-3.1
-              - control-id: cm-5
-              - control-id: sc-10
-              - control-id: sc-13
-              - control-id: sc-23
-              - control-id: sc-3
-              - control-id: sc-39
-              - control-id: sc-4
-              - control-id: sc-7.20
-              - control-id: sc-7.21
-              - control-id: sc-7.4
-              - control-id: sc-7.8
-              - control-id: sc-8
-              - control-id: sc-8.1
-              - control-id: sc-8.2
+              - control-id: ac-5
+              - control-id: ac-6
         description: Controls validated
         remarks: Validation performed may indicate full or partial satisfaction
-      start: 2024-07-27T04:01:02.204062552Z
+      start: 2024-07-29T21:00:32.507442855Z
       title: Lula Validation Result
-      uuid: 28e1eebf-9e44-4af0-8d74-7d0d12de615d
-    - description: Assessment results for performing Validations with Lula version v0.4.3-19-g48b3e4e
+      uuid: b60ec214-56f3-46c7-bb63-07e2538c4606
+    - description: Assessment results for performing Validations with Lula version v0.4.3-20-g6f61019
       findings:
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c8c03abd-244d-4813-a966-3feece1bad6a
-             # Control Implementation
-              Istio implements with service to service and provides authorization policies that require authentication to access any non-public features.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 2cd403c7-293a-40e2-9a65-4cb397e70f6e
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 857121b1-2992-412c-b34a-504ead86e117
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-14
+            target-id: ac-1
             type: objective-id
-          title: 'Validation Result - Control:  ac-14'
-          uuid: 78297e2e-1780-4d49-93d7-6a4f4b6f4d5e
+          title: 'Validation Result - Control:  ac-1'
+          uuid: b730ec95-9a5b-4506-b1b3-31af654dfff9
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
-             # Control Implementation
-              Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-            - observation-uuid: 41c666ce-4057-4c66-8dc7-cde494aefb40
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: c93c7d6a-e276-4050-9a54-437f7903b39e
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-2
+            type: objective-id
+          title: 'Validation Result - Control:  ac-2'
+          uuid: 525ff3cb-886f-4e13-9c12-9f535cb923bd
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: fc1bb76a-4ca5-4832-8cf9-6df509d3c996
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-3'
+          uuid: 32ccad4f-ec45-4f25-af6b-7d347aaa9ee8
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 81a78740-c3ac-4ee3-a1e5-81944dd21b6c
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
             target-id: ac-4
             type: objective-id
           title: 'Validation Result - Control:  ac-4'
-          uuid: ca682833-7aaf-47be-884b-6b5fb9f18e41
+          uuid: e89efc5d-f84b-4dbf-83eb-2815a6849419
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 6e32feb5-ce43-465f-9422-e3ef3276bf5d
-             # Control Implementation
-              Istio is configured to use ingress and egress gateways to provide logical flow separation.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 31bff6b2-6d12-41fd-8b81-52fab81e1124
-            - observation-uuid: 135b3309-0fe6-4594-9a15-d10c157997c0
-            - observation-uuid: 889a82cd-2932-4e41-8c0b-5166ed690389
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 0649ec59-757a-483e-b8a9-bb4b7fbc4d6e
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-4.21
+            target-id: ac-5
             type: objective-id
-          title: 'Validation Result - Control:  ac-4.21'
-          uuid: b1670154-a454-4c68-a7ea-b87e7490c541
+          title: 'Validation Result - Control:  ac-5'
+          uuid: f3420118-360a-4a58-9343-5341705984ac
         - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c3e13abc-3c19-4f08-a2f8-40fcbef5daa7
-             # Control Implementation
-              All encrypted HTTPS connections are terminated at the Istio ingress gateway.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-            - observation-uuid: 41c666ce-4057-4c66-8dc7-cde494aefb40
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 45b56420-3689-431d-8811-ec9bc648f64e
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
           target:
             status:
               state: not-satisfied
-            target-id: ac-4.4
+            target-id: ac-6
             type: objective-id
-          title: 'Validation Result - Control:  ac-4.4'
-          uuid: 7f3dd3c6-e37e-4753-ae95-4627935af1d0
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 0081f95a-3233-4e07-a6cd-95cb1905c318
-             # Control Implementation
-              Configured with an "admin" gateway to restrict access to applications that only need administrative access.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 135b3309-0fe6-4594-9a15-d10c157997c0
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.3
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.3'
-          uuid: a974ce81-eeea-47ca-8370-6db464d2cedb
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 6d8a6c80-2844-4bfd-bc9d-0f5a71e5c979
-             # Control Implementation
-              Istio produces logs for all traffic in the information system.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 4a99eaaa-3260-488c-8257-21a333668a84
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-          target:
-            status:
-              state: not-satisfied
-            target-id: ac-6.9
-            type: objective-id
-          title: 'Validation Result - Control:  ac-6.9'
-          uuid: 2e4990e1-2dcf-4fba-a71f-16c646b604a0
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 8f645835-6538-4327-a7aa-453b398f5ef4
-             # Control Implementation
-              Istio provides audit record generation capabilities for a variety of event types, including session, connection, transaction, or activity durations, and the number of bytes received and sent.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 4a99eaaa-3260-488c-8257-21a333668a84
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-12
-            type: objective-id
-          title: 'Validation Result - Control:  au-12'
-          uuid: be517c73-9213-4b8a-944a-f2bec107e20b
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 88f300a6-aa21-41b4-919d-29ef3e4381bb
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 4a99eaaa-3260-488c-8257-21a333668a84
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-2
-            type: objective-id
-          title: 'Validation Result - Control:  au-2'
-          uuid: 34cafbf5-4794-487a-a4e7-189d1a15469b
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 52756a01-6f5c-49b1-8a6b-972b74a01da4
-             # Control Implementation
-              Istio logs all Istio event logs within the system's mesh network.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: aa599215-dbb2-47d2-8b23-a8ac22180bbd
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3
-            type: objective-id
-          title: 'Validation Result - Control:  au-3'
-          uuid: 7a33f905-b9fb-47ca-af54-f5396ef87600
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 16cc258e-d907-47bb-97d9-4e92677cf075
-             # Control Implementation
-              Istio has been configured to implement event logging within our environment. This includes capturing metrics related to the duration of sessions, connections, transactions, or activities. Specifically, Istio's telemetry features are utilized to capture these metrics, which provide valuable data that can be used to infer the duration of sessions or connections.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 32712b61-dab2-4f30-aee0-4707dc000bb2
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-            - observation-uuid: bcbd3394-9bb6-43f1-baff-be3ffbdada51
-          target:
-            status:
-              state: not-satisfied
-            target-id: au-3.1
-            type: objective-id
-          title: 'Validation Result - Control:  au-3.1'
-          uuid: d0b06d4c-8b03-429a-95f6-b56ae8af7cfc
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 32e53a18-4b64-4a24-935c-11cbac2c62be
-             # Control Implementation
-              Istio enforces logical access restrictions associated with changes to the system. Istio's Role-Based Access Control (RBAC) features are used to define and enforce access controls, ensuring that only approved personnel can make changes to the system.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 1b4774b5-c3fb-4cf7-9292-a886e772cbd9
-            - observation-uuid: 689d2097-764d-4778-9201-e72103043de5
-          target:
-            status:
-              state: not-satisfied
-            target-id: cm-5
-            type: objective-id
-          title: 'Validation Result - Control:  cm-5'
-          uuid: 8666d324-53fd-41af-ba48-3c6c2fe1dd47
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 169c9ad3-0a6c-46ee-80cd-cd8cef5eca5c
-             # Control Implementation
-              Istio is configured to manage network connections associated with specific communication sessions. It can be set up to automatically terminate these connections after periods of inactivity, providing an additional layer of security.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: f24db5dd-1210-4079-8916-21f98cc118c1
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-10
-            type: objective-id
-          title: 'Validation Result - Control:  sc-10'
-          uuid: 8cc7b10b-65a5-4f36-b692-2761b93cddc4
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 2bf5c525-af5f-4b8b-8349-3f6a91e0aab9
-             # Control Implementation
-              Istio provides FIPS encryption in transit for all applications in the mesh, TLS termination at ingress, and TLS origination at egress.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: 41c666ce-4057-4c66-8dc7-cde494aefb40
-            - observation-uuid: d7e0edb4-2358-40fc-b436-4c003df59e0f
-            - observation-uuid: abaec792-0e85-4a42-92a8-d1f3064bf038
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-13
-            type: objective-id
-          title: 'Validation Result - Control:  sc-13'
-          uuid: 77028df1-7fc6-4870-a74a-e9bad129fd70
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 625bfdc1-0b20-45f3-919b-91afbac77799
-             # Control Implementation
-              Istio is configured to protect session authenticity, establishing confidence in the ongoing identities of other parties and the validity of transmitted information. This is achieved through Istio's mutual TLS, which ensures secure communication.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-23
-            type: objective-id
-          title: 'Validation Result - Control:  sc-23'
-          uuid: 5e6fcf18-2459-4c5d-bf42-230c5c7e71f8
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 9e2894a3-2452-4f7a-b8a5-f72b89b23c87
-             # Control Implementation
-              Namespaces, Istio gateways, and network policies collectively by providing resource isolation, secure traffic routing, and network segmentation to prevent unauthorized and unintended information transfer.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 135b3309-0fe6-4594-9a15-d10c157997c0
-            - observation-uuid: 889a82cd-2932-4e41-8c0b-5166ed690389
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-3
-            type: objective-id
-          title: 'Validation Result - Control:  sc-3'
-          uuid: afe79161-4dd2-4c1d-842a-eac00c856672
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: f972ef8d-1eb0-403b-8db8-e65a4f4e2aaa
-             # Control Implementation
-              Istio is configured to maintain separate execution domains for each executing process. This is achieved through Istio's sidecar proxy design, where each service in the mesh has its own dedicated sidecar proxy to handle its inbound and outbound traffic. This ensures that communication between processes is controlled and one process cannot modify the executing code of another process.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-39
-            type: objective-id
-          title: 'Validation Result - Control:  sc-39'
-          uuid: 2813c67f-aac6-4ad6-bd9f-c40c4f6953cc
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 86bc4fb7-f91b-4f2c-b914-65427951018c
-             # Control Implementation
-              Istio enforces outbound traffic goes through an Egress Gateway with a Network Policy.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: fb74011a-4ee5-4473-8127-65e4535ecef7
-            - observation-uuid: 7567f2f0-7a37-4a7f-8b24-e665795efc89
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-4'
-          uuid: b01674a2-312a-4a12-8e80-f72e67a961ec
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 30b49a3e-ad38-441d-8c07-5a9018848a02
-             # Control Implementation
-              Istio is configured to dynamically isolate certain internal system components when necessary. This is achieved through Istio's network policies, which allow us to partition or separate system components
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.20
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.20'
-          uuid: 6e806bf2-21ac-4d00-b9dc-28eda9589384
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c9a1e9bc-3caa-44ce-a300-ecd722487987
-             # Control Implementation
-               Istio is configured to isolate system components that perform different mission or business functions. This is achieved through Istio's network policies and mutual TLS, which allow us to control information flows and provide enhanced protection.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.21
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.21'
-          uuid: cd84ca47-076b-4e58-b717-a6e0d9f0c74e
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 85df9e6c-3d94-4c60-9a20-8c481831f1e0
-             # Control Implementation
-              Istio is configured to provide managed interfaces for external telecommunication services, establish traffic flow policies, and protect the confidentiality and integrity of transmitted information. It also prevents unauthorized exchange of control plane traffic and filters unauthorized control plane traffic.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 62337c13-2fb6-4e30-84da-d856df5b9a30
-            - observation-uuid: 2cd403c7-293a-40e2-9a65-4cb397e70f6e
-            - observation-uuid: 889a82cd-2932-4e41-8c0b-5166ed690389
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.4
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.4'
-          uuid: ec67f843-f467-45a4-beba-cf3392949291
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 4b930af3-ae84-43ff-b751-448fe1c2eec8
-             # Control Implementation
-               is configured to route internal communications traffic to external networks through authenticated proxy servers at managed interfaces, using its Egress Gateway.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7567f2f0-7a37-4a7f-8b24-e665795efc89
-            - observation-uuid: b5c1c132-bbd4-45fc-8047-8dc46fb0c76b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-7.8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-7.8'
-          uuid: 7ca1b4b1-572d-41f2-b477-98d27049d7e6
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 7548b4ee-e4a3-4e3c-a34b-95eccad45f92
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8'
-          uuid: 2360e0ea-caa7-4b4a-9d0b-d236a780d6ef
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: 69415B92-0490-4A14-9E0F-E1EE61951F9C
-             # Control Implementation
-              Istio is configured to protect the confidentiality and integrity of transmitted information across both internal and external networks. This is achieved through Istio's mutual TLS, which encrypts service-to-service communication, ensuring that data in transit is not exposed to the possibility of interception and modification.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.1
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.1'
-          uuid: d1e9da1c-5463-4188-b1e9-d212fa37a661
-        - description: |
-            Control Implementation: 44261e8d-d67a-586d-9b28-00e18601b854 / Implemented Requirement: c158b75a-cefc-4794-b124-f1e56ff5646d
-             # Control Implementation
-              Istio implements with global configuration.
-          related-observations:
-            - observation-uuid: 41544937-62c3-4024-a06e-8589cccbf876
-            - observation-uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-            - observation-uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-            - observation-uuid: 2cd403c7-293a-40e2-9a65-4cb397e70f6e
-          target:
-            status:
-              state: not-satisfied
-            target-id: sc-8.2
-            type: objective-id
-          title: 'Validation Result - Control:  sc-8.2'
-          uuid: 567844a2-2b6d-462b-8172-aad0362ee6cd
-      observations:
-        - collected: 2024-07-27T04:00:30.437625919Z
-          description: |
-            [TEST]: f346b797-be35-40a8-a93a-585db6fd56ec - istio-tracing-logging-support
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Tracing logging not supported.
-          uuid: aa599215-dbb2-47d2-8b23-a8ac22180bbd
-        - collected: 2024-07-27T04:00:30.438940047Z
-          description: |
-            [TEST]: c6c9daf1-4196-406d-8679-312c0512ab2e - check-istio-admin-gateway-and-usage
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name admin-gateway
-          uuid: 135b3309-0fe6-4594-9a15-d10c157997c0
-        - collected: 2024-07-27T04:00:30.462487933Z
-          description: |
-            [TEST]: 1761ac07-80dd-47d2-947e-09f67943b986 - all-pods-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio sidecar proxy not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-system, uds-dev-stack, zarf
-          uuid: de088e44-5f5e-4d18-a090-4903120faf3b
-        - collected: 2024-07-27T04:00:30.465310768Z
-          description: |
-            [TEST]: 0da39859-a91a-4ca6-bd8b-9b117689188f - all-namespaces-istio-injected
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Non-Istio-injected namespaces: {"local-path-storage", "mission"}
-                validate.exempted_namespaces_msg: Exempted Namespaces: default, istio-admin-gateway, istio-passthrough-gateway, istio-system, istio-tenant-gateway, kube-node-lease, kube-public, kube-system, uds-crds, uds-dev-stack, uds-policy-exemptions, zarf
-          uuid: 31bff6b2-6d12-41fd-8b81-52fab81e1124
-        - collected: 2024-07-27T04:00:30.466472165Z
-          description: |
-            [TEST]: 570e2dc7-e6c2-4ad5-8ea3-f07974f59747 - secure-communication-with-istiod
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 62337c13-2fb6-4e30-84da-d856df5b9a30
-        - collected: 2024-07-27T04:00:30.466506402Z
-          description: |
-            [TEST]: 663f5e92-6db4-4042-8b5a-eba3ebe5a622 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #663f5e92-6db4-4042-8b5a-eba3ebe5a622: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>}]
-          uuid: f24db5dd-1210-4079-8916-21f98cc118c1
-        - collected: 2024-07-27T04:00:30.473221485Z
-          description: |
-            [TEST]: 67456ae8-4505-4c93-b341-d977d90cb125 - istio-health-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                istiohealth.deployment_message: All deployment conditions are true.
-                istiohealth.hpa_message: HPA has sufficient replicas.
-          uuid: 41544937-62c3-4024-a06e-8589cccbf876
-        - collected: 2024-07-27T04:00:30.473294746Z
-          description: |
-            [TEST]: ecdb90c7-971a-4442-8f29-a8b0f6076bc9 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #ecdb90c7-971a-4442-8f29-a8b0f6076bc9: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 7567f2f0-7a37-4a7f-8b24-e665795efc89
-        - collected: 2024-07-27T04:00:30.473345777Z
-          description: |
-            [TEST]: 19faf69a-de74-4b78-a628-64a9f244ae13 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #19faf69a-de74-4b78-a628-64a9f244ae13: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # This policy could check meshConfig.outboundTrafficPolicy.mode (default is ALLOW_ANY)
-                # Possibly would need a ServiceEntry(?)
-                # (https://istio.io/latest/docs/tasks/traffic-management/egress/egress-control/#envoy-passthrough-to-external-services)
-                }]
-          uuid: b5c1c132-bbd4-45fc-8047-8dc46fb0c76b
-        - collected: 2024-07-27T04:00:30.475453387Z
-          description: |
-            [TEST]: 7b045b2a-106f-4c8c-85d9-ae3d7a8e0e28 - istio-rbac-enforcement-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 1b4774b5-c3fb-4cf7-9292-a886e772cbd9
-        - collected: 2024-07-27T04:00:30.489250551Z
-          description: |
-            [TEST]: 70d99754-2918-400c-ac9a-319f874fff90 - istio-metrics-logging-configured
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: satisfied
-              remarks: |
-                validate.msg: Metrics logging supported.
-          uuid: 32712b61-dab2-4f30-aee0-4707dc000bb2
-        - collected: 2024-07-27T04:00:30.502696627Z
-          description: |
-            [TEST]: 90738c86-6315-450a-ac69-cc50eb4859cc - check-istio-logging-all-traffic
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Istio is not logging all traffic
-          uuid: 4a99eaaa-3260-488c-8257-21a333668a84
-        - collected: 2024-07-27T04:00:30.506414685Z
-          description: |
-            [TEST]: b0a8f21e-b12f-47ea-a967-2f4a3ec69e44 - gateway-configuration-check
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 889a82cd-2932-4e41-8c0b-5166ed690389
-        - collected: 2024-07-27T04:00:30.506505743Z
-          description: |
-            [TEST]: 7455f86d-b79c-4226-9ce3-f3fb7d9348c8 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #7455f86d-b79c-4226-9ce3-f3fb7d9348c8: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: fb74011a-4ee5-4473-8127-65e4535ecef7
-        - collected: 2024-07-27T04:00:30.50999153Z
-          description: |
-            [TEST]: fbd877c8-d6b6-4d88-8685-2c4aaaab02a1 - istio-enforces-authorized-keycloak-access
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error running validation: domain GetResources error: no resource found with name keycloak-block-admin-access-from-public-gateway
-          uuid: 2cd403c7-293a-40e2-9a65-4cb397e70f6e
-        - collected: 2024-07-27T04:00:30.510061319Z
-          description: |
-            [TEST]: 8be1601e-5870-4573-ab4f-c1c199944815 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #8be1601e-5870-4573-ab4f-c1c199944815: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain' <nil>} {/properties/provider/$ref/properties/opa-spec/$ref/properties/rego/pattern file:///home/dev/work/lula/validation#/definitions/opaSpec/properties/rego/pattern /provider/opa-spec/rego does not match pattern '.*\\S\\s\\n.*' package validate
-                default validate := false
-                # How to prove TLS origination is configured at egress
-                # DestinationRule?
-                }]
-          uuid: d7e0edb4-2358-40fc-b436-4c003df59e0f
-        - collected: 2024-07-27T04:00:30.513399712Z
-          description: |
-            [TEST]: ca49ac97-487a-446a-a0b7-92b20e2c83cb - enforce-mtls-strict
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 7863b6ea-a76c-49c2-afbd-7713bd5b9f2b
-        - collected: 2024-07-27T04:00:30.517002304Z
-          description: |
-            [TEST]: fd071676-6b92-4e1c-a4f0-4c8d2bd55aed - ingress-traffic-encrypted
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                OPA validation not performed: No resources to validate
-          uuid: 41c666ce-4057-4c66-8dc7-cde494aefb40
-        - collected: 2024-07-27T04:00:30.517098517Z
-          description: |
-            [TEST]: 73434890-2751-4894-b7b2-7e583b4a8977 - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #73434890-2751-4894-b7b2-7e583b4a8977: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: abaec792-0e85-4a42-92a8-d1f3064bf038
-        - collected: 2024-07-27T04:00:30.517192186Z
-          description: |
-            [TEST]: 9b361d7b-4e07-40db-8b86-3854ed499a4b - lula-validation-error
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                Error getting Lula validation #9b361d7b-4e07-40db-8b86-3854ed499a4b: validation failed: [{/required file:///home/dev/work/lula/validation#/required  missing properties: 'domain', 'provider' <nil>}]
-          uuid: 689d2097-764d-4778-9201-e72103043de5
-        - collected: 2024-07-27T04:00:30.576737757Z
-          description: |
-            [TEST]: f345c359-3208-46fb-9348-959bd628301e - istio-prometheus-annotations-validation
-          methods:
-            - TEST
-          relevant-evidence:
-            - description: |
-                Result: not-satisfied
-              remarks: |
-                validate.msg: Prometheus annotations not found in pods: local-path-storage/local-path-provisioner-988d74bc-5p6d2.
-                validate.exempt_namespaces_msg: Exempted Namespaces: istio-system, kube-system, uds-dev-stack, zarf
-          uuid: bcbd3394-9bb6-43f1-baff-be3ffbdada51
+          title: 'Validation Result - Control:  ac-6'
+          uuid: 4aeb5583-2186-4147-b3a3-c98666dbbaf5
       props:
         - name: threshold
           ns: https://docs.lula.dev/ns
           value: "true"
         - name: target
           ns: https://docs.lula.dev/ns
-          value: fedramp
+          value: rev5
       reviewed-controls:
         control-selections:
           - description: Controls Assessed by Lula
             include-controls:
-              - control-id: ac-14
+              - control-id: ac-1
+              - control-id: ac-2
+              - control-id: ac-3
               - control-id: ac-4
-              - control-id: ac-4.21
-              - control-id: ac-4.4
-              - control-id: ac-6.3
-              - control-id: ac-6.9
-              - control-id: au-12
-              - control-id: au-2
-              - control-id: au-3
-              - control-id: au-3.1
-              - control-id: cm-5
-              - control-id: sc-10
-              - control-id: sc-13
-              - control-id: sc-23
-              - control-id: sc-3
-              - control-id: sc-39
-              - control-id: sc-4
-              - control-id: sc-7.20
-              - control-id: sc-7.21
-              - control-id: sc-7.4
-              - control-id: sc-7.8
-              - control-id: sc-8
-              - control-id: sc-8.1
-              - control-id: sc-8.2
+              - control-id: ac-5
+              - control-id: ac-6
         description: Controls validated
         remarks: Validation performed may indicate full or partial satisfaction
-      start: 2024-07-27T04:00:30.584824542Z
+      start: 2024-07-29T21:00:32.507084525Z
       title: Lula Validation Result
-      uuid: d16483c4-c38e-40da-9e05-b24dc991592f
-  uuid: 99d01fa2-f5ac-42ad-9f78-508658b21ed7
+      uuid: e090a2cc-ccd7-4258-b09b-a0bcd727b4fe
+    - description: Assessment results for performing Validations with Lula version v0.4.3-20-g6f61019
+      findings:
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 857121b1-2992-412c-b34a-504ead86e117
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-1
+            type: objective-id
+          title: 'Validation Result - Control:  ac-1'
+          uuid: 462ab914-7297-40da-b911-08012c8a5e57
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: c93c7d6a-e276-4050-9a54-437f7903b39e
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-2
+            type: objective-id
+          title: 'Validation Result - Control:  ac-2'
+          uuid: 70b8cd2c-449b-4cf0-8a5a-235bfacf646e
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: fc1bb76a-4ca5-4832-8cf9-6df509d3c996
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-3'
+          uuid: 791e7f7a-5337-4186-a5db-b460e39584f2
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 81a78740-c3ac-4ee3-a1e5-81944dd21b6c
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-4
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4'
+          uuid: af09dc34-089c-4f21-ad77-5cde6e78637c
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 0649ec59-757a-483e-b8a9-bb4b7fbc4d6e
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-5
+            type: objective-id
+          title: 'Validation Result - Control:  ac-5'
+          uuid: 12bd7358-cc69-4d4e-b55d-b0e282494ee1
+        - description: |
+            Control Implementation: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf / Implemented Requirement: 45b56420-3689-431d-8811-ec9bc648f64e
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-6
+            type: objective-id
+          title: 'Validation Result - Control:  ac-6'
+          uuid: a345938b-5a3c-4fbe-8928-be63bf3e0ca2
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "true"
+        - name: target
+          ns: https://docs.lula.dev/ns
+          value: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ac-1
+              - control-id: ac-2
+              - control-id: ac-3
+              - control-id: ac-4
+              - control-id: ac-5
+              - control-id: ac-6
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-07-29T21:00:32.506730562Z
+      title: Lula Validation Result
+      uuid: 10670ee6-179d-466f-97c8-668590f3d4ff
+    - description: Assessment results for performing Validations with Lula version v0.4.3-20-g6f61019
+      findings:
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 67dd59c4-0340-4aed-a49d-002815b50157
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-1
+            type: objective-id
+          title: 'Validation Result - Control:  ac-1'
+          uuid: bae35099-e7b6-4d86-830b-8b628ea32187
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 663e7c26-3bfe-4c71-b423-10d8338d5445
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-2
+            type: objective-id
+          title: 'Validation Result - Control:  ac-2'
+          uuid: 445d9c4a-f83e-4e1a-b2d2-006777fdb54c
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 07e1e996-5ae7-4b0b-b4c0-01f35729e442
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-3
+            type: objective-id
+          title: 'Validation Result - Control:  ac-3'
+          uuid: f5656412-459b-4c69-a978-c080f48d4275
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: ea9f3b4d-64c2-4631-ace5-55428552f9aa
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-4
+            type: objective-id
+          title: 'Validation Result - Control:  ac-4'
+          uuid: 23cc3af1-9d23-4ec6-83c6-02c27cef9316
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: 1976b301-115f-48a4-b847-3374aa3b98d5
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-5
+            type: objective-id
+          title: 'Validation Result - Control:  ac-5'
+          uuid: 26ad96c8-5c50-4e53-9544-67855e48033a
+        - description: |
+            Control Implementation: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8 / Implemented Requirement: be129429-290b-4516-9390-f4d38067fbd0
+             <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+          target:
+            status:
+              state: not-satisfied
+            target-id: ac-6
+            type: objective-id
+          title: 'Validation Result - Control:  ac-6'
+          uuid: 65809760-ccfe-4ee4-a7b4-350ad6e35300
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/ns
+          value: "true"
+        - name: target
+          ns: https://docs.lula.dev/ns
+          value: rev4
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ac-1
+              - control-id: ac-2
+              - control-id: ac-3
+              - control-id: ac-4
+              - control-id: ac-5
+              - control-id: ac-6
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-07-29T21:00:32.506368783Z
+      title: Lula Validation Result
+      uuid: 6499ef16-d138-4b2b-b4b5-2513824f49e8
+  uuid: ee668e05-18eb-421e-8357-b10fdb3ebe18
