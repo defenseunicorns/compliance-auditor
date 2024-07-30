@@ -10,6 +10,8 @@ import (
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -43,25 +45,32 @@ func TestValidationComposition(t *testing.T) {
 			return ctx
 		}).
 		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			compDefPath := "./scenarios/validation-composition/component-definition.yaml"
-			compDefBytes, err := os.ReadFile(compDefPath)
+			oscalPath := "./scenarios/validation-composition/component-definition.yaml"
+			compDefBytes, err := os.ReadFile(oscalPath)
 			if err != nil {
 				t.Error(err)
 			}
 
-			findings, observations, err := validate.ValidateOnPath(compDefPath)
+			assessment, err := validate.ValidateOnPath(oscalPath, "")
 			if err != nil {
-				t.Errorf("Error validating component definition: %v", err)
-			}
-			expectedFindings := len(findings)
-			expectedObservations := len(observations)
-
-			if expectedFindings == 0 {
-				t.Errorf("Expected to find findings")
+				t.Fatal(err)
 			}
 
-			if expectedObservations == 0 {
-				t.Errorf("Expected to find observations")
+			if len(assessment.Results) == 0 {
+				t.Fatal("Expected greater than zero results")
+			}
+
+			result := assessment.Results[0]
+
+			if result.Findings == nil {
+				t.Fatal("Expected findings to be not nil")
+			}
+
+			for _, finding := range *result.Findings {
+				state := finding.Target.Status.State
+				if state != "satisfied" {
+					t.Fatal("State should be satisfied, but got :", state)
+				}
 			}
 
 			var oscalModel oscalTypes_1_1_2.OscalCompleteSchema
@@ -69,29 +78,45 @@ func TestValidationComposition(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			reset, err := common.SetCwdToFileDir(compDefPath)
+			reset, err := common.SetCwdToFileDir(oscalPath)
 			if err != nil {
 				t.Fatalf("Error setting cwd to file dir: %v", err)
 			}
 			defer reset()
 
-			err = composition.ComposeComponentValidations(oscalModel.ComponentDefinition)
+			compDef := oscalModel.ComponentDefinition
+
+			err = composition.ComposeComponentValidations(compDef)
 			if err != nil {
 				t.Error(err)
 			}
 
-			findings, observations, err = validate.ValidateOnCompDef(oscalModel.ComponentDefinition)
+			components := *compDef.Components
+
+			// Create a validation store from the back-matter if it exists
+			validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
+
+			findingMap, observations, err := validate.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
 			if err != nil {
-				t.Error(err)
+				t.Fatalf("Error with validateOnControlImplementations: %v", err)
 			}
 
-			if len(findings) != expectedFindings {
-				t.Errorf("Expected %d findings, got %d", expectedFindings, len(findings))
+			// For fun - create a result
+			composeResult, err := oscal.CreateResult(findingMap, observations)
+			if err != nil {
+				t.Fatal(err)
 			}
 
-			if len(observations) != expectedObservations {
-				t.Errorf("Expected %d observations, got %d", expectedObservations, len(observations))
+			// Compare results
+			status, _, err := oscal.EvaluateResults(&result, &composeResult)
+			if err != nil {
+				t.Fatal(err)
 			}
+
+			if !status {
+				t.Fatal("Expected Successful evaluate")
+			}
+
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
