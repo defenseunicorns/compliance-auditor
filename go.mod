@@ -3,7 +3,7 @@ module github.com/defenseunicorns/lula
 go 1.22.3
 
 require (
-	github.com/defenseunicorns/go-oscal v0.5.1-0.20240718165520-2e8912020c2b
+	github.com/defenseunicorns/go-oscal v0.5.1-0.20240729170942-15dee99103ff
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
 	github.com/open-policy-agent/opa v0.66.0
@@ -103,6 +103,8 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
+	github.com/swaggest/jsonschema-go v0.3.72 // indirect
+	github.com/swaggest/refl v1.3.0 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
 	github.com/vladimirvivien/gexe v0.2.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
