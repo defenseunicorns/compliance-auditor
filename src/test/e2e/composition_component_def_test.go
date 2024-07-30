@@ -111,18 +111,18 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("Expected %v results, got %v", expectedResults, len(composeResults))
 			}
 
-			var composeFindings, composeObseravtions int
+			var composeFindings, composeObservations int
 			for _, result := range composeResults {
 				composeFindings += len(*result.Findings)
-				composeObseravtions += len(*result.Observations)
+				composeObservations += len(*result.Observations)
 			}
 
 			if composeFindings != expectedFindings {
 				t.Errorf("Expected %d findings, got %d", expectedFindings, composeFindings)
 			}
 
-			if composeObseravtions != expectedObservations {
-				t.Errorf("Expected %d observations, got %d", expectedObservations, composeObseravtions)
+			if composeObservations != expectedObservations {
+				t.Errorf("Expected %d observations, got %d", expectedObservations, composeObservations)
 			}
 			return ctx
 		}).

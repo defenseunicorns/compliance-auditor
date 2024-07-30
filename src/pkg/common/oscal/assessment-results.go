@@ -83,60 +83,6 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 	return original, nil
 }
 
-// IdentifyResults produces a map containing the threshold result and a result used for comparison
-func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
-	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
-
-	thresholds, sortedResults := findAndSortResults(assessmentMap)
-
-	// Handle no results found in the assessment-results
-	if len(sortedResults) == 0 {
-		return nil, fmt.Errorf("less than 2 results found - no comparison possible")
-	}
-
-	// Handle single result found in the assessment-results
-	if len(sortedResults) == 1 {
-		// Only one result found - set latest and return
-		resultMap["threshold"] = sortedResults[len(sortedResults)-1]
-		return resultMap, fmt.Errorf("less than 2 results found - no comparison possible")
-	}
-
-	if len(thresholds) == 0 {
-		// No thresholds identified but we have > 1 results - compare the preceding (threshold) against the latest
-		resultMap["threshold"] = sortedResults[len(sortedResults)-2]
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
-
-		return resultMap, nil
-	} else if len(thresholds) > 1 {
-		// More than one threshold - likely the case with multiple assessment-results artifacts
-		resultMap["threshold"] = thresholds[len(thresholds)-1]
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
-
-		if resultMap["threshold"] == resultMap["latest"] {
-			// if threshold is latest here && we have > 1 threshold - make the threshold the older threshold
-			resultMap["threshold"] = thresholds[len(thresholds)-2]
-		}
-
-		// Consider changing the namespace value to "false" here - only written if the command logic completes
-		for _, result := range thresholds {
-			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
-		}
-
-		return resultMap, nil
-
-	} else {
-		// Otherwise we have a single threshold and we compare that against the latest result
-		resultMap["threshold"] = thresholds[len(thresholds)-1]
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
-
-		if resultMap["threshold"] == resultMap["latest"] {
-			return nil, fmt.Errorf("latest threshold is the latest result - no comparison possible")
-		}
-
-		return resultMap, nil
-	}
-}
-
 func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string]result.ResultComparisonMap, error) {
 	var status bool = true
 
@@ -294,11 +240,13 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 
 // filterResults consumes many assessment-results objects and builds out a map of EvalResults filtered by target
 // this function looks at the target prop as the key in the map
-// TODO: refactor
 func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
 	evalResultMap := make(map[string]EvalResult)
 
 	for _, assessment := range resultMap {
+		if assessment == nil {
+			continue
+		}
 		for _, result := range assessment.Results {
 			if result.Props != nil {
 				var target string
@@ -346,13 +294,15 @@ func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 	}
 	// Now that all results are processed - iterate through each EvalResult, sort and assign latest/threshold
 	for key, evalResult := range evalResultMap {
-		slices.SortFunc(evalResult.Results, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
-		evalResult.Latest = evalResult.Results[len(evalResult.Results)-1]
-		if evalResult.Threshold == nil && len(evalResult.Results) > 1 {
-			// length of results > 1 and no established threshold - set threshold to the preceding result of latest
-			evalResult.Threshold = evalResult.Results[len(evalResult.Results)-2]
+		if len(evalResult.Results) > 0 {
+			slices.SortFunc(evalResult.Results, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
+			evalResult.Latest = evalResult.Results[len(evalResult.Results)-1]
+			if evalResult.Threshold == nil && len(evalResult.Results) > 1 {
+				// length of results > 1 and no established threshold - set threshold to the preceding result of latest
+				evalResult.Threshold = evalResult.Results[len(evalResult.Results)-2]
+			}
+			evalResultMap[key] = evalResult
 		}
-		evalResultMap[key] = evalResult
 
 	}
 
