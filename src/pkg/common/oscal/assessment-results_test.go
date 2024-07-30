@@ -97,7 +97,12 @@ func TestIdentifyResults(t *testing.T) {
 	// Expecting an error when evaluating a single result
 	t.Run("Handle valid assessment containing a single result", func(t *testing.T) {
 
-		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		result, err := oscal.CreateResult(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -123,13 +128,22 @@ func TestIdentifyResults(t *testing.T) {
 
 	// Identify threshold for multiple assessments and evaluate passing
 	t.Run("Handle multiple threshold assessment containing a single result - pass", func(t *testing.T) {
+		result, err := oscal.CreateResult(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
 
-		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		resultSecond, err := oscal.CreateResult(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultSecond})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -167,12 +181,22 @@ func TestIdentifyResults(t *testing.T) {
 	// Identify threshold for multiple assessments and evaluate failing
 	t.Run("Handle multiple threshold assessment containing a single result - fail", func(t *testing.T) {
 
-		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		resultPass, err := oscal.CreateResult(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		resultFail, err := oscal.CreateResult(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -208,12 +232,22 @@ func TestIdentifyResults(t *testing.T) {
 
 	t.Run("Test merging two assessments - passing", func(t *testing.T) {
 
-		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		resultPass, err := oscal.CreateResult(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		resultFail, err := oscal.CreateResult(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -255,12 +289,22 @@ func TestIdentifyResults(t *testing.T) {
 
 	t.Run("Test merging two assessments - failing", func(t *testing.T) {
 
-		assessment2, err := oscal.GenerateAssessmentResults(findingMapFail, observations)
+		resultFail, err := oscal.CreateResult(findingMapFail, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults(findingMapPass, observations)
+		resultPass, err := oscal.CreateResult(findingMapPass, observations)
+		if err != nil {
+			t.Fatalf("error generating result from findings and observations: %v", err)
+		}
+
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}

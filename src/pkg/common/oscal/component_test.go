@@ -2,7 +2,6 @@ package oscal_test
 
 import (
 	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -478,9 +477,49 @@ func TestMakeComponentDeterministic(t *testing.T) {
 
 }
 
-// func TestControlImplementationsToRequirementsMap(t *testing.T) {
+func TestControlImplementationsToRequirementsMap(t *testing.T) {
 
-// }
+	tests := []struct {
+		name      string
+		filepath  string
+		mapLength int
+	}{
+		{
+			name:      "valid-multi-component",
+			filepath:  "../../../test/unit/common/oscal/valid-multi-component.yaml",
+			mapLength: 24,
+		},
+		{
+			name:      "valid-component",
+			filepath:  "../../../test/unit/common/oscal/valid-component.yaml",
+			mapLength: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := loadTestData(t, tt.filepath)
+			compdef, err := oscal.NewOscalComponentDefinition(data)
+
+			if err != nil {
+				t.Errorf("Expected NewOscalComponentDefinition to execute")
+			}
+
+			controlMap := oscal.FilterControlImplementations(compdef)
+			var count int
+			// range over the control map and determine total items
+			for _, controlImp := range controlMap {
+				requirementsMap := oscal.ControlImplementationstToRequirementsMap(&controlImp)
+				count += len(requirementsMap)
+			}
+			if count != tt.mapLength {
+				t.Errorf("Expected requirementsMap length total of %v, got %v", tt.mapLength, count)
+			}
+
+		})
+	}
+
+}
 
 func TestFilterControlImplementations(t *testing.T) {
 
@@ -493,6 +532,11 @@ func TestFilterControlImplementations(t *testing.T) {
 			name:      "valid-multi-component",
 			filepath:  "../../../test/unit/common/oscal/valid-multi-component.yaml",
 			mapLength: 4,
+		},
+		{
+			name:      "valid-component",
+			filepath:  "../../../test/unit/common/oscal/valid-component.yaml",
+			mapLength: 1,
 		},
 	}
 
@@ -511,6 +555,7 @@ func TestFilterControlImplementations(t *testing.T) {
 			if len(controlMap) != tt.mapLength {
 				t.Errorf("Expected controlMap length %v, got %v", len(controlMap), tt.mapLength)
 			}
+
 		})
 	}
 }
