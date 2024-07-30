@@ -1,6 +1,6 @@
 # Develop a Validation
 
-This document describes some best practices for developing and using a [Lula Validation](), the primary mechanism for evaluation of system's compliance against a specified control.
+This document describes some best practices for developing and using a [Lula Validation](../reference/README.md), the primary mechanism for evaluation of system's compliance against a specified control.
 
 ## About
 

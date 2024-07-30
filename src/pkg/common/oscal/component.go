@@ -3,6 +3,7 @@ package oscal
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -430,6 +431,78 @@ func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.C
 		}
 	}
 	return requirementMap
+}
+
+func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
+	// sort components by title
+
+	if component.Components != nil {
+		components := *component.Components
+		sort.Slice(components, func(i, j int) bool {
+			return components[i].Title < components[j].Title
+		})
+
+		// sort control-implementations per component by source
+		for _, component := range components {
+			if component.ControlImplementations != nil {
+				controlImplementations := *component.ControlImplementations
+				sort.Slice(controlImplementations, func(i, j int) bool {
+					return controlImplementations[i].Source < controlImplementations[j].Source
+				})
+				// sort implemented-requirements per control-implementation by control-id
+				for _, controlImplementation := range controlImplementations {
+					implementedRequirements := controlImplementation.ImplementedRequirements
+					sort.Slice(implementedRequirements, func(i, j int) bool {
+						return implementedRequirements[i].ControlId < implementedRequirements[j].ControlId
+					})
+				}
+			}
+
+		}
+		component.Components = &components
+	}
+
+	// sort capabilities
+
+	if component.Capabilities != nil {
+		capabilities := *component.Capabilities
+		sort.Slice(capabilities, func(i, j int) bool {
+			return capabilities[i].Name < capabilities[j].Name
+		})
+
+		for _, capability := range capabilities {
+
+			if capability.ControlImplementations != nil {
+				controlImplementations := *capability.ControlImplementations
+				sort.Slice(controlImplementations, func(i, j int) bool {
+					return controlImplementations[i].Source < controlImplementations[j].Source
+				})
+				// sort implemented-requirements per control-implementation by control-id
+				for _, controlImplementation := range controlImplementations {
+					implementedRequirements := controlImplementation.ImplementedRequirements
+					sort.Slice(implementedRequirements, func(i, j int) bool {
+						return implementedRequirements[i].ControlId < implementedRequirements[j].ControlId
+					})
+				}
+			}
+
+		}
+		component.Capabilities = &capabilities
+	}
+
+	// sort backmatter
+	if component.BackMatter != nil {
+		backmatter := *component.BackMatter
+		if backmatter.Resources != nil {
+			resources := *backmatter.Resources
+			sort.Slice(resources, func(i, j int) bool {
+				return resources[i].Title < resources[j].Title
+			})
+			backmatter.Resources = &resources
+		}
+		component.BackMatter = &backmatter
+	}
+
 }
 
 func contains(s []string, e string) bool {

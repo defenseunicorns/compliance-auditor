@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.4](https://github.com/defenseunicorns/lula/compare/v0.4.3...v0.4.4) (2024-07-26)
+
+
+### Features
+
+* **evaluate:** add observation summary ([#540](https://github.com/defenseunicorns/lula/issues/540)) ([8a07833](https://github.com/defenseunicorns/lula/commit/8a07833c5a563d8e857515a083137785cade5eb5))
+
+
+### Bug Fixes
+
+* **oscal:** deterministic OSCAL model write ([#553](https://github.com/defenseunicorns/lula/issues/553)) ([5493df1](https://github.com/defenseunicorns/lula/commit/5493df122b803d11542f29cfe80dfa4d5aaa10a8))
+
+
+### Miscellaneous
+
+* **deps:** update github/codeql-action action to v3.25.14 ([#557](https://github.com/defenseunicorns/lula/issues/557)) ([5bfd94f](https://github.com/defenseunicorns/lula/commit/5bfd94febc467e5a455ed32d97ce2e82e20409c2))
+* **deps:** update github/codeql-action action to v3.25.15 ([#564](https://github.com/defenseunicorns/lula/issues/564)) ([60e128a](https://github.com/defenseunicorns/lula/commit/60e128a0a34ce8686c67e22ea2aebb61212b97fc))
+* **deps:** update golang to version 1.22.5 ([#562](https://github.com/defenseunicorns/lula/issues/562)) ([97ff760](https://github.com/defenseunicorns/lula/commit/97ff7602f30f0709bd2ca16b74e53008607c3a61))
+* **deps:** update module github.com/open-policy-agent/opa to v0.67.0 ([#561](https://github.com/defenseunicorns/lula/issues/561)) ([4378242](https://github.com/defenseunicorns/lula/commit/43782420b8b34362d03bcc965e00df2a850715c6))
+* **docs:** fix simple demo command for evaluate file ([33fb97c](https://github.com/defenseunicorns/lula/commit/33fb97cccc9d4a589da65c03cc433b4f05c79d5d))
+* **docs:** updated broken links ([#554](https://github.com/defenseunicorns/lula/issues/554)) ([8dd24b0](https://github.com/defenseunicorns/lula/commit/8dd24b083c86b12af8740fe788c4222f4c1c8718))
+* **docs:** updated README for docs badge ([#558](https://github.com/defenseunicorns/lula/issues/558)) ([72fd3fc](https://github.com/defenseunicorns/lula/commit/72fd3fc8137477a4f10507481f8464eb5685b781))
+
 ## [0.4.3](https://github.com/defenseunicorns/lula/compare/v0.4.2...v0.4.3) (2024-07-19)
 
 
