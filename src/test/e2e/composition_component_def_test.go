@@ -10,6 +10,7 @@ import (
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -49,12 +50,20 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			findings, observations, err := validate.ValidateOnPath(compDefPath)
+			compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
+
+			results, err := validate.ValidateOnCompDef(compDef, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
-			expectedFindings := len(findings)
-			expectedObservations := len(observations)
+
+			var expectedFindings, expectedObservations int
+			expectedResults := len(results)
+
+			for _, result := range results {
+				expectedFindings += len(*result.Findings)
+				expectedObservations += len(*result.Observations)
+			}
 
 			if expectedFindings == 0 {
 				t.Errorf("Expected to find findings")
@@ -80,17 +89,27 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			findings, observations, err = validate.ValidateOnCompDef(oscalModel.ComponentDefinition)
+			composeResults, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}
 
-			if len(findings) != expectedFindings {
-				t.Errorf("Expected %d findings, got %d", expectedFindings, len(findings))
+			if len(composeResults) != expectedResults {
+				t.Errorf("Expected %v results, got %v", expectedResults, len(composeResults))
 			}
 
-			if len(observations) != expectedObservations {
-				t.Errorf("Expected %d observations, got %d", expectedObservations, len(observations))
+			var composeFindings, composeObseravtions int
+			for _, result := range composeResults {
+				composeFindings += len(*result.Findings)
+				composeObseravtions += len(*result.Observations)
+			}
+
+			if composeFindings != expectedFindings {
+				t.Errorf("Expected %d findings, got %d", expectedFindings, composeFindings)
+			}
+
+			if composeObseravtions != expectedObservations {
+				t.Errorf("Expected %d observations, got %d", expectedObservations, composeObseravtions)
 			}
 			return ctx
 		}).
