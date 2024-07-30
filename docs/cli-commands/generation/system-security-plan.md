@@ -1,3 +1,5 @@
+# **NOTE:** This Document is in an active research phase.
+
 # System Security Plan
 
 ## System Security Plan Generate
@@ -5,22 +7,31 @@
 To generate a system security plan, you need the following context:
 - The componet definition `--component`
 - The profile source `-p` or `--profile-source`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json`
-- The `LulaOscalConfig` file `--config`
 
 The following command will generate a system security plan with the above context:
-```
-lula generate system-security-plan --component .src/test/unit/valid-component.yaml -c https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json --config ./LulaOscalConfig
+
+```bash
+
+lula generate system-security-plan --component .src/test/unit/valid-component.yaml -c https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json
+
 ```
 
 There are optional flags that can be added to the command to generate a system security plan:
 
-- The output file of the component `-o` or `--output`; `oscal-component.yaml`
+- The output file of the component `-o` or `--output`; `oscal-system-security-plan.yaml`
 
-## System Security Plan Generate Config Context
+## System Security Plan Generate Context
 
-The `system-security-plan` can be generated using the upstream catalog/profile in conjunction with the `component-definition`. There are net new fields that are apart of the `system-security-plan` that are not within the `component-definition` or catalog/profile that do not make sense to add as props. Those items are under the section `Elements in SSP Not in Component Definition`. There are items that are not in the `system-security-plan` but also not in the `component-definition` that do make sense to create as props. Those items are under the section `Elements NOT in Component Definition that need added for SSP Generate`. Lastly as a note there are items within the `component-definition` that are not used in the `system-security-plan` that can be found under the section Elements NOT in `Component Definition that need added for SSP Generate`.
+The `system-security-plan` can be generated using the upstream catalog and/or profile in conjunction with the `component-definition`. There are net new fields that are apart of the `system-security-plan` that are not within the `component-definition` or catalog/profile that currently do not make sense to add as props. Those items are under the section `Elements in SSP Not in Component Definition`. There are items that are not in the `system-security-plan` but also not in the `component-definition` that currently do make sense to create as props. Those items are under the section `Elements NOT in Component Definition that need added for SSP Generate`. Lastly as a note there are items within the `component-definition` that are not used in the `system-security-plan` that can be found under the section Elements NOT in `Component Definition that need added for SSP Generate`.
 
-For the items in `Elements in SSP Not in Component Definition` a "config" file will be needed to fill in the gaps. There are also metadata fields such as `responsible-roles`, `responsible-parties`, and `parties` that can be added to the `system-security-plan` through the config file that may not be necessary to add directly to the `component-definition`
+The items in `Elements in SSP Not in Component Definition` need further context to fill in the missing elements as well as establish data across OSCAL models. Some examples of the data fields are within the `metadata` fields such as `responsible-roles`, `responsible-parties`, and `parties` that can be added to the `system-security-plan` that do not directly map from the `component-definition` field. Additional context can be added through common OSCAL fields such as `props`, `links`, and `remarks`.
+
+### Further Research Fields
+
+The following fields need further research to further enhance generating an SSP.
+
+- `inherited`
+- `export`
 
 ### Elements in Component Definition Not in SSP
 
@@ -171,3 +182,66 @@ For the items in `Elements in SSP Not in Component Definition` a "config" file w
         - `implementation-status`
           - `state`
           - `remarks`
+
+### Component Definition to SSP Transferable Fields
+
+### **NOTE:** repetitive children elements have been truncated to reduce bloat
+
+- `metadata`
+  - `title`
+  - `published`
+  - `last-modified`
+  - `version`
+  - `oscal-version`
+  - `revisions`
+  - `document-ids`
+  - `props`
+  - `links`
+  - `roles`
+  - `locations`
+  - `actions`
+- `control-implementation`
+  - `description`
+  - `set-parameters`
+    - `param-id`
+    - `values`
+    - `remarks`
+  - `implemented-requirements`
+    - `uuid`
+    - `control-id`
+    - `props`
+    - `links`
+    - `set-parameters`
+      - `param-id`
+      - `values`
+      - `remarks`
+    - `statements`
+      - `statement-id`
+      - `props`
+      - `responsible-roles`
+      - `links`
+      - `by-components`
+    - `by-components`
+      - `component-uuid`
+      - `description`
+      - `props`
+      - `links`
+      - `set-parameters`
+        - `param-id`
+        - `values`
+        - `remarks`
+  - `system-implementation` (Contains Fields from Component Definition)
+    - `components`
+      - `uuid`
+      - `type`
+      - `title`
+      - `description`
+      - `purpose`
+      - `props`
+      - `links`
+      - `status`
+      - `protocols`
+    - `implemented-components`
+      - `component-uuid`
+      - `props`
+      - `links`
