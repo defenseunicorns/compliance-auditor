@@ -8,7 +8,6 @@ domain:
     resources:
       - name: podsvt
         resource-rule:
-          name: podsvt
           version: v1
           resource: pods
           namespaces: [validation-test]

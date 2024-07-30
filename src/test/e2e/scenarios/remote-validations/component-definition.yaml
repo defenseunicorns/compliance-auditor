@@ -15,7 +15,6 @@ component-definition:
                 # single validation w/ checksum
                 - href: file://./validation.opa.yaml@394f5efa7aa5c3163a631d0f2640efe836af07c77fa7b27749f00819dd869058
                   rel: lula
-                  resource-fragment: "7f4c3b2a-1c3d-4a2b-8b64-3b1f76a8e36f"
                 # Single validation from multi-validations.yaml
                 - href: file://./multi-validations.yaml
                   rel: lula

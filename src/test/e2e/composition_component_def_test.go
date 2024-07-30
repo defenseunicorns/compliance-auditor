@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -50,7 +51,17 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
+			// Change Cwd to the directory of the component definition
+			dirPath := filepath.Dir(compDefPath)
+			resetCwd, err := common.SetCwdToFileDir(dirPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			results, err := validate.ValidateOnCompDef(compDef, "")
 			if err != nil {
@@ -72,6 +83,8 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			if expectedObservations == 0 {
 				t.Errorf("Expected to find observations")
 			}
+
+			resetCwd()
 
 			var oscalModel oscalTypes_1_1_2.OscalCompleteSchema
 			err = yaml.Unmarshal(compDefBytes, &oscalModel)
