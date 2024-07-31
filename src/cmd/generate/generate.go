@@ -22,6 +22,7 @@ type componentFlags struct {
 	Component     string   // --component
 	Requirements  []string // -r --requirements
 	Remarks       []string // --remarks
+	Framework     string   // --framework
 }
 
 var opts = &flags{}
@@ -91,6 +92,10 @@ var generateComponentCmd = &cobra.Command{
 		// Used to reproduce the command for documentation
 		command := fmt.Sprintf("%s --catalog-source %s --component '%s' --requirements %s --remarks %s", cmd.CommandPath(), source, title, strings.Join(componentOpts.Requirements, ","), strings.Join(remarks, ","))
 
+		if componentOpts.Framework != "" {
+			command += fmt.Sprintf(" --framework %s", componentOpts.Framework)
+		}
+
 		// Fetch the catalog source
 		data, err := network.Fetch(source)
 		if err != nil {
@@ -104,7 +109,7 @@ var generateComponentCmd = &cobra.Command{
 		}
 
 		// Create a component definition from the catalog given required context
-		comp, err := oscal.ComponentFromCatalog(command, source, catalog, title, componentOpts.Requirements, remarks)
+		comp, err := oscal.ComponentFromCatalog(command, source, catalog, title, componentOpts.Requirements, remarks, componentOpts.Framework)
 		if err != nil {
 			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
 		}
@@ -198,4 +203,5 @@ func generateComponentFlags() {
 	componentFlags.StringVar(&componentOpts.Component, "component", "", "Component Title")
 	componentFlags.StringSliceVarP(&componentOpts.Requirements, "requirements", "r", []string{}, "List of requirements to capture")
 	componentFlags.StringSliceVar(&componentOpts.Remarks, "remarks", []string{}, "Target for remarks population (default = statement)")
+	componentFlags.StringVar(&componentOpts.Framework, "framework", "", "Control-Implementation collection that these controls belong to")
 }

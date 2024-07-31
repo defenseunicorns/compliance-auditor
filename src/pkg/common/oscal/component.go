@@ -265,7 +265,7 @@ func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
-func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
+func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string, framework string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 	var componentDefinition = &oscalTypes_1_1_2.ComponentDefinition{}
@@ -327,6 +327,15 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 			Ns:    "https://docs.lula.dev/ns",
 			Value: command,
 		},
+	}
+
+	if framework != "" {
+		prop := oscalTypes_1_1_2.Property{
+			Name:  "framework",
+			Ns:    "https://docs.lula.dev/ns",
+			Value: framework,
+		}
+		props = append(props, prop)
 	}
 
 	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
