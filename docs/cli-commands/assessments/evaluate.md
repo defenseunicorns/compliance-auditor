@@ -19,10 +19,16 @@ To print a summary of the observation results:
 lula evaluate -f assessment-results.yaml --summary
 ```
 
+To target a specific framework for validation:
+```bash
+lula evaluate -f assessment-results.yaml --target critical
+```
+
 ## Options
 
 - `-f, --file`: The path to the file(s) to be evaluated.
 - `-s, --summary`: [Optional] Prints a summary of the evaluation.
+- `-t, --target`: [Optional] targets a specific standard source or framework
 
 ## Expected Process
 

@@ -32,6 +32,8 @@ To validate on a cluster:
 	lula validate -f ./oscal-component.yaml
 To indicate a specific Assessment Results file to create or append to:
 	lula validate -f ./oscal-component.yaml -o assessment-results.yaml
+To target a specific control-implementation source / standard/ framework
+	lula validate -f ./oscal-component.yaml -t critical
 To run validations and automatically confirm execution
 	lula dev validate -f ./oscal-component.yaml --confirm-execution
 To run validations non-interactively (no execution)

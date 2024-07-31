@@ -19,6 +19,10 @@ To evaluate the latest results in two assessment results files:
 
 To evaluate two results (threshold and latest) in a single OSCAL file:
 	lula evaluate -f assessment-results.yaml
+
+To target a specific framework for validation:
+	lula evaluate -f assessment-results.yaml --target critical
+
 `
 
 type flags struct {
