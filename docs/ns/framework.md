@@ -12,7 +12,7 @@ This use of this prop is defined in `control-implementation[_].props` in the fol
 props:
   - name: framework
     ns: https://docs.lula.dev/ns
-    value: Critical
+    value: impact-level-x
 ```
 
-This example would be for the specification of the "Critical" collection of Control Implementations.
+This example would be for the specification of the "Impact Level X" collection of Control Implementations.
