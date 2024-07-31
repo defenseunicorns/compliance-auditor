@@ -142,6 +142,18 @@ func mergeComponents(original *oscalTypes_1_1_2.DefinedComponent, latest *oscalT
 		tempItems = append(tempItems, item)
 	}
 
+	// merge Props without duplicating
+	// note: this assumes uniqueness of named prop
+	if latest.Props != nil {
+		if original.Props == nil {
+			original.Props = latest.Props
+		} else {
+			for _, prop := range *latest.Props {
+				UpdateProps(prop.Name, prop.Ns, prop.Value, original.Props)
+			}
+		}
+	}
+
 	original.ControlImplementations = &tempItems
 	return original
 }
@@ -184,6 +196,17 @@ func mergeControlImplementations(original *oscalTypes_1_1_2.ControlImplementatio
 
 	for _, item := range originalMap {
 		tempItems = append(tempItems, item)
+	}
+	// merge Props without duplicating
+	// note: this assumes uniqueness of named prop
+	if latest.Props != nil {
+		if original.Props == nil {
+			original.Props = latest.Props
+		} else {
+			for _, prop := range *latest.Props {
+				UpdateProps(prop.Name, prop.Ns, prop.Value, original.Props)
+			}
+		}
 	}
 	original.ImplementedRequirements = tempItems
 	return original
@@ -242,7 +265,7 @@ func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
-func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
+func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 	// store all of the implemented requirements
 	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 	var componentDefinition = &oscalTypes_1_1_2.ComponentDefinition{}
@@ -298,6 +321,14 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 		}
 	}
 
+	props := []oscalTypes_1_1_2.Property{
+		{
+			Name:  "generation",
+			Ns:    "https://docs.lula.dev/ns",
+			Value: command,
+		},
+	}
+
 	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
 		{
 			UUID:        uuid.NewUUID(),
@@ -310,6 +341,7 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 					Source:                  source,
 					ImplementedRequirements: implmentedRequirements,
 					Description:             "Control Implementation Description",
+					Props:                   &props,
 				},
 			},
 		},
