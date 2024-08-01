@@ -72,7 +72,24 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			expectedResults := len(results)
 
 			for _, result := range results {
-				expectedFindings += len(*result.Findings)
+				if result.Findings == nil {
+					t.Fatal("Expected to have findings")
+				}
+				// There should
+				for _, finding := range *result.Findings {
+					expectedFindings++
+					// we expect to find two related observations for this control id
+					if finding.Target.TargetId == "ID-1" {
+						if finding.RelatedObservations == nil {
+							t.Fatal("Expected related observations")
+						}
+						if len(*finding.RelatedObservations) < 2 {
+							t.Errorf("Expected 2 related observations, found %v", len(*finding.RelatedObservations))
+						}
+					}
+
+				}
+
 				expectedObservations += len(*result.Observations)
 			}
 

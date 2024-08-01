@@ -247,11 +247,18 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 	findings := requirementStore.GenerateFindings(validationStore)
 
 	// Print findings here to prevent repetition of findings in the output
-	for id, finding := range findings {
-		message.HeaderInfof("Control Id: %v", id)
-		message.Infof("Finding UUID: %v", finding.UUID)
-		message.Infof("    Status: %v", finding.Target.Status.State)
+	header := []string{"Control ID", "Status"}
+	rows := make([][]string, 0)
+	columnSize := []int{20, 25}
 
+	for id, finding := range findings {
+		rows = append(rows, []string{
+			id, finding.Target.Status.State,
+		})
+	}
+
+	if len(rows) != 0 {
+		message.Table(header, rows, columnSize)
 	}
 
 	return findings, observations, nil

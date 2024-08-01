@@ -68,12 +68,12 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 		// A single finding should be "control-id centric"
 		if _, ok := r.findingMap[requirement.ImplementedRequirement.ControlId]; ok {
 			finding = r.findingMap[requirement.ImplementedRequirement.ControlId]
-			finding.Description += fmt.Sprintf("Control Implementation: %s / Implemented Requirement: %s\n %s\n", requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.UUID, requirement.ImplementedRequirement.Description)
+			finding.Description += fmt.Sprintf("Control Implementation: %s / Implemented Requirement: %s\n%s\n", requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.UUID, requirement.ImplementedRequirement.Description)
 		} else {
 			finding = oscalTypes_1_1_2.Finding{
 				UUID:        uuid.NewUUID(),
-				Title:       fmt.Sprintf("Validation Result - Control:  %s", requirement.ImplementedRequirement.ControlId),
-				Description: fmt.Sprintf("Control Implementation: %s / Implemented Requirement: %s\n %s\n", requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.UUID, requirement.ImplementedRequirement.Description),
+				Title:       fmt.Sprintf("Validation Result - Control: %s", requirement.ImplementedRequirement.ControlId),
+				Description: fmt.Sprintf("Control Implementation: %s / Implemented Requirement: %s\n%s\n", requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.UUID, requirement.ImplementedRequirement.Description),
 			}
 		}
 
@@ -87,6 +87,10 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 				} else {
 					fail++
 				}
+			}
+			// If there are pre-existing related observations we need to append
+			if finding.RelatedObservations != nil {
+				relatedObservations = append(relatedObservations, *finding.RelatedObservations...)
 			}
 			finding.RelatedObservations = &relatedObservations
 		}
