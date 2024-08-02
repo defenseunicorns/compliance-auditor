@@ -19,11 +19,16 @@ To evaluate the latest results in two assessment results files:
 
 To evaluate two results (threshold and latest) in a single OSCAL file:
 	lula evaluate -f assessment-results.yaml
+
+To target a specific framework for validation:
+	lula evaluate -f assessment-results.yaml --target critical
+
 `
 
 type flags struct {
-	files   []string
-	summary bool
+	InputFile []string // -f --input-file
+	Target    string   // -t --target
+	summary   bool     // -s --summary
 }
 
 var opts = &flags{}
@@ -37,50 +42,80 @@ var evaluateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Build map of filepath -> assessment results
-		assessmentMap, err := readManyAssessmentResults(opts.files)
+		assessmentMap, err := readManyAssessmentResults(opts.InputFile)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
 
-		EvaluateAssessments(assessmentMap, opts.summary)
+		EvaluateAssessments(assessmentMap, opts.Target, opts.summary)
 	},
 }
 
 func EvaluateCommand() *cobra.Command {
 
-	evaluateCmd.Flags().StringArrayVarP(&opts.files, "file", "f", []string{}, "Path to the file to be evaluated")
+	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
+	evaluateCmd.MarkFlagRequired("input-file")
+	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", false, "Print a summary of the evaluation")
 	// insert flag options here
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, summary bool) {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary bool) {
 	// Identify the threshold & latest for comparison
-	resultMap, err := oscal.IdentifyResults(assessmentMap)
-	if err != nil {
-		if err.Error() == "less than 2 results found - no comparison possible" {
-			// Catch and warn of insufficient results
-			message.Warn(err.Error())
-			if len(resultMap) > 0 {
-				// Indicates that there is at least one assessment result
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
-			} else {
-				return
+	resultMap := oscal.FilterResults(assessmentMap)
+
+	if target != "" {
+		if result, ok := resultMap[target]; ok {
+			err := evaluateTarget(result, target, summary)
+			if err != nil {
+				message.Warn(err.Error())
 			}
-		} else {
-			message.Fatal(err, err.Error())
+		}
+	} else {
+		for source, result := range resultMap {
+			err := evaluateTarget(result, source, summary)
+			if err != nil {
+				message.Warn(err.Error())
+			}
 		}
 	}
 
-	if resultMap["threshold"] != nil && resultMap["latest"] != nil {
+	// Write each file back in the case of modification
+	for filePath, assessment := range assessmentMap {
+		model := oscalTypes_1_1_2.OscalCompleteSchema{
+			AssessmentResults: assessment,
+		}
+
+		oscal.WriteOscalModel(filePath, &model)
+	}
+}
+
+func evaluateTarget(target oscal.EvalResult, source string, summary bool) error {
+	message.Debugf("Length of results: %d", len(target.Results))
+	if len(target.Results) == 0 {
+		return fmt.Errorf("no results found")
+	}
+
+	if len(target.Results) == 1 {
+		// Only one result identified - update to make it the threshold
+		oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Results[0].Props)
+		message.Warnf("less than 2 results found for target: %s - no comparison possible", source)
+		return nil
+	}
+
+	if target.Threshold != nil && target.Latest != nil {
+		if target.Threshold.UUID == target.Latest.UUID {
+			message.Fatal(fmt.Errorf("cannot compare the same assessment result against itself"), "cannot compare the same assessment result against itself")
+		}
 		var findingsWithoutObservations []string
 		// Compare the assessment results
-		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
+		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s\n", target.Threshold.UUID, target.Latest.UUID)
 		defer spinner.Stop()
 
-		message.Debugf("threshold UUID: %s / latest UUID: %s", resultMap["threshold"].UUID, resultMap["latest"].UUID)
+		message.Debugf("threshold UUID: %s / latest UUID: %s", target.Threshold.UUID, target.Latest.UUID)
 
-		status, resultComparison, err := oscal.EvaluateResults(resultMap["threshold"], resultMap["latest"])
+		status, resultComparison, err := oscal.EvaluateResults(target.Threshold, target.Latest)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
@@ -110,14 +145,14 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 					message.Infof("%s", id)
 				}
 
-				message.Infof("New threshold identified - threshold will be updated to result %s", resultMap["latest"].UUID)
+				message.Infof("New threshold identified - threshold will be updated to result %s", target.Latest.UUID)
 
 				// Update latest threshold prop
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["latest"].Props)
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", resultMap["threshold"].Props)
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Latest.Props)
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", target.Threshold.Props)
 			} else {
 				// retain result as threshold
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
+				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Threshold.Props)
 			}
 
 			// Print new-not-satisfied
@@ -128,7 +163,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 					message.Infof("%s", id)
 				}
 			}
-
+			spinner.Success()
 			message.Info("Evaluation Passed Successfully")
 		} else {
 			// Print no-longer-satisfied
@@ -150,23 +185,16 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 
 			// retain result as threshold
-			oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", resultMap["threshold"].Props)
+			oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Threshold.Props)
 		}
 
 		spinner.Success()
 
-	} else if resultMap["threshold"] == nil {
+	} else if target.Threshold == nil {
 		message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
 	}
 
-	// Write each file back in the case of modification
-	for filePath, assessment := range assessmentMap {
-		model := oscalTypes_1_1_2.OscalCompleteSchema{
-			AssessmentResults: assessment,
-		}
-
-		oscal.WriteOscalModel(filePath, &model)
-	}
+	return nil
 }
 
 // Read many filepaths into a map[filepath]*AssessmentResults

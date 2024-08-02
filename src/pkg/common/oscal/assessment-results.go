@@ -15,6 +15,12 @@ import (
 
 const OSCAL_VERSION = "1.1.2"
 
+type EvalResult struct {
+	Threshold *oscalTypes_1_1_2.Result
+	Results   []*oscalTypes_1_1_2.Result
+	Latest    *oscalTypes_1_1_2.Result
+}
+
 // NewAssessmentResults creates a new assessment results object from the given data.
 func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var oscalModels oscalTypes_1_1_2.OscalModels
@@ -33,22 +39,11 @@ func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, err
 	return oscalModels.AssessmentResults, nil
 }
 
-func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var assessmentResults = &oscalTypes_1_1_2.AssessmentResults{}
 
 	// Single time used for all time related fields
 	rfc3339Time := time.Now()
-	controlList := make([]oscalTypes_1_1_2.AssessedControlsSelectControlById, 0)
-	findings := make([]oscalTypes_1_1_2.Finding, 0)
-
-	// Convert control map to slice of SelectControlById
-	for controlId, finding := range findingMap {
-		control := oscalTypes_1_1_2.AssessedControlsSelectControlById{
-			ControlId: controlId,
-		}
-		controlList = append(controlList, control)
-		findings = append(findings, finding)
-	}
 
 	// Always create a new UUID for the assessment results (for now)
 	assessmentResults.UUID = uuid.NewUUID()
@@ -64,37 +59,8 @@ func GenerateAssessmentResults(findingMap map[string]oscalTypes_1_1_2.Finding, o
 		LastModified: rfc3339Time,
 	}
 
-	// Here we are going to add the threshold property by default
-	props := []oscalTypes_1_1_2.Property{
-		{
-			Ns:    "https://docs.lula.dev/ns",
-			Name:  "threshold",
-			Value: "false",
-		},
-	}
-
 	// Create results object
-	assessmentResults.Results = []oscalTypes_1_1_2.Result{
-		{
-			UUID:        uuid.NewUUID(),
-			Title:       "Lula Validation Result",
-			Start:       rfc3339Time,
-			Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
-			Props:       &props,
-			ReviewedControls: oscalTypes_1_1_2.ReviewedControls{
-				Description: "Controls validated",
-				Remarks:     "Validation performed may indicate full or partial satisfaction",
-				ControlSelections: []oscalTypes_1_1_2.AssessedControls{
-					{
-						Description:     "Controls Assessed by Lula",
-						IncludeControls: &controlList,
-					},
-				},
-			},
-			Findings:     &findings,
-			Observations: &observations,
-		},
-	}
+	assessmentResults.Results = results
 
 	return assessmentResults, nil
 }
@@ -115,60 +81,6 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 	original.UUID = uuid.NewUUID()
 
 	return original, nil
-}
-
-// IdentifyResults produces a map containing the threshold result and a result used for comparison
-func IdentifyResults(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults) (map[string]*oscalTypes_1_1_2.Result, error) {
-	resultMap := make(map[string]*oscalTypes_1_1_2.Result)
-
-	thresholds, sortedResults := findAndSortResults(assessmentMap)
-
-	// Handle no results found in the assessment-results
-	if len(sortedResults) == 0 {
-		return nil, fmt.Errorf("less than 2 results found - no comparison possible")
-	}
-
-	// Handle single result found in the assessment-results
-	if len(sortedResults) == 1 {
-		// Only one result found - set latest and return
-		resultMap["threshold"] = sortedResults[len(sortedResults)-1]
-		return resultMap, fmt.Errorf("less than 2 results found - no comparison possible")
-	}
-
-	if len(thresholds) == 0 {
-		// No thresholds identified but we have > 1 results - compare the preceding (threshold) against the latest
-		resultMap["threshold"] = sortedResults[len(sortedResults)-2]
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
-
-		return resultMap, nil
-	} else if len(thresholds) > 1 {
-		// More than one threshold - likely the case with multiple assessment-results artifacts
-		resultMap["threshold"] = thresholds[len(thresholds)-1]
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
-
-		if resultMap["threshold"] == resultMap["latest"] {
-			// if threshold is latest here && we have > 1 threshold - make the threshold the older threshold
-			resultMap["threshold"] = thresholds[len(thresholds)-2]
-		}
-
-		// Consider changing the namespace value to "false" here - only written if the command logic completes
-		for _, result := range thresholds {
-			UpdateProps("threshold", "https://docs.lula.dev/ns", "false", result.Props)
-		}
-
-		return resultMap, nil
-
-	} else {
-		// Otherwise we have a single threshold and we compare that against the latest result
-		resultMap["threshold"] = thresholds[len(thresholds)-1]
-		resultMap["latest"] = sortedResults[len(sortedResults)-1]
-
-		if resultMap["threshold"] == resultMap["latest"] {
-			return nil, fmt.Errorf("latest threshold is the latest result - no comparison possible")
-		}
-
-		return resultMap, nil
-	}
 }
 
 func EvaluateResults(thresholdResult *oscalTypes_1_1_2.Result, newResult *oscalTypes_1_1_2.Result) (bool, map[string]result.ResultComparisonMap, error) {
@@ -326,6 +238,77 @@ func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults
 	return thresholds, sortedResults
 }
 
+// filterResults consumes many assessment-results objects and builds out a map of EvalResults filtered by target
+// this function looks at the target prop as the key in the map
+func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
+	evalResultMap := make(map[string]EvalResult)
+
+	for _, assessment := range resultMap {
+		if assessment == nil {
+			continue
+		}
+		for _, result := range assessment.Results {
+			if result.Props != nil {
+				var target string
+				hasTarget, targetValue := GetProp("target", "https://docs.lula.dev/ns", result.Props)
+				hasThreshold, thresholdValue := GetProp("threshold", "https://docs.lula.dev/ns", result.Props)
+
+				if hasTarget {
+					// existing target prop
+					target = targetValue
+				} else {
+					// non-existent target prop
+					target = "default"
+				}
+
+				var evalResult EvalResult
+				// target identified
+				if tmpResult, ok := evalResultMap[target]; ok {
+					// EvalResult Exists - append
+					tmpResult.Results = append(tmpResult.Results, &result)
+					evalResult = tmpResult
+				} else {
+					// EvalResult Does Not Exist - create
+					results := make([]*oscalTypes_1_1_2.Result, 0)
+					results = append(results, &result)
+					tmpResult = EvalResult{
+						Results: results,
+					}
+					evalResult = tmpResult
+				}
+
+				if hasThreshold && thresholdValue == "true" {
+					if evalResult.Threshold == nil {
+						evalResult.Threshold = &result
+					} else {
+						// If threshold exists and this is a newer threshold
+						if result.Start.Compare(evalResult.Threshold.Start) > 0 {
+							UpdateProps("threshold", "https://docs.lula.dev/ns", "false", evalResult.Threshold.Props)
+							evalResult.Threshold = &result
+						}
+					}
+				}
+				evalResultMap[target] = evalResult
+			}
+		}
+	}
+	// Now that all results are processed - iterate through each EvalResult, sort and assign latest/threshold
+	for key, evalResult := range evalResultMap {
+		if len(evalResult.Results) > 0 {
+			slices.SortFunc(evalResult.Results, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
+			evalResult.Latest = evalResult.Results[len(evalResult.Results)-1]
+			if evalResult.Threshold == nil && len(evalResult.Results) > 1 {
+				// length of results > 1 and no established threshold - set threshold to the preceding result of latest
+				evalResult.Threshold = evalResult.Results[len(evalResult.Results)-2]
+			}
+			evalResultMap[key] = evalResult
+		}
+
+	}
+
+	return evalResultMap
+}
+
 // Helper function to create observation
 func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
 	rfc3339Time := time.Now()
@@ -337,4 +320,57 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
+}
+
+// Creates a result from findings and observations
+func CreateResult(findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation) (oscalTypes_1_1_2.Result, error) {
+
+	// Single time used for all time related fields
+	rfc3339Time := time.Now()
+	controlList := make([]oscalTypes_1_1_2.AssessedControlsSelectControlById, 0)
+	findings := make([]oscalTypes_1_1_2.Finding, 0)
+
+	// Convert control map to slice of SelectControlById
+	for controlId, finding := range findingMap {
+		control := oscalTypes_1_1_2.AssessedControlsSelectControlById{
+			ControlId: controlId,
+		}
+		controlList = append(controlList, control)
+		findings = append(findings, finding)
+	}
+
+	props := []oscalTypes_1_1_2.Property{
+		{
+			Ns:    "https://docs.lula.dev/ns",
+			Name:  "threshold",
+			Value: "false",
+		},
+	}
+
+	result := oscalTypes_1_1_2.Result{
+		UUID:        uuid.NewUUID(),
+		Title:       "Lula Validation Result",
+		Start:       rfc3339Time,
+		Description: "Assessment results for performing Validations with Lula version " + config.CLIVersion,
+		Props:       &props,
+		ReviewedControls: oscalTypes_1_1_2.ReviewedControls{
+			Description: "Controls validated",
+			Remarks:     "Validation performed may indicate full or partial satisfaction",
+			ControlSelections: []oscalTypes_1_1_2.AssessedControls{
+				{
+					Description:     "Controls Assessed by Lula",
+					IncludeControls: &controlList,
+				},
+			},
+		},
+		Findings: &findings,
+	}
+
+	// Observations are only present with evidence generated by a validation
+	// Lula can operate on oscal without any validations
+	if len(observations) > 0 {
+		result.Observations = &observations
+	}
+
+	return result, nil
 }
