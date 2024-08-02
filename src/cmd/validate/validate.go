@@ -1,12 +1,10 @@
 package validate
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -17,12 +15,12 @@ import (
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 type flags struct {
 	OutputFile string // -o --output-file
 	InputFile  string // -f --input-file
+	Target     string // -t --target
 }
 
 var opts = &flags{}
@@ -34,6 +32,8 @@ To validate on a cluster:
 	lula validate -f ./oscal-component.yaml
 To indicate a specific Assessment Results file to create or append to:
 	lula validate -f ./oscal-component.yaml -o assessment-results.yaml
+To target a specific control-implementation source / standard/ framework
+	lula validate -f ./oscal-component.yaml -t critical
 To run validations and automatically confirm execution
 	lula dev validate -f ./oscal-component.yaml --confirm-execution
 To run validations non-interactively (no execution)
@@ -55,18 +55,13 @@ var validateCmd = &cobra.Command{
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
 
-		findings, observations, err := ValidateOnPath(opts.InputFile)
+		assessment, err := ValidateOnPath(opts.InputFile, opts.Target)
 		if err != nil {
 			message.Fatalf(err, "Validation error: %s", err)
 		}
 
-		report, err := oscal.GenerateAssessmentResults(findings, observations)
-		if err != nil {
-			message.Fatalf(err, "Generate error")
-		}
-
 		var model = oscalTypes_1_1_2.OscalModels{
-			AssessmentResults: report,
+			AssessmentResults: assessment,
 		}
 
 		// Write the assessment results to file
@@ -82,6 +77,8 @@ func ValidateCommand() *cobra.Command {
 	// insert flag options here
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
+	validateCmd.MarkFlagRequired("input-file")
+	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
 	return validateCmd
@@ -112,64 +109,117 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPath(path string) (findingMap map[string]oscalTypes_1_1_2.Finding, observations []oscalTypes_1_1_2.Observation, err error) {
+func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		return findingMap, observations, fmt.Errorf("path: %v does not exist - unable to digest document", path)
+		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return findingMap, observations, err
+		return assessmentResult, err
 	}
 
 	// Change Cwd to the directory of the component definition
 	dirPath := filepath.Dir(path)
-	message.Infof("changing cwd to %s", dirPath)
+	message.Debugf("changing cwd to %s", dirPath)
 	resetCwd, err := common.SetCwdToFileDir(dirPath)
 	if err != nil {
-		return findingMap, observations, err
+		return assessmentResult, err
 	}
 	defer resetCwd()
 
 	compDef, err := oscal.NewOscalComponentDefinition(data)
 	if err != nil {
-		return findingMap, observations, err
+		return assessmentResult, err
 	}
 
-	findingMap, observations, err = ValidateOnCompDef(compDef)
+	results, err := ValidateOnCompDef(compDef, target)
 	if err != nil {
-		return findingMap, observations, err
+		return assessmentResult, err
 	}
 
-	return findingMap, observations, err
+	assessmentResult, err = oscal.GenerateAssessmentResults(results)
+	if err != nil {
+		return assessmentResult, err
+	}
+
+	return assessmentResult, nil
 
 }
 
 // ValidateOnCompDef takes a single ComponentDefinition object
-// It will perform a validation and add data to a referenced report object
-func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
-	err := composition.ComposeComponentDefinitions(compDef)
+// It will perform a validation and return a slice of results that can be written to an assessment-results object
+func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
+	err = composition.ComposeComponentDefinitions(compDef)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 
+	}
+
+	if *compDef.Components == nil {
+		return results, fmt.Errorf("no components found in component definition")
 	}
 
 	// Create a validation store from the back-matter if it exists
 	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-	// Initialize findings and observations
-	findings := make(map[string]oscalTypes_1_1_2.Finding)
-	observations := make([]oscalTypes_1_1_2.Observation, 0)
+	// Create a map of control implementations from the component definition
+	// This combines all same source/framework control implementations into an []Control-Implementation
+	controlImplementations := oscal.FilterControlImplementations(compDef)
 
-	if *compDef.Components == nil {
-		return findings, observations, fmt.Errorf("no components found in component definition")
+	if len(controlImplementations) == 0 {
+		return results, fmt.Errorf("no control implementations found in component definition")
 	}
 
+	// target one specific controlImplementation
+	// this could be either a framework or source property
+	// this will only produce a single result
+	if target != "" {
+		if controlImplementation, ok := controlImplementations[target]; ok {
+			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
+			if err != nil {
+				return results, err
+			}
+			result, err := oscal.CreateResult(findings, observations)
+			if err != nil {
+				return results, err
+			}
+			// add/update the source to the result props - make source = framework or omit?
+			oscal.UpdateProps("target", "https://docs.lula.dev/ns", target, result.Props)
+			results = append(results, result)
+		} else {
+			return results, fmt.Errorf("target %s not found", target)
+		}
+	} else {
+		// default behavior - create a result for each unique source/framework
+		// loop over the controlImplementations map & validate
+		// we lose context of source if not contained within the loop
+		for source, controlImplementation := range controlImplementations {
+			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
+			if err != nil {
+				return results, err
+			}
+			result, err := oscal.CreateResult(findings, observations)
+			if err != nil {
+				return results, err
+			}
+			// add/update the source to the result props
+			oscal.UpdateProps("target", "https://docs.lula.dev/ns", source, result.Props)
+			results = append(results, result)
+		}
+	}
+
+	return results, nil
+
+}
+
+func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+
 	// Create requirement store for all implemented requirements
-	requirementStore := requirementstore.NewRequirementStore(compDef)
-	message.Title("\n🔍 Collecting Requirements and Validations", "")
+	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
+	message.Title("\n🔍 Collecting Requirements and Validations for Target: ", target)
 	requirementStore.ResolveLulaValidations(validationStore)
 	reqtStats := requirementStore.GetStats(validationStore)
 	message.Infof("Found %d Implemented Requirements", reqtStats.TotalRequirements)
@@ -192,75 +242,24 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition) (map[strin
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations = validationStore.RunValidations(ConfirmExecution)
+	observations := validationStore.RunValidations(ConfirmExecution)
 	message.Title("\n💡 Findings", "")
-	findings = requirementStore.GenerateFindings(validationStore)
+	findings := requirementStore.GenerateFindings(validationStore)
+
+	// Print findings here to prevent repetition of findings in the output
+	header := []string{"Control ID", "Status"}
+	rows := make([][]string, 0)
+	columnSize := []int{20, 25}
+
+	for id, finding := range findings {
+		rows = append(rows, []string{
+			id, finding.Target.Status.State,
+		})
+	}
+
+	if len(rows) != 0 {
+		message.Table(header, rows, columnSize)
+	}
 
 	return findings, observations, nil
-}
-
-// This is the OSCAL document generation for final output.
-// This should include some ability to consolidate controls met in multiple input documents under single control entries
-// This should include fields that reference the source of the control to the original document ingested
-// TODO: This is unused - remove?
-func WriteReport(report oscalTypes_1_1_2.AssessmentResults, assessmentFilePath string) error {
-
-	var fileName string
-	var tempAssessment *oscalTypes_1_1_2.AssessmentResults
-
-	if assessmentFilePath != "" {
-
-		_, err := os.Stat(assessmentFilePath)
-		if err == nil {
-			// File does exist
-			data, err := os.ReadFile(assessmentFilePath)
-			if err != nil {
-				return err
-			}
-
-			tempAssessment, err = oscal.NewAssessmentResults(data)
-			if err != nil {
-				return err
-			}
-
-			results := make([]oscalTypes_1_1_2.Result, 0)
-			// append new results first - unfurl so as to allow multiple results in the future
-			results = append(results, report.Results...)
-			results = append(results, tempAssessment.Results...)
-			tempAssessment.Results = results
-			fileName = assessmentFilePath
-
-		} else if os.IsNotExist(err) {
-			// File does not exist
-			tempAssessment = &report
-			fileName = assessmentFilePath
-		} else {
-			// Some other error occurred (permission issues, etc.)
-			return err
-		}
-
-	} else {
-		tempAssessment = &report
-		currentTime := time.Now()
-		fileName = "assessment-results-" + currentTime.Format("01-02-206-15:04:05") + ".yaml"
-	}
-
-	var b bytes.Buffer
-
-	var sar = oscalTypes_1_1_2.OscalModels{
-		AssessmentResults: tempAssessment,
-	}
-
-	yamlEncoder := yaml.NewEncoder(&b)
-	yamlEncoder.SetIndent(2)
-	yamlEncoder.Encode(sar)
-
-	message.Infof("Writing Security Assessment Results to: %s", fileName)
-
-	err := os.WriteFile(fileName, b.Bytes(), 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

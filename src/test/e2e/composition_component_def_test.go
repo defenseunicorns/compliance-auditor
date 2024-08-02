@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -49,12 +51,47 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			findings, observations, err := validate.ValidateOnPath(compDefPath)
+			// Change Cwd to the directory of the component definition
+			dirPath := filepath.Dir(compDefPath)
+			resetCwd, err := common.SetCwdToFileDir(dirPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			results, err := validate.ValidateOnCompDef(compDef, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
-			expectedFindings := len(findings)
-			expectedObservations := len(observations)
+
+			var expectedFindings, expectedObservations int
+			expectedResults := len(results)
+
+			for _, result := range results {
+				if result.Findings == nil {
+					t.Fatal("Expected to have findings")
+				}
+				// There should
+				for _, finding := range *result.Findings {
+					expectedFindings++
+					// we expect to find two related observations for this control id
+					if finding.Target.TargetId == "ID-1" {
+						if finding.RelatedObservations == nil {
+							t.Fatal("Expected related observations")
+						}
+						if len(*finding.RelatedObservations) < 2 {
+							t.Errorf("Expected 2 related observations, found %v", len(*finding.RelatedObservations))
+						}
+					}
+
+				}
+
+				expectedObservations += len(*result.Observations)
+			}
 
 			if expectedFindings == 0 {
 				t.Errorf("Expected to find findings")
@@ -63,6 +100,8 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			if expectedObservations == 0 {
 				t.Errorf("Expected to find observations")
 			}
+
+			resetCwd()
 
 			var oscalModel oscalTypes_1_1_2.OscalCompleteSchema
 			err = yaml.Unmarshal(compDefBytes, &oscalModel)
@@ -80,17 +119,27 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			findings, observations, err = validate.ValidateOnCompDef(oscalModel.ComponentDefinition)
+			composeResults, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}
 
-			if len(findings) != expectedFindings {
-				t.Errorf("Expected %d findings, got %d", expectedFindings, len(findings))
+			if len(composeResults) != expectedResults {
+				t.Errorf("Expected %v results, got %v", expectedResults, len(composeResults))
 			}
 
-			if len(observations) != expectedObservations {
-				t.Errorf("Expected %d observations, got %d", expectedObservations, len(observations))
+			var composeFindings, composeObservations int
+			for _, result := range composeResults {
+				composeFindings += len(*result.Findings)
+				composeObservations += len(*result.Observations)
+			}
+
+			if composeFindings != expectedFindings {
+				t.Errorf("Expected %d findings, got %d", expectedFindings, composeFindings)
+			}
+
+			if composeObservations != expectedObservations {
+				t.Errorf("Expected %d observations, got %d", expectedObservations, composeObservations)
 			}
 			return ctx
 		}).

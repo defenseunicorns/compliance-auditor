@@ -99,7 +99,7 @@ func TestFetch(t *testing.T) {
 		},
 		{
 			name:    "File with checksum SHA-256",
-			url:     "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@0f97afb4d95cc9b4d7962960d6f8c988c851b9ce84cda441cce2b232e787ae24",
+			url:     "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@394f5efa7aa5c3163a631d0f2640efe836af07c77fa7b27749f00819dd869058",
 			wantErr: false,
 		},
 		{
