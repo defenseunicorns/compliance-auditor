@@ -71,12 +71,22 @@ func TestResourceDataValidation(t *testing.T) {
 			oscalPath := "./scenarios/resource-data/oscal-component.yaml"
 			message.NoProgress = true
 
-			findingMap, _, err := validate.ValidateOnPath(oscalPath)
+			assessment, err := validate.ValidateOnPath(oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			for _, finding := range findingMap {
+			if len(assessment.Results) == 0 {
+				t.Fatal("Expected greater than zero results")
+			}
+
+			result := assessment.Results[0]
+
+			if result.Findings == nil {
+				t.Fatal("Expected findings to be not nil")
+			}
+
+			for _, finding := range *result.Findings {
 				state := finding.Target.Status.State
 				if state != "satisfied" {
 					t.Fatal("State should be satisfied, but got :", state)

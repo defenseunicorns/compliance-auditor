@@ -16,7 +16,6 @@ import (
 
 type Requirement struct {
 	ImplementedRequirement *oscalTypes_1_1_2.ImplementedRequirementControlImplementation
-	Component              *oscalTypes_1_1_2.DefinedComponent
 	ControlImplementation  *oscalTypes_1_1_2.ControlImplementationSet
 }
 
@@ -408,29 +407,42 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[st
 
 }
 
-// Returns a map of the requirements and lula validations
-func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (
-	requirementMap map[string]Requirement) {
+func ControlImplementationstToRequirementsMap(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet) (requirementMap map[string]Requirement) {
 	requirementMap = make(map[string]Requirement)
 
-	if componentDefinition.Components == nil {
-		return requirementMap
-	}
-
-	for _, component := range *componentDefinition.Components {
-		if component.ControlImplementations != nil {
-			for _, controlImplementation := range *component.ControlImplementations {
-				for _, requirement := range controlImplementation.ImplementedRequirements {
-					requirementMap[requirement.UUID] = Requirement{
-						ImplementedRequirement: &requirement,
-						Component:              &component,
-						ControlImplementation:  &controlImplementation,
-					}
+	if controlImplementations != nil {
+		for _, controlImplementation := range *controlImplementations {
+			for _, requirement := range controlImplementation.ImplementedRequirements {
+				requirementMap[requirement.UUID] = Requirement{
+					ImplementedRequirement: &requirement,
+					ControlImplementation:  &controlImplementation,
 				}
 			}
 		}
 	}
 	return requirementMap
+}
+
+func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (controlMap map[string][]oscalTypes_1_1_2.ControlImplementationSet) {
+	controlMap = make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
+
+	if componentDefinition.Components != nil {
+		// Build a map[source/framework][]control-implementations
+		for _, component := range *componentDefinition.Components {
+			if component.ControlImplementations != nil {
+				for _, controlImplementation := range *component.ControlImplementations {
+					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
+					controlMap[controlImplementation.Source] = append(controlMap[controlImplementation.Source], controlImplementation)
+					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					if status {
+						controlMap[value] = append(controlMap[value], controlImplementation)
+					}
+				}
+			}
+		}
+	}
+
+	return controlMap
 }
 
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
