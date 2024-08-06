@@ -16,7 +16,6 @@ import (
 
 type Requirement struct {
 	ImplementedRequirement *oscalTypes_1_1_2.ImplementedRequirementControlImplementation
-	Component              *oscalTypes_1_1_2.DefinedComponent
 	ControlImplementation  *oscalTypes_1_1_2.ControlImplementationSet
 }
 
@@ -267,7 +266,7 @@ func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
 func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1_2.Catalog, componentTitle string, targetControls []string, targetRemarks []string, framework string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
 	// store all of the implemented requirements
-	implmentedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+	implementedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
 	var componentDefinition = &oscalTypes_1_1_2.ComponentDefinition{}
 
 	if len(targetControls) == 0 {
@@ -279,40 +278,32 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 		controlMap[control] = false
 	}
 
-	if catalog.Groups == nil {
-		return componentDefinition, fmt.Errorf("catalog Groups is nil - no catalog provided")
+	// A catalog has groups and controls
+	// A group has controls and groups (note the nesting of groups)
+	// A control has controls (note the nesting)
+	// Given the nesting of groups/controls we will need to recursively search groups/controls
+
+	// Begin Recursive group search
+	if catalog.Groups != nil {
+		newReqs, err := searchGroups(catalog.Groups, controlMap, targetRemarks)
+		if err != nil {
+			return componentDefinition, err
+		}
+		implementedRequirements = append(implementedRequirements, newReqs...)
 	}
 
-	// Iterate through all possible controls -> improve the efficiency of this in the future
-	for _, group := range *catalog.Groups {
-		if group.Controls == nil {
-			message.Debugf("group %s has no controls", group.ID)
-			continue
+	// Begin recursive control search
+	if catalog.Controls != nil {
+		newReqs, err := searchControls(catalog.Controls, controlMap, targetRemarks)
+		if err != nil {
+			return componentDefinition, err
 		}
-		for _, control := range *group.Controls {
-			if _, ok := controlMap[control.ID]; ok {
-				newRequirement, err := ControlToImplementedRequirement(&control, targetRemarks)
-				if err != nil {
-					return componentDefinition, err
-				}
-				implmentedRequirements = append(implmentedRequirements, newRequirement)
-				controlMap[control.ID] = true
-			}
+		implementedRequirements = append(implementedRequirements, newReqs...)
+	}
 
-			if control.Controls != nil {
-				for _, subControl := range *control.Controls {
-					if _, ok := controlMap[subControl.ID]; ok {
-						newRequirement, err := ControlToImplementedRequirement(&subControl, targetRemarks)
-						if err != nil {
-							return componentDefinition, err
-						}
-						implmentedRequirements = append(implmentedRequirements, newRequirement)
-						controlMap[subControl.ID] = true
-						continue
-					}
-				}
-			}
-		}
+	// TODO: rework this - a catalog does not require groups
+	if catalog.Groups == nil {
+		return componentDefinition, fmt.Errorf("catalog Groups is nil - no catalog provided")
 	}
 
 	for id, found := range controlMap {
@@ -338,6 +329,10 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 		props = append(props, prop)
 	}
 
+	if len(implementedRequirements) == 0 {
+		return componentDefinition, fmt.Errorf("no controls were identified in the catalog from the requirements list: %v\n", targetControls)
+	}
+
 	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
 		{
 			UUID:        uuid.NewUUID(),
@@ -348,7 +343,7 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 				{
 					UUID:                    uuid.NewUUIDWithSource(source),
 					Source:                  source,
-					ImplementedRequirements: implmentedRequirements,
+					ImplementedRequirements: implementedRequirements,
 					Description:             "Control Implementation Description",
 					Props:                   &props,
 				},
@@ -370,6 +365,54 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 
 	return componentDefinition, nil
 
+}
+
+func searchGroups(groups *[]oscalTypes_1_1_2.Group, controlMap map[string]bool, remarks []string) ([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, error) {
+
+	implementedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+
+	for _, group := range *groups {
+		if group.Groups != nil {
+			newReqs, err := searchGroups(group.Groups, controlMap, remarks)
+			if err != nil {
+				return implementedRequirements, err
+			}
+			implementedRequirements = append(implementedRequirements, newReqs...)
+		}
+		if group.Controls != nil {
+			newReqs, err := searchControls(group.Controls, controlMap, remarks)
+			if err != nil {
+				return implementedRequirements, err
+			}
+			implementedRequirements = append(implementedRequirements, newReqs...)
+		}
+	}
+	return implementedRequirements, nil
+}
+
+func searchControls(controls *[]oscalTypes_1_1_2.Control, controlMap map[string]bool, remarks []string) ([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, error) {
+
+	implementedRequirements := make([]oscalTypes_1_1_2.ImplementedRequirementControlImplementation, 0)
+
+	for _, control := range *controls {
+		if _, ok := controlMap[control.ID]; ok {
+			newRequirement, err := ControlToImplementedRequirement(&control, remarks)
+			if err != nil {
+				return implementedRequirements, err
+			}
+			implementedRequirements = append(implementedRequirements, newRequirement)
+			controlMap[control.ID] = true
+		}
+
+		if control.Controls != nil {
+			newReqs, err := searchControls(control.Controls, controlMap, remarks)
+			if err != nil {
+				return implementedRequirements, err
+			}
+			implementedRequirements = append(implementedRequirements, newReqs...)
+		}
+	}
+	return implementedRequirements, nil
 }
 
 // Consume a control - Identify statements - iterate through parts in order to create a description
@@ -449,29 +492,42 @@ func BackMatterToMap(backMatter oscalTypes_1_1_2.BackMatter) (resourceMap map[st
 
 }
 
-// Returns a map of the requirements and lula validations
-func ComponentDefinitionToRequirementMap(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (
-	requirementMap map[string]Requirement) {
+func ControlImplementationstToRequirementsMap(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet) (requirementMap map[string]Requirement) {
 	requirementMap = make(map[string]Requirement)
 
-	if componentDefinition.Components == nil {
-		return requirementMap
-	}
-
-	for _, component := range *componentDefinition.Components {
-		if component.ControlImplementations != nil {
-			for _, controlImplementation := range *component.ControlImplementations {
-				for _, requirement := range controlImplementation.ImplementedRequirements {
-					requirementMap[requirement.UUID] = Requirement{
-						ImplementedRequirement: &requirement,
-						Component:              &component,
-						ControlImplementation:  &controlImplementation,
-					}
+	if controlImplementations != nil {
+		for _, controlImplementation := range *controlImplementations {
+			for _, requirement := range controlImplementation.ImplementedRequirements {
+				requirementMap[requirement.UUID] = Requirement{
+					ImplementedRequirement: &requirement,
+					ControlImplementation:  &controlImplementation,
 				}
 			}
 		}
 	}
 	return requirementMap
+}
+
+func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) (controlMap map[string][]oscalTypes_1_1_2.ControlImplementationSet) {
+	controlMap = make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
+
+	if componentDefinition.Components != nil {
+		// Build a map[source/framework][]control-implementations
+		for _, component := range *componentDefinition.Components {
+			if component.ControlImplementations != nil {
+				for _, controlImplementation := range *component.ControlImplementations {
+					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
+					controlMap[controlImplementation.Source] = append(controlMap[controlImplementation.Source], controlImplementation)
+					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					if status {
+						controlMap[value] = append(controlMap[value], controlImplementation)
+					}
+				}
+			}
+		}
+	}
+
+	return controlMap
 }
 
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
@@ -560,29 +616,34 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 
 	var result, label string
 
-	for _, part := range *part {
-		// need to get the label first - unsure if there will ever be more than one?
-		for _, prop := range *part.Props {
-			if prop.Name == "label" {
-				label = prop.Value
+	if part != nil {
+		for _, part := range *part {
+			// need to get the label first - unsure if there will ever be more than one?
+			if part.Props != nil {
+				for _, prop := range *part.Props {
+					if prop.Name == "label" {
+						label = prop.Value
+					}
+				}
 			}
-		}
-		var tabs string
-		for range level {
-			tabs += "\t"
-		}
-		prose := part.Prose
-		if prose == "" {
-			result += fmt.Sprintf("%s%s\n", tabs, label)
-		} else if strings.Contains(prose, "{{ insert: param,") {
-			result += fmt.Sprintf("%s%s %s\n", tabs, label, replaceParams(prose, paramMap))
-		} else {
-			result += fmt.Sprintf("%s%s %s\n", tabs, label, prose)
-		}
-		if part.Parts != nil {
-			result += addPart(part.Parts, paramMap, level+1)
-		}
 
+			var tabs string
+			for range level {
+				tabs += "\t"
+			}
+			prose := part.Prose
+			if prose == "" {
+				result += fmt.Sprintf("%s%s\n", tabs, label)
+			} else if strings.Contains(prose, "{{ insert: param,") {
+				result += fmt.Sprintf("%s%s %s\n", tabs, label, replaceParams(prose, paramMap))
+			} else {
+				result += fmt.Sprintf("%s%s %s\n", tabs, label, prose)
+			}
+			if part.Parts != nil {
+				result += addPart(part.Parts, paramMap, level+1)
+			}
+
+		}
 	}
 
 	return result

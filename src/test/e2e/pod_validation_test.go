@@ -158,12 +158,22 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
-	findingMap, observations, err := validate.ValidateOnPath(revisionOptions.OutputFile)
+	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, finding := range findingMap {
+	if len(assessment.Results) == 0 {
+		t.Fatal("Expected greater than zero results")
+	}
+
+	result := assessment.Results[0]
+
+	if result.Findings == nil {
+		t.Fatal("Expected findings to be not nil")
+	}
+
+	for _, finding := range *result.Findings {
 		state := finding.Target.Status.State
 		if state != "satisfied" {
 			t.Fatal("State should be satisfied, but got :", state)
@@ -171,7 +181,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Test report generation
-	report, err := oscal.GenerateAssessmentResults(findingMap, observations)
+	report, err := oscal.GenerateAssessmentResults(assessment.Results)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
@@ -189,7 +199,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	initialResultCount := len(report.Results)
 
 	//Perform the write operation again and read the file to ensure result was appended
-	report, err = oscal.GenerateAssessmentResults(findingMap, observations)
+	report, err = oscal.GenerateAssessmentResults(assessment.Results)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
@@ -238,12 +248,22 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 func validatePodLabelFail(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
 	message.NoProgress = true
 
-	findingMap, _, err := validate.ValidateOnPath(oscalPath)
+	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, finding := range findingMap {
+	if len(assessment.Results) == 0 {
+		t.Fatal("Expected greater than zero results")
+	}
+
+	result := assessment.Results[0]
+
+	if result.Findings == nil {
+		t.Fatal("Expected findings to be not nil")
+	}
+
+	for _, finding := range *result.Findings {
 		state := finding.Target.Status.State
 		if state != "not-satisfied" {
 			t.Fatal("State should be not-satisfied, but got :", state)

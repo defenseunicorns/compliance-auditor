@@ -111,7 +111,7 @@ var generateComponentCmd = &cobra.Command{
 		// Create a component definition from the catalog given required context
 		comp, err := oscal.ComponentFromCatalog(command, source, catalog, title, componentOpts.Requirements, remarks, componentOpts.Framework)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
+			message.Fatalf(err, fmt.Sprintf("error creating component - %s\n", err.Error()))
 		}
 
 		var model = oscalTypes_1_1_2.OscalModels{

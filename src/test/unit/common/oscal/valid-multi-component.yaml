@@ -1,0 +1,182 @@
+component-definition:
+  components:
+    - control-implementations:
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: ac-1
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |
+                STATEMENT:
+                The organization:a. Develops, documents, and disseminates to [Assignment: organization-defined organization-defined personnel or roles]:
+                	1. An access control policy that addresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and
+                	2. Procedures to facilitate the implementation of the access control policy and associated access controls; and
+                b. Reviews and updates the current:
+                	1. Access control policy [Assignment: organization-defined organization-defined frequency]; and
+                	2. Access control procedures [Assignment: organization-defined organization-defined frequency].
+              uuid: 67dd59c4-0340-4aed-a49d-002815b50157
+            - control-id: ac-2
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |
+                STATEMENT:
+                The organization:a. Identifies and selects the following types of information system accounts to support organizational missions/business functions: [Assignment: organization-defined organization-defined information system account types];
+                b. Assigns account managers for information system accounts;
+                c. Establishes conditions for group and role membership;
+                d. Specifies authorized users of the information system, group and role membership, and access authorizations (i.e., privileges) and other attributes (as required) for each account;
+                e. Requires approvals by [Assignment: organization-defined organization-defined personnel or roles] for requests to create information system accounts;
+                f. Creates, enables, modifies, disables, and removes information system accounts in accordance with [Assignment: organization-defined organization-defined procedures or conditions];
+                g. Monitors the use of information system accounts;
+                h. Notifies account managers:
+                	1. When accounts are no longer required;
+                	2. When users are terminated or transferred; and
+                	3. When individual information system usage or need-to-know changes;
+                i. Authorizes access to the information system based on:
+                	1. A valid access authorization;
+                	2. Intended system usage; and
+                	3. Other attributes as required by the organization or associated missions/business functions;
+                j. Reviews accounts for compliance with account management requirements [Assignment: organization-defined organization-defined frequency]; and
+                k. Establishes a process for reissuing shared/group account credentials (if deployed) when individuals are removed from the group.
+              uuid: 663e7c26-3bfe-4c71-b423-10d8338d5445
+            - control-id: ac-3
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                STATEMENT:
+                The information system enforces approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+              uuid: 07e1e996-5ae7-4b0b-b4c0-01f35729e442
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml
+          uuid: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8
+          props:
+          - name: framework
+            ns: https://docs.lula.dev/ns
+            value: rev4
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: ac-1
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |
+                STATEMENT:
+                a. Develop, document, and disseminate to [Assignment: organization-defined organization-defined personnel or roles]:
+                	1.  [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy that:
+                		(a) Addresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and
+                		(b) Is consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and
+                	2. Procedures to facilitate the implementation of the access control policy and the associated access controls;
+                b. Designate an [Assignment: organization-defined official] to manage the development, documentation, and dissemination of the access control policy and procedures; and
+                c. Review and update the current access control:
+                	1. Policy [Assignment: organization-defined frequency] and following [Assignment: organization-defined events] ; and
+                	2. Procedures [Assignment: organization-defined frequency] and following [Assignment: organization-defined events].
+              uuid: 857121b1-2992-412c-b34a-504ead86e117
+            - control-id: ac-2
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |
+                STATEMENT:
+                a. Define and document the types of accounts allowed and specifically prohibited for use within the system;
+                b. Assign account managers;
+                c. Require [Assignment: organization-defined prerequisites and criteria] for group and role membership;
+                d. Specify:
+                	1. Authorized users of the system;
+                	2. Group and role membership; and
+                	3. Access authorizations (i.e., privileges) and [Assignment: organization-defined attributes (as required)] for each account;
+                e. Require approvals by [Assignment: organization-defined personnel or roles] for requests to create accounts;
+                f. Create, enable, modify, disable, and remove accounts in accordance with [Assignment: organization-defined policy, procedures, prerequisites, and criteria];
+                g. Monitor the use of accounts;
+                h. Notify account managers and [Assignment: organization-defined personnel or roles] within:
+                	1.  [Assignment: organization-defined time period] when accounts are no longer required;
+                	2.  [Assignment: organization-defined time period] when users are terminated or transferred; and
+                	3.  [Assignment: organization-defined time period] when system usage or need-to-know changes for an individual;
+                i. Authorize access to the system based on:
+                	1. A valid access authorization;
+                	2. Intended system usage; and
+                	3.  [Assignment: organization-defined attributes (as required)];
+                j. Review accounts for compliance with account management requirements [Assignment: organization-defined frequency];
+                k. Establish and implement a process for changing shared or group account authenticators (if deployed) when individuals are removed from the group; and
+                l. Align account management processes with personnel termination and transfer processes.
+              uuid: c93c7d6a-e276-4050-9a54-437f7903b39e
+            - control-id: ac-3
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                STATEMENT:
+                Enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+              uuid: fc1bb76a-4ca5-4832-8cf9-6df509d3c996
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml
+          uuid: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf
+          props:
+          - name: framework
+            ns: https://docs.lula.dev/ns
+            value: rev5
+      description: Component Description
+      remarks: |-
+        This component was generated using the following command:
+        	 lula generate component --catalog-source https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml --component 'Component A' --requirements ac-1,ac-2,ac-3 --remarks statement
+      title: Component A
+      type: software
+      uuid: 7c02500a-6e33-44e0-82ee-fba0f5ea0cae
+    - control-implementations:
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: ac-4
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                STATEMENT:
+                The information system enforces approved authorizations for controlling the flow of information within the system and between interconnected systems based on [Assignment: organization-defined organization-defined information flow control policies].
+              uuid: ea9f3b4d-64c2-4631-ace5-55428552f9aa
+            - control-id: ac-5
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |
+                STATEMENT:
+                The organization:a. Separates [Assignment: organization-defined organization-defined duties of individuals];
+                b. Documents separation of duties of individuals; and
+                c. Defines information system access authorizations to support separation of duties.
+              uuid: 1976b301-115f-48a4-b847-3374aa3b98d5
+            - control-id: ac-6
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                STATEMENT:
+                The organization employs the principle of least privilege, allowing only authorized accesses for users (or processes acting on behalf of users) which are necessary to accomplish assigned tasks in accordance with organizational missions and business functions.
+              uuid: be129429-290b-4516-9390-f4d38067fbd0
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml
+          uuid: 0631b5b8-e51a-577b-8a43-2d3d0bd9ced8
+          props:
+          - name: framework
+            ns: https://docs.lula.dev/ns
+            value: rev4
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: ac-4
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                STATEMENT:
+                Enforce approved authorizations for controlling the flow of information within the system and between connected systems based on [Assignment: organization-defined information flow control policies].
+              uuid: 81a78740-c3ac-4ee3-a1e5-81944dd21b6c
+            - control-id: ac-5
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |
+                STATEMENT:
+                a. Identify and document [Assignment: organization-defined duties of individuals] ; and
+                b. Define system access authorizations to support separation of duties.
+              uuid: 0649ec59-757a-483e-b8a9-bb4b7fbc4d6e
+            - control-id: ac-6
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                STATEMENT:
+                Employ the principle of least privilege, allowing only authorized accesses for users (or processes acting on behalf of users) that are necessary to accomplish assigned organizational tasks.
+              uuid: 45b56420-3689-431d-8811-ec9bc648f64e
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml
+          uuid: b1723ecd-a15a-5daf-a8e0-a7dd20a19abf
+          props:
+          - name: framework
+            ns: https://docs.lula.dev/ns
+            value: rev5
+      description: Component Description
+      remarks: |-
+        This component was generated using the following command:
+        	 lula generate component --catalog-source https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml --component 'Component B' --requirements ac-4,ac-5,ac-6 --remarks statement
+      title: Component B
+      type: software
+      uuid: 4cb1810c-d0d8-404e-b346-5a12c9629ed5
+  metadata:
+    last-modified: 2024-07-29T20:55:22.308602323Z
+    oscal-version: 1.1.2
+    published: 2024-07-29T20:54:20.414438777Z
+    remarks: Lula Generated Component Definition
+    title: Component Title
+    version: 0.0.1
+  uuid: 5b4b2ac2-50a1-4cba-99bb-82f92953f5c5
