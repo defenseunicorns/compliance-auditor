@@ -289,6 +289,10 @@ func ComponentFromCatalog(source string, catalog *oscalTypes_1_1_2.Catalog, comp
 		}
 	}
 
+	if len(implementedRequirements) == 0 {
+		return componentDefinition, fmt.Errorf("no controls were identified in the catalog from the requirements list: %v\n", targetControls)
+	}
+
 	componentDefinition.Components = &[]oscalTypes_1_1_2.DefinedComponent{
 		{
 			UUID:        uuid.NewUUID(),
