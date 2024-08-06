@@ -1,0 +1,8 @@
+title: My OSCAL Injection Model
+oscal-version: 1.1.2
+parties:
+  - uuid: e71d5dc5-3f5d-46ac-b6f1-f8ec41183d0f
+    type: organization
+    name: My Party
+    links:
+      - href: https://github.com/defenseunicorns/go-oscal

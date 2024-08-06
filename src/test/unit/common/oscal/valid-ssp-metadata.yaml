@@ -1,0 +1,6 @@
+title: My New System Security Plan
+version: "1.2"
+roles:
+  - id: legal-officer
+    title: Another Legal Officer
+remarks: New metadata remarks added
