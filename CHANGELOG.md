@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.5](https://github.com/defenseunicorns/lula/compare/v0.4.4...v0.4.5) (2024-08-02)
+
+
+### Bug Fixes
+
+* **release:** configuration to bump minor version when including features ([#576](https://github.com/defenseunicorns/lula/issues/576)) ([6bd11bb](https://github.com/defenseunicorns/lula/commit/6bd11bb55b1159c5ad73cb9314b13a0b51a08efe))
+* **validate:** allow for optionality among potential standards in a component definition ([#532](https://github.com/defenseunicorns/lula/issues/532)) ([ac0befb](https://github.com/defenseunicorns/lula/commit/ac0befb872f0b634778bf0a6c1f731620dd2e1a2))
+
+
+### Miscellaneous
+
+* **deps:** update actions/github-script digest to 35b1cdd ([#570](https://github.com/defenseunicorns/lula/issues/570)) ([4a2b03b](https://github.com/defenseunicorns/lula/commit/4a2b03b9eaf1acdf731f83480617663346f82ed6))
+* **deps:** update ossf/scorecard-action action to v2.4.0 ([#565](https://github.com/defenseunicorns/lula/issues/565)) ([2207d71](https://github.com/defenseunicorns/lula/commit/2207d71805401dda8721a93a2e1d578d1771801c))
+
 ## [0.4.4](https://github.com/defenseunicorns/lula/compare/v0.4.3...v0.4.4) (2024-07-26)
 
 
