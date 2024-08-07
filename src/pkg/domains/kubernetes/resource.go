@@ -66,8 +66,13 @@ func GetResourcesDynamically(ctx context.Context,
 	}
 	collection := make([]map[string]interface{}, 0)
 
+	clusterScoped, err := isClusterScoped(resourceId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to determine if resource is cluster scoped: %w", err)
+	}
+
 	namespaces := []string{""}
-	if len(resource.Namespaces) != 0 {
+	if len(resource.Namespaces) != 0 && !clusterScoped {
 		namespaces = resource.Namespaces
 	}
 	for _, namespace := range namespaces {
@@ -80,8 +85,8 @@ func GetResourcesDynamically(ctx context.Context,
 
 		// Reduce if named resource
 		if resource.Name != "" {
-			// requires single specified namespace
-			if len(resource.Namespaces) == 1 {
+			// requires single specified namespace or that resource is cluster scoped
+			if len(resource.Namespaces) == 1 || clusterScoped {
 				item, err := reduceByName(resource.Name, list.Items)
 				if err != nil {
 					return nil, err
@@ -244,4 +249,33 @@ func connect() (config *rest.Config, err error) {
 	}
 
 	return config, nil
+}
+
+// isClusterScoped returns true if the resource is cluster scoped
+func isClusterScoped(gvr schema.GroupVersionResource) (bool, error) {
+	config, err := connect()
+	if err != nil {
+		return false, fmt.Errorf("failed to connect to k8s cluster: %w", err)
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return false, err
+	}
+
+	_, resourceList, _, err := discoveryClient.GroupsAndMaybeResources()
+	if err != nil {
+		return false, err
+	}
+
+	for gv, list := range resourceList {
+		if gv.Group == gvr.Group && gv.Version == gvr.Version {
+			for _, item := range list.APIResources {
+				if item.Name == gvr.Resource {
+					return !item.Namespaced, nil
+				}
+			}
+		}
+	}
+	return false, nil
 }
