@@ -66,43 +66,42 @@ func GetResourcesDynamically(ctx context.Context,
 	}
 	collection := make([]map[string]interface{}, 0)
 
-	clusterScoped, err := isClusterScoped(resourceId)
-	if err != nil {
-		return nil, fmt.Errorf("unable to determine if resource is cluster scoped: %w", err)
+	// Depending on resource-rule, either a single item or list of items will be appended to collection
+	namespaces := resource.Namespaces
+	if len(namespaces) == 0 {
+		namespaces = []string{""}
 	}
 
-	namespaces := []string{""}
-	if len(resource.Namespaces) != 0 && !clusterScoped {
-		namespaces = resource.Namespaces
-	}
-	for _, namespace := range namespaces {
-		list, err := dynamic.Resource(resourceId).Namespace(namespace).
-			List(ctx, metav1.ListOptions{})
-
-		if err != nil {
-			return nil, err
-		}
-
-		// Reduce if named resource
+	if resource.Name != "" && len(namespaces) > 1 {
+		return nil, fmt.Errorf("named resource requested cannot be returned from multiple namespaces")
+	} else if resource.Name != "" && len(namespaces) == 1 {
+		// Extracting named resources can only occur here
 		if resource.Name != "" {
-			// requires single specified namespace or that resource is cluster scoped
-			if len(resource.Namespaces) == 1 || clusterScoped {
-				item, err := reduceByName(resource.Name, list.Items)
+			var itemObj *unstructured.Unstructured
+			itemObj, err := dynamic.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+			if err != nil {
+				return nil, err
+			}
+			item := itemObj.Object
+
+			// If field is specified, get the field data; can only occur when a single named resource is specified
+			if resource.Field != nil && resource.Field.Jsonpath != "" {
+				item, err = getFieldValue(item, resource.Field)
 				if err != nil {
 					return nil, err
 				}
-				// If field is specified, get the field data
-				if resource.Field != nil && resource.Field.Jsonpath != "" {
-					item, err = getFieldValue(item, resource.Field)
-					if err != nil {
-						return nil, err
-					}
-				}
-
-				collection = append(collection, item)
 			}
 
-		} else {
+			collection = append(collection, item)
+		}
+	} else {
+		for _, namespace := range namespaces {
+			list, err := dynamic.Resource(resourceId).Namespace(namespace).
+				List(ctx, metav1.ListOptions{})
+			if err != nil {
+				return nil, err
+			}
+
 			for _, item := range list.Items {
 				collection = append(collection, item.Object)
 			}
@@ -145,18 +144,6 @@ func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err
 	}
 
 	return nil, fmt.Errorf("kind %s not found", kind)
-}
-
-// reduceByName() takes a name and loops over all items to return the first match
-func reduceByName(name string, items []unstructured.Unstructured) (map[string]interface{}, error) {
-
-	for _, item := range items {
-		if item.GetName() == name {
-			return item.Object, nil
-		}
-	}
-
-	return nil, fmt.Errorf("no resource found with name %s", name)
 }
 
 // getFieldValue() looks up the field from a resource and returns a map[string]interface{} representation of the data
@@ -249,33 +236,4 @@ func connect() (config *rest.Config, err error) {
 	}
 
 	return config, nil
-}
-
-// isClusterScoped returns true if the resource is cluster scoped
-func isClusterScoped(gvr schema.GroupVersionResource) (bool, error) {
-	config, err := connect()
-	if err != nil {
-		return false, fmt.Errorf("failed to connect to k8s cluster: %w", err)
-	}
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return false, err
-	}
-
-	_, resourceList, _, err := discoveryClient.GroupsAndMaybeResources()
-	if err != nil {
-		return false, err
-	}
-
-	for gv, list := range resourceList {
-		if gv.Group == gvr.Group && gv.Version == gvr.Version {
-			for _, item := range list.APIResources {
-				if item.Name == gvr.Resource {
-					return !item.Namespaced, nil
-				}
-			}
-		}
-	}
-	return false, nil
 }

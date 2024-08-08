@@ -91,7 +91,6 @@ component-definition:
                   name: validation-test
                   version: v1
                   resource: namespaces
-                  namespaces: []
           provider: 
             type: opa
             opa-spec:
