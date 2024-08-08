@@ -74,26 +74,24 @@ func GetResourcesDynamically(ctx context.Context,
 
 	if resource.Name != "" && len(namespaces) > 1 {
 		return nil, fmt.Errorf("named resource requested cannot be returned from multiple namespaces")
-	} else if resource.Name != "" && len(namespaces) == 1 {
+	} else if resource.Name != "" {
 		// Extracting named resources can only occur here
-		if resource.Name != "" {
-			var itemObj *unstructured.Unstructured
-			itemObj, err := dynamic.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+		var itemObj *unstructured.Unstructured
+		itemObj, err := dynamic.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		item := itemObj.Object
+
+		// If field is specified, get the field data; can only occur when a single named resource is specified
+		if resource.Field != nil && resource.Field.Jsonpath != "" {
+			item, err = getFieldValue(item, resource.Field)
 			if err != nil {
 				return nil, err
 			}
-			item := itemObj.Object
-
-			// If field is specified, get the field data; can only occur when a single named resource is specified
-			if resource.Field != nil && resource.Field.Jsonpath != "" {
-				item, err = getFieldValue(item, resource.Field)
-				if err != nil {
-					return nil, err
-				}
-			}
-
-			collection = append(collection, item)
 		}
+
+		collection = append(collection, item)
 	} else {
 		for _, namespace := range namespaces {
 			list, err := dynamic.Resource(resourceId).Namespace(namespace).
