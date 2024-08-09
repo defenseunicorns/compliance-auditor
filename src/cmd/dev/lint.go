@@ -8,7 +8,6 @@ import (
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
-	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -74,9 +73,9 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 		// handleFail is a helper function to handle the case where the validation fails from
 		// a non-schema error
 		handleFail := func(err error) {
-			result = validationResult.NewNonSchemaValidationError(err, "validation")
+			result = *oscalValidation.NewNonSchemaValidationError(err, &oscalValidation.ValidationParams{ModelType: "validation"})
 			validationResults = append(validationResults, result)
-			message.WarnErrf(validationResult.GetNonSchemaError(result), "Failed to lint %s, %s", inputFile, validationResult.GetNonSchemaError(result).Error())
+			message.WarnErrf(oscalValidation.GetNonSchemaError(&result), "Failed to lint %s, %s", inputFile, oscalValidation.GetNonSchemaError(&result).Error())
 			spinner.Stop()
 		}
 

@@ -46,13 +46,13 @@ component-definition:
             type: kubernetes
             kubernetes-spec:
               resources:
-              - name: podsvt 
-                resource-rule:   
-                  group: 
+              - name: podsvt
+                resource-rule:
+                  group:
                   version: v1
                   resource: pods
-                  namespaces: [validation-test] 
-          provider: 
+                  namespaces: [validation-test]
+          provider:
             type: opa
             opa-spec:
               rego: |

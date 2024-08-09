@@ -1,0 +1,145 @@
+component-definition:
+  back-matter:
+    resources:
+      - description: |-
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+              - name: podsvt
+                resource-rule:
+                  group:
+                  version: v1
+                  resource: pods
+                  namespaces: [validation-test]
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                import future.keywords.every
+
+                validate {
+                  every pod in input.podsvt {
+                    podLabel := pod.metadata.labels.foo
+                    podLabel == "bar"
+                  }
+                }
+        rlinks:
+          - href: lula.dev
+        uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+      - description: |
+          domain:
+            kubernetes-spec:
+              create-resources: null
+              resources:
+              - description: ""
+                name: podsvt
+                resource-rule:
+                  group: ""
+                  name: ""
+                  namespaces:
+                  - validation-test
+                  resource: pods
+                  version: v1
+            type: kubernetes
+          lula-version: '>= v0.1.0'
+          metadata:
+            name: Kyverno validate pods with label foo=bar
+            uuid: 2d9858bc-fb54-42e7-a928-43f840ac0ae6
+          provider:
+            kyverno-spec:
+              policy:
+                apiVersion: json.kyverno.io/v1alpha1
+                kind: ValidatingPolicy
+                metadata:
+                  creationTimestamp: null
+                  name: labels
+                spec:
+                  rules:
+                  - assert:
+                      all:
+                      - check:
+                          ~.podsvt:
+                            metadata:
+                              labels:
+                                foo: bar
+                    name: foo-label-exists
+            type: kyverno
+        title: Kyverno validate pods with label foo=bar
+        uuid: 2d9858bc-fb54-42e7-a928-43f840ac0ae6
+      - description: |
+          domain:
+            kubernetes-spec:
+              create-resources: null
+              resources:
+              - description: ""
+                name: podsvt
+                resource-rule:
+                  group: ""
+                  name: ""
+                  namespaces:
+                  - validation-test
+                  resource: pods
+                  version: v1
+            type: kubernetes
+          lula-version: '>= v0.1.0'
+          metadata:
+            name: Validate pods with label foo=bar
+            uuid: 7f4b12a9-3b8f-4a8e-9f6e-8c8f506c851e
+          provider:
+            opa-spec:
+              rego: |
+                package validate
+
+                import future.keywords.every
+
+                validate {
+                  every pod in input.podsvt {
+                    podLabel := pod.metadata.labels.foo
+                    podLabel == "bar"
+                  }
+                }
+            type: opa
+        title: Validate pods with label foo=bar
+        uuid: 7f4b12a9-3b8f-4a8e-9f6e-8c8f506c851e
+  components:
+    - control-implementations:
+        - description: Validate generic security requirements
+          implemented-requirements:
+            - control-id: ID-1
+              description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+              links:
+                - href: '#a7377430-2328-4dc4-a9e2-b3f31dc1dff9'
+                  rel: lula
+                - href: '#7f4b12a9-3b8f-4a8e-9f6e-8c8f506c851e'
+                  rel: lula
+                - href: '#2d9858bc-fb54-42e7-a928-43f840ac0ae6'
+                  rel: lula
+              uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
+      description: |
+        Lula - the Compliance Validator
+      purpose: Validate compliance controls
+      responsible-roles:
+        - party-uuids:
+            - C18F4A9F-A402-415B-8D13-B51739D689FF
+          role-id: provider
+      title: lula
+      type: software
+      uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+  metadata:
+    last-modified: 2024-08-09T17:38:10.337710702Z
+    oscal-version: 1.1.2
+    parties:
+      - links:
+          - href: https://github.com/defenseunicorns/lula
+            rel: website
+        name: Lula Development
+        type: organization
+        uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+    title: Lula Demo
+    version: "20220913"
+  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
