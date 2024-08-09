@@ -5,7 +5,7 @@
 ## System Security Plan Generate
 
 To generate a system security plan, you need the following context:
-- The componet definition `--component`
+- The component definition `--component`
 - The profile  source `--profile` or catalog source `--catalog`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json`
 
 The following command will generate a system security plan with the above context:
