@@ -73,6 +73,14 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 			return err
 		}
 	}
+	// If the deterministic update is applied here - Lula will fix OSCAL that was previously written
+	// or generated outside of Lula workflows
+	switch modelType {
+	case "component":
+		MakeComponentDeterminstic(model.ComponentDefinition)
+	case "assessment-results":
+		MakeAssessmentResultsDeterministic(model.AssessmentResults)
+	}
 
 	var b bytes.Buffer
 

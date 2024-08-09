@@ -106,7 +106,7 @@ var generateComponentCmd = &cobra.Command{
 		// Create a component definition from the catalog given required context
 		comp, err := oscal.ComponentFromCatalog(source, catalog, title, componentOpts.Requirements, remarks)
 		if err != nil {
-			message.Fatalf(fmt.Errorf("error creating component"), "error creating component")
+			message.Fatalf(err, fmt.Sprintf("error creating component - %s\n", err.Error()))
 		}
 
 		// Add the command to the remarks - this will always overwrite the existing remarks content

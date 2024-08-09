@@ -2,6 +2,34 @@
 
 Evaluate serves as a method for verifying the compliance of a component/system against an established threshold to determine if it is more or less compliant than a previous assessment. 
 
+## Usage
+
+To evaluate two results (threshold and latest) in a single OSCAL file:
+```bash
+lula evaluate -f assessment-results.yaml
+```
+
+To evaluate the latest results in two assessment results files:
+```bash
+lula evaluate -f assessment-results-threshold.yaml -f assessment-results-new.yaml
+```
+
+To print a summary of the observation results:
+```bash
+lula evaluate -f assessment-results.yaml --summary
+```
+
+To target a specific framework for validation:
+```bash
+lula evaluate -f assessment-results.yaml --target critical
+```
+
+## Options
+
+- `-f, --file`: The path to the file(s) to be evaluated.
+- `-s, --summary`: [Optional] Prints a summary of the evaluation.
+- `-t, --target`: [Optional] targets a specific standard source or framework
+
 ## Expected Process
 
 ### No Existing Data

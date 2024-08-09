@@ -1,5 +1,63 @@
 # Changelog
 
+## [0.4.5](https://github.com/defenseunicorns/lula/compare/v0.4.4...v0.4.5) (2024-08-02)
+
+
+### Bug Fixes
+
+* **release:** configuration to bump minor version when including features ([#576](https://github.com/defenseunicorns/lula/issues/576)) ([6bd11bb](https://github.com/defenseunicorns/lula/commit/6bd11bb55b1159c5ad73cb9314b13a0b51a08efe))
+* **validate:** allow for optionality among potential standards in a component definition ([#532](https://github.com/defenseunicorns/lula/issues/532)) ([ac0befb](https://github.com/defenseunicorns/lula/commit/ac0befb872f0b634778bf0a6c1f731620dd2e1a2))
+
+
+### Miscellaneous
+
+* **deps:** update actions/github-script digest to 35b1cdd ([#570](https://github.com/defenseunicorns/lula/issues/570)) ([4a2b03b](https://github.com/defenseunicorns/lula/commit/4a2b03b9eaf1acdf731f83480617663346f82ed6))
+* **deps:** update ossf/scorecard-action action to v2.4.0 ([#565](https://github.com/defenseunicorns/lula/issues/565)) ([2207d71](https://github.com/defenseunicorns/lula/commit/2207d71805401dda8721a93a2e1d578d1771801c))
+
+## [0.4.4](https://github.com/defenseunicorns/lula/compare/v0.4.3...v0.4.4) (2024-07-26)
+
+
+### Features
+
+* **evaluate:** add observation summary ([#540](https://github.com/defenseunicorns/lula/issues/540)) ([8a07833](https://github.com/defenseunicorns/lula/commit/8a07833c5a563d8e857515a083137785cade5eb5))
+
+
+### Bug Fixes
+
+* **oscal:** deterministic OSCAL model write ([#553](https://github.com/defenseunicorns/lula/issues/553)) ([5493df1](https://github.com/defenseunicorns/lula/commit/5493df122b803d11542f29cfe80dfa4d5aaa10a8))
+
+
+### Miscellaneous
+
+* **deps:** update github/codeql-action action to v3.25.14 ([#557](https://github.com/defenseunicorns/lula/issues/557)) ([5bfd94f](https://github.com/defenseunicorns/lula/commit/5bfd94febc467e5a455ed32d97ce2e82e20409c2))
+* **deps:** update github/codeql-action action to v3.25.15 ([#564](https://github.com/defenseunicorns/lula/issues/564)) ([60e128a](https://github.com/defenseunicorns/lula/commit/60e128a0a34ce8686c67e22ea2aebb61212b97fc))
+* **deps:** update golang to version 1.22.5 ([#562](https://github.com/defenseunicorns/lula/issues/562)) ([97ff760](https://github.com/defenseunicorns/lula/commit/97ff7602f30f0709bd2ca16b74e53008607c3a61))
+* **deps:** update module github.com/open-policy-agent/opa to v0.67.0 ([#561](https://github.com/defenseunicorns/lula/issues/561)) ([4378242](https://github.com/defenseunicorns/lula/commit/43782420b8b34362d03bcc965e00df2a850715c6))
+* **docs:** fix simple demo command for evaluate file ([33fb97c](https://github.com/defenseunicorns/lula/commit/33fb97cccc9d4a589da65c03cc433b4f05c79d5d))
+* **docs:** updated broken links ([#554](https://github.com/defenseunicorns/lula/issues/554)) ([8dd24b0](https://github.com/defenseunicorns/lula/commit/8dd24b083c86b12af8740fe788c4222f4c1c8718))
+* **docs:** updated README for docs badge ([#558](https://github.com/defenseunicorns/lula/issues/558)) ([72fd3fc](https://github.com/defenseunicorns/lula/commit/72fd3fc8137477a4f10507481f8464eb5685b781))
+
+## [0.4.3](https://github.com/defenseunicorns/lula/compare/v0.4.2...v0.4.3) (2024-07-19)
+
+
+### Features
+
+* **common:** json schema linting for common validation(s) ([#473](https://github.com/defenseunicorns/lula/issues/473)) ([23a45b6](https://github.com/defenseunicorns/lula/commit/23a45b696a3c24653ad2001dc4b883f40e9685c1))
+
+
+### Bug Fixes
+
+* **release:** add option to milestone for release process ([#535](https://github.com/defenseunicorns/lula/issues/535)) ([6fe64d8](https://github.com/defenseunicorns/lula/commit/6fe64d82ac4950214749b5f49a1ada12f43d193a))
+* **test:** updated uuid in kyverno validation ([#539](https://github.com/defenseunicorns/lula/issues/539)) ([81446d9](https://github.com/defenseunicorns/lula/commit/81446d9441e1f062c57fa922e7d3cca833cbfd3e))
+
+
+### Miscellaneous
+
+* **deps:** update anchore/sbom-action action to v0.17.0 ([#541](https://github.com/defenseunicorns/lula/issues/541)) ([7c29fb7](https://github.com/defenseunicorns/lula/commit/7c29fb7dbbab163c648b4c04c89a1568206b8407))
+* **deps:** update github/codeql-action action to v3.25.13 ([#507](https://github.com/defenseunicorns/lula/issues/507)) ([dc6cb88](https://github.com/defenseunicorns/lula/commit/dc6cb88eb8cda95c4f000988fc88e7ff1493d3cb))
+* **deps:** update kubernetes packages to v0.30.3 ([#543](https://github.com/defenseunicorns/lula/issues/543)) ([1bdefce](https://github.com/defenseunicorns/lula/commit/1bdefce3f3e2af86f985f5b5e95d8d5f2c0c3c39))
+* **docs:** initial docs structure/changes for feedback ([#524](https://github.com/defenseunicorns/lula/issues/524)) ([c276fdd](https://github.com/defenseunicorns/lula/commit/c276fdd3d390719e0a7825e0aabcdc50f0c33a0a))
+
 ## [0.4.2](https://github.com/defenseunicorns/lula/compare/v0.4.1...v0.4.2) (2024-07-10)
 
 

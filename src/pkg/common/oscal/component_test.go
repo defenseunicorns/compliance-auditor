@@ -371,3 +371,191 @@ func TestMergeComponentDefinitions(t *testing.T) {
 	}
 
 }
+
+func TestMakeComponentDeterministic(t *testing.T) {
+	t.Parallel()
+	// what do we need?
+	// A component definition with 2x components + 2x control-implementations + 2x implemented-requirements + 2x backmatter resources
+	var resources = []oscalTypes.Resource{
+		{
+			Title:       "Resource B",
+			Description: "This is the existing test string",
+		},
+		{
+			Title:       "Resource A",
+			Description: "This is the existing test string",
+		},
+	}
+
+	// implemented-requirements in reverse order
+	var requirements = []oscalTypes.ImplementedRequirementControlImplementation{
+		{
+			UUID:      "a42e3429-9232-4ae5-8097-1bc2ef06409e",
+			ControlId: "Control B",
+		},
+		{
+			UUID:      "ff492990-c8df-4576-b1df-0ca342b5003c",
+			ControlId: "Control A",
+		},
+	}
+
+	// control-implementations in reverse ordert
+	var controls = []oscalTypes.ControlImplementationSet{
+		{
+			UUID:                    "ed7544f6-329d-4c14-8605-479424e8a735",
+			Source:                  "Source B",
+			ImplementedRequirements: requirements,
+		},
+		{
+			UUID:                    "80a0f638-4e0a-4cce-8ff7-1b0b522943c5",
+			Source:                  "Source A",
+			ImplementedRequirements: requirements,
+		},
+	}
+
+	// Components in reverse order
+	var components = []oscalTypes.DefinedComponent{
+		{
+			UUID:                   "eb2af205-1fe0-416f-b432-c666dac55df8",
+			Title:                  "Component B",
+			ControlImplementations: &controls,
+		},
+		{
+			UUID:                   "75ee614f-8ad1-4745-a901-4995a92b7792",
+			Title:                  "Component A",
+			ControlImplementations: &controls,
+		},
+	}
+
+	var compDef = oscalTypes.ComponentDefinition{
+		Components: &components,
+		BackMatter: &oscalTypes.BackMatter{
+			Resources: &resources,
+		},
+	}
+
+	// Execute in-place update
+	oscal.MakeComponentDeterminstic(&compDef)
+
+	// Verify the update
+	if compDef.Components == nil {
+		t.Errorf("Expected Components to be non-nil")
+	}
+
+	compDefComponents := *compDef.Components
+	if len(compDefComponents) < 2 {
+		t.Errorf("Expected Components to have at least 2 elements")
+	}
+
+	var expectedComponents = []string{"75ee614f-8ad1-4745-a901-4995a92b7792", "eb2af205-1fe0-416f-b432-c666dac55df8"}
+
+	for i, component := range compDefComponents {
+		if component.UUID != expectedComponents[i] {
+			t.Errorf("Expected Components[%v].UUID to be %v, but got %v", i, expectedComponents[i], component.UUID)
+		}
+		var expectedControls = []string{"80a0f638-4e0a-4cce-8ff7-1b0b522943c5", "ed7544f6-329d-4c14-8605-479424e8a735"}
+		for j, control := range *component.ControlImplementations {
+			if control.UUID != expectedControls[j] {
+				t.Errorf("Expected ControlImplementations[%v].UUID to be %v, but got %v", j, expectedControls[j], control.UUID)
+			}
+			var expectedRequirements = []string{"ff492990-c8df-4576-b1df-0ca342b5003c", "a42e3429-9232-4ae5-8097-1bc2ef06409e"}
+			for k, implementedRequirement := range control.ImplementedRequirements {
+				if implementedRequirement.UUID != expectedRequirements[k] {
+					t.Errorf("Expected ImplementedRequirements[%v].UUID to be %v, but got %v", k, expectedRequirements[k], implementedRequirement.UUID)
+				}
+			}
+		}
+	}
+
+	var expectedResources = []string{"Resource A", "Resource B"}
+
+	for i, resource := range *compDef.BackMatter.Resources {
+		if resource.Title != expectedResources[i] {
+			t.Errorf("Expected Resources[%v].Name to be %v, but got %v", i, expectedResources[i], resource.Title)
+		}
+	}
+
+}
+
+func TestControlImplementationsToRequirementsMap(t *testing.T) {
+
+	tests := []struct {
+		name      string
+		filepath  string
+		mapLength int
+	}{
+		{
+			name:      "valid-multi-component",
+			filepath:  "../../../test/unit/common/oscal/valid-multi-component.yaml",
+			mapLength: 24,
+		},
+		{
+			name:      "valid-component",
+			filepath:  "../../../test/unit/common/oscal/valid-component.yaml",
+			mapLength: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := loadTestData(t, tt.filepath)
+			compdef, err := oscal.NewOscalComponentDefinition(data)
+
+			if err != nil {
+				t.Errorf("Expected NewOscalComponentDefinition to execute")
+			}
+
+			controlMap := oscal.FilterControlImplementations(compdef)
+			var count int
+			// range over the control map and determine total items
+			for _, controlImp := range controlMap {
+				requirementsMap := oscal.ControlImplementationstToRequirementsMap(&controlImp)
+				count += len(requirementsMap)
+			}
+			if count != tt.mapLength {
+				t.Errorf("Expected requirementsMap length total of %v, got %v", tt.mapLength, count)
+			}
+
+		})
+	}
+
+}
+
+func TestFilterControlImplementations(t *testing.T) {
+
+	tests := []struct {
+		name      string
+		filepath  string
+		mapLength int
+	}{
+		{
+			name:      "valid-multi-component",
+			filepath:  "../../../test/unit/common/oscal/valid-multi-component.yaml",
+			mapLength: 4,
+		},
+		{
+			name:      "valid-component",
+			filepath:  "../../../test/unit/common/oscal/valid-component.yaml",
+			mapLength: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := loadTestData(t, tt.filepath)
+			compdef, err := oscal.NewOscalComponentDefinition(data)
+
+			if err != nil {
+				t.Errorf("Expected NewOscalComponentDefinition to execute")
+			}
+
+			controlMap := oscal.FilterControlImplementations(compdef)
+			// Now validate the existence of items in the controlMap
+
+			if len(controlMap) != tt.mapLength {
+				t.Errorf("Expected controlMap length %v, got %v", len(controlMap), tt.mapLength)
+			}
+
+		})
+	}
+}

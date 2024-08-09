@@ -1,19 +1,16 @@
 package tools
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 type composeFlags struct {
@@ -81,7 +78,7 @@ func Compose(inputFile, outputFile string) error {
 	}
 
 	// Write the composed OSCAL model to a file
-	err = WriteComposedOscalModel(model, outputFile, inputFile)
+	err = oscal.WriteOscalModel(outputFile, model)
 	if err != nil {
 		return err
 	}
@@ -92,26 +89,4 @@ func Compose(inputFile, outputFile string) error {
 // GetDefaultOutputFile returns the default output file name
 func GetDefaultOutputFile(inputFile string) string {
 	return strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + "-composed" + filepath.Ext(inputFile)
-}
-
-// WriteComposedOscalModel writes the composed OSCAL model to a file
-func WriteComposedOscalModel(model *oscalTypes_1_1_2.OscalCompleteSchema, outputFile string, inputFile string) (err error) {
-	var b bytes.Buffer
-
-	yamlEncoder := yaml.NewEncoder(&b)
-	yamlEncoder.SetIndent(2)
-	yamlEncoder.Encode(model)
-
-	outputFileName := outputFile
-	if outputFileName == "" {
-		outputFileName = GetDefaultOutputFile(inputFile)
-	}
-
-	message.Infof("Writing Composed OSCAL Component Definition to: %s", outputFileName)
-
-	err = files.WriteOutput(b.Bytes(), outputFileName)
-	if err != nil {
-		return err
-	}
-	return nil
 }

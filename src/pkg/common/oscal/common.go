@@ -23,3 +23,17 @@ func UpdateProps(name string, namespace string, value string, props *[]oscalType
 
 	*props = append(*props, prop)
 }
+
+func GetProp(name string, namespace string, props *[]oscalTypes_1_1_2.Property) (bool, string) {
+
+	if props == nil {
+		return false, ""
+	}
+
+	for _, prop := range *props {
+		if prop.Name == name && prop.Ns == namespace {
+			return true, prop.Value
+		}
+	}
+	return false, ""
+}
