@@ -86,6 +86,11 @@ component-definition:
                   field:
                     jsonpath: .metadata.annotations.annotation.io/simple
                     type: json
+              - name: validationTestNamespace
+                resource-rule:
+                  name: validation-test
+                  version: v1
+                  resource: namespaces
           provider: 
             type: opa
             opa-spec:
@@ -99,4 +104,5 @@ component-definition:
                   input.yamlcm.logging.level == "INFO"
                   input.secret.username == "username"
                   "item1" in input.pod.items
+                  input.validationTestNamespace.metadata.name == "validation-test"
                 }
