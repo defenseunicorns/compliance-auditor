@@ -8,8 +8,8 @@ import (
 )
 
 func TestNewRequirementStore(t *testing.T) {
-	componentDefn := oscalTypes_1_1_2.ComponentDefinition{}
-	r := requirementstore.NewRequirementStore(&componentDefn)
+	controlImplementations := []oscalTypes_1_1_2.ControlImplementationSet{}
+	r := requirementstore.NewRequirementStore(&controlImplementations)
 	if r == nil {
 		t.Error("Expected a new RequirementStore, but got nil")
 	}

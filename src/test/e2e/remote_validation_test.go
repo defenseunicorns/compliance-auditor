@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -35,23 +34,29 @@ func TestRemoteValidation(t *testing.T) {
 			return ctx
 		}).
 		Assess("Validate local validation file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			compDefPath := "./scenarios/remote-validations/component-definition.yaml"
+			oscalPath := "./scenarios/remote-validations/component-definition.yaml"
 
-			findings, observations, err := validate.ValidateOnPath(compDefPath)
+			assessment, err := validate.ValidateOnPath(oscalPath, "")
 			if err != nil {
-				t.Errorf("Error validating component definition: %v", err)
+				t.Fatal(err)
 			}
 
-			if len(findings) == 0 {
-				t.Errorf("Expected to find findings")
+			if len(assessment.Results) == 0 {
+				t.Fatal("Expected greater than zero results")
 			}
 
-			if len(observations) == 0 {
-				t.Errorf("Expected to find observations")
+			result := assessment.Results[0]
+
+			if result.Findings == nil {
+				t.Fatal("Expected findings to be not nil")
 			}
 
-			message.Infof("Number of observations: %d", len(observations))
-			message.Infof("Number of findings: %d", len(findings))
+			for _, finding := range *result.Findings {
+				state := finding.Target.Status.State
+				if state != "satisfied" {
+					t.Fatal("State should be satisfied, but got :", state)
+				}
+			}
 
 			return ctx
 		}).
