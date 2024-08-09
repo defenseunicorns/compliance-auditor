@@ -489,6 +489,39 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	return controlMap
 }
 
+// Need to get components + targets + control implementations -> new struct?
+type ComponentTargets struct {
+	ComponentTitle string
+	Targets        map[string][]oscalTypes_1_1_2.ControlImplementationSet
+}
+
+func NewComponentTargets(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]ComponentTargets {
+	componentTargets := make(map[string]ComponentTargets)
+
+	if componentDefinition.Components != nil {
+		// Build a map[source/framework][]control-implementations
+		for _, component := range *componentDefinition.Components {
+			controlImplementationsMap := make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
+			if component.ControlImplementations != nil {
+				for _, controlImplementation := range *component.ControlImplementations {
+					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
+					controlImplementationsMap[controlImplementation.Source] = append(controlImplementationsMap[controlImplementation.Source], controlImplementation)
+					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					if status {
+						controlImplementationsMap[value] = append(controlImplementationsMap[value], controlImplementation)
+					}
+				}
+			}
+			componentTargets[component.Title] = ComponentTargets{
+				ComponentTitle: component.Title,
+				Targets:        controlImplementationsMap,
+			}
+		}
+	}
+
+	return componentTargets
+}
+
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
 	// sort components by title
 
