@@ -6,3 +6,4 @@ As indicated on the [Extending OSCAL models](https://pages.nist.gov/OSCAL/learn/
 - [threshold](./threshold.md)
 - [target](./target.md)
 - [framework](./framework.md)
+- [generation](./generation.md)

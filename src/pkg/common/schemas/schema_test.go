@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
+	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
-	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 )
 
 func TestToMap(t *testing.T) {
@@ -74,7 +74,7 @@ func TestValidate(t *testing.T) {
 		t.Parallel() // Enable parallel execution of subtests
 		schema := "validation"
 		result := schemas.Validate(schema, validationData)
-		if validationResult.GetNonSchemaError(result) != nil {
+		if oscalValidation.GetNonSchemaError(&result) != nil {
 			t.Errorf("expected result to be valid, got %v", result)
 		}
 	})

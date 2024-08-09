@@ -10,7 +10,6 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
-	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
@@ -80,7 +79,7 @@ type Provider struct {
 func (validation *Validation) Lint() oscalValidation.ValidationResult {
 	validationBytes, err := validation.MarshalYaml()
 	if err != nil {
-		return validationResult.NewNonSchemaValidationError(err, "validation")
+		return *oscalValidation.NewNonSchemaValidationError(err, &oscalValidation.ValidationParams{ModelType: "validation"})
 	}
 	return schemas.Validate("validation", validationBytes)
 }
@@ -97,8 +96,8 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 
 	lintResult := validation.Lint()
 	// If the validation is not valid, return the error
-	if validationResult.IsNonSchemaValidationError(lintResult) {
-		return lulaValidation, validationResult.GetNonSchemaError(lintResult)
+	if oscalValidation.IsNonSchemaValidationError(&lintResult) {
+		return lulaValidation, oscalValidation.GetNonSchemaError(&lintResult)
 	} else if !lintResult.Valid {
 		return lulaValidation, fmt.Errorf("validation failed: %v", lintResult.Errors)
 	}
