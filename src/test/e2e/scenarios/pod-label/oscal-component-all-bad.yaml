@@ -120,6 +120,26 @@ component-definition:
                 - href: "#3d170c49-41a7-4677-9b3f-xxxxxxxxxxxx"
                   rel: lula
                   text: Href does not exist
+            - uuid: 7c73052c-0764-4063-a6f1-65db773a8e3e
+              control-id: ID-7
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#3d0c3020-7e92-47c1-944e-5667e68fdef8"
+                  rel: lula
+                  text: Named resource, namespace-scoped, no namespace
+            - uuid: 4dac6c27-db71-441a-8704-26b0d313ffa4
+              control-id: ID-8
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#97d41576-66c5-448e-a0b1-040020be89a0"
+                  rel: lula
+                  text: Named resource, cluster-scoped, with namespace
   back-matter:
     resources:
       - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
@@ -276,4 +296,46 @@ component-definition:
                 package validate
 
                 default validate = false
+      - uuid: 3d0c3020-7e92-47c1-944e-5667e68fdef8
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    name: test-pod-label
+                    group:
+                    version: v1
+                    resource: pods
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
 
+                default validate = false
+      - uuid: 97d41576-66c5-448e-a0b1-040020be89a0
+        description: |
+          metadata:
+            name: Validate pods with label foo=bar
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podsvt
+                  resource-rule:
+                    name: validation-test
+                    group:
+                    version: v1
+                    resource: namespaces
+                    namespaces: [validation-test]
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                default validate = false

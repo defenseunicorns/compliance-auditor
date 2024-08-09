@@ -238,11 +238,18 @@
                     "description": "Resource type (API-recognized type, not Kind)"
                 },
                 "namespaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "Namespaces to validate the above resources in. Empty or \"\" for all namespace or non-namespaced resources. Required if name is specified"
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Namespaces to validate the above resources in. Empty or \"\" for all namespace or non-namespaced resources. Required if name is specified for namespaced resources"
                 },
                 "field": {
                     "$ref": "#/definitions/field"
