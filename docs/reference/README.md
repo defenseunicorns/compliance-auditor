@@ -73,7 +73,7 @@ The `common.Validation.Lint` method is a convenience method to lint a `Validatio
 2. **Linting**: The method runs linting against the marshalled `Validation` object. This is done using the `schemas.Validate` function, which ensures that the YAML data conforms to the expected [schema](https://raw.githubusercontent.com/defenseunicorns/lula/main/src/pkg/common/schemas/validation.json).
 
 ___
-The `schemas.Validate` function is responsible for validating the provided data against a specified JSON schema using [github.com/santhosh-tekuri/jsonschema/v5](https://github.com/santhosh-tekuri/jsonschema). The process involves the following steps:
+The `schemas.Validate` function is responsible for validating the provided data against a specified JSON schema using [github.com/santhosh-tekuri/jsonschema/v6](https://github.com/santhosh-tekuri/jsonschema). The process involves the following steps:
 
 1. **Coercion to JSON Map**: The provided data, which can be either an interface or a byte array, is coerced into a JSON map using the `model.CoerceToJsonMap` function.
 2. **Schema Retrieval**: The function retrieves the JSON schema specified by the `schema` parameter using the `GetSchema` function.

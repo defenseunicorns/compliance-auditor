@@ -18,6 +18,20 @@ There are optional flags that can be added to the command to generate a componen
 - The title of the component `--component`; `Software Title`
 - The output file of the component `-o` or `--output`; `oscal-component.yaml`
 
+### Reproducibility  
+
+The `lula generate` commands are meant to be reproducible and will auto-merge models based on filename. The intent for this generation is to make it easy to update a given model with automation and only inject human intervention as needed. An artifact generated with `lula generate` can be merged with a pre-existing artifact of the same model type. 
+
+For component-definitions, see each individual `control-implementation` props for the `generation` prop. It should look like the following:
+```yaml
+props:
+  - name: generation
+    ns: https://docs.lula.dev/ns
+    value: lula generate component --catalog-source https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json --component 'Component Title' --requirements ac-1,ac-3,ac-3.2,ac-4 --remarks assessment-objective
+```
+
+This `value` should mirror any required inputs in order to reproduce a given control implementation in a component. 
+
 ### Existing Data
 
 The ability to retain data that is put into OSCAL artifacts is of utmost importance to this generation process and also a large feature of continued maintenance of these artifacts. Lula supports the ability to merge newly generated component definition templates into existing component definitions automatically. 

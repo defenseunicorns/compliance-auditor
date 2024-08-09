@@ -185,7 +185,7 @@ func TestComponentFromCatalog(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := oscal.ComponentFromCatalog(tt.source, &tt.data, tt.title, tt.requirements, tt.remarks)
+			got, err := oscal.ComponentFromCatalog("Mock Command", tt.source, &tt.data, tt.title, tt.requirements, tt.remarks, "impact")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ComponentFromCatalog() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -299,7 +299,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 				existingImplementedRequirementsMap[req.ControlId] = true
 			}
 
-			generated, _ := oscal.ComponentFromCatalog(tt.source, catalog, tt.title, tt.requirements, tt.remarks)
+			generated, _ := oscal.ComponentFromCatalog("Mock Command", tt.source, catalog, tt.title, tt.requirements, tt.remarks, "impact")
 
 			merged, err := oscal.MergeComponentDefinitions(validComponent, generated)
 			if (err != nil) != tt.wantErr {
