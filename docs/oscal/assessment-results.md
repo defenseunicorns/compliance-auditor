@@ -36,4 +36,3 @@ The primary structure for Lula production and operation of `assessment-results` 
 - Findings are sorted by `target.target-id` in ascending order
 - Observations are sorted by `collected` time in ascending order
 - Back Matter Resources are sorted by `title` in ascending order.
-- Back Matter Resources are sorted by `title` in ascending order.

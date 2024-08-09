@@ -1,18 +1,18 @@
 # System Security Plan
 
-# **NOTE:** This Document is in an active research phase.
+**NOTE:** This Document is in an active research phase.
 
 ## System Security Plan Generate
 
 To generate a system security plan, you need the following context:
 - The componet definition `--component`
-- The profile source `-p` or `--profile-source`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json`
+- The profile  source `--profile` or catalog source `--catalog`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json`
 
 The following command will generate a system security plan with the above context:
 
 ```bash
 
-lula generate system-security-plan --component .src/test/unit/valid-component.yaml -c https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json
+lula generate system-security-plan --component .src/test/unit/valid-component.yaml --catalog https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json
 
 ```
 
