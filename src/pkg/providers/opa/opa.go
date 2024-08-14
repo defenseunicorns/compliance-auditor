@@ -16,10 +16,7 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 	var matchResult types.Result
 
 	if len(dataset) == 0 {
-		// Not an error but no entries to validate
-		// TODO: add a warning log
-		matchResult.Observations = map[string]string{"OPA validation not performed": "No resources to validate"}
-		return matchResult, nil
+		return matchResult, fmt.Errorf("opa validation not performed - no resources to validate")
 	}
 
 	if output == nil {

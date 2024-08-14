@@ -22,7 +22,7 @@ import (
 // Define base errors for validations
 var (
 	ErrInvalidSchema   = errors.New("schema is invalid")
-	ErrInvalidYaml     = errors.New("yaml is invalid")
+	ErrInvalidYaml     = errors.New("error unmarshaling JSON")
 	ErrInvalidVersion  = errors.New("version is invalid")
 	ErrInvalidDomain   = errors.New("domain is invalid")
 	ErrInvalidProvider = errors.New("provider is invalid")
