@@ -7,6 +7,13 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
+// Define base errors for validations
+var (
+	ErrExecutionNotAllowed = errors.New("execution not allowed")
+	ErrDomainGetResources  = errors.New("domain GetResources error")
+	ErrProviderEvaluate    = errors.New("provider Evaluate error")
+)
+
 type LulaValidationType string
 
 const (
@@ -134,10 +141,10 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 				if config.isInteractive {
 					// Run confirmation user prompt
 					if confirm := message.PromptForConfirmation(config.spinner); !confirm {
-						return errors.New("execution not allowed")
+						return fmt.Errorf("%w: requested execution denied", ErrExecutionNotAllowed)
 					}
 				} else {
-					return errors.New("execution not allowed")
+					return fmt.Errorf("%w: non-interactive execution not allowed", ErrExecutionNotAllowed)
 				}
 			}
 		}
@@ -148,7 +155,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		} else {
 			resources, err = (*val.Domain).GetResources()
 			if err != nil {
-				return fmt.Errorf("domain GetResources error: %v", err)
+				return fmt.Errorf("%w: %v", ErrDomainGetResources, err)
 			}
 			if config.onlyResources {
 				return nil
@@ -158,7 +165,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		// Perform the evaluation using the provider
 		result, err = (*val.Provider).Evaluate(resources)
 		if err != nil {
-			return fmt.Errorf("provider Evaluate error: %v", err)
+			return fmt.Errorf("%w: %v", ErrProviderEvaluate, err)
 		}
 	}
 	return nil

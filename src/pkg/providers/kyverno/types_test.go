@@ -46,10 +46,8 @@ func TestCreateKyvernoProvider(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "nil policy",
-			spec: &kyverno.KyvernoSpec{
-				Policy: nil,
-			},
+			name:    "nil policy",
+			spec:    &kyverno.KyvernoSpec{},
 			wantErr: true,
 		},
 		{
