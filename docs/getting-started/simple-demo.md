@@ -87,7 +87,7 @@ The following simple demo will step through a process to validate and evaluate K
                 uuid: f03ffcd9-c18d-40bf-85f5-d0b1a8195ddb
             props:
                 - name: threshold
-                ns: https://docs.lula.dev/ns
+                ns: https://docs.lula.dev/oscal/ns
                 value: "false"
             reviewed-controls:
                 control-selections:
@@ -161,7 +161,7 @@ The following simple demo will step through a process to validate and evaluate K
           uuid: a1d55b82-c63f-47da-8fab-87ae801357ac
       props:
         - name: threshold
-          ns: https://docs.lula.dev/ns
+          ns: https://docs.lula.dev/oscal/ns
           value: "false"
       reviewed-controls:
         control-selections:

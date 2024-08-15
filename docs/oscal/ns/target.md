@@ -11,6 +11,6 @@ This prop can be identified when reviewing `Assessment Results` artifacts for ea
 ```yaml
 props:
   - name: target
-    ns: https://docs.lula.dev/ns
+    ns: https://docs.lula.dev/oscal/ns
     value:  https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml
 ```

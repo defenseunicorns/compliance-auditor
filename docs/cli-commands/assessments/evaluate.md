@@ -55,7 +55,7 @@ Evaluate will determine which result is the threshold based on the following pro
 ```yaml
 props:
   - name: threshold
-    ns: https://docs.lula.dev/ns
+    ns: https://docs.lula.dev/oscal/ns
     value: "true/false"
 ```
 
