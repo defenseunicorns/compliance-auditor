@@ -2,29 +2,28 @@ package tui
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	ar "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
+	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/internal/tui/component"
 )
 
 type model struct {
-	cursor                    int
 	tabs                      []string
 	activeTab                 int
-	content                   string
-	focusPanel                int
 	oscalModel                oscalTypes_1_1_2.OscalCompleteSchema
-	componentModel            componentModel
-	catalogModel              componentModel
-	assessmentResultsModel    assessmentResultsModel
-	planOfActionAndMilestones componentModel
-	assessmentPlanModel       componentModel
-	systemSecurityPlanModel   componentModel
-	profileModel              componentModel
-	warnModel                 warnModal
+	componentModel            component.Model
+	assessmentResultsModel    ar.Model
+	catalogModel              common.TbdModal
+	planOfActionAndMilestones common.TbdModal
+	assessmentPlanModel       common.TbdModal
+	systemSecurityPlanModel   common.TbdModal
+	profileModel              common.TbdModal
+	warnModel                 common.WarnModal
 	width                     int
 	height                    int
 }
@@ -42,61 +41,16 @@ func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema) model {
 	}
 
 	return model{
-		tabs:                   tabs,
-		content:                "Welcome to the Lula TUI!",
-		oscalModel:             oscalModel,
-		componentModel:         NewComponentDefinitionModel(oscalModel.ComponentDefinition),
-		assessmentResultsModel: NewAssessmentResultsModel(oscalModel.AssessmentResults),
+		tabs:                      tabs,
+		oscalModel:                oscalModel,
+		componentModel:            component.NewComponentDefinitionModel(oscalModel.ComponentDefinition),
+		assessmentResultsModel:    ar.NewAssessmentResultsModel(oscalModel.AssessmentResults),
+		systemSecurityPlanModel:   common.NewTbdModal("System Security Plan"),
+		catalogModel:              common.NewTbdModal("Catalog"),
+		profileModel:              common.NewTbdModal("Profile"),
+		assessmentPlanModel:       common.NewTbdModal("Assessment Plan"),
+		planOfActionAndMilestones: common.NewTbdModal("Plan of Action and Milestones"),
 	}
-}
-
-func checkNonNullFields(v interface{}) []string {
-	var result []string
-	val := reflect.ValueOf(v)
-	typ := reflect.TypeOf(v)
-
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		if !field.IsNil() {
-			fieldName := typ.Field(i).Name
-			result = append(result, fieldName)
-		}
-	}
-
-	return result
-}
-
-func (m model) closeAllTabs() {
-	m.catalogModel.open = false
-	m.profileModel.open = false
-	m.componentModel.open = false
-	m.systemSecurityPlanModel.open = false
-	m.assessmentPlanModel.open = false
-	m.assessmentResultsModel.open = false
-	m.planOfActionAndMilestones.open = false
-}
-
-func (m model) loadTabModel(msg tea.Msg) (tea.Model, tea.Cmd) {
-	m.closeAllTabs()
-	switch m.tabs[m.activeTab] {
-	case "Catalog":
-		return nil, nil
-	case "Profile":
-		return nil, nil
-	case "ComponentDefinition":
-		m.componentModel.open = true
-		return m.componentModel, nil
-	case "SystemSecurityPlan":
-		return nil, nil
-	case "AssessmentPlan":
-		return nil, nil
-	case "AssessmentResults":
-		m.assessmentResultsModel.open = true
-		return m.assessmentResultsModel, nil
-	case "PlanOfActionAndMilestones":
-		return nil, nil
-	}
-	return nil, nil
 }
 
 func (m model) Init() tea.Cmd {
@@ -119,7 +73,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.activeTab = m.activeTab - 1
 			}
-		case "esc":
+		case "ctrl+c":
 			return m, tea.Quit
 		}
 
@@ -131,18 +85,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		contentWidth := m.width
 
 		// Set the height and width of the models
-		m.componentModel.height = contentHeight
-		m.componentModel.width = contentWidth
-
-		m.assessmentResultsModel.height = contentHeight
-		m.assessmentResultsModel.width = contentWidth
+		m.componentModel.SetDimensions(contentWidth, contentHeight)
+		m.assessmentResultsModel.SetDimensions(contentWidth, contentHeight)
 	}
-
-	// if m.tabs[m.activeTab] == "ComponentDefinition" {
-	// 	var cmd tea.Cmd
-	// 	m.componentModel, cmd = m.componentModel.Update(msg) // Ensure the component model is updated
-	// 	cmds = append(cmds, cmd)
-	// }
 
 	var cmd tea.Cmd
 	tabModel, cmd := m.loadTabModel(msg)
@@ -151,9 +96,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if newTabModel != nil {
 			switch m.tabs[m.activeTab] {
 			case "ComponentDefinition":
-				m.componentModel = newTabModel.(componentModel)
+				m.componentModel = newTabModel.(component.Model)
 			case "AssessmentResults":
-				m.assessmentResultsModel = newTabModel.(assessmentResultsModel)
+				m.assessmentResultsModel = newTabModel.(ar.Model)
 			}
 		}
 		cmds = append(cmds, newCmd)
@@ -168,14 +113,14 @@ func (m model) View() string {
 	var tabs []string
 	for i, t := range m.tabs {
 		if i == m.activeTab {
-			tabs = append(tabs, activeTab.Render(t))
+			tabs = append(tabs, common.ActiveTab.Render(t))
 		} else {
-			tabs = append(tabs, tab.Render(t))
+			tabs = append(tabs, common.Tab.Render(t))
 		}
 	}
 
 	row := lipgloss.JoinHorizontal(lipgloss.Top, tabs...)
-	gap := tabGap.Render(strings.Repeat(" ", max(0, m.width-lipgloss.Width(row)-2)))
+	gap := common.TabGap.Render(strings.Repeat(" ", max(0, m.width-lipgloss.Width(row)-2)))
 	row = lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 
 	tabModel, _ := m.loadTabModel(nil)
@@ -185,4 +130,42 @@ func (m model) View() string {
 	}
 
 	return row
+}
+
+func (m model) closeAllTabs() {
+	m.catalogModel.Close()
+	m.profileModel.Close()
+	m.componentModel.Close()
+	m.systemSecurityPlanModel.Close()
+	m.assessmentPlanModel.Close()
+	m.assessmentResultsModel.Close()
+	m.planOfActionAndMilestones.Close()
+}
+
+func (m model) loadTabModel(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.closeAllTabs()
+	switch m.tabs[m.activeTab] {
+	case "Catalog":
+		m.catalogModel.Open()
+		return m.catalogModel, nil
+	case "Profile":
+		m.profileModel.Open()
+		return m.profileModel, nil
+	case "ComponentDefinition":
+		m.componentModel.Open()
+		return m.componentModel, nil
+	case "SystemSecurityPlan":
+		m.systemSecurityPlanModel.Open()
+		return m.systemSecurityPlanModel, nil
+	case "AssessmentPlan":
+		m.assessmentPlanModel.Open()
+		return m.assessmentPlanModel, nil
+	case "AssessmentResults":
+		m.assessmentResultsModel.Open()
+		return m.assessmentResultsModel, nil
+	case "PlanOfActionAndMilestones":
+		m.planOfActionAndMilestones.Open()
+		return m.planOfActionAndMilestones, nil
+	}
+	return nil, nil
 }

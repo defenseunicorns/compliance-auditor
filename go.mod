@@ -9,6 +9,7 @@ require (
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
+	github.com/mattn/go-runewidth v0.0.16
 	github.com/open-policy-agent/opa v0.67.1
 	github.com/pterm/pterm v0.12.79
 	github.com/sergi/go-diff v1.3.1
@@ -92,7 +93,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/moby/term v0.5.0 // indirect

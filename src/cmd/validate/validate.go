@@ -187,7 +187,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 				return results, err
 			}
 			// add/update the source to the result props - make source = framework or omit?
-			oscal.UpdateProps("target", "https://docs.lula.dev/ns", target, result.Props)
+			oscal.UpdateProps("target", oscal.LULA_NAMESPACE, target, result.Props)
 			results = append(results, result)
 		} else {
 			return results, fmt.Errorf("target %s not found", target)
@@ -206,7 +206,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 				return results, err
 			}
 			// add/update the source to the result props
-			oscal.UpdateProps("target", "https://docs.lula.dev/ns", source, result.Props)
+			oscal.UpdateProps("target", oscal.LULA_NAMESPACE, source, result.Props)
 			results = append(results, result)
 		}
 	}

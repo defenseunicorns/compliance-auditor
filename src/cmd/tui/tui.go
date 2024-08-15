@@ -41,6 +41,16 @@ var tuiCmd = &cobra.Command{
 			message.Fatalf(err, "error creating oscal model from file: %v", err)
 		}
 
+		// Add debugging
+		// if message.GetLogLevel() == message.DebugLevel {
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			fmt.Println("fatal:", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+		// }
+
 		p := tea.NewProgram(tui.NewOSCALModel(*oscalModel), tea.WithAltScreen(), tea.WithMouseCellMotion())
 
 		if _, err := p.Run(); err != nil {

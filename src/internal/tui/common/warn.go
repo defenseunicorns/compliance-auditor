@@ -1,8 +1,8 @@
-package tui
+package common
 
 type warnType int
 
-type warnModal struct {
+type WarnModal struct {
 	open     bool
 	warnType warnType
 	title    string

@@ -315,7 +315,7 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 	props := []oscalTypes_1_1_2.Property{
 		{
 			Name:  "generation",
-			Ns:    "https://docs.lula.dev/ns",
+			Ns:    LULA_NAMESPACE,
 			Value: command,
 		},
 	}
@@ -323,7 +323,7 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 	if framework != "" {
 		prop := oscalTypes_1_1_2.Property{
 			Name:  "framework",
-			Ns:    "https://docs.lula.dev/ns",
+			Ns:    LULA_NAMESPACE,
 			Value: framework,
 		}
 		props = append(props, prop)
@@ -518,7 +518,7 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 				for _, controlImplementation := range *component.ControlImplementations {
 					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
 					controlMap[controlImplementation.Source] = append(controlMap[controlImplementation.Source], controlImplementation)
-					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					status, value := GetProp("framework", LULA_NAMESPACE, controlImplementation.Props)
 					if status {
 						controlMap[value] = append(controlMap[value], controlImplementation)
 					}
@@ -530,14 +530,14 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	return controlMap
 }
 
-// Need to get components + targets + control implementations -> new struct?
-type ComponentTargets struct {
-	ComponentTitle string
-	Targets        map[string][]oscalTypes_1_1_2.ControlImplementationSet
+// Need to get components + frameworks + control implementations -> new struct?
+type ComponentFrameworks struct {
+	Component  oscalTypes_1_1_2.DefinedComponent
+	Frameworks map[string][]oscalTypes_1_1_2.ControlImplementationSet
 }
 
-func NewComponentTargets(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]ComponentTargets {
-	componentTargets := make(map[string]ComponentTargets)
+func NewComponentFrameworks(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]ComponentFrameworks {
+	componentTargets := make(map[string]ComponentFrameworks)
 
 	if componentDefinition.Components != nil {
 		// Build a map[source/framework][]control-implementations
@@ -547,15 +547,15 @@ func NewComponentTargets(componentDefinition *oscalTypes_1_1_2.ComponentDefiniti
 				for _, controlImplementation := range *component.ControlImplementations {
 					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
 					controlImplementationsMap[controlImplementation.Source] = append(controlImplementationsMap[controlImplementation.Source], controlImplementation)
-					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					status, value := GetProp("framework", LULA_NAMESPACE, controlImplementation.Props)
 					if status {
 						controlImplementationsMap[value] = append(controlImplementationsMap[value], controlImplementation)
 					}
 				}
 			}
-			componentTargets[component.Title] = ComponentTargets{
-				ComponentTitle: component.Title,
-				Targets:        controlImplementationsMap,
+			componentTargets[component.UUID] = ComponentFrameworks{
+				Component:  component,
+				Frameworks: controlImplementationsMap,
 			}
 		}
 	}

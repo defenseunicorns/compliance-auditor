@@ -99,7 +99,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 
 	if len(target.Results) == 1 {
 		// Only one result identified - update to make it the threshold
-		oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Results[0].Props)
+		oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Results[0].Props)
 		message.Warnf("less than 2 results found for target: %s - no comparison possible", source)
 		return nil
 	}
@@ -148,11 +148,11 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 				message.Infof("New threshold identified - threshold will be updated to result %s", target.Latest.UUID)
 
 				// Update latest threshold prop
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Latest.Props)
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", target.Threshold.Props)
+				oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Latest.Props)
+				oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "false", target.Threshold.Props)
 			} else {
 				// retain result as threshold
-				oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Threshold.Props)
+				oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Threshold.Props)
 			}
 
 			// Print new-not-satisfied
@@ -185,7 +185,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 
 			// retain result as threshold
-			oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "true", target.Threshold.Props)
+			oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Threshold.Props)
 		}
 
 		spinner.Success()

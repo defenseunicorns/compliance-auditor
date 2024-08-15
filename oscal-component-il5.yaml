@@ -1,0 +1,52 @@
+component-definition:
+  components:
+    - control-implementations:
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: ac-1
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                GUIDANCE:
+                Access control policy and procedures address the controls in the AC family that are implemented within systems and organizations. The risk management strategy is an important factor in establishing such policies and procedures. Policies and procedures contribute to security and privacy assurance. Therefore, it is important that security and privacy programs collaborate on the development of access control policy and procedures. Security and privacy program policies and procedures at the organization level are preferable, in general, and may obviate the need for mission- or system-specific policies and procedures. The policy can be included as part of the general security and privacy policy or be represented by multiple policies reflecting the complex nature of organizations. Procedures can be established for security and privacy programs, for mission or business processes, and for systems, if needed. Procedures describe how the policies or controls are implemented and can be directed at the individual or role that is the object of the procedure. Procedures can be documented in system security and privacy plans or in one or more separate documents. Events that may precipitate an update to access control policy and procedures include assessment or audit findings, security incidents or breaches, or changes in laws, executive orders, directives, regulations, policies, standards, and guidelines. Simply restating controls does not constitute an organizational policy or procedure.
+              uuid: 7a3a0340-23cd-48f1-9bf8-bfd031cabb63
+            - control-id: ac-3
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                GUIDANCE:
+                Access control policies control access between active entities or subjects (i.e., users or processes acting on behalf of users) and passive entities or objects (i.e., devices, files, records, domains) in organizational systems. In addition to enforcing authorized access at the system level and recognizing that systems can host many applications and services in support of mission and business functions, access enforcement mechanisms can also be employed at the application and service level to provide increased information security and privacy. In contrast to logical access controls that are implemented within the system, physical access controls are addressed by the controls in the Physical and Environmental Protection ( [PE](#pe) ) family.
+              uuid: 5491e5af-51aa-44ff-b04f-b627f4697951
+            - control-id: ac-3.2
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                GUIDANCE:
+                Dual authorization, also known as two-person control, reduces risk related to insider threats. Dual authorization mechanisms require the approval of two authorized individuals to execute. To reduce the risk of collusion, organizations consider rotating dual authorization duties. Organizations consider the risk associated with implementing dual authorization mechanisms when immediate responses are necessary to ensure public and environmental safety.
+              uuid: df328446-d1c1-4b50-b514-93f2557cb0b7
+            - control-id: ac-4
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              remarks: |-
+                GUIDANCE:
+                Information flow control regulates where information can travel within a system and between systems (in contrast to who is allowed to access the information) and without regard to subsequent accesses to that information. Flow control restrictions include blocking external traffic that claims to be from within the organization, keeping export-controlled information from being transmitted in the clear to the Internet, restricting web requests that are not from the internal web proxy server, and limiting information transfers between organizations based on data structures and content. Transferring information between organizations may require an agreement specifying how the information flow is enforced (see [CA-3](#ca-3) ). Transferring information between systems in different security or privacy domains with different security or privacy policies introduces the risk that such transfers violate one or more domain security or privacy policies. In such situations, information owners/stewards provide guidance at designated policy enforcement points between connected systems. Organizations consider mandating specific architectural solutions to enforce specific security and privacy policies. Enforcement includes prohibiting information transfers between connected systems (i.e., allowing access only), verifying write permissions before accepting information from another security or privacy domain or connected system, employing hardware mechanisms to enforce one-way information flows, and implementing trustworthy regrading mechanisms to reassign security or privacy attributes and labels.
+
+                Organizations commonly employ information flow control policies and enforcement mechanisms to control the flow of information between designated sources and destinations within systems and between connected systems. Flow control is based on the characteristics of the information and/or the information path. Enforcement occurs, for example, in boundary protection devices that employ rule sets or establish configuration settings that restrict system services, provide a packet-filtering capability based on header information, or provide a message-filtering capability based on message content. Organizations also consider the trustworthiness of filtering and/or inspection mechanisms (i.e., hardware, firmware, and software components) that are critical to information flow enforcement. Control enhancements 3 through 32 primarily address cross-domain solution needs that focus on more advanced filtering techniques, in-depth analysis, and stronger flow enforcement mechanisms implemented in cross-domain products, such as high-assurance guards. Such capabilities are generally not available in commercial off-the-shelf products. Information flow enforcement also applies to control plane traffic (e.g., routing and DNS).
+              uuid: 7e78c0d1-4cb0-408e-a78a-e0bdee9adb57
+          props:
+            - name: generation
+              ns: https://docs.lula.dev/ns
+              value: lula generate component --catalog-source https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json --component 'component2' --requirements ac-1,ac-3,ac-3.2,ac-4 --remarks guidance --framework il5
+            - name: framework
+              ns: https://docs.lula.dev/ns
+              value: il5
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: a3039927-839c-5745-ac4e-a9993bcd60ed
+      description: Component Description
+      title: component2
+      type: software
+      uuid: 8ab88ce5-e17d-48ff-922c-e638dc109b8c
+  metadata:
+    last-modified: 2024-08-16T09:59:34.168866-04:00
+    oscal-version: 1.1.2
+    published: 2024-08-16T09:59:34.168866-04:00
+    remarks: Lula Generated Component Definition
+    title: Component Title
+    version: 0.0.1
+  uuid: 9331b37a-be36-4b6a-92a9-71fbc6f960fb

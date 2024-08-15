@@ -1,4 +1,4 @@
-package tui
+package assessmentresults
 
 import (
 	"fmt"
@@ -6,99 +6,26 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/mattn/go-runewidth"
+	tui "github.com/defenseunicorns/lula/src/internal/tui/common"
 )
-
-type assessmentResultsModel struct {
-	focus               arFocus
-	content             string
-	keys                assessmentKeys
-	results             []result
-	findings            blist.Model
-	findingPicker       viewport.Model
-	findingSummary      viewport.Model
-	observationSummary  viewport.Model
-	inResultOverlay     bool
-	selectedResult      result
-	selectedResultIndex int
-	compareResult       result
-	compareResultIndex  int
-	resultsPicker       viewport.Model
-	open                bool
-	help                help.Model
-	width               int
-	height              int
-	pickerWidth         int
-	pickerHeight        int
-}
-
-type arFocus int
 
 const (
-	noFocus arFocus = iota
-	focusResultSelection
-	focusCompareSelection
-	focusFindings
-	focusSummary
-	focusObservations
+	height           = 20
+	width            = 12
+	pickerHeight     = 20
+	pickerWidth      = 80
+	dialogFixedWidth = 40
 )
 
-type result struct {
-	uuid, title  string
-	findings     *[]oscalTypes_1_1_2.Finding
-	observations *[]oscalTypes_1_1_2.Observation
-}
-
-type finding struct {
-	title, uuid, controlId, state string
-	observations                  []observation
-}
-
-func (i finding) Title() string       { return i.controlId }
-func (i finding) Description() string { return i.state }
-func (i finding) FilterValue() string { return i.title }
-
-type observation struct {
-	uuid, description, remarks, state, validationId string
-}
-
-func newUnfocusedDelegate() blist.DefaultDelegate {
-	d := blist.NewDefaultDelegate()
-
-	d.Styles.SelectedTitle = d.Styles.NormalTitle
-	d.Styles.SelectedDesc = d.Styles.NormalDesc
-
-	d.ShortHelpFunc = func() []key.Binding {
-		return []key.Binding{listHotkeys.Confirm, listHotkeys.Help}
-	}
-
-	return d
-}
-
-func newFocusedDelegate() blist.DefaultDelegate {
-	d := blist.NewDefaultDelegate()
-
-	d.ShortHelpFunc = func() []key.Binding {
-		return []key.Binding{listHotkeys.Confirm, listHotkeys.Help}
-	}
-
-	return d
-}
-
-func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentResults) assessmentResultsModel {
-	height := 60
-	width := 12
-	pickerHeight := 20
-	pickerWidth := 80
-
+func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentResults) Model {
 	results := make([]result, 0)
 	findings := make([]blist.Item, 0)
+	var selectedResult result
 
 	if assessmentResults != nil {
 		for _, r := range assessmentResults.Results {
@@ -110,7 +37,6 @@ func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentRes
 			})
 		}
 	}
-	var selectedResult result
 	if len(results) != 0 {
 		selectedResult = results[0]
 		observationMap := makeObservationMap(selectedResult.observations)
@@ -138,18 +64,18 @@ func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentRes
 	}
 
 	resultsPicker := viewport.New(pickerWidth, pickerHeight)
-	resultsPicker.Style = overlayStyle
+	resultsPicker.Style = tui.OverlayStyle
 
-	f := blist.New(findings, newUnfocusedDelegate(), width, height)
+	f := blist.New(findings, tui.NewUnfocusedDelegate(), width, height)
 	findingPicker := viewport.New(width, height)
-	findingPicker.Style = panelStyle
+	findingPicker.Style = tui.PanelStyle
 
 	findingSummary := viewport.New(width, height)
-	findingSummary.Style = panelStyle
+	findingSummary.Style = tui.PanelStyle
 	observationSummary := viewport.New(width, height)
-	observationSummary.Style = panelStyle
+	observationSummary.Style = tui.PanelStyle
 
-	return assessmentResultsModel{
+	return Model{
 		content:            "Assessment Results Content",
 		results:            results,
 		resultsPicker:      resultsPicker,
@@ -163,11 +89,11 @@ func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentRes
 	}
 }
 
-func (m assessmentResultsModel) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m assessmentResultsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -222,14 +148,14 @@ func (m assessmentResultsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.focus++
 					m.updateKeyBindings()
 				}
-			case "q":
+			case "esc", "q":
 				if m.inResultOverlay {
 					m.inResultOverlay = false
-				} else {
-					return m, tea.Quit
 				}
 			case "?":
 				m.help.ShowAll = !m.help.ShowAll
+			case "ctrl+c":
+				return m, tea.Quit
 			}
 		}
 	}
@@ -239,35 +165,35 @@ func (m assessmentResultsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m assessmentResultsModel) View() string {
+func (m Model) View() string {
 	if m.inResultOverlay {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.resultsPicker.View(), lipgloss.WithWhitespaceChars(" "))
 	}
 	return m.mainView()
 }
 
-func (m assessmentResultsModel) mainView() string {
+func (m Model) mainView() string {
 	totalHeight := m.height
 	leftWidth := m.width / 4
-	rightWidth := m.width - leftWidth - panelStyle.GetHorizontalPadding() - panelStyle.GetHorizontalMargins()
+	rightWidth := m.width - leftWidth - tui.PanelStyle.GetHorizontalPadding() - tui.PanelStyle.GetHorizontalMargins()
 
 	// Add help panel at the top left
-	helpStyle := lipgloss.NewStyle().Align(lipgloss.Right).Width(m.width - panelStyle.GetHorizontalPadding() - panelStyle.GetHorizontalMargins()).Height(1)
+	helpStyle := lipgloss.NewStyle().Align(lipgloss.Right).Width(m.width - tui.PanelStyle.GetHorizontalPadding() - tui.PanelStyle.GetHorizontalMargins()).Height(1)
 	helpView := helpStyle.Render(m.help.View(m.keys))
 
 	// Add viewport styles
-	focusedViewport := panelStyle.BorderForeground(focused)
-	focusedViewportHeaderColor := focused
-	focusedDialogBox := dialogBoxStyle.BorderForeground(focused)
+	focusedViewport := tui.PanelStyle.BorderForeground(tui.Focused)
+	focusedViewportHeaderColor := tui.Focused
+	focusedDialogBox := tui.DialogBoxStyle.BorderForeground(tui.Focused)
 
-	selectedResultDialogBox := dialogBoxStyle
-	compareResultDialogBox := dialogBoxStyle
-	findingsViewport := panelStyle
-	findingsViewportHeader := highlight
-	summaryViewport := panelStyle
-	summaryViewportHeader := highlight
-	observationsViewport := panelStyle
-	observationsViewportHeader := highlight
+	selectedResultDialogBox := tui.DialogBoxStyle
+	compareResultDialogBox := tui.DialogBoxStyle
+	findingsViewport := tui.PanelStyle
+	findingsViewportHeader := tui.Highlight
+	summaryViewport := tui.PanelStyle
+	summaryViewportHeader := tui.Highlight
+	observationsViewport := tui.PanelStyle
+	observationsViewportHeader := tui.Highlight
 
 	switch m.focus {
 	case focusResultSelection:
@@ -288,46 +214,46 @@ func (m assessmentResultsModel) mainView() string {
 	// add panels at the top for selecting a result, selecting a comparison result
 	const dialogFixedWidth = 40
 
-	selectedResultLabel := labelStyle.Render("Selected Result")
-	selectedResultText := truncateText(getResultText(m.selectedResult), dialogFixedWidth)
+	selectedResultLabel := tui.LabelStyle.Render("Selected Result")
+	selectedResultText := tui.TruncateText(getResultText(m.selectedResult), dialogFixedWidth)
 	selectedResultContent := selectedResultDialogBox.Width(dialogFixedWidth).Render(selectedResultText)
 	selectedResult := lipgloss.JoinHorizontal(lipgloss.Top, selectedResultLabel, selectedResultContent)
 
-	compareResultLabel := labelStyle.Render("Compare Result")
-	compareResultText := truncateText(getResultText(m.compareResult), dialogFixedWidth)
+	compareResultLabel := tui.LabelStyle.Render("Compare Result")
+	compareResultText := tui.TruncateText(getResultText(m.compareResult), dialogFixedWidth)
 	compareResultContent := compareResultDialogBox.Width(dialogFixedWidth).Render(compareResultText)
 	compareResult := lipgloss.JoinHorizontal(lipgloss.Top, compareResultLabel, compareResultContent)
 
 	resultSelectionContent := lipgloss.JoinHorizontal(lipgloss.Top, selectedResult, compareResult)
 
 	// Add Controls panel + Results Table
-	topSectionHeight := helpStyle.GetHeight() + dialogBoxStyle.GetHeight()
+	topSectionHeight := helpStyle.GetHeight() + tui.DialogBoxStyle.GetHeight()
 	bottomHeight := totalHeight - topSectionHeight
 	m.findings.SetShowTitle(false)
-	m.findings.SetHeight(totalHeight - topSectionHeight - panelTitleStyle.GetHeight() - panelStyle.GetVerticalPadding())
-	m.findings.SetWidth(leftWidth - panelStyle.GetHorizontalPadding())
+	m.findings.SetHeight(totalHeight - topSectionHeight - tui.PanelTitleStyle.GetHeight() - tui.PanelStyle.GetVerticalPadding())
+	m.findings.SetWidth(leftWidth - tui.PanelStyle.GetHorizontalPadding())
 
 	m.findingPicker.Style = findingsViewport
 	m.findingPicker.SetContent(m.findings.View())
 	m.findingPicker.Height = bottomHeight
-	m.findingPicker.Width = leftWidth - panelStyle.GetHorizontalPadding()
-	bottomLeftView := fmt.Sprintf("%s\n%s", headerView("Findings List", m.findingPicker.Width-panelStyle.GetMarginRight(), findingsViewportHeader), m.findingPicker.View())
+	m.findingPicker.Width = leftWidth - tui.PanelStyle.GetHorizontalPadding()
+	bottomLeftView := fmt.Sprintf("%s\n%s", tui.HeaderView("Findings List", m.findingPicker.Width-tui.PanelStyle.GetMarginRight(), findingsViewportHeader), m.findingPicker.View())
 
 	// Add Summary and Observations panels
-	bottomRightPanelHeight := (bottomHeight - 2*panelTitleStyle.GetHeight() - 2*panelTitleStyle.GetVerticalMargins()) / 2
+	bottomRightPanelHeight := (bottomHeight - 2*tui.PanelTitleStyle.GetHeight() - 2*tui.PanelTitleStyle.GetVerticalMargins()) / 2
 	// summaryHeight := bottomHeight / 4
 	m.findingSummary.Style = summaryViewport
 	m.findingSummary.SetContent(m.renderSummary())
 	m.findingSummary.Height = bottomRightPanelHeight
 	m.findingSummary.Width = rightWidth
-	summaryPanel := fmt.Sprintf("%s\n%s", headerView("Summary", rightWidth-panelStyle.GetPaddingRight(), summaryViewportHeader), m.findingSummary.View()) // TODO: fix padding
+	summaryPanel := fmt.Sprintf("%s\n%s", tui.HeaderView("Summary", rightWidth-tui.PanelStyle.GetPaddingRight(), summaryViewportHeader), m.findingSummary.View()) // TODO: fix padding
 
-	// observationsHeight := bottomHeight - summaryHeight - panelStyle.GetVerticalPadding() - panelStyle.GetPaddingBottom() - 2*panelTitleStyle.GetHeight()
+	// observationsHeight := bottomHeight - summaryHeight - tui.PanelStyle.GetVerticalPadding() - tui.PanelStyle.GetPaddingBottom() - 2*tui.PanelTitleStyle.GetHeight()
 	m.observationSummary.Style = observationsViewport
 	m.observationSummary.SetContent(m.renderObservations())
 	m.observationSummary.Height = bottomRightPanelHeight
 	m.observationSummary.Width = rightWidth
-	observationsPanel := fmt.Sprintf("%s\n%s", headerView("Observations", rightWidth-panelStyle.GetPaddingRight(), observationsViewportHeader), m.observationSummary.View())
+	observationsPanel := fmt.Sprintf("%s\n%s", tui.HeaderView("Observations", rightWidth-tui.PanelStyle.GetPaddingRight(), observationsViewportHeader), m.observationSummary.View())
 
 	bottomRightView := lipgloss.JoinVertical(lipgloss.Top, summaryPanel, observationsPanel)
 	bottomContent := lipgloss.JoinHorizontal(lipgloss.Top, bottomLeftView, bottomRightView)
@@ -335,7 +261,7 @@ func (m assessmentResultsModel) mainView() string {
 	return lipgloss.JoinVertical(lipgloss.Top, helpView, resultSelectionContent, bottomContent)
 }
 
-func (m assessmentResultsModel) updateViewportContent(resultType string) string {
+func (m Model) updateViewportContent(resultType string) string {
 	s := strings.Builder{}
 	s.WriteString(fmt.Sprintf("Select a result to %s:\n\n", resultType))
 
@@ -352,23 +278,12 @@ func (m assessmentResultsModel) updateViewportContent(resultType string) string 
 	return s.String()
 }
 
-func (m assessmentResultsModel) renderSummary() string {
+func (m Model) renderSummary() string {
 	return "Summary"
 }
 
-func (m assessmentResultsModel) renderObservations() string {
+func (m Model) renderObservations() string {
 	return "Observations"
-}
-
-func (m *assessmentResultsModel) updateKeyBindings() {
-	m.findings.KeyMap = unfocusedListKeyMap()
-	m.findings.SetDelegate(newUnfocusedDelegate())
-
-	switch m.focus {
-	case focusFindings:
-		m.findings.KeyMap = focusedListKeyMap()
-		m.findings.SetDelegate(newFocusedDelegate())
-	}
 }
 
 func getResultText(result result) string {
@@ -376,18 +291,6 @@ func getResultText(result result) string {
 		return "No Result Selected"
 	}
 	return fmt.Sprintf("%s - %s", result.title, result.uuid)
-}
-
-func truncateText(text string, width int) string {
-	if runewidth.StringWidth(text) <= width {
-		return text
-	}
-
-	ellipsis := "…"
-	trimmedWidth := width - runewidth.StringWidth(ellipsis)
-	trimmedText := runewidth.Truncate(text, trimmedWidth, "")
-
-	return trimmedText + ellipsis
 }
 
 func makeObservationMap(observations *[]oscalTypes_1_1_2.Observation) map[string]observation {
