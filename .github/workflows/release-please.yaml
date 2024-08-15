@@ -1,0 +1,21 @@
+name: Lula Draft Release(please)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: 
+  contents: read
+
+jobs:
+  tag-new-version:
+    name: Tag New Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Create release tag
+        id: tag
+        uses: googleapis/release-please-action@7987652d64b4581673a76e33ad5e98e3dd56832f # v4.1.3

@@ -14,10 +14,11 @@ INSTALL_PATH ?= /usr/local/bin
 GIT_COMMIT = $(shell git rev-parse HEAD)
 GIT_SHA    = $(shell git rev-parse --short HEAD)
 GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
-CLI_VERSION ?= $(if $(shell git describe --tags),$(shell git describe --tags),"UnknownVersion")
+CLI_VERSION ?= $(if $(shell git describe --tags),$(shell git describe --tags),"unset")
 
 # Go CLI options
 PKG         := ./...
+UNIT_PKG    := $(shell go list ./... | grep -v 'e2e')
 TAGS        :=
 TESTS       := .
 TESTFLAGS   := -race -v
@@ -63,6 +64,10 @@ $(BINDIR)/$(BINNAME): $(SRC)
 test: 
 	go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
 
+.PHONY: test-unit
+test-unit: # Run tests excluding those in the e2e folder.
+	go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(UNIT_PKG) $(TESTFLAGS)
+
 .PHONY: test-e2e
 test-e2e: 
 	cd src/test/e2e && go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
@@ -74,4 +79,3 @@ test-cmd:
 .PHONY: install
 install: ## Install binary to $INSTALL_PATH.
 	@install "$(BINDIR)/$(BINNAME)" "$(INSTALL_PATH)/$(BINNAME)"
-

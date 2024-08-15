@@ -5,4 +5,4 @@ runs:
   using: composite
   steps:
 
-    - uses: anchore/sbom-action/download-syft@9fece9e20048ca9590af301449208b2b8861333b # v0.15.9
+    - uses: anchore/sbom-action/download-syft@ab9d16d4b419c9d1a02df5213fa0ebe965ca5a57 # v0.17.1

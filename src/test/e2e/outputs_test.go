@@ -2,11 +2,14 @@ package test
 
 import (
 	"context"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
@@ -36,7 +39,25 @@ func TestOutputs(t *testing.T) {
 			oscalPath := "./scenarios/outputs/oscal-component.yaml"
 			message.NoProgress = true
 
-			findingMap, observations, err := validate.ValidateOnPath(oscalPath)
+			// read the data and unmarshall
+			data, err := os.ReadFile(oscalPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			compDef, err := oscal.NewOscalComponentDefinition(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if compDef.Components == nil {
+				t.Fatal("Expected non-nil components")
+			}
+
+			components := *compDef.Components
+			validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
+
+			findingMap, observations, err := validate.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -53,13 +74,13 @@ func TestOutputs(t *testing.T) {
 			for _, o := range observations {
 				if strings.Contains(o.Description, "ID-1") {
 					// Check remarks have printed the correct observation value
-					if o.RelevantEvidence[0].Remarks != "validate.test: hello world\n" {
+					if o.RelevantEvidence != nil && (*o.RelevantEvidence)[0].Remarks != "validate.test: hello world\n" {
 						t.Fatal("Failed to validate payload.output observations for ID-1")
 					}
 				}
 				if strings.Contains(o.Description, "ID-2") {
 					// Check remarks are empty due to incorrect observation formats
-					if o.RelevantEvidence[0].Remarks != "" {
+					if o.RelevantEvidence != nil && (*o.RelevantEvidence)[0].Remarks != "" {
 						t.Fatal("Failed to validate payload.output observations for ID-2")
 					}
 				}

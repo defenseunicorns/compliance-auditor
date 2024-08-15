@@ -1,0 +1,51 @@
+component-definition:
+  components:
+    - control-implementations:
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: ac-1
+              description: This is the existing test string
+              remarks: |
+                STATEMENT:
+                a. Develop, document, and disseminate to [Assignment: organization-defined organization-defined personnel or roles]:
+                	1. [Selection: (one-or-more) organization-defined organization-level; mission/business process-level; system-level] access control policy that:
+                		(a) Addresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and
+                		(b) Is consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and
+                	2. Procedures to facilitate the implementation of the access control policy and the associated access controls;
+                b. Designate an [Assignment: organization-defined official] to manage the development, documentation, and dissemination of the access control policy and procedures; and
+                c. Review and update the current access control:
+                	1. Policy [Assignment: organization-defined frequency] and following [Assignment: organization-defined events] ; and
+                	2. Procedures [Assignment: organization-defined frequency] and following [Assignment: organization-defined events].
+              uuid: 84517036-ea65-4bfa-992d-f89a1b0d9822
+            - control-id: ac-3
+              description: This is the existing test string
+              remarks: |-
+                STATEMENT:
+                Enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+              uuid: 0d4fe96a-df1c-4199-87eb-cf0c1385e9ab
+            - control-id: ac-3.2
+              description: This is the existing test string
+              remarks: |-
+                STATEMENT:
+                Enforce dual authorization for [Assignment: organization-defined privileged commands and/or other actions].
+              uuid: 2131d7da-19a3-462f-a0bd-2345e5098ea5
+            - control-id: ac-4
+              description: This is the existing test string
+              remarks: |-
+                STATEMENT:
+                Enforce approved authorizations for controlling the flow of information within the system and between connected systems based on [Assignment: organization-defined information flow control policies].
+              uuid: 3ee0aedf-d047-4902-9d77-4d7f0072f213
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: a3039927-839c-5745-ac4e-a9993bcd60ed
+      description: Component Description
+      title: Component Title
+      type: software
+      uuid: e8011225-75bc-43e5-987a-049a552b05e5
+  metadata:
+    last-modified: 2024-04-30T21:36:53.226218112Z
+    oscal-version: 1.1.2
+    published: 2024-04-30T21:36:53.226218112Z
+    remarks: Lula Generated Component Definition
+    title: Component Title
+    version: 0.0.1
+  uuid: 48cef479-bda9-440d-8b38-1ba98246bb47
