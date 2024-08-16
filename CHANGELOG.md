@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.1](https://github.com/defenseunicorns/lula/compare/v0.5.0...v0.5.1) (2024-08-16)
+
+
+### Bug Fixes
+
+* **docs:** updated namespace doc locations and associated prop namespace url ([#602](https://github.com/defenseunicorns/lula/issues/602)) ([ee7df0b](https://github.com/defenseunicorns/lula/commit/ee7df0bb1b9f8dfb92d788fd026d7f2002fcc664))
+
+
+### Miscellaneous
+
+* **deps:** update anchore/sbom-action action to v0.17.1 ([#593](https://github.com/defenseunicorns/lula/issues/593)) ([ef8b546](https://github.com/defenseunicorns/lula/commit/ef8b5465fd57dcbc18334cd366ad3ae21f338ef7))
+* **deps:** update github/codeql-action action to v3.26.1 ([#595](https://github.com/defenseunicorns/lula/issues/595)) ([a34281c](https://github.com/defenseunicorns/lula/commit/a34281ca1bc22561e65edca1b3f94892140fb56e))
+* **docs:** update issue template with expected deliverables line item ([#590](https://github.com/defenseunicorns/lula/issues/590)) ([97af4ba](https://github.com/defenseunicorns/lula/commit/97af4ba015529e71e501f624affdf6a232707b68))
+* removed renovate schedule ([#603](https://github.com/defenseunicorns/lula/issues/603)) ([55bbdf7](https://github.com/defenseunicorns/lula/commit/55bbdf77941a29229cf91b7cfa65a592410f2c23))
+
 ## [0.5.0](https://github.com/defenseunicorns/lula/compare/v0.4.5...v0.5.0) (2024-08-09)
 
 
