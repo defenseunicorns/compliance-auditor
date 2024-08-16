@@ -17,7 +17,7 @@
 
 * Configuration & Templating: Enhance artifacts with optionality to template variables into OSCAL & Validations dynamically. Allowing the use of build-time and run-time templating. 
 * OSCAL Model Coverage: Increase support of processable OSCAL models to include profile and system-security-plan
-* Quality of Life: Improvements to operating with OSCAL and Lula validations
+* Quality of Life: User Experience improvements to operating with OSCAL and Lula validations
 
 ### Q4 Data Collection:
 
