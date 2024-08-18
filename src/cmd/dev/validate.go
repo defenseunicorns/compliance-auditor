@@ -10,7 +10,6 @@ import (
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/config"
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
-	configuration "github.com/defenseunicorns/lula/src/pkg/common/config"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
@@ -80,9 +79,7 @@ var validateCmd = &cobra.Command{
 			}
 		}
 
-		v := common.GetViper()
-
-		validation, err := DevValidate(ctx, validationBytes, resourcesBytes, v.AllSettings(), spinner)
+		validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
 		if err != nil {
 			message.Fatalf(err, "error running dev validate: %v", err)
 		}
@@ -128,7 +125,7 @@ func init() {
 
 // DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it
 // Returns the LulaValidation struct and any error encountered
-func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte, config map[string]interface{}, spinner *message.Spinner) (lulaValidation types.LulaValidation, err error) {
+func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []byte, spinner *message.Spinner) (lulaValidation types.LulaValidation, err error) {
 	// Set resources if resourcesBytes is not empty
 	var resources types.DomainResources
 	if len(resourcesBytes) > 0 {
@@ -139,15 +136,8 @@ func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []b
 		}
 	}
 
-	templatedValidation, err := configuration.ExecuteTemplate(config, string(validationBytes))
-	if err != nil {
-		return lulaValidation, err
-	}
-
-	fmt.Println(string(templatedValidation))
-
 	lulaValidation, err = RunSingleValidation(
-		templatedValidation,
+		validationBytes,
 		types.WithStaticResources(resources),
 		types.ExecutionAllowed(validateOpts.ConfirmExecution),
 		types.Interactive(RunInteractively),
