@@ -5,6 +5,6 @@ The `generation` prop is an identifier for the purposes of tracking imperative r
 ```yaml
 props:
   - name: generation
-    ns: https://docs.lula.dev/ns
+    ns: https://docs.lula.dev/oscal/ns
     value: lula generate component --catalog-source https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json --component 'Component Title' --requirements ac-1,ac-3,ac-3.2,ac-4 --remarks assessment-objective
 ```

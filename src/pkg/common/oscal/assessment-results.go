@@ -250,8 +250,8 @@ func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 		for _, result := range assessment.Results {
 			if result.Props != nil {
 				var target string
-				hasTarget, targetValue := GetProp("target", "https://docs.lula.dev/ns", result.Props)
-				hasThreshold, thresholdValue := GetProp("threshold", "https://docs.lula.dev/ns", result.Props)
+				hasTarget, targetValue := GetProp("target", LULA_NAMESPACE, result.Props)
+				hasThreshold, thresholdValue := GetProp("threshold", LULA_NAMESPACE, result.Props)
 
 				if hasTarget {
 					// existing target prop
@@ -283,7 +283,7 @@ func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 					} else {
 						// If threshold exists and this is a newer threshold
 						if result.Start.Compare(evalResult.Threshold.Start) > 0 {
-							UpdateProps("threshold", "https://docs.lula.dev/ns", "false", evalResult.Threshold.Props)
+							UpdateProps("threshold", LULA_NAMESPACE, "false", evalResult.Threshold.Props)
 							evalResult.Threshold = &result
 						}
 					}
@@ -341,7 +341,7 @@ func CreateResult(findingMap map[string]oscalTypes_1_1_2.Finding, observations [
 
 	props := []oscalTypes_1_1_2.Property{
 		{
-			Ns:    "https://docs.lula.dev/ns",
+			Ns:    LULA_NAMESPACE,
 			Name:  "threshold",
 			Value: "false",
 		},

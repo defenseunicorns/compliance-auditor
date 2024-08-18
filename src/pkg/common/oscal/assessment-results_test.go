@@ -301,7 +301,7 @@ func TestFilterResults(t *testing.T) {
 		}
 
 		// Update assessment props so that we only have 1 threshold
-		oscal.UpdateProps("threshold", "https://docs.lula.dev/ns", "false", assessment.Results[0].Props)
+		oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "false", assessment.Results[0].Props)
 
 		// TODO: review assumptions made about order of assessments during merge
 		assessment, err = oscal.MergeAssessmentResults(assessment, assessment2)
