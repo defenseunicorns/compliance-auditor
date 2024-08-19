@@ -9,10 +9,6 @@
     "**/docs/**",
     "**/test/**"
   ],
-  "timezone": "America/New_York",
-  "schedule": [
-    "after 12pm and before 11am every weekday"
-  ],
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "packageRules": [
     {
