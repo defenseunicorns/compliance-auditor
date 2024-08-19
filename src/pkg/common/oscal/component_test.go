@@ -571,8 +571,8 @@ func TestNewComponentFrameworks(t *testing.T) {
 			t.Errorf("Expected 2 componentFrameworks, got %v", len(componentFrameworks))
 		}
 		for _, c := range componentFrameworks {
-			if len(c.Frameworks) != 3 {
-				t.Errorf("Expected 3 targets in each framework, got %v", len(c.Frameworks))
+			if len(c.Frameworks) != 4 {
+				t.Errorf("Expected 4 targets in each framework, got %v", len(c.Frameworks))
 			}
 		}
 	})
