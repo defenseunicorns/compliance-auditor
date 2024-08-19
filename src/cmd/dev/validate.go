@@ -8,7 +8,6 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	"github.com/defenseunicorns/lula/src/config"
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
@@ -40,11 +39,8 @@ type ValidateFlags struct {
 var validateOpts = &ValidateFlags{}
 
 var validateCmd = &cobra.Command{
-	Use:   "validate",
-	Short: "Run an individual Lula validation.",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.SkipLogFile = true
-	},
+	Use:     "validate",
+	Short:   "Run an individual Lula validation.",
 	Long:    "Run an individual Lula validation for quick testing and debugging of a Lula Validation. This command is intended for development purposes only.",
 	Example: validateHelp,
 	Run: func(cmd *cobra.Command, args []string) {

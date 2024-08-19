@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
@@ -30,11 +29,8 @@ To hang for timeout of 5 seconds:
 `
 
 var getResourcesCmd = &cobra.Command{
-	Use:   "get-resources",
-	Short: "Get Resources from a Lula Validation Manifest",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.SkipLogFile = true
-	},
+	Use:     "get-resources",
+	Short:   "Get Resources from a Lula Validation Manifest",
 	Long:    "Get the JSON resources specified in a Lula Validation Manifest",
 	Example: getResourcesHelp,
 	Run: func(cmd *cobra.Command, args []string) {
