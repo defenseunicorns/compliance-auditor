@@ -23,7 +23,7 @@ func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Do
 	}
 
 	if spec.Resources == nil && spec.CreateResources == nil && spec.Wait == nil {
-		return nil, fmt.Errorf("resources, create-resources, or wait must be specified")
+		return nil, fmt.Errorf("one of resources, create-resources, or wait must be specified")
 	}
 
 	if spec.Resources != nil {
