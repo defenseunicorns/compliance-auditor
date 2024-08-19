@@ -43,7 +43,7 @@ func InitViper() *viper.Viper {
 		// Use config file from the flag.
 		v.SetConfigFile(cfgFile)
 	} else {
-		// Search config paths in the current directory and $HOME/.zarf.
+		// Search config paths in the current directory and $HOME/.lula.
 		v.AddConfigPath(".")
 		v.AddConfigPath("$HOME/.lula")
 		v.SetConfigName("lula-config")
