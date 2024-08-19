@@ -111,7 +111,7 @@ provider:
 			expectedErrType: common.ErrInvalidSchema,
 		},
 		{
-			name: "Invalid provider scheam, missing spec",
+			name: "Invalid provider schema, missing spec",
 			inputYaml: []byte(`
 lula-version: "1.0.0"
 metadata:
