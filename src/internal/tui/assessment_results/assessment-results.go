@@ -102,38 +102,40 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		if m.open {
-			switch msg.String() {
-			case "ctrl+c":
+			k := msg.String()
+			switch k {
+
+			case common.ContainsKey(k, m.keys.Quit.Keys()):
 				return m, tea.Quit
 
-			case "?":
+			case common.ContainsKey(k, m.keys.Help.Keys()):
 				m.help.ShowAll = !m.help.ShowAll
 
-			case "left", "h":
-				if m.focus != 0 {
+			case common.ContainsKey(k, m.keys.NavigateLeft.Keys()):
+				if m.focus == 0 {
+					m.focus = maxFocus
+				} else {
 					m.focus--
-					m.updateKeyBindings()
 				}
+				m.updateKeyBindings()
 
-			case "right", "l":
-				if m.focus <= focusObservations {
-					m.focus++
-					m.updateKeyBindings()
-				}
+			case common.ContainsKey(k, m.keys.NavigateRight.Keys()):
+				m.focus = (m.focus + 1) % (maxFocus + 1)
+				m.updateKeyBindings()
 
-			case "up", "k":
+			case common.ContainsKey(k, m.keys.Up.Keys()):
 				if m.inResultOverlay && m.selectedResultIndex > 0 {
 					m.selectedResultIndex--
 					m.resultsPicker.SetContent(m.updateViewportContent("view"))
 				}
 
-			case "down", "j":
+			case common.ContainsKey(k, m.keys.Down.Keys()):
 				if m.inResultOverlay && m.selectedResultIndex < len(m.results)-1 {
 					m.selectedResultIndex++
 					m.resultsPicker.SetContent(m.updateViewportContent("view"))
 				}
 
-			case "enter":
+			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				if m.focus == focusResultSelection {
 					if m.inResultOverlay {
 						m.selectedResult = m.results[m.selectedResultIndex]
@@ -154,7 +156,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.findingSummary.SetContent(m.renderSummary())
 				}
 
-			case "esc", "q":
+			case common.ContainsKey(k, m.keys.Cancel.Keys()):
 				if m.inResultOverlay {
 					m.inResultOverlay = false
 				}
@@ -246,6 +248,9 @@ func (m Model) mainView() string {
 }
 
 func (m Model) updateViewportContent(resultType string) string {
+	helpStyle := common.HelpStyle(pickerWidth)
+	helpView := helpStyle.Render(help.New().View(common.PickerHotkeys))
+
 	s := strings.Builder{}
 	s.WriteString(fmt.Sprintf("Select a result to %s:\n\n", resultType))
 
@@ -259,7 +264,7 @@ func (m Model) updateViewportContent(resultType string) string {
 		s.WriteString("\n")
 	}
 
-	return s.String()
+	return lipgloss.JoinVertical(lipgloss.Top, helpView, s.String())
 }
 
 func (m Model) renderSummary() string {

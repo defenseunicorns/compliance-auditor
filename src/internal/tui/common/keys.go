@@ -4,34 +4,30 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 )
 
-type keys struct {
-	Quit     key.Binding
-	Confirm  key.Binding
-	TabLeft  key.Binding
-	TabRight key.Binding
-	Help     key.Binding
+type Keys struct {
+	Quit       key.Binding
+	Confirm    key.Binding
+	ModelLeft  key.Binding
+	ModelRight key.Binding
+	Help       key.Binding
 }
 
-var CommonHotkeys = keys{
+var CommonHotkeys = Keys{
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c"),
 		key.WithHelp("q", "quit"),
-	),
-	Confirm: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "confirm"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "toggle help"),
 	),
-	TabRight: key.NewBinding(
+	ModelRight: key.NewBinding(
 		key.WithKeys("tab"),
-		key.WithHelp("tab", "tab right"),
+		key.WithHelp("tab", "model right"),
 	),
-	TabLeft: key.NewBinding(
+	ModelLeft: key.NewBinding(
 		key.WithKeys("shift+tab"),
-		key.WithHelp("shift+tab", "tab left"),
+		key.WithHelp("shift+tab", "model left"),
 	),
 }
 
@@ -44,28 +40,6 @@ func ContainsKey(v string, a []string) string {
 	return ""
 }
 
-// func (m *model) handleKey(key string, cmd tea.Cmd) tea.Cmd {
-// 	switch key {
-// 	case containsKey(key, hotkeys.TabLeft):
-// 		if m.cursor > 0 {
-// 			m.cursor--
-// 		}
-
-// 	case containsKey(key, hotkeys.TabRight):
-// 		if m.cursor < len(m.tabs)-1 {
-// 			m.cursor++
-// 		}
-
-// 		case containsKey(key, hotkeys.Confirm):
-// 			if m.componentModel.open {
-// 				selectedItem := m.componentModel.controls.SelectedItem().(item)
-// 				m.componentModel.content =
-// 			}
-// 	}
-
-// 	return cmd
-// }
-
 type listKeys struct {
 	Up      key.Binding
 	Down    key.Binding
@@ -77,12 +51,12 @@ type listKeys struct {
 
 var ListHotkeys = listKeys{
 	Up: key.NewBinding(
-		key.WithKeys("up"),
-		key.WithHelp("up", "move up"),
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "move up"),
 	),
 	Down: key.NewBinding(
-		key.WithKeys("down"),
-		key.WithHelp("down", "move down"),
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "move down"),
 	),
 	Slash: key.NewBinding(
 		key.WithKeys("/"),
@@ -109,5 +83,41 @@ func (k listKeys) ShortHelp() []key.Binding {
 func (k listKeys) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down}, {k.Slash, k.Confirm}, {k.Escape, k.Help},
+	}
+}
+
+type pickerKeys struct {
+	Up      key.Binding
+	Down    key.Binding
+	Confirm key.Binding
+	Cancel  key.Binding
+}
+
+var PickerHotkeys = pickerKeys{
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "move down"),
+	),
+	Confirm: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↳", "select"),
+	),
+	Cancel: key.NewBinding(
+		key.WithKeys("esc", "q"),
+		key.WithHelp("esc/q", "cancel"),
+	),
+}
+
+func (k pickerKeys) ShortHelp() []key.Binding {
+	return []key.Binding{k.Up, k.Down, k.Confirm, k.Cancel}
+}
+
+func (k pickerKeys) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up}, {k.Down}, {k.Confirm}, {k.Cancel},
 	}
 }

@@ -48,6 +48,8 @@ const (
 	focusValidations
 )
 
+var maxFocus = focusValidations
+
 type component struct {
 	uuid, title, desc string
 	frameworks        []framework

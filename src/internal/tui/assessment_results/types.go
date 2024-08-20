@@ -39,6 +39,8 @@ const (
 	focusObservations
 )
 
+var maxFocus = focusObservations
+
 type result struct {
 	uuid, title  string
 	findings     *[]oscalTypes_1_1_2.Finding

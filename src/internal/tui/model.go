@@ -13,6 +13,7 @@ import (
 )
 
 type model struct {
+	keys                      common.Keys
 	tabs                      []string
 	activeTab                 int
 	oscalModel                oscalTypes_1_1_2.OscalCompleteSchema
@@ -41,6 +42,7 @@ func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema) model {
 	}
 
 	return model{
+		keys:                      common.CommonHotkeys,
 		tabs:                      tabs,
 		oscalModel:                oscalModel,
 		componentModel:            component.NewComponentDefinitionModel(oscalModel.ComponentDefinition),
@@ -67,20 +69,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 	case tea.KeyMsg:
-		// m.handleKey(msg.String(), nil)
-		switch msg.String() {
-		case "tab":
+		k := msg.String()
+
+		switch k {
+		case common.ContainsKey(k, m.keys.Quit.Keys()):
+			return m, tea.Quit
+
+		case common.ContainsKey(k, m.keys.ModelRight.Keys()):
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
 
-		case "shift+tab":
+		case common.ContainsKey(k, m.keys.ModelLeft.Keys()):
 			if m.activeTab == 0 {
 				m.activeTab = len(m.tabs) - 1
 			} else {
 				m.activeTab = m.activeTab - 1
 			}
 
-		case "ctrl+c":
-			return m, tea.Quit
 		}
 	}
 

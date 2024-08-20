@@ -6,19 +6,23 @@ import (
 )
 
 type keys struct {
-	Edit     key.Binding
-	Generate key.Binding
-	Confirm  key.Binding
-	Navigate key.Binding
-	Help     key.Binding
-	Quit     key.Binding
+	Edit          key.Binding
+	Generate      key.Binding
+	Confirm       key.Binding
+	Cancel        key.Binding
+	Navigation    key.Binding
+	NavigateLeft  key.Binding
+	NavigateRight key.Binding
+	SwitchModels  key.Binding
+	Up            key.Binding
+	Down          key.Binding
+	Help          key.Binding
+	Quit          key.Binding
 }
 
 var componentKeys = keys{
-	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c"),
-		key.WithHelp("ctrl+c", "quit"),
-	),
+	Quit: common.CommonHotkeys.Quit,
+	Help: common.CommonHotkeys.Help,
 	Edit: key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit"),
@@ -27,18 +31,26 @@ var componentKeys = keys{
 		key.WithKeys("g"),
 		key.WithHelp("g", "generate"),
 	),
-	Confirm: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("enter", "select"),
+	Confirm: common.PickerHotkeys.Confirm,
+	Cancel:  common.PickerHotkeys.Cancel,
+	Navigation: key.NewBinding(
+		key.WithKeys("left", "h", "right", "l"),
+		key.WithHelp("←/h, →/l", "navigation"),
 	),
-	Help: key.NewBinding(
-		key.WithKeys("?"),
-		key.WithHelp("?", "toggle help"),
+	NavigateLeft: key.NewBinding(
+		key.WithKeys("left", "h"),
+		key.WithHelp("←/h", "navigate left"),
 	),
-	Navigate: key.NewBinding(
-		key.WithKeys("left", "right", "h", "l"),
-		key.WithHelp("←/h/→/l", "navigate"),
+	NavigateRight: key.NewBinding(
+		key.WithKeys("right", "l"),
+		key.WithHelp("→/l", "navigate right"),
 	),
+	SwitchModels: key.NewBinding(
+		key.WithKeys("tab", "shift+tab"),
+		key.WithHelp("tab/shift+tab", "switch models"),
+	),
+	Up:   common.PickerHotkeys.Up,
+	Down: common.PickerHotkeys.Down,
 }
 
 func (k keys) ShortHelp() []key.Binding {
@@ -47,7 +59,7 @@ func (k keys) ShortHelp() []key.Binding {
 
 func (k keys) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Generate}, {k.Confirm}, {k.Navigate}, {k.Help}, {k.Quit},
+		{k.Generate}, {k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
 	}
 }
 
