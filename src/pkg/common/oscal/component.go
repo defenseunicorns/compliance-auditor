@@ -315,7 +315,7 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 	props := []oscalTypes_1_1_2.Property{
 		{
 			Name:  "generation",
-			Ns:    "https://docs.lula.dev/ns",
+			Ns:    LULA_NAMESPACE,
 			Value: command,
 		},
 	}
@@ -323,7 +323,7 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 	if framework != "" {
 		prop := oscalTypes_1_1_2.Property{
 			Name:  "framework",
-			Ns:    "https://docs.lula.dev/ns",
+			Ns:    LULA_NAMESPACE,
 			Value: framework,
 		}
 		props = append(props, prop)
@@ -518,7 +518,7 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 				for _, controlImplementation := range *component.ControlImplementations {
 					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
 					controlMap[controlImplementation.Source] = append(controlMap[controlImplementation.Source], controlImplementation)
-					status, value := GetProp("framework", "https://docs.lula.dev/ns", controlImplementation.Props)
+					status, value := GetProp("framework", LULA_NAMESPACE, controlImplementation.Props)
 					if status {
 						controlMap[value] = append(controlMap[value], controlImplementation)
 					}
