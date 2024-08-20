@@ -20,7 +20,7 @@ const DEFAULT_TIMEOUT = 1
 
 var devCmd = &cobra.Command{
 	Use:     "dev",
-	Aliases: []string{"t"},
+	Aliases: []string{"d"},
 	Short:   "Collection of dev commands to make dev life easier",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.SkipLogFile = true
