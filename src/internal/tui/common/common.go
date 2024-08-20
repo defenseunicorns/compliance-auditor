@@ -7,6 +7,8 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
+const TabOffset = 10
+
 func TruncateText(text string, width int) string {
 	if runewidth.StringWidth(text) <= width {
 		return text
@@ -24,6 +26,16 @@ func NewUnfocusedDelegate() blist.DefaultDelegate {
 
 	d.Styles.SelectedTitle = d.Styles.NormalTitle
 	d.Styles.SelectedDesc = d.Styles.NormalDesc
+
+	d.ShortHelpFunc = func() []key.Binding {
+		return []key.Binding{ListHotkeys.Confirm, ListHotkeys.Help}
+	}
+
+	return d
+}
+
+func NewUnfocusedHighlightDelegate() blist.DefaultDelegate {
+	d := blist.NewDefaultDelegate()
 
 	d.ShortHelpFunc = func() []key.Binding {
 		return []key.Binding{ListHotkeys.Confirm, ListHotkeys.Help}

@@ -2,7 +2,7 @@ package assessmentresults
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	tui "github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/internal/tui/common"
 )
 
 type keys struct {
@@ -47,12 +47,12 @@ func (a keys) FullHelp() [][]key.Binding {
 }
 
 func (m *Model) updateKeyBindings() {
-	m.findings.KeyMap = tui.UnfocusedListKeyMap()
-	m.findings.SetDelegate(tui.NewUnfocusedDelegate())
+	m.findings.KeyMap = common.UnfocusedListKeyMap()
+	m.findings.SetDelegate(common.NewUnfocusedDelegate())
 
 	switch m.focus {
 	case focusFindings:
-		m.findings.KeyMap = tui.FocusedListKeyMap()
-		m.findings.SetDelegate(tui.NewFocusedDelegate())
+		m.findings.KeyMap = common.FocusedListKeyMap()
+		m.findings.SetDelegate(common.NewFocusedDelegate())
 	}
 }

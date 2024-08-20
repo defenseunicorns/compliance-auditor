@@ -1,6 +1,8 @@
 package oscal
 
 import (
+	"regexp"
+	"strconv"
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -63,4 +65,65 @@ func checkOrUpdateNamespace(propNamespace, namespace string) (bool, string) {
 		}
 	}
 	return namespace == LULA_NAMESPACE, LULA_NAMESPACE
+}
+
+// CompareControls compares two control titles, handling both XX-##.## formats and regular strings.
+// true sorts a before b; false sorts b before a
+func CompareControls(a, b string) bool {
+	// Define a regex to match the XX-##.## format
+	nistFormat := regexp.MustCompile(`(?i)^[a-z]{2}-\d+(\.\d+)?$`)
+
+	// Check if both strings match the XX-##.## format
+	isANistFormat := nistFormat.MatchString(a)
+	isBNistFormat := nistFormat.MatchString(b)
+
+	// If both are in XX-##.## format, apply the custom comparison logic
+	if isANistFormat && isBNistFormat {
+		return compareNistFormat(a, b)
+	}
+
+	// If neither are in XX-##.## format, use simple lexicographical comparison
+	if !isANistFormat && !isBNistFormat {
+		return a < b
+	}
+
+	// If only one is in XX-##.## format, treat it as "less than" the regular string
+	return !isANistFormat
+}
+
+// compareNistFormat handles the comparison for strings in the XX-##.## format.
+func compareNistFormat(a, b string) bool {
+	// Split the strings by "-"
+	splitA := strings.Split(a, "-")
+	splitB := strings.Split(b, "-")
+
+	// Compare the alphabetic part first
+	if splitA[0] != splitB[0] {
+		return splitA[0] < splitB[0]
+	}
+
+	// Compare the numeric part before the dot (.)
+	numA, _ := strconv.Atoi(strings.Split(splitA[1], ".")[0])
+	numB, _ := strconv.Atoi(strings.Split(splitB[1], ".")[0])
+
+	if numA != numB {
+		return numA < numB
+	}
+
+	// Compare the numeric part after the dot (.) if exists
+	if len(strings.Split(splitA[1], ".")) > 1 && len(strings.Split(splitB[1], ".")) > 1 {
+		subNumA, _ := strconv.Atoi(strings.Split(splitA[1], ".")[1])
+		subNumB, _ := strconv.Atoi(strings.Split(splitB[1], ".")[1])
+		return subNumA < subNumB
+	}
+
+	// Handle cases where only one has a sub-number
+	if len(strings.Split(splitA[1], ".")) > 1 {
+		return false
+	}
+	if len(strings.Split(splitB[1], ".")) > 1 {
+		return true
+	}
+
+	return false
 }

@@ -59,49 +59,40 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 
 	case tea.KeyMsg:
 		// m.handleKey(msg.String(), nil)
 		switch msg.String() {
 		case "tab":
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
+
 		case "shift+tab":
 			if m.activeTab == 0 {
 				m.activeTab = len(m.tabs) - 1
 			} else {
 				m.activeTab = m.activeTab - 1
 			}
+
 		case "ctrl+c":
 			return m, tea.Quit
 		}
-
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-
-		contentHeight := m.height - 10
-		contentWidth := m.width
-
-		// Set the height and width of the models
-		m.componentModel.SetDimensions(contentWidth, contentHeight)
-		m.assessmentResultsModel.SetDimensions(contentWidth, contentHeight)
 	}
 
-	var cmd tea.Cmd
 	tabModel, cmd := m.loadTabModel(msg)
 	if tabModel != nil {
-		newTabModel, newCmd := tabModel.Update(msg)
-		if newTabModel != nil {
-			switch m.tabs[m.activeTab] {
-			case "ComponentDefinition":
-				m.componentModel = newTabModel.(component.Model)
-			case "AssessmentResults":
-				m.assessmentResultsModel = newTabModel.(ar.Model)
-			}
+		switch m.tabs[m.activeTab] {
+		case "ComponentDefinition":
+			m.componentModel = tabModel.(component.Model)
+		case "AssessmentResults":
+			m.assessmentResultsModel = tabModel.(ar.Model)
 		}
-		cmds = append(cmds, newCmd)
+		cmds = append(cmds, cmd)
 	}
 
 	cmds = append(cmds, cmd)
@@ -145,24 +136,24 @@ func (m model) closeAllTabs() {
 func (m model) loadTabModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.closeAllTabs()
 	switch m.tabs[m.activeTab] {
+	case "ComponentDefinition":
+		m.componentModel.Open(m.height-common.TabOffset, m.width)
+		return m.componentModel.Update(msg)
+	case "AssessmentResults":
+		m.assessmentResultsModel.Open(m.height-common.TabOffset, m.width)
+		return m.assessmentResultsModel.Update(msg)
 	case "Catalog":
 		m.catalogModel.Open()
 		return m.catalogModel, nil
 	case "Profile":
 		m.profileModel.Open()
 		return m.profileModel, nil
-	case "ComponentDefinition":
-		m.componentModel.Open()
-		return m.componentModel, nil
 	case "SystemSecurityPlan":
 		m.systemSecurityPlanModel.Open()
 		return m.systemSecurityPlanModel, nil
 	case "AssessmentPlan":
 		m.assessmentPlanModel.Open()
 		return m.assessmentPlanModel, nil
-	case "AssessmentResults":
-		m.assessmentResultsModel.Open()
-		return m.assessmentResultsModel, nil
 	case "PlanOfActionAndMilestones":
 		m.planOfActionAndMilestones.Open()
 		return m.planOfActionAndMilestones, nil

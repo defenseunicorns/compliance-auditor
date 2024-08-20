@@ -2,7 +2,7 @@ package component
 
 import (
 	"fmt"
-	"log"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -11,8 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	tui "github.com/defenseunicorns/lula/src/internal/tui/common"
-	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	pkgcommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 )
@@ -53,7 +53,7 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 						validationLinks := make([]validationLink, 0)
 						if implementedRequirement.Links != nil {
 							for _, link := range *implementedRequirement.Links {
-								if common.IsLulaLink(link) {
+								if pkgcommon.IsLulaLink(link) {
 									validation, err := validationStore.GetLulaValidation(link.Href)
 									if err == nil {
 										// add the lula validation to the validations array
@@ -75,12 +75,23 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 						})
 					}
 				}
+				// sort controls by title
+				sort.Slice(controls, func(i, j int) bool {
+					// custom sort function to sort controls by title
+					return oscal.CompareControls(controls[i].title, controls[j].title)
+				})
+
 				frameworks = append(frameworks, framework{
 					name:     k,
 					controls: controls,
 				})
 
 			}
+			// sort frameworks by name
+			sort.Slice(frameworks, func(i, j int) bool {
+				return frameworks[i].name < frameworks[j].name
+			})
+
 			components = append(components, component{
 				uuid:       uuid,
 				title:      c.Component.Title,
@@ -91,6 +102,11 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 	}
 
 	if len(components) > 0 {
+		// sort components by title
+		sort.Slice(components, func(i, j int) bool {
+			return components[i].title < components[j].title
+		})
+
 		selectedComponent = components[0]
 		if len(selectedComponent.frameworks) > 0 {
 			frameworks = selectedComponent.frameworks
@@ -107,29 +123,30 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 	}
 
 	componentPicker := viewport.New(pickerWidth, pickerHeight)
-	componentPicker.Style = tui.OverlayStyle
+	componentPicker.Style = common.OverlayStyle
 
 	frameworkPicker := viewport.New(pickerWidth, pickerHeight)
-	frameworkPicker.Style = tui.OverlayStyle
+	frameworkPicker.Style = common.OverlayStyle
 
-	l := blist.New(viewedControls, tui.NewUnfocusedDelegate(), width, height)
-	l.KeyMap = tui.FocusedListKeyMap()
+	l := blist.New(viewedControls, common.NewUnfocusedDelegate(), width, height)
+	l.KeyMap = common.FocusedListKeyMap()
 
-	v := blist.New(viewedValidations, tui.NewUnfocusedDelegate(), width, height)
-	v.KeyMap = tui.UnfocusedListKeyMap()
+	v := blist.New(viewedValidations, common.NewUnfocusedDelegate(), width, height)
+	v.KeyMap = common.UnfocusedListKeyMap()
 
 	controlPicker := viewport.New(width, height)
-	controlPicker.Style = tui.PanelStyle
+	controlPicker.Style = common.PanelStyle
 
 	remarks := viewport.New(width, height)
-	remarks.Style = tui.PanelStyle
+	remarks.Style = common.PanelStyle
 	description := viewport.New(width, height)
-	description.Style = tui.PanelStyle
+	description.Style = common.PanelStyle
 	validationPicker := viewport.New(width, height)
-	validationPicker.Style = tui.PanelStyle
+	validationPicker.Style = common.PanelStyle
 
 	return Model{
-		content:           "Component Definition Content",
+		keys:              componentKeys,
+		help:              help.New(),
 		components:        components,
 		selectedComponent: selectedComponent,
 		componentPicker:   componentPicker,
@@ -142,8 +159,6 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 		description:       description,
 		validationPicker:  validationPicker,
 		validations:       v,
-		keys:              componentKeys,
-		help:              help.New(),
 	}
 }
 
@@ -156,9 +171,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.UpdateSizing(msg.Height-common.TabOffset, msg.Width)
+
 	case tea.KeyMsg:
-		log.Printf("key: %s", msg.String())
-		log.Printf("focus: %d", m.focus)
 		if m.open {
 			switch msg.String() {
 			case "ctrl+c":
@@ -172,11 +188,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.focus--
 					m.updateKeyBindings()
 				}
+
 			case "right", "l":
 				if m.focus <= focusValidations {
 					m.focus++
 					m.updateKeyBindings()
 				}
+
 			case "up", "k":
 				if m.inComponentOverlay && m.selectedComponentIndex > 0 {
 					m.selectedComponentIndex--
@@ -184,10 +202,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else if m.inFrameworkOverlay && m.selectedFrameworkIndex > 0 {
 					m.selectedFrameworkIndex--
 					m.frameworkPicker.SetContent(m.updateFrameworkPickerContent())
-				} else if m.focus == focusRemarks {
-					m.remarks, _ = m.remarks.Update(msg)
-
 				}
+
 			case "down", "j":
 				if m.inComponentOverlay && m.selectedComponentIndex < len(m.components)-1 {
 					m.selectedComponentIndex++
@@ -196,20 +212,58 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedFrameworkIndex++
 					m.frameworkPicker.SetContent(m.updateFrameworkPickerContent())
 				}
+
 			case "enter":
 				switch m.focus {
 				case focusComponentSelection:
 					if m.inComponentOverlay {
 						m.selectedComponent = m.components[m.selectedComponentIndex]
+						m.selectedFrameworkIndex = 0
+
+						// Update controls list
+						if len(m.components[m.selectedComponentIndex].frameworks) > 0 {
+							m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
+						} else {
+							m.selectedFramework = framework{}
+						}
+						controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+						if len(m.selectedFramework.controls) > 0 {
+							for i, c := range m.selectedFramework.controls {
+								controlItems[i] = c
+							}
+						}
+						m.controls.SetItems(controlItems)
+						m.controls.SetDelegate(common.NewUnfocusedDelegate())
+
+						// Update remarks, description, and validations
+						m.remarks.SetContent("")
+						m.description.SetContent("")
+						m.validations.SetItems(make([]blist.Item, 0))
+
 						m.inComponentOverlay = false
 					} else {
 						m.inComponentOverlay = true
 						m.componentPicker.SetContent(m.updateComponentPickerContent())
 					}
-
 				case focusFrameworkSelection:
 					if m.inFrameworkOverlay {
 						m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
+
+						// Update controls list
+						controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+						if len(m.selectedFramework.controls) > 0 {
+							for i, c := range m.selectedFramework.controls {
+								controlItems[i] = c
+							}
+						}
+						m.controls.SetItems(controlItems)
+						m.controls.SetDelegate(common.NewUnfocusedDelegate())
+
+						// Update remarks, description, and validations
+						m.remarks.SetContent("")
+						m.description.SetContent("")
+						m.validations.SetItems(make([]blist.Item, 0))
+
 						m.inFrameworkOverlay = false
 					} else {
 						m.inFrameworkOverlay = true
@@ -233,9 +287,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.selectedValidation = selectedItem.(validationLink)
 					}
 				}
+
 			case "esc", "q":
 				if m.inComponentOverlay {
 					m.inComponentOverlay = false
+				} else if m.inFrameworkOverlay {
+					m.inFrameworkOverlay = false
 				}
 			}
 		}
@@ -273,29 +330,25 @@ func (m Model) View() string {
 }
 
 func (m Model) mainView() string {
-	totalHeight := m.height
-	leftWidth := m.width / 4
-	rightWidth := m.width - leftWidth - tui.PanelStyle.GetHorizontalPadding() - tui.PanelStyle.GetHorizontalMargins()
-
 	// Add help panel at the top left
-	helpStyle := lipgloss.NewStyle().Align(lipgloss.Right).Width(m.width - tui.PanelStyle.GetHorizontalPadding() - tui.PanelStyle.GetHorizontalMargins()).Height(1)
+	helpStyle := common.HelpStyle(m.width)
 	helpView := helpStyle.Render(m.help.View(m.keys))
 
 	// Add viewport styles
-	focusedViewport := tui.PanelStyle.BorderForeground(tui.Focused)
-	focusedViewportHeaderColor := tui.Focused
-	focusedDialogBox := tui.DialogBoxStyle.BorderForeground(tui.Focused)
+	focusedViewport := common.PanelStyle.BorderForeground(common.Focused)
+	focusedViewportHeaderColor := common.Focused
+	focusedDialogBox := common.DialogBoxStyle.BorderForeground(common.Focused)
 
-	selectedComponentDialogBox := tui.DialogBoxStyle
-	selectedFrameworkDialogBox := tui.DialogBoxStyle
-	controlPickerViewport := tui.PanelStyle
-	controlHeaderColor := tui.Highlight
-	descViewport := tui.PanelStyle
-	descHeaderColor := tui.Highlight
-	remarksViewport := tui.PanelStyle
-	remarksHeaderColor := tui.Highlight
-	validationPickerViewport := tui.PanelStyle
-	validationHeaderColor := tui.Highlight
+	selectedComponentDialogBox := common.DialogBoxStyle
+	selectedFrameworkDialogBox := common.DialogBoxStyle
+	controlPickerViewport := common.PanelStyle
+	controlHeaderColor := common.Highlight
+	descViewport := common.PanelStyle
+	descHeaderColor := common.Highlight
+	remarksViewport := common.PanelStyle
+	remarksHeaderColor := common.Highlight
+	validationPickerViewport := common.PanelStyle
+	validationHeaderColor := common.Highlight
 
 	switch m.focus {
 	case focusComponentSelection:
@@ -317,61 +370,34 @@ func (m Model) mainView() string {
 	}
 
 	// Add widgets for dialogs
-	selectedComponentLabel := tui.LabelStyle.Render("Selected Component")
-	selectedComponentText := tui.TruncateText(getComponentText(m.selectedComponent), dialogFixedWidth)
+	selectedComponentLabel := common.LabelStyle.Render("Selected Component")
+	selectedComponentText := common.TruncateText(getComponentText(m.selectedComponent), dialogFixedWidth)
 	selectedComponentContent := selectedComponentDialogBox.Width(dialogFixedWidth).Render(selectedComponentText)
 	selectedResult := lipgloss.JoinHorizontal(lipgloss.Top, selectedComponentLabel, selectedComponentContent)
 
-	selectedFrameworkLabel := tui.LabelStyle.Render("Selected Framework")
-	selectedFrameworkText := tui.TruncateText(getFrameworkText(m.selectedFramework), dialogFixedWidth)
+	selectedFrameworkLabel := common.LabelStyle.Render("Selected Framework")
+	selectedFrameworkText := common.TruncateText(getFrameworkText(m.selectedFramework), dialogFixedWidth)
 	selectedFrameworkContent := selectedFrameworkDialogBox.Width(dialogFixedWidth).Render(selectedFrameworkText)
 	selectedFramework := lipgloss.JoinHorizontal(lipgloss.Top, selectedFrameworkLabel, selectedFrameworkContent)
 
 	componentSelectionContent := lipgloss.JoinHorizontal(lipgloss.Top, selectedResult, selectedFramework)
 
-	// Build left panel with control picker
-	topSectionHeight := helpStyle.GetHeight() + tui.DialogBoxStyle.GetHeight()
-	bottomHeight := totalHeight - topSectionHeight
 	m.controls.SetShowTitle(false)
-	m.controls.SetHeight(m.height - tui.PanelTitleStyle.GetHeight() - tui.PanelStyle.GetVerticalPadding())
-	m.controls.SetWidth(leftWidth - tui.PanelStyle.GetHorizontalPadding())
+	m.validations.SetShowTitle(false)
 
 	m.controlPicker.Style = controlPickerViewport
 	m.controlPicker.SetContent(m.controls.View())
-	m.controlPicker.Height = bottomHeight
-	m.controlPicker.Width = leftWidth - tui.PanelStyle.GetHorizontalPadding()
-	leftView := fmt.Sprintf("%s\n%s", tui.HeaderView("Controls List", m.controlPicker.Width-tui.PanelStyle.GetMarginRight(), controlHeaderColor), m.controlPicker.View())
-
-	// Add right panels with control details
-	remarksHeight := bottomHeight / 5
-	descriptionHeight := bottomHeight / 5
-	validationsHeight := bottomHeight - remarksHeight - descriptionHeight - tui.PanelStyle.GetVerticalPadding() - tui.PanelStyle.GetPaddingBottom() - 3*tui.PanelTitleStyle.GetHeight() - 3
+	leftView := fmt.Sprintf("%s\n%s", common.HeaderView("Controls List", m.controlPicker.Width-common.PanelStyle.GetMarginRight(), controlHeaderColor), m.controlPicker.View())
 
 	m.remarks.Style = remarksViewport
-	m.remarks.Height = remarksHeight // this needs to get passed back to update I think? because it's not changing the underlying model
-	log.Printf("in view: remarks height: %d", m.remarks.Height)
-	log.Printf("remarks: %s", m.remarks.View())
-	m.remarks.Width = rightWidth
-	m.remarks, _ = m.remarks.Update(tea.WindowSizeMsg{Width: rightWidth, Height: remarksHeight})
-
 	m.description.Style = descViewport
-	m.description.Height = descriptionHeight
-	m.description.Width = rightWidth
-	m.description, _ = m.description.Update(tea.WindowSizeMsg{Width: rightWidth, Height: descriptionHeight})
-
-	m.validationPicker.Height = validationsHeight
-	m.validationPicker.Width = rightWidth
-
-	m.validations.SetShowTitle(false)
-	m.validations.SetHeight(validationsHeight - tui.PanelTitleStyle.GetHeight() - tui.PanelStyle.GetVerticalPadding())
-	m.validations.SetWidth(rightWidth - tui.PanelStyle.GetHorizontalPadding())
 
 	m.validationPicker.Style = validationPickerViewport
 	m.validationPicker.SetContent(m.validations.View())
 
-	remarksPanel := fmt.Sprintf("%s\n%s", tui.HeaderView("Remarks", rightWidth-tui.PanelStyle.GetPaddingRight(), remarksHeaderColor), m.remarks.View())
-	descriptionPanel := fmt.Sprintf("%s\n%s", tui.HeaderView("Description", rightWidth-tui.PanelStyle.GetPaddingRight(), descHeaderColor), m.description.View())
-	validationsPanel := fmt.Sprintf("%s\n%s", tui.HeaderView("Validations", rightWidth-tui.PanelStyle.GetPaddingRight(), validationHeaderColor), m.validationPicker.View())
+	remarksPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Remarks", m.remarks.Width-common.PanelStyle.GetPaddingRight(), remarksHeaderColor), m.remarks.View())
+	descriptionPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Description", m.description.Width-common.PanelStyle.GetPaddingRight(), descHeaderColor), m.description.View())
+	validationsPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Validations", m.validationPicker.Width-common.PanelStyle.GetPaddingRight(), validationHeaderColor), m.validationPicker.View())
 
 	rightView := lipgloss.JoinVertical(lipgloss.Top, remarksPanel, descriptionPanel, validationsPanel)
 	bottomContent := lipgloss.JoinHorizontal(lipgloss.Top, leftView, rightView)
@@ -393,13 +419,13 @@ func getFrameworkText(framework framework) string {
 func (m Model) updateComponentPickerContent() string {
 	// implement multi-select component picker...
 	s := strings.Builder{}
-	s.WriteString("Select one or many components:\n\n")
+	s.WriteString("Select a Component:\n\n")
 
 	for i, component := range m.components {
 		if m.selectedComponentIndex == i {
-			s.WriteString("[✔] ")
+			s.WriteString("(•) ") //[✔] Todo: many components?
 		} else {
-			s.WriteString("[ ] ")
+			s.WriteString("( ) ")
 		}
 		s.WriteString(getComponentText(component))
 		s.WriteString("\n")

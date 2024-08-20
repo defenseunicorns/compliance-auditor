@@ -2,7 +2,7 @@ package component
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	tui "github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/internal/tui/common"
 )
 
 type keys struct {
@@ -47,25 +47,30 @@ func (k keys) ShortHelp() []key.Binding {
 
 func (k keys) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Generate}, {k.Edit}, {k.Confirm}, {k.Navigate}, {k.Help}, {k.Quit},
+		{k.Generate}, {k.Confirm}, {k.Navigate}, {k.Help}, {k.Quit},
 	}
 }
 
 func (m *Model) updateKeyBindings() {
-	m.controls.KeyMap = tui.UnfocusedListKeyMap()
-	m.validations.KeyMap = tui.UnfocusedListKeyMap()
-	m.remarks.KeyMap = tui.UnfocusedPanelKeyMap()
-	m.controls.SetDelegate(tui.NewUnfocusedDelegate())
-	m.validations.SetDelegate(tui.NewUnfocusedDelegate())
+	m.controls.KeyMap = common.UnfocusedListKeyMap()
+	// m.controls.SetDelegate(common.NewUnfocusedDelegate())
+	m.validations.KeyMap = common.UnfocusedListKeyMap()
+	m.validations.SetDelegate(common.NewUnfocusedDelegate())
+
+	m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
+	m.description.KeyMap = common.UnfocusedPanelKeyMap()
 
 	switch m.focus {
+	case focusComponentSelection:
 	case focusValidations:
-		m.validations.KeyMap = tui.FocusedListKeyMap()
-		m.validations.SetDelegate(tui.NewFocusedDelegate())
+		m.validations.KeyMap = common.FocusedListKeyMap()
+		m.validations.SetDelegate(common.NewFocusedDelegate())
 	case focusControls:
-		m.controls.KeyMap = tui.FocusedListKeyMap()
-		m.controls.SetDelegate(tui.NewFocusedDelegate())
+		m.controls.KeyMap = common.FocusedListKeyMap()
+		m.controls.SetDelegate(common.NewFocusedDelegate())
 	case focusRemarks:
-		m.remarks.KeyMap = tui.FocusedPanelKeyMap()
+		m.remarks.KeyMap = common.FocusedPanelKeyMap()
+	case focusDescription:
+		m.description.KeyMap = common.FocusedPanelKeyMap()
 	}
 }

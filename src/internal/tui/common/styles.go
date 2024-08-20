@@ -101,13 +101,6 @@ var (
 			Padding(1, 2).
 			Margin(1).
 			Width(30)
-
-	HelpStyle = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), true).
-			BorderForeground(Subtle).
-			Padding(1, 2).
-			Margin(1).
-			Width(30)
 )
 
 func HeaderView(titleText string, width int, focusColor lipgloss.AdaptiveColor) string {
@@ -115,6 +108,13 @@ func HeaderView(titleText string, width int, focusColor lipgloss.AdaptiveColor) 
 	lineWidth := max(0, width-lipgloss.Width(title)-2) // Adjust for spacing
 	rightTitleBorder := lipgloss.NewStyle().Foreground(focusColor).Render("─" + strings.Repeat("─", lineWidth) + "╮")
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, rightTitleBorder)
+}
+
+func HelpStyle(width int) lipgloss.Style {
+	return lipgloss.NewStyle().
+		Align(lipgloss.Right).
+		Width(width - PanelStyle.GetHorizontalPadding() - PanelStyle.GetHorizontalMargins()).
+		Height(1)
 }
 
 func max(a, b int) int {

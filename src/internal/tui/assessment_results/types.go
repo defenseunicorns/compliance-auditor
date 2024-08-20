@@ -5,6 +5,7 @@ import (
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/internal/tui/common"
 )
 
 type Model struct {
@@ -12,7 +13,6 @@ type Model struct {
 	help                help.Model
 	keys                keys
 	focus               focus
-	content             string
 	inResultOverlay     bool
 	results             []result
 	resultsPicker       viewport.Model
@@ -62,11 +62,36 @@ func (m *Model) Close() {
 	m.open = false
 }
 
-func (m *Model) Open() {
+func (m *Model) Open(height, width int) {
 	m.open = true
+	m.UpdateSizing(height, width)
 }
 
-func (m *Model) SetDimensions(width, height int) {
-	m.width = width
+func (m *Model) UpdateSizing(height, width int) {
 	m.height = height
+	m.width = width
+
+	totalHeight := m.height
+	leftWidth := m.width / 4
+	rightWidth := m.width - leftWidth - common.PanelStyle.GetHorizontalPadding() - common.PanelStyle.GetHorizontalMargins()
+
+	topSectionHeight := common.HelpStyle(m.width).GetHeight() + common.DialogBoxStyle.GetHeight()
+	bottomSectionHeight := totalHeight - topSectionHeight
+	bottomRightPanelHeight := (bottomSectionHeight - 2*common.PanelTitleStyle.GetHeight() - 2*common.PanelTitleStyle.GetVerticalMargins()) / 2
+
+	m.findings.SetHeight(totalHeight - topSectionHeight - common.PanelTitleStyle.GetHeight() - common.PanelStyle.GetVerticalPadding())
+	m.findings.SetWidth(leftWidth - common.PanelStyle.GetHorizontalPadding())
+
+	m.findingPicker.Height = bottomSectionHeight
+	m.findingPicker.Width = leftWidth - common.PanelStyle.GetHorizontalPadding()
+
+	m.findingSummary.Height = bottomRightPanelHeight
+	m.findingSummary.Width = rightWidth
+
+	m.observationSummary.Height = bottomRightPanelHeight
+	m.observationSummary.Width = rightWidth
+}
+
+func (m *Model) GetDimensions() (height, width int) {
+	return m.height, m.width
 }

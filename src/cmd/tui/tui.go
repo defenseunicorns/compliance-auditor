@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/internal/tui"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -19,11 +18,8 @@ To view an OSCAL model in the TUI:
 `
 
 var tuiCmd = &cobra.Command{
-	Use:   "tui",
-	Short: "TUI viewer for OSCAL models",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.SkipLogFile = true
-	},
+	Use:     "tui",
+	Short:   "TUI viewer for OSCAL models",
 	Long:    "TUI viewer for OSCAL models",
 	Example: tuiHelp,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -42,14 +38,14 @@ var tuiCmd = &cobra.Command{
 		}
 
 		// Add debugging
-		// if message.GetLogLevel() == message.DebugLevel {
-		f, err := tea.LogToFile("debug.log", "debug")
-		if err != nil {
-			fmt.Println("fatal:", err)
-			os.Exit(1)
+		if message.GetLogLevel() == message.DebugLevel {
+			f, err := tea.LogToFile("debug.log", "debug")
+			if err != nil {
+				fmt.Println("fatal:", err)
+				os.Exit(1)
+			}
+			defer f.Close()
 		}
-		defer f.Close()
-		// }
 
 		p := tea.NewProgram(tui.NewOSCALModel(*oscalModel), tea.WithAltScreen(), tea.WithMouseCellMotion())
 
