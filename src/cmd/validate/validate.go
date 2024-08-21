@@ -26,6 +26,7 @@ type flags struct {
 var opts = &flags{}
 var ConfirmExecution bool    // --confirm-execution
 var RunNonInteractively bool // --non-interactive
+var SaveResources bool       // --save-resources
 
 var validateHelp = `
 To validate on a cluster:
@@ -81,6 +82,7 @@ func ValidateCommand() *cobra.Command {
 	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
+	validateCmd.Flags().BoolVar(&SaveResources, "save-resources", false, "save the resources to the assessment results backmatter")
 	return validateCmd
 }
 
@@ -135,12 +137,12 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 		return assessmentResult, err
 	}
 
-	results, err := ValidateOnCompDef(compDef, target)
+	results, backMatter, err := ValidateOnCompDef(compDef, target)
 	if err != nil {
 		return assessmentResult, err
 	}
 
-	assessmentResult, err = oscal.GenerateAssessmentResults(results)
+	assessmentResult, err = oscal.GenerateAssessmentResults(results, backMatter)
 	if err != nil {
 		return assessmentResult, err
 	}
@@ -151,15 +153,14 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and return a slice of results that can be written to an assessment-results object
-func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
+func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, backMatter oscalTypes_1_1_2.BackMatter, err error) {
 	err = composition.ComposeComponentDefinitions(compDef)
 	if err != nil {
-		return nil, err
-
+		return nil, backMatter, err
 	}
 
 	if *compDef.Components == nil {
-		return results, fmt.Errorf("no components found in component definition")
+		return results, backMatter, fmt.Errorf("no components found in component definition")
 	}
 
 	// Create a validation store from the back-matter if it exists
@@ -170,7 +171,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	controlImplementations := oscal.FilterControlImplementations(compDef)
 
 	if len(controlImplementations) == 0 {
-		return results, fmt.Errorf("no control implementations found in component definition")
+		return results, backMatter, fmt.Errorf("no control implementations found in component definition")
 	}
 
 	// target one specific controlImplementation
@@ -178,44 +179,50 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	// this will only produce a single result
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
+			findings, observations, resources, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
 			if err != nil {
-				return results, err
+				return results, backMatter, err
 			}
 			result, err := oscal.CreateResult(findings, observations)
 			if err != nil {
-				return results, err
+				return results, backMatter, err
 			}
 			// add/update the source to the result props - make source = framework or omit?
 			oscal.UpdateProps("target", oscal.LULA_NAMESPACE, target, result.Props)
 			results = append(results, result)
+
+			// Add resources to back matter
+			backMatter.Resources = &resources
 		} else {
-			return results, fmt.Errorf("target %s not found", target)
+			return results, backMatter, fmt.Errorf("target %s not found", target)
 		}
 	} else {
 		// default behavior - create a result for each unique source/framework
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
+			findings, observations, resources, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
 			if err != nil {
-				return results, err
+				return results, backMatter, err
 			}
 			result, err := oscal.CreateResult(findings, observations)
 			if err != nil {
-				return results, err
+				return results, backMatter, err
 			}
 			// add/update the source to the result props
 			oscal.UpdateProps("target", oscal.LULA_NAMESPACE, source, result.Props)
 			results = append(results, result)
+
+			// Add resources to back matter
+			backMatter.Resources = &resources
 		}
 	}
 
-	return results, nil
+	return results, backMatter, nil
 
 }
 
-func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, []oscalTypes_1_1_2.Resource, error) {
 
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
@@ -242,7 +249,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(ConfirmExecution)
+	observations, resources := validationStore.RunValidations(ConfirmExecution, SaveResources)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 
@@ -261,5 +268,5 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 		message.Table(header, rows, columnSize)
 	}
 
-	return findings, observations, nil
+	return findings, observations, resources, nil
 }

@@ -18,6 +18,9 @@ type LulaValidation struct {
 	// Name of the Validation
 	Name string
 
+	// UUID of the validation - tied to the component-definition.backmatter
+	UUID string
+
 	// Provider is the provider that is evaluating the validation
 	Provider *Provider
 

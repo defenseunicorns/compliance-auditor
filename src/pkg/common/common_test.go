@@ -207,7 +207,7 @@ func TestValidationFromString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := common.ValidationFromString(tt.data)
+			_, err := common.ValidationFromString(tt.data, "")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidationFromString() error = %v, wantErr %v", err, tt.wantErr)
 				return

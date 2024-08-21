@@ -1,6 +1,7 @@
 package validationstore
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -50,7 +51,7 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 		validation.Metadata.UUID = uuid.NewUUID()
 	}
 
-	v.validationMap[validation.Metadata.UUID], err = validation.ToLulaValidation()
+	v.validationMap[validation.Metadata.UUID], err = validation.ToLulaValidation(validation.Metadata.UUID)
 
 	if err != nil {
 		return "", err
@@ -74,7 +75,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	}
 
 	if validationString, ok := v.backMatterMap[trimmedId]; ok {
-		lulaValidation, err := common.ValidationFromString(validationString)
+		lulaValidation, err := common.ValidationFromString(validationString, trimmedId)
 		if err != nil {
 			return &lulaValidation, err
 		}
@@ -102,8 +103,10 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1_2.Observation {
+func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources bool) ([]oscalTypes_1_1_2.Observation, []oscalTypes_1_1_2.Resource) {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
+	resources := make([]oscalTypes_1_1_2.Resource, 0, len(v.validationMap))
+
 	for k, val := range v.validationMap {
 		completedText := "evaluated"
 		spinnerMessage := fmt.Sprintf("Running validation %s", k)
@@ -142,12 +145,29 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 				Remarks:     remarks,
 			},
 		}
-		observation := oscal.CreateObservation("TEST", relevantEvidence, "[TEST]: %s - %s\n", k, val.Name)
+		observation, resourceUuid := oscal.CreateObservation("TEST", relevantEvidence, &val, saveResources, "[TEST]: %s - %s\n", k, val.Name)
 		v.observationMap[k] = &observation
 		observations = append(observations, observation)
+
+		// Optionally add resources
+		if saveResources {
+			jsonData, err := json.MarshalIndent(val.DomainResources, "", "    ")
+			if err != nil {
+				message.Debugf("Error marshalling to JSON: %v", err)
+				jsonData = []byte("Error marshalling to JSON")
+			}
+			resources = append(
+				resources, oscalTypes_1_1_2.Resource{
+					Title:       fmt.Sprintf("Resources - %s", val.Name),
+					Description: string(jsonData),
+					UUID:        resourceUuid,
+				},
+			)
+		}
+
 		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
 	}
-	return observations
+	return observations, resources
 }
 
 // GetObservation returns the observation with the given ID as well as pass status
