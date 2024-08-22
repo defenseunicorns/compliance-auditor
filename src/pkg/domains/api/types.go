@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/defenseunicorns/lula/src/types"
 )
 
@@ -8,6 +10,29 @@ import (
 type ApiDomain struct {
 	// Spec is the specification of the API requests
 	Spec *ApiSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func CreateApiDomain(spec *ApiSpec) (types.Domain, error) {
+	// Check validity of spec
+	if spec == nil {
+		return nil, fmt.Errorf("spec is nil")
+	}
+
+	if len(spec.Requests) == 0 {
+		return nil, fmt.Errorf("some requests must be specified")
+	}
+	for _, request := range spec.Requests {
+		if request.Name == "" {
+			return nil, fmt.Errorf("request name cannot be empty")
+		}
+		if request.URL == "" {
+			return nil, fmt.Errorf("request url cannot be empty")
+		}
+	}
+
+	return ApiDomain{
+		Spec: spec,
+	}, nil
 }
 
 func (a ApiDomain) GetResources() (types.DomainResources, error) {

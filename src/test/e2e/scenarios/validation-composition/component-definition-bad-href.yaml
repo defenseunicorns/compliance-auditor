@@ -1,0 +1,51 @@
+component-definition:
+  components:
+    - control-implementations:
+        - description: Validate generic security requirements
+          implemented-requirements:
+            - control-id: ID-1
+              description: Test control ID-1 - check non-resolvable remote validation is a not-satisfied finding.
+              links:
+                # non-resolvable remote validation
+                - href: https://this-is-a-fake-url.com/validation.yaml
+                  rel: lula
+              uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+            - control-id: ID-2
+              description: Test control ID-2 - check non-resolvable local file validation is a not-satisfied finding.
+              links:
+                # non-resolvable local file validation
+                - href: file://./not-a-validation.yaml
+                  rel: lula
+              uuid: 6c05b0d4-6f08-4c09-8ff3-7f3c06a236e1
+            - control-id: ID-3
+              description: Test control ID-3 - check bad checksum file validation is a not-satisfied finding.
+              links:
+                # single validation w/ bad checksum
+                - href: file://./validation.opa.yaml@1234abcd
+                  rel: lula
+              uuid: 82ca233b-157f-4de4-bf79-2c0cefe43335
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: 68e3f5af-6823-4e7e-8cdf-d16916d3ac88
+      description: |
+        Lula - the Compliance Validator
+      purpose: Validate compliance controls
+      responsible-roles:
+        - party-uuids:
+            - C18F4A9F-A402-415B-8D13-B51739D689FF
+          role-id: provider
+      title: lula
+      type: software
+      uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+  metadata:
+    last-modified: 2024-04-03T09:56:20.719564-07:00
+    oscal-version: 1.1.2
+    parties:
+      - links:
+          - href: https://github.com/defenseunicorns/lula
+            rel: website
+        name: Lula Development
+        type: organization
+        uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+    title: Lula Demo
+    version: "20220913"
+  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
