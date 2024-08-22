@@ -37,13 +37,15 @@ Contains any `leveraged-authorizations`, if used, all `components` used to build
 
 Contains all of the compliance controls the system must adhere to as outlined within the `profile`. Each `implemented-requirement` is listed detailing the control and the information of how the system meets the control on a `by-component` instance. The component will outline all `export`, `inherited`, and `satisfied` indications for each control the component represents.
 
-## System Security Plan Generate
+## System Security Plan Generation
+
+**NOTE:** This command is in an active research phase.
 
 To generate a system security plan, you need the following context:
-- The component definition `--component`
-- The profile  source `--profile` or catalog source `--catalog`; IE `https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.json`
+- The component definition
+- The profile source or catalog source
 
-The following command will generate a system security plan with the above context:
+The following command could generate a system security plan with the above context:
 
 ```bash
 

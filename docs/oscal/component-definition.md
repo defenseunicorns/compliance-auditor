@@ -28,10 +28,7 @@ The following command will generate a component definition with the above contex
 lula generate component -c https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json -r ac-1,ac-2,au-5
 ```
 
-There are optional flags that can be added to the command to generate a component definition:
-- The remarks you wish to map from the control parts to the requirement remarks`--remarks`; `assessment-objective,statement,guidance`
-- The title of the component `--component`; `Software Title`
-- The output file of the component `-o` or `--output`; `oscal-component.yaml`
+There are optional flags that can be added to the command to generate a component definition - see [lula generate component](../cli-commands/lula_generate_component.md) for details. 
 
 ### Reproducibility  
 

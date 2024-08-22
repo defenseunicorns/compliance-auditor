@@ -45,7 +45,7 @@ Lula `evaluate` serves as a method for verifying the compliance of a component/s
 
 The term `threshold` is used in Lula processes and workflows to delineate (optimally) a point-in-time where a component/system was most compliant. In identifying this state, a quality gate can be created to require meeting or exceeding said threshold. 
 
-The reason this is crucial is that the previous assessment may not always be the required state. Rather Lula allows  capturing provenance for when that state was established and enabling teams to increment Automated Governance workflows. This may be allowing for failures until the assessments have a high level of fidelity in order to parallelize development.
+The reason this is crucial is that the previous assessment may not always be the required state. Rather Lula allows capturing provenance for when that state was established and enabling teams to increment Automated Governance workflows. This may be allowing for failures until the assessments have a high level of fidelity in order to parallelize development.
 
 ### Expected Process
 
