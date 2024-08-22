@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,9 +13,11 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
+	"github.com/defenseunicorns/lula/src/types"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
@@ -82,11 +85,13 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			return validatePodLabelFail(ctx, t, config, oscalPath)
+			validatePodLabelFail(t, oscalPath)
+			return ctx
 		}).
 		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
-			return validatePodLabelFail(ctx, t, config, oscalPath)
+			validatePodLabelFail(t, oscalPath)
+			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -101,7 +106,7 @@ func TestPodLabelValidation(t *testing.T) {
 			return ctx
 		}).Feature()
 
-	featureBadValidation := features.New("Check Graceful Failure - all not-satisfied without error").
+	featureBadValidation := features.New("Check Graceful Failure - check all not-satisfied and matching error").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/pod-label/pod.pass.yaml")
 			if err != nil {
@@ -118,7 +123,64 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("All not-satisfied", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-all-bad.yaml"
-			return validatePodLabelFail(ctx, t, config, oscalPath)
+			findings, observations := validatePodLabelFail(t, oscalPath)
+			observationRemarksMap := generateObservationRemarksMap(*observations)
+
+			for _, f := range *findings {
+				// relatedobservations should have len = 1
+				relatedObs := *f.RelatedObservations
+				if f.RelatedObservations == nil || len(relatedObs) != 1 {
+					t.Fatal("RelatedObservations should have len = 1")
+				}
+				remarks, found := observationRemarksMap[relatedObs[0].ObservationUuid]
+				if !found {
+					t.Fatal("RelatedObservation not found in map")
+				}
+
+				switch f.Target.TargetId {
+				case "ID-1":
+					if !strings.Contains(remarks, common.ErrInvalidDomain.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrInvalidDomain")
+					}
+				case "ID-1.1":
+					if !strings.Contains(remarks, common.ErrInvalidProvider.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrInvalidProvider")
+					}
+				case "ID-2":
+					if !strings.Contains(remarks, common.ErrInvalidSchema.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrInvalidSchema")
+					}
+				case "ID-3":
+					if !strings.Contains(remarks, common.ErrInvalidYaml.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrInvalidYaml")
+					}
+				case "ID-3.1":
+					if !strings.Contains(remarks, common.ErrInvalidYaml.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrInvalidYaml")
+					}
+				case "ID-4":
+					if !strings.Contains(remarks, types.ErrProviderEvaluate.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrProviderEvaluate")
+					}
+				case "ID-5":
+					if !strings.Contains(remarks, types.ErrDomainGetResources.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrDomainGetResources")
+					}
+				case "ID-5.1":
+					if !strings.Contains(remarks, types.ErrDomainGetResources.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrDomainGetResources")
+					}
+				case "ID-5.2":
+					if !strings.Contains(remarks, types.ErrDomainGetResources.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrDomainGetResources")
+					}
+				case "ID-6":
+					if !strings.Contains(remarks, types.ErrExecutionNotAllowed.Error()) {
+						t.Fatal("ID-1 - Remarks should contain ErrExecutionNotAllowed")
+					}
+				}
+			}
+			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -245,8 +307,10 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	return ctx
 }
 
-func validatePodLabelFail(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
+func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
 	message.NoProgress = true
+	validate.ConfirmExecution = false
+	validate.RunNonInteractively = true
 
 	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
@@ -269,6 +333,20 @@ func validatePodLabelFail(ctx context.Context, t *testing.T, config *envconf.Con
 			t.Fatal("State should be not-satisfied, but got :", state)
 		}
 	}
+	return result.Findings, result.Observations
+}
 
-	return ctx
+func generateObservationRemarksMap(observations []oscalTypes_1_1_2.Observation) map[string]string {
+	observationMap := make(map[string]string, len(observations))
+
+	for i := range observations {
+		observation := &observations[i]
+		relevantEvidence := strings.Builder{}
+		for _, re := range *observation.RelevantEvidence {
+			relevantEvidence.WriteString(re.Remarks)
+		}
+		observationMap[observation.UUID] = relevantEvidence.String()
+	}
+
+	return observationMap
 }

@@ -2,6 +2,8 @@ package opa
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -12,6 +14,37 @@ type OpaProvider struct {
 
 	// Spec is the specification of the OPA policy
 	Spec *OpaSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func CreateOpaProvider(ctx context.Context, spec *OpaSpec) (types.Provider, error) {
+	// Check validity of spec
+	if spec == nil {
+		return nil, fmt.Errorf("spec is nil")
+	}
+
+	if spec.Rego == "" {
+		return nil, fmt.Errorf("rego policy cannot be empty")
+	}
+
+	if spec.Output != nil {
+		if spec.Output.Validation != "" {
+			if !strings.Contains(spec.Output.Validation, ".") {
+				return nil, fmt.Errorf("validation field must be a json path")
+			}
+		}
+		if spec.Output.Observations != nil {
+			for _, observation := range spec.Output.Observations {
+				if !strings.Contains(observation, ".") {
+					return nil, fmt.Errorf("observation field must be a json path")
+				}
+			}
+		}
+	}
+
+	return OpaProvider{
+		Context: ctx,
+		Spec:    spec,
+	}, nil
 }
 
 func (o OpaProvider) Evaluate(resources types.DomainResources) (types.Result, error) {

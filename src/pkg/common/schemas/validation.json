@@ -409,13 +409,22 @@
                     "type": "object",
                     "properties": {
                         "validation": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "optional: variable for validation, must be jsonpath <package>.<variable-path> and resolve to boolean"
                         },
                         "observations": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "oneOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "optional: any additional observations to include, fields must be jsonpath <package>.<variable-path> and resolve to strings"
                         }
                     }
                 }

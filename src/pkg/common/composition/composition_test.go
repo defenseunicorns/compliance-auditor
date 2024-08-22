@@ -13,7 +13,9 @@ import (
 
 const (
 	allRemote          = "../../../test/e2e/scenarios/validation-composition/component-definition.yaml"
+	allRemoteBadHref   = "../../../test/e2e/scenarios/validation-composition/component-definition-bad-href.yaml"
 	allLocal           = "../../../test/unit/common/composition/component-definition-all-local.yaml"
+	allLocalBadHref    = "../../../test/unit/common/composition/component-definition-all-local-bad-href.yaml"
 	localAndRemote     = "../../../test/unit/common/composition/component-definition-local-and-remote.yaml"
 	subComponentDef    = "../../../test/unit/common/composition/component-definition-import-compdefs.yaml"
 	compDefMultiImport = "../../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
@@ -30,8 +32,28 @@ func TestComposeFromPath(t *testing.T) {
 		}
 	})
 
+	t.Run("No imports, local validations, bad href", func(t *testing.T) {
+		model, err := composition.ComposeFromPath(allLocalBadHref)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if model == nil {
+			t.Error("expected the model to be composed")
+		}
+	})
+
 	t.Run("No imports, remote validations", func(t *testing.T) {
 		model, err := composition.ComposeFromPath(allRemote)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if model == nil {
+			t.Error("expected the model to be composed")
+		}
+	})
+
+	t.Run("No imports, bad remote validations", func(t *testing.T) {
+		model, err := composition.ComposeFromPath(allRemoteBadHref)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
