@@ -100,8 +100,8 @@ func MergeComponentDefinitions(original *oscalTypes_1_1_2.ComponentDefinition, l
 	original.Components = &tempItems
 	original.Metadata.LastModified = time.Now()
 
-	// TODO: Decide if we need to generate a new top-level UUID
-	// original.UUID = uuid.NewUUID()
+	// Artifact will be modified - need to update the UUID
+	original.UUID = uuid.NewUUID()
 
 	return original, nil
 
