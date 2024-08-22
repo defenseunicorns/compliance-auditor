@@ -12,13 +12,10 @@ import (
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
+	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
 	"sigs.k8s.io/yaml"
 )
 
-const validKubernetesPath = "../../test/unit/common/valid-kubernetes-spec.yaml"
-const validApiPath = "../../test/unit/common/valid-api-spec.yaml"
-const validOpaPath = "../../test/unit/common/valid-opa-spec.yaml"
-const validKyvernoPath = "../../test/unit/common/valid-kyverno-spec.yaml"
 const multiValidationPath = "../../test/e2e/scenarios/remote-validations/multi-validations.yaml"
 const singleValidationPath = "../../test/e2e/scenarios/remote-validations/validation.opa.yaml"
 
@@ -33,47 +30,88 @@ func loadTestData(t *testing.T, path string) []byte {
 }
 
 func TestGetDomain(t *testing.T) {
-	validKubernetesBytes := loadTestData(t, validKubernetesPath)
-	validApiBytes := loadTestData(t, validApiPath)
+	t.Parallel()
 
-	var validKubernetes kube.KubernetesSpec
-	if err := yaml.Unmarshal(validKubernetesBytes, &validKubernetes); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
-
-	var validApi api.ApiSpec
-	if err := yaml.Unmarshal(validApiBytes, &validApi); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
-
-	// Define test cases
 	tests := []struct {
-		name     string
-		domain   common.Domain
-		expected string
+		name           string
+		domain         common.Domain
+		expectedErr    bool
+		expectedDomain string
 	}{
 		{
-			name: "kubernetes domain",
+			name: "valid kubernetes domain",
 			domain: common.Domain{
-				Type:           "kubernetes",
-				KubernetesSpec: &validKubernetes,
+				Type: "kubernetes",
+				KubernetesSpec: &kube.KubernetesSpec{
+					Resources: []kube.Resource{
+						{
+							Name: "podsvt",
+							ResourceRule: &kube.ResourceRule{
+								Version:    "v1",
+								Resource:   "pods",
+								Namespaces: []string{"validation-test"},
+							},
+						},
+					},
+				},
 			},
-			expected: "kube.KubernetesDomain",
+			expectedErr:    false,
+			expectedDomain: "kube.KubernetesDomain",
 		},
 		{
-			name: "api domain",
+			name: "invalid kubernetes domain",
 			domain: common.Domain{
-				Type:    "api",
-				ApiSpec: &validApi,
+				Type: "kubernetes",
+				KubernetesSpec: &kube.KubernetesSpec{
+					Resources: []kube.Resource{
+						{
+							Name: "podsvt",
+							ResourceRule: &kube.ResourceRule{
+								Version:    "v1",
+								Namespaces: []string{"validation-test"},
+							},
+						},
+					},
+				},
 			},
-			expected: "api.ApiDomain",
+			expectedErr: true,
 		},
 		{
-			name: "unsupported domain",
+			name: "valid api domain",
 			domain: common.Domain{
-				Type: "unsupported",
+				Type: "api",
+				ApiSpec: &api.ApiSpec{
+					Requests: []api.Request{
+						{
+							Name: "local",
+							URL:  "http://localhost",
+						},
+					},
+				},
 			},
-			expected: "nil",
+			expectedErr:    false,
+			expectedDomain: "api.ApiDomain",
+		},
+		{
+			name: "invalid api domain",
+			domain: common.Domain{
+				Type: "api",
+				ApiSpec: &api.ApiSpec{
+					Requests: []api.Request{
+						{
+							Name: "local",
+						},
+					},
+				},
+			},
+			expectedErr: true,
+		},
+		{
+			name: "invalid type domain",
+			domain: common.Domain{
+				Type: "foo",
+			},
+			expectedErr: true,
 		},
 	}
 
@@ -81,9 +119,12 @@ func TestGetDomain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := common.GetDomain(&tt.domain, ctx)
+			result, err := common.GetDomain(&tt.domain, ctx)
+			if (err != nil) != tt.expectedErr {
+				t.Fatalf("expected error: %v, got: %v", tt.expectedErr, err)
+			}
 
-			switch tt.expected {
+			switch tt.expectedDomain {
 			case "kube.KubernetesDomain":
 				if _, ok := result.(kube.KubernetesDomain); !ok {
 					t.Errorf("Expected result to be kube.KubernetesDomain, got %T", result)
@@ -102,46 +143,60 @@ func TestGetDomain(t *testing.T) {
 }
 
 func TestGetProvider(t *testing.T) {
-	validOpaBytes := loadTestData(t, validOpaPath)
-	validKyvernoBytes := loadTestData(t, validKyvernoPath)
-
-	var validOpa opa.OpaSpec
-	if err := yaml.Unmarshal(validOpaBytes, &validOpa); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
-
-	var validKyverno kyverno.KyvernoSpec
-	if err := yaml.Unmarshal(validKyvernoBytes, &validKyverno); err != nil {
-		t.Fatalf("yaml.Unmarshal failed: %v", err)
-	}
+	t.Parallel()
 
 	tests := []struct {
-		name     string
-		provider common.Provider
-		expected string
+		name             string
+		provider         common.Provider
+		expectedErr      bool
+		expectedProvider string
 	}{
 		{
-			name: "opa provider",
+			name: "valid opa provider",
+			provider: common.Provider{
+				Type: "opa",
+				OpaSpec: &opa.OpaSpec{
+					Rego: "package validate\n\ndefault validate = false",
+				},
+			},
+			expectedErr:      false,
+			expectedProvider: "opa.OpaProvider",
+		},
+		{
+			name: "invalid opa provider",
 			provider: common.Provider{
 				Type:    "opa",
-				OpaSpec: &validOpa,
+				OpaSpec: &opa.OpaSpec{},
 			},
-			expected: "opa.OpaProvider",
+			expectedErr: true,
 		},
 		{
-			name: "kyverno provider",
+			name: "valid kyverno provider",
+			provider: common.Provider{
+				Type: "kyverno",
+				KyvernoSpec: &kyverno.KyvernoSpec{
+					Policy: &kjson.ValidatingPolicy{
+						Spec: kjson.ValidatingPolicySpec{},
+					},
+				},
+			},
+			expectedErr:      false,
+			expectedProvider: "kyverno.KyvernoProvider",
+		},
+		{
+			name: "invalid kyverno provider",
 			provider: common.Provider{
 				Type:        "kyverno",
-				KyvernoSpec: &validKyverno,
+				KyvernoSpec: &kyverno.KyvernoSpec{},
 			},
-			expected: "kyverno.KyvernoProvider",
+			expectedErr: true,
 		},
 		{
-			name: "unsupported provider",
+			name: "invalid type provider",
 			provider: common.Provider{
-				Type: "unsupported",
+				Type: "foo",
 			},
-			expected: "nil",
+			expectedErr: true,
 		},
 	}
 
@@ -149,9 +204,12 @@ func TestGetProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := common.GetProvider(&tt.provider, ctx)
+			result, err := common.GetProvider(&tt.provider, ctx)
+			if (err != nil) != tt.expectedErr {
+				t.Fatalf("expected error: %v, got: %v", tt.expectedErr, err)
+			}
 
-			switch tt.expected {
+			switch tt.expectedProvider {
 			case "opa.OpaProvider":
 				if _, ok := result.(opa.OpaProvider); !ok {
 					t.Errorf("Expected result to be opa.OpaProvider, got %T", result)
@@ -370,6 +428,72 @@ func TestReadValidationsFromYaml(t *testing.T) {
 			}
 			if len(validations) != tt.expectedCount {
 				t.Errorf("Expected %d validations, but got %d", tt.expectedCount, len(validations))
+			}
+		})
+	}
+}
+
+func TestIsVersionValid(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name              string
+		versionConstraint string
+		version           string
+		expectedValid     bool
+		expectedErr       bool
+	}{
+		{
+			name:              "Valid constraint and version",
+			versionConstraint: ">= 1.0.0, < 2.0.0",
+			version:           "1.5.0",
+			expectedValid:     true,
+			expectedErr:       false,
+		},
+		{
+			name:              "Valid constraint and version (exact match)",
+			versionConstraint: "1.0.0",
+			version:           "1.0.0",
+			expectedValid:     true,
+			expectedErr:       false,
+		},
+		{
+			name:              "Invalid version",
+			versionConstraint: ">= 1.0.0, < 2.0.0",
+			version:           "2.5.0",
+			expectedValid:     false,
+			expectedErr:       false,
+		},
+		{
+			name:              "Invalid constraint syntax",
+			versionConstraint: ">=> 1.0.0",
+			version:           "1.5.0",
+			expectedValid:     false,
+			expectedErr:       true,
+		},
+		{
+			name:              "Invalid version syntax",
+			versionConstraint: ">= 1.0.0, < 2.0.0",
+			version:           "invalid",
+			expectedValid:     false,
+			expectedErr:       true,
+		},
+		{
+			name:              "Unset version",
+			versionConstraint: ">= 1.0.0, < 2.0.0",
+			version:           "unset",
+			expectedValid:     true,
+			expectedErr:       false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			valid, err := common.IsVersionValid(tc.versionConstraint, tc.version)
+			if (err != nil) != tc.expectedErr {
+				t.Fatalf("expected error: %v, got: %v", tc.expectedErr, err)
+			}
+			if valid != tc.expectedValid {
+				t.Fatalf("expected valid: %v, got: %v", tc.expectedValid, valid)
 			}
 		})
 	}
