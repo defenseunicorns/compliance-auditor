@@ -50,7 +50,10 @@ var evaluateCmd = &cobra.Command{
 			message.Fatal(err, err.Error())
 		}
 
-		EvaluateAssessments(assessmentMap, opts.Target, opts.summary, opts.machine)
+		err = EvaluateAssessments(assessmentMap, opts.Target, opts.summary, opts.machine)
+		if err != nil {
+			message.Fatal(err, err.Error())
+		}
 	},
 }
 
@@ -65,7 +68,7 @@ func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary, machine bool) {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary, machine bool) error {
 	// Identify the threshold & latest for comparison
 	resultMap := oscal.FilterResults(assessmentMap)
 
@@ -73,14 +76,16 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 		if result, ok := resultMap[target]; ok {
 			err := evaluateTarget(result, target, summary, machine)
 			if err != nil {
-				message.Warn(err.Error())
+				// message.Warn(err.Error())
+				return err
 			}
 		}
 	} else {
 		for source, result := range resultMap {
 			err := evaluateTarget(result, source, summary, machine)
 			if err != nil {
-				message.Warn(err.Error())
+				// message.Warn(err.Error())
+				return err
 			}
 		}
 	}
@@ -93,6 +98,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 		oscal.WriteOscalModel(filePath, &model)
 	}
+	return nil
 }
 
 func evaluateTarget(target oscal.EvalResult, source string, summary, machine bool) error {
@@ -121,7 +127,8 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 
 		status, resultComparison, err := oscal.EvaluateResults(target.Threshold, target.Latest)
 		if err != nil {
-			message.Fatal(err, err.Error())
+			return err
+			// message.Fatal(err, err.Error())
 		}
 
 		// Print summary
@@ -200,17 +207,18 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
 
-			// return fmt.Errorf("failed to meet established threshold") // What's going on here
-			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
+			return fmt.Errorf("failed to meet established threshold") // TODO: What's going on here
+			// message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 
 			// retain result as threshold
-			oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Threshold.Props)
+			// oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Threshold.Props)
 		}
 
 		spinner.Success()
 
 	} else if target.Threshold == nil {
-		message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
+		return fmt.Errorf("no threshold assessment results could be identified")
+		// message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
 	}
 
 	return nil
