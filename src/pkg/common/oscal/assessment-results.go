@@ -41,7 +41,7 @@ func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, err
 	return oscalModels.AssessmentResults, nil
 }
 
-func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result, backMatter oscalTypes_1_1_2.BackMatter) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result, backMatter *oscalTypes_1_1_2.BackMatter) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var assessmentResults = &oscalTypes_1_1_2.AssessmentResults{}
 
 	// Single time used for all time related fields
@@ -65,7 +65,9 @@ func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result, backMatter osc
 	assessmentResults.Results = results
 
 	// Add the back matter
-	assessmentResults.BackMatter = &backMatter
+	if backMatter != nil {
+		assessmentResults.BackMatter = backMatter
+	}
 
 	return assessmentResults, nil
 }

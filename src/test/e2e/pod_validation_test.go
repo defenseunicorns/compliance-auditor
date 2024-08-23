@@ -181,7 +181,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Test report generation
-	report, err := oscal.GenerateAssessmentResults(assessment.Results)
+	report, err := oscal.GenerateAssessmentResults(assessment.Results, nil)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
@@ -199,7 +199,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	initialResultCount := len(report.Results)
 
 	//Perform the write operation again and read the file to ensure result was appended
-	report, err = oscal.GenerateAssessmentResults(assessment.Results)
+	report, err = oscal.GenerateAssessmentResults(assessment.Results, nil)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}

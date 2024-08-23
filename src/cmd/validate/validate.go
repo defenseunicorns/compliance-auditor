@@ -153,14 +153,14 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and return a slice of results that can be written to an assessment-results object
-func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, backMatter oscalTypes_1_1_2.BackMatter, err error) {
+func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, backMatter *oscalTypes_1_1_2.BackMatter, err error) {
 	err = composition.ComposeComponentDefinitions(compDef)
 	if err != nil {
-		return nil, backMatter, err
+		return nil, nil, err
 	}
 
 	if *compDef.Components == nil {
-		return results, backMatter, fmt.Errorf("no components found in component definition")
+		return results, nil, fmt.Errorf("no components found in component definition")
 	}
 
 	// Create a validation store from the back-matter if it exists
@@ -171,7 +171,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	controlImplementations := oscal.FilterControlImplementations(compDef)
 
 	if len(controlImplementations) == 0 {
-		return results, backMatter, fmt.Errorf("no control implementations found in component definition")
+		return results, nil, fmt.Errorf("no control implementations found in component definition")
 	}
 
 	// target one specific controlImplementation
@@ -181,18 +181,20 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 		if controlImplementation, ok := controlImplementations[target]; ok {
 			findings, observations, resources, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
 			if err != nil {
-				return results, backMatter, err
+				return results, nil, err
 			}
 			result, err := oscal.CreateResult(findings, observations)
 			if err != nil {
-				return results, backMatter, err
+				return results, nil, err
 			}
 			// add/update the source to the result props - make source = framework or omit?
 			oscal.UpdateProps("target", oscal.LULA_NAMESPACE, target, result.Props)
 			results = append(results, result)
 
 			// Add resources to back matter
-			backMatter.Resources = &resources
+			backMatter = &oscalTypes_1_1_2.BackMatter{
+				Resources: &resources,
+			}
 		} else {
 			return results, backMatter, fmt.Errorf("target %s not found", target)
 		}
@@ -203,18 +205,20 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 		for source, controlImplementation := range controlImplementations {
 			findings, observations, resources, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
 			if err != nil {
-				return results, backMatter, err
+				return results, nil, err
 			}
 			result, err := oscal.CreateResult(findings, observations)
 			if err != nil {
-				return results, backMatter, err
+				return results, nil, err
 			}
 			// add/update the source to the result props
 			oscal.UpdateProps("target", oscal.LULA_NAMESPACE, source, result.Props)
 			results = append(results, result)
 
 			// Add resources to back matter
-			backMatter.Resources = &resources
+			backMatter = &oscalTypes_1_1_2.BackMatter{
+				Resources: &resources,
+			}
 		}
 	}
 

@@ -25,10 +25,13 @@ To target a specific framework for validation:
 
 `
 
+// TODO: add flag to print out old / new observation UUID so that they can be used by the dev print-resources/validation commands
+
 type flags struct {
 	InputFile []string // -f --input-file
 	Target    string   // -t --target
 	summary   bool     // -s --summary
+	machine   bool     // -m --machine
 }
 
 var opts = &flags{}
@@ -47,7 +50,7 @@ var evaluateCmd = &cobra.Command{
 			message.Fatal(err, err.Error())
 		}
 
-		EvaluateAssessments(assessmentMap, opts.Target, opts.summary)
+		EvaluateAssessments(assessmentMap, opts.Target, opts.summary, opts.machine)
 	},
 }
 
@@ -57,24 +60,25 @@ func EvaluateCommand() *cobra.Command {
 	evaluateCmd.MarkFlagRequired("input-file")
 	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", false, "Print a summary of the evaluation")
+	evaluateCmd.Flags().BoolVar(&opts.machine, "machine", false, "Print a machine-readable output")
 	// insert flag options here
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary bool) {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary, machine bool) {
 	// Identify the threshold & latest for comparison
 	resultMap := oscal.FilterResults(assessmentMap)
 
 	if target != "" {
 		if result, ok := resultMap[target]; ok {
-			err := evaluateTarget(result, target, summary)
+			err := evaluateTarget(result, target, summary, machine)
 			if err != nil {
 				message.Warn(err.Error())
 			}
 		}
 	} else {
 		for source, result := range resultMap {
-			err := evaluateTarget(result, source, summary)
+			err := evaluateTarget(result, source, summary, machine)
 			if err != nil {
 				message.Warn(err.Error())
 			}
@@ -91,7 +95,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 	}
 }
 
-func evaluateTarget(target oscal.EvalResult, source string, summary bool) error {
+func evaluateTarget(target oscal.EvalResult, source string, summary, machine bool) error {
 	message.Debugf("Length of results: %d", len(target.Results))
 	if len(target.Results) == 0 {
 		return fmt.Errorf("no results found")
@@ -128,6 +132,20 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 				message.Warnf("%d Finding(s) Without Observations", len(findingsWithoutObservations))
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
+		}
+
+		// Print machine-readable output
+		if machine {
+			var machineOutput strings.Builder
+			machineOutput.WriteString("<diagnostic-inputs>\n")
+			if len(resultComparison["no-longer-satisfied"]) == 0 {
+				fmt.Println("No observations to diagnose")
+			} else {
+				out := result.GetMachineFriendlyObservations(resultComparison["no-longer-satisfied"])
+				machineOutput.WriteString(out)
+			}
+			machineOutput.WriteString("</diagnostic-inputs>\n")
+			fmt.Println(machineOutput.String()) // would like to defer this to return but there's not always a return?
 		}
 
 		// Check 'status' - Result if evaluation is passing or failing
@@ -182,6 +200,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
 
+			// return fmt.Errorf("failed to meet established threshold") // What's going on here
 			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
 
 			// retain result as threshold

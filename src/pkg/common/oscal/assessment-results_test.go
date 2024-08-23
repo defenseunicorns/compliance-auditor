@@ -99,7 +99,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result}, oscalTypes_1_1_2.BackMatter{})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -127,7 +127,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result}, oscalTypes_1_1_2.BackMatter{})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -137,7 +137,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultSecond}, oscalTypes_1_1_2.BackMatter{})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultSecond}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -179,7 +179,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, oscalTypes_1_1_2.BackMatter{})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -189,7 +189,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, oscalTypes_1_1_2.BackMatter{})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -229,7 +229,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, oscalTypes_1_1_2.BackMatter{})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -239,7 +239,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, oscalTypes_1_1_2.BackMatter{})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -285,7 +285,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, oscalTypes_1_1_2.BackMatter{})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -295,7 +295,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, oscalTypes_1_1_2.BackMatter{})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, nil)
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}

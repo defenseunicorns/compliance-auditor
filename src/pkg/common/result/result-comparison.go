@@ -1,6 +1,7 @@
 package result
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -167,6 +168,21 @@ func RefactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (ma
 	}
 
 	return observationPairMap, controlObservationMap, noObservations
+}
+
+// GetMachineFriendlyObservations returns a machine-readable output of compared observations
+func GetMachineFriendlyObservations(noLongerSatisfied ResultComparisonMap) string {
+	var out strings.Builder
+	for _, resultComparison := range noLongerSatisfied {
+		if resultComparison.ObservationPairs != nil {
+			for _, op := range resultComparison.ObservationPairs {
+				if op.StateChange == SATISFIED_TO_NOT_SATISFIED {
+					out.WriteString(fmt.Sprintf("observation: %s, compared observation: %s\n", op.ObservationUuid, op.ComparedObservationUuid))
+				}
+			}
+		}
+	}
+	return out.String()
 }
 
 // newResultComparison create new result comparison from two findings

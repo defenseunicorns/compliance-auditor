@@ -63,7 +63,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			results, err := validate.ValidateOnCompDef(compDef, "")
+			results, _, err := validate.ValidateOnCompDef(compDef, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
@@ -119,7 +119,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			composeResults, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
+			composeResults, _, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}
