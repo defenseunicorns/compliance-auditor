@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/defenseunicorns/lula/src/internal/tui"
@@ -12,9 +11,15 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type flags struct {
+	InputFile string // -f --input-file
+}
+
+var opts = &flags{}
+
 var tuiHelp = `
 To view an OSCAL model in the TUI:
-	lula tui /path/to/oscal-component.yaml
+	lula tui -f /path/to/oscal-component.yaml
 `
 
 var tuiCmd = &cobra.Command{
@@ -23,12 +28,8 @@ var tuiCmd = &cobra.Command{
 	Long:    "TUI viewer for OSCAL models",
 	Example: tuiHelp,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			message.Fatal(fmt.Errorf("no input file provided"), "no input file provided")
-		}
-
 		// Get the OSCAL model from the file
-		data, err := os.ReadFile(args[0])
+		data, err := os.ReadFile(opts.InputFile)
 		if err != nil {
 			message.Fatalf(err, "error reading file: %v", err)
 		}
@@ -38,11 +39,11 @@ var tuiCmd = &cobra.Command{
 		}
 
 		// Add debugging
+		// TODO: need to integrate with the log file handled by messages
 		if message.GetLogLevel() == message.DebugLevel {
 			f, err := tea.LogToFile("debug.log", "debug")
 			if err != nil {
-				fmt.Println("fatal:", err)
-				os.Exit(1)
+				message.Fatalf(err, err.Error())
 			}
 			defer f.Close()
 		}
@@ -50,12 +51,13 @@ var tuiCmd = &cobra.Command{
 		p := tea.NewProgram(tui.NewOSCALModel(*oscalModel), tea.WithAltScreen(), tea.WithMouseCellMotion())
 
 		if _, err := p.Run(); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
+			message.Fatalf(err, err.Error())
 		}
 	},
 }
 
-func Include(rootCmd *cobra.Command) {
-	rootCmd.AddCommand(tuiCmd)
+func TuiCommand() *cobra.Command {
+	tuiCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL model")
+	tuiCmd.MarkFlagRequired("input-file")
+	return tuiCmd
 }

@@ -63,13 +63,13 @@ func init() {
 		validate.ValidateCommand(),
 		evaluate.EvaluateCommand(),
 		generate.GenerateCommand(),
+		tui.TuiCommand(),
 	}
 
 	rootCmd.AddCommand(commands...)
 	tools.Include(rootCmd)
 	version.Include(rootCmd)
 	dev.Include(rootCmd)
-	tui.Include(rootCmd)
 
 	rootCmd.PersistentFlags().StringVarP(&LogLevelCLI, "log-level", "l", "info", "Log level when running Lula. Valid options are: warn, info, debug, trace")
 }

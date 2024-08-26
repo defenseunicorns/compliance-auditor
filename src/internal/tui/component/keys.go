@@ -27,10 +27,6 @@ var componentKeys = keys{
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit"),
 	),
-	Generate: key.NewBinding(
-		key.WithKeys("g"),
-		key.WithHelp("g", "generate"),
-	),
 	Confirm: common.PickerHotkeys.Confirm,
 	Cancel:  common.PickerHotkeys.Cancel,
 	Navigation: key.NewBinding(
@@ -54,12 +50,12 @@ var componentKeys = keys{
 }
 
 func (k keys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Generate, k.Help}
+	return []key.Binding{k.Navigation, k.Help}
 }
 
 func (k keys) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Generate}, {k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
+		{k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
 	}
 }
 
