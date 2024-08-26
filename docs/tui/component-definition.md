@@ -29,4 +29,4 @@ The Component Definition model responds to the following keys for navigation and
 
 ## View
 
-<img align="right" src="./images/component-defn-tui.gif" alt="component definition tui" style="width:100%; height:auto;">
+<img align="right" src="../../images/component-defn-tui.gif" alt="component definition tui" style="width:100%; height:auto;">
