@@ -3,15 +3,11 @@ package test
 import (
 	"context"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -51,17 +47,22 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Error(err)
 			}
 
-			// Change Cwd to the directory of the component definition
-			dirPath := filepath.Dir(compDefPath)
-			resetCwd, err := common.SetCwdToFileDir(dirPath)
+			compDef, err := validate.GetComponentDefinition(compDefBytes, compDefPath)
 			if err != nil {
-				t.Fatal(err)
+				t.Error(err)
 			}
 
-			compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
-			if err != nil {
-				t.Fatal(err)
-			}
+			// // Change Cwd to the directory of the component definition
+			// dirPath := filepath.Dir(compDefPath)
+			// resetCwd, err := common.SetCwdToFileDir(dirPath)
+			// if err != nil {
+			// 	t.Fatal(err)
+			// }
+
+			// compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
+			// if err != nil {
+			// 	t.Fatal(err)
+			// }
 
 			results, _, err := validate.ValidateOnCompDef(compDef, "")
 			if err != nil {
@@ -101,23 +102,29 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("Expected to find observations")
 			}
 
-			resetCwd()
+			// resetCwd()
 
 			var oscalModel oscalTypes_1_1_2.OscalCompleteSchema
 			err = yaml.Unmarshal(compDefBytes, &oscalModel)
 			if err != nil {
 				t.Error(err)
 			}
-			reset, err := common.SetCwdToFileDir(compDefPath)
-			if err != nil {
-				t.Fatalf("Error setting cwd to file dir: %v", err)
-			}
-			defer reset()
 
-			err = composition.ComposeComponentDefinitions(oscalModel.ComponentDefinition)
+			oscalModel.ComponentDefinition, err = validate.GetComponentDefinition(compDefBytes, compDefPath)
 			if err != nil {
 				t.Error(err)
 			}
+
+			// reset, err := common.SetCwdToFileDir(compDefPath)
+			// if err != nil {
+			// 	t.Fatalf("Error setting cwd to file dir: %v", err)
+			// }
+			// defer reset()
+
+			// err = composition.ComposeComponentDefinitions(oscalModel.ComponentDefinition)
+			// if err != nil {
+			// 	t.Error(err)
+			// }
 
 			composeResults, _, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
 			if err != nil {

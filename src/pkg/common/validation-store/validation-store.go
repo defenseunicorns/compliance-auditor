@@ -3,7 +3,10 @@ package validationstore
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -103,7 +106,7 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources bool) ([]oscalTypes_1_1_2.Observation, []oscalTypes_1_1_2.Resource) {
+func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, resourcesDir string) ([]oscalTypes_1_1_2.Observation, []oscalTypes_1_1_2.Resource) {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
 	resources := make([]oscalTypes_1_1_2.Resource, 0, len(v.validationMap))
 
@@ -138,6 +141,44 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources bo
 			}
 		}
 
+		// Save Resources if specified
+		var resourceHref string
+		if saveResources != "" {
+			resourceUuid := uuid.NewUUID()
+			if saveResources == "backmatter" {
+				resourceHref = common.AddIdPrefix(resourceUuid)
+				jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
+				if err != nil {
+					message.Debugf("Error marshalling to JSON: %v", err)
+					jsonData = []byte("Error marshalling to JSON")
+				}
+				resources = append(
+					resources, oscalTypes_1_1_2.Resource{
+						Title:       fmt.Sprintf("Resources - %s", val.Name),
+						Description: string(jsonData),
+						UUID:        resourceUuid,
+					},
+				)
+			} else if saveResources == "remote" {
+				// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
+				filename := fmt.Sprintf("%s.json", resourceUuid)
+				resourceFile := filepath.Join(resourcesDir, "resources", filename)
+				err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm)
+				if err != nil {
+					message.Debugf("Error creating directory for remote resource: %v", err)
+				}
+				jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
+				if err != nil {
+					message.Debugf("Error marshalling to JSON: %v", err)
+					jsonData = []byte("Error marshalling to JSON")
+				}
+				err = files.WriteOutput(jsonData, resourceFile)
+				if err != nil {
+					message.Debugf("Error writing remote resource file: %v", err)
+				}
+				resourceHref = fmt.Sprintf("file://./resources/%s", filename)
+			}
+		}
 		// Create an observation
 		relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
 			{
@@ -145,25 +186,9 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources bo
 				Remarks:     remarks,
 			},
 		}
-		observation, resourceUuid := oscal.CreateObservation("TEST", relevantEvidence, &val, saveResources, "[TEST]: %s - %s\n", k, val.Name)
+		observation := oscal.CreateObservation("TEST", relevantEvidence, &val, resourceHref, "[TEST]: %s - %s\n", k, val.Name)
 		v.observationMap[k] = &observation
 		observations = append(observations, observation)
-
-		// Optionally add resources
-		if saveResources {
-			jsonData, err := json.MarshalIndent(val.DomainResources, "", "    ")
-			if err != nil {
-				message.Debugf("Error marshalling to JSON: %v", err)
-				jsonData = []byte("Error marshalling to JSON")
-			}
-			resources = append(
-				resources, oscalTypes_1_1_2.Resource{
-					Title:       fmt.Sprintf("Resources - %s", val.Name),
-					Description: string(jsonData),
-					UUID:        resourceUuid,
-				},
-			)
-		}
 
 		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
 	}

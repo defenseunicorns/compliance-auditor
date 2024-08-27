@@ -40,7 +40,7 @@ var NoProgress bool
 var RuleLine = strings.Repeat("━", TermWidth)
 
 // LogWriter is the stream to write logs to.
-var LogWriter io.Writer = os.Stdout
+var LogWriter io.Writer = os.Stderr
 
 // logLevel holds the pterm compatible log level integer
 var logLevel = InfoLevel
@@ -74,7 +74,7 @@ func init() {
 		Text: " •",
 	}
 
-	pterm.SetDefaultOutput(os.Stdout)
+	pterm.SetDefaultOutput(os.Stderr)
 }
 
 // UseLogFile writes output to stderr and a logFile.
@@ -85,7 +85,7 @@ func UseLogFile() {
 	var err error
 	if logFile != nil {
 		// Use the existing log file if logFile is set
-		LogWriter = io.MultiWriter(os.Stdout, logFile)
+		LogWriter = io.MultiWriter(os.Stderr, logFile)
 		pterm.SetDefaultOutput(LogWriter)
 	} else {
 		// Try to create a temp log file if one hasn't been made already
@@ -93,7 +93,7 @@ func UseLogFile() {
 			WarnErr(err, "Error saving a log file to a temporary directory")
 		} else {
 			useLogFile = true
-			LogWriter = io.MultiWriter(os.Stdout, logFile)
+			LogWriter = io.MultiWriter(os.Stderr, logFile)
 			pterm.SetDefaultOutput(LogWriter)
 			message := fmt.Sprintf("Saving log file to %s", logFile.Name())
 			Note(message)

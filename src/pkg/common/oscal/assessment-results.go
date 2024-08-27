@@ -73,7 +73,6 @@ func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result, backMatter *os
 }
 
 func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest *oscalTypes_1_1_2.AssessmentResults) (*oscalTypes_1_1_2.AssessmentResults, error) {
-
 	// If UUID's are matching - this must be a prop update for threshold
 	// This is used during evaluate to update the threshold prop automatically
 	if original.UUID == latest.UUID {
@@ -326,10 +325,9 @@ func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 }
 
 // Helper function to create observation
-func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, validation *types.LulaValidation, saveResources bool, descriptionPattern string, descriptionArgs ...any) (oscalTypes_1_1_2.Observation, string) {
+func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, validation *types.LulaValidation, resourcesHref string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
 	rfc3339Time := time.Now()
 	observationUuid := uuid.NewUUID()
-	resourceUuid := uuid.NewUUID()
 
 	observation := oscalTypes_1_1_2.Observation{
 		Collected:        rfc3339Time,
@@ -338,9 +336,8 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
-	if !saveResources {
-		return observation, ""
-	} else {
+	// TODO: should the props be added regardless?
+	if resourcesHref != "" {
 		observation.Props = &[]oscalTypes_1_1_2.Property{
 			{
 				Name:  "validation",
@@ -350,12 +347,12 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		}
 		observation.Links = &[]oscalTypes_1_1_2.Link{
 			{
-				Href: common.AddIdPrefix(resourceUuid),
+				Href: resourcesHref,
 				Rel:  "lula.resources",
 			},
 		}
-		return observation, resourceUuid
 	}
+	return observation
 }
 
 // Creates a result from findings and observations

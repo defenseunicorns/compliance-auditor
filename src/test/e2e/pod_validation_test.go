@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -45,6 +46,14 @@ func TestPodLabelValidation(t *testing.T) {
 		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
 			return validatePodLabelPass(ctx, t, config, oscalPath)
+		}).
+		Assess("Validate pod label (save-resources=backmatter)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
+			return validateSaveResources(ctx, t, config, oscalPath, "backmatter")
+		}).
+		Assess("Validate pod label (save-resources=remote)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
+			return validateSaveResources(ctx, t, config, oscalPath, "remote")
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -268,6 +277,39 @@ func validatePodLabelFail(ctx context.Context, t *testing.T, config *envconf.Con
 		if state != "not-satisfied" {
 			t.Fatal("State should be not-satisfied, but got :", state)
 		}
+	}
+
+	return ctx
+}
+
+func validateSaveResources(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath, saveResources string) context.Context {
+	message.NoProgress = true
+	validate.SaveResources = saveResources
+	tempDir := t.TempDir()
+	validate.ResourcesDir = tempDir
+
+	// Validate on path
+	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Should I call the dev commands here?
+	if saveResources == "backmatter" {
+		// Check that assessment results backmatter has the expected resources
+	} else if saveResources == "remote" {
+		// Check that remote files are created
+	}
+
+	// Check that assessment results can be written to file
+	var model = oscalTypes_1_1_2.OscalModels{
+		AssessmentResults: assessment,
+	}
+
+	// Write the assessment results to file
+	err = oscal.WriteOscalModel(filepath.Join(tempDir, "assessment-results.yaml"), &model)
+	if err != nil {
+		t.Fatal("error writing assessment results to file")
 	}
 
 	return ctx

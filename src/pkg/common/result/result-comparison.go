@@ -170,7 +170,7 @@ func RefactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (ma
 	return observationPairMap, controlObservationMap, noObservations
 }
 
-// GetMachineFriendlyObservations returns a machine-readable output of compared observations
+// GetMachineFriendlyObservations returns a machine-readable output of diagnosable observations (e.g., SATISFIED_TO_NOT_SATISFIED)
 func GetMachineFriendlyObservations(noLongerSatisfied ResultComparisonMap) string {
 	var out strings.Builder
 	for _, resultComparison := range noLongerSatisfied {

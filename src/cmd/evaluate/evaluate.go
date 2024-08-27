@@ -22,7 +22,6 @@ To evaluate two results (threshold and latest) in a single OSCAL file:
 
 To target a specific framework for validation:
 	lula evaluate -f assessment-results.yaml --target critical
-
 `
 
 // TODO: add flag to print out old / new observation UUID so that they can be used by the dev print-resources/validation commands
@@ -64,7 +63,7 @@ func EvaluateCommand() *cobra.Command {
 	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", false, "Print a summary of the evaluation")
 	evaluateCmd.Flags().BoolVar(&opts.machine, "machine", false, "Print a machine-readable output")
-	// insert flag options here
+	evaluateCmd.Flags().MarkHidden("machine") // Hidden for now as internal use only
 	return evaluateCmd
 }
 
@@ -76,7 +75,6 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 		if result, ok := resultMap[target]; ok {
 			err := evaluateTarget(result, target, summary, machine)
 			if err != nil {
-				// message.Warn(err.Error())
 				return err
 			}
 		}
@@ -84,7 +82,6 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 		for source, result := range resultMap {
 			err := evaluateTarget(result, source, summary, machine)
 			if err != nil {
-				// message.Warn(err.Error())
 				return err
 			}
 		}
@@ -119,6 +116,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 			message.Fatal(fmt.Errorf("cannot compare the same assessment result against itself"), "cannot compare the same assessment result against itself")
 		}
 		var findingsWithoutObservations []string
+
 		// Compare the assessment results
 		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s\n", target.Threshold.UUID, target.Latest.UUID)
 		defer spinner.Stop()
@@ -128,7 +126,6 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 		status, resultComparison, err := oscal.EvaluateResults(target.Threshold, target.Latest)
 		if err != nil {
 			return err
-			// message.Fatal(err, err.Error())
 		}
 
 		// Print summary
@@ -152,7 +149,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 				machineOutput.WriteString(out)
 			}
 			machineOutput.WriteString("</diagnostic-inputs>\n")
-			fmt.Println(machineOutput.String()) // would like to defer this to return but there's not always a return?
+			defer fmt.Println(machineOutput.String())
 		}
 
 		// Check 'status' - Result if evaluation is passing or failing
@@ -207,18 +204,13 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
 
-			return fmt.Errorf("failed to meet established threshold") // TODO: What's going on here
-			// message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
-
-			// retain result as threshold
-			// oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Threshold.Props)
+			return fmt.Errorf("failed to meet established threshold")
 		}
 
 		spinner.Success()
 
 	} else if target.Threshold == nil {
 		return fmt.Errorf("no threshold assessment results could be identified")
-		// message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
 	}
 
 	return nil
