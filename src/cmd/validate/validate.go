@@ -8,7 +8,8 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/cmd/common"
+	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -72,15 +73,19 @@ var validateCmd = &cobra.Command{
 	},
 }
 
-func ValidateCommand() *cobra.Command {
+func init() {
+	common.InitViper()
 
-	// insert flag options here
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
 	validateCmd.MarkFlagRequired("input-file")
 	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
+
+}
+
+func ValidateCommand() *cobra.Command {
 	return validateCmd
 }
 
@@ -124,7 +129,7 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 	// Change Cwd to the directory of the component definition
 	dirPath := filepath.Dir(path)
 	message.Debugf("changing cwd to %s", dirPath)
-	resetCwd, err := common.SetCwdToFileDir(dirPath)
+	resetCwd, err := pkgCommon.SetCwdToFileDir(dirPath)
 	if err != nil {
 		return assessmentResult, err
 	}

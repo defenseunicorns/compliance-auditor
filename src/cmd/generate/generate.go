@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -174,28 +175,31 @@ var generateComponentCmd = &cobra.Command{
 // 	},
 // }
 
-func GenerateCommand() *cobra.Command {
+func init() {
+
+	common.InitViper()
 
 	generateCmd.AddCommand(generateComponentCmd)
 	// generateCmd.AddCommand(generateAssessmentPlanCmd)
 	// generateCmd.AddCommand(generateSystemSecurityPlanCmd)
 	// generateCmd.AddCommand(generatePOAMCmd)
 
-	generateFlags()
-	generateComponentFlags()
+	bindGenerateFlags()
+	bindGenerateComponentFlags()
 
+}
+
+func GenerateCommand() *cobra.Command {
 	return generateCmd
 }
 
-func generateFlags() {
+func bindGenerateFlags() {
 	generateFlags := generateCmd.PersistentFlags()
-
 	generateFlags.StringVarP(&opts.InputFile, "input-file", "f", "", "Path to a manifest file")
 	generateFlags.StringVarP(&opts.OutputFile, "output-file", "o", "", "Path and Name to an output file")
-
 }
 
-func generateComponentFlags() {
+func bindGenerateComponentFlags() {
 	componentFlags := generateComponentCmd.Flags()
 
 	componentFlags.StringVarP(&componentOpts.CatalogSource, "catalog-source", "c", "", "Catalog source location (local or remote)")

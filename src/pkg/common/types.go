@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,6 +17,15 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
 	"sigs.k8s.io/yaml"
+)
+
+// Define base errors for validations
+var (
+	ErrInvalidSchema   = errors.New("schema is invalid")
+	ErrInvalidYaml     = errors.New("error unmarshaling JSON")
+	ErrInvalidVersion  = errors.New("version is invalid")
+	ErrInvalidDomain   = errors.New("domain is invalid")
+	ErrInvalidProvider = errors.New("provider is invalid")
 )
 
 // Data structures for ingesting validation data
@@ -97,32 +107,37 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 	lintResult := validation.Lint()
 	// If the validation is not valid, return the error
 	if oscalValidation.IsNonSchemaValidationError(&lintResult) {
-		return lulaValidation, oscalValidation.GetNonSchemaError(&lintResult)
+		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidSchema, oscalValidation.GetNonSchemaError(&lintResult))
 	} else if !lintResult.Valid {
-		return lulaValidation, fmt.Errorf("validation failed: %v", lintResult.Errors)
+		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidSchema, lintResult.Errors)
 	}
 
 	validVersion, versionErr := IsVersionValid(versionConstraint, currentVersion)
 	if versionErr != nil {
-		return lulaValidation, fmt.Errorf("version error: %s", versionErr.Error())
+		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidVersion, versionErr.Error())
 	} else if !validVersion {
-		return lulaValidation, fmt.Errorf("version %s does not meet the constraint %s for this validation", currentVersion, versionConstraint)
+		return lulaValidation, fmt.Errorf("%w: version %s does not meet the constraint %s for this validation", ErrInvalidVersion, currentVersion, versionConstraint)
 	}
 
 	// Construct the lulaValidation object
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
-	provider := GetProvider(validation.Provider, ctx)
-	if provider == nil {
-		return lulaValidation, fmt.Errorf("provider %s not found", validation.Provider.Type)
-	}
-	lulaValidation.Provider = &provider
 
-	domain := GetDomain(validation.Domain, ctx)
+	domain, err := GetDomain(validation.Domain, ctx)
 	if domain == nil {
-		return lulaValidation, fmt.Errorf("domain %s not found", validation.Domain.Type)
+		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidDomain, validation.Domain.Type)
+	} else if err != nil {
+		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidDomain, err)
 	}
 	lulaValidation.Domain = &domain
+
+	provider, err := GetProvider(validation.Provider, ctx)
+	if provider == nil {
+		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidProvider, validation.Provider.Type)
+	} else if err != nil {
+		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidProvider, err)
+	}
+	lulaValidation.Provider = &provider
 
 	lulaValidation.LulaValidationType = types.DefaultLulaValidationType // TODO: define workflow/purpose for this
 

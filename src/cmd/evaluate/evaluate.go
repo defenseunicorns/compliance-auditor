@@ -6,7 +6,8 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/cmd/common"
+	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -51,13 +52,16 @@ var evaluateCmd = &cobra.Command{
 	},
 }
 
-func EvaluateCommand() *cobra.Command {
+func init() {
+	common.InitViper()
 
 	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
 	evaluateCmd.MarkFlagRequired("input-file")
 	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", false, "Print a summary of the evaluation")
-	// insert flag options here
+}
+
+func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
@@ -211,7 +215,7 @@ func readManyAssessmentResults(fileArray []string) (map[string]*oscalTypes_1_1_2
 			return nil, fmt.Errorf("invalid file extension: %s, requires .json or .yaml", fileString)
 		}
 
-		data, err := common.ReadFileToBytes(fileString)
+		data, err := pkgCommon.ReadFileToBytes(fileString)
 		if err != nil {
 			return nil, err
 		}

@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -15,6 +16,77 @@ type KubernetesDomain struct {
 	Spec *KubernetesSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
+func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Domain, error) {
+	// Check validity of spec
+	if spec == nil {
+		return nil, fmt.Errorf("spec is nil")
+	}
+
+	if spec.Resources == nil && spec.CreateResources == nil && spec.Wait == nil {
+		return nil, fmt.Errorf("one of resources, create-resources, or wait must be specified")
+	}
+
+	if spec.Resources != nil {
+		for _, resource := range spec.Resources {
+			if resource.Name == "" {
+				return nil, fmt.Errorf("resource name cannot be empty")
+			}
+			if resource.ResourceRule == nil {
+				return nil, fmt.Errorf("resource rule cannot be nil")
+			}
+			if resource.ResourceRule.Resource == "" {
+				return nil, fmt.Errorf("resource rule resource cannot be empty")
+			}
+			if resource.ResourceRule.Version == "" {
+				return nil, fmt.Errorf("resource rule version cannot be empty")
+			}
+			if resource.ResourceRule.Name != "" && len(resource.ResourceRule.Namespaces) > 1 {
+				return nil, fmt.Errorf("named resource requested cannot be returned from multiple namespaces")
+			}
+			if resource.ResourceRule.Field != nil {
+				if resource.ResourceRule.Field.Type == "" {
+					resource.ResourceRule.Field.Type = DefaultFieldType
+				}
+				err := resource.ResourceRule.Field.Validate()
+				if err != nil {
+					return nil, err
+				}
+				if resource.ResourceRule.Name == "" {
+					return nil, fmt.Errorf("field cannot be specified without resource name")
+				}
+			}
+		}
+	}
+
+	if spec.Wait != nil {
+		if spec.Wait.Kind == "" {
+			return nil, fmt.Errorf("wait kind cannot be empty")
+		}
+		if spec.Wait.Condition != "" && spec.Wait.Jsonpath != "" {
+			return nil, fmt.Errorf("only one of wait.condition or wait.jsonpath can be specified")
+		}
+	}
+
+	if spec.CreateResources != nil {
+		for _, resource := range spec.CreateResources {
+			if resource.Name == "" {
+				return nil, fmt.Errorf("resource name cannot be empty")
+			}
+			if resource.Manifest == "" && resource.File == "" {
+				return nil, fmt.Errorf("resource manifest or file must be specified")
+			}
+			if resource.Manifest != "" && resource.File != "" {
+				return nil, fmt.Errorf("only resource manifest or file can be specified")
+			}
+		}
+	}
+
+	return KubernetesDomain{
+		Context: ctx,
+		Spec:    spec,
+	}, nil
+}
+
 func (k KubernetesDomain) GetResources() (resources types.DomainResources, err error) {
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
@@ -24,7 +96,7 @@ func (k KubernetesDomain) GetResources() (resources types.DomainResources, err e
 		}
 	}
 
-	// Return both?
+	// TODO: Return both?
 	if k.Spec.Resources != nil {
 		resources, err = QueryCluster(k.Context, k.Spec.Resources)
 		if err != nil {
@@ -42,10 +114,7 @@ func (k KubernetesDomain) GetResources() (resources types.DomainResources, err e
 
 func (k KubernetesDomain) IsExecutable() bool {
 	// Domain is only executable if create-resources is not nil
-	if len(k.Spec.CreateResources) > 0 {
-		return true
-	}
-	return false
+	return len(k.Spec.CreateResources) > 0
 }
 
 type KubernetesSpec struct {

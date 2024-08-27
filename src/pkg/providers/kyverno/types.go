@@ -2,6 +2,7 @@ package kyverno
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/defenseunicorns/lula/src/types"
 	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
@@ -13,6 +14,22 @@ type KyvernoProvider struct {
 
 	// Spec is the specification of the Kyverno policy
 	Spec *KyvernoSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+}
+
+func CreateKyvernoProvider(ctx context.Context, spec *KyvernoSpec) (types.Provider, error) {
+	// Check validity of spec
+	if spec == nil {
+		return nil, fmt.Errorf("spec is nil")
+	}
+
+	if spec.Policy == nil {
+		return nil, fmt.Errorf("policy is nil")
+	}
+
+	return KyvernoProvider{
+		Context: ctx,
+		Spec:    spec,
+	}, nil
 }
 
 func (k KyvernoProvider) Evaluate(resources types.DomainResources) (types.Result, error) {

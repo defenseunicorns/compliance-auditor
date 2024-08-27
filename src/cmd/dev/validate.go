@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	"github.com/defenseunicorns/lula/src/config"
-	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/cmd/common"
+	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
@@ -38,76 +38,76 @@ type ValidateFlags struct {
 
 var validateOpts = &ValidateFlags{}
 
+var validateCmd = &cobra.Command{
+	Use:     "validate",
+	Short:   "Run an individual Lula validation.",
+	Long:    "Run an individual Lula validation for quick testing and debugging of a Lula Validation. This command is intended for development purposes only.",
+	Example: validateHelp,
+	Run: func(cmd *cobra.Command, args []string) {
+		spinnerMessage := fmt.Sprintf("Validating %s", validateOpts.InputFile)
+		spinner := message.NewProgressSpinner(spinnerMessage)
+		defer spinner.Stop()
+
+		ctx := context.Background()
+		var validationBytes []byte
+		var resourcesBytes []byte
+		var err error
+
+		// Read the validation data from STDIN or provided file
+		validationBytes, err = ReadValidation(cmd, spinner, validateOpts.InputFile, validateOpts.Timeout)
+		if err != nil {
+			message.Fatalf(err, "error reading validation: %v", err)
+		}
+
+		// Reset the spinner message
+		spinner.Updatef(spinnerMessage)
+
+		// If a resources file is provided, read the resources file
+		if validateOpts.ResourcesFile != "" {
+			if !strings.HasSuffix(validateOpts.ResourcesFile, ".json") {
+				message.Fatalf(fmt.Errorf("resource file must be a json file"), "resource file must be a json file")
+			} else {
+				// Read the resources data
+				resourcesBytes, err = pkgCommon.ReadFileToBytes(validateOpts.ResourcesFile)
+				if err != nil {
+					message.Fatalf(err, "error reading file: %v", err)
+				}
+			}
+		}
+
+		validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
+		if err != nil {
+			message.Fatalf(err, "error running dev validate: %v", err)
+		}
+
+		// Write the validation result to a file if an output file is provided
+		// Otherwise, print the result to the debug console
+		err = writeValidation(validation, validateOpts.OutputFile)
+		if err != nil {
+			message.Fatalf(err, "error writing result: %v", err)
+		}
+
+		// Print observations if there are any
+		if len(validation.Result.Observations) > 0 {
+			message.Infof("Observations:")
+			for key, observation := range validation.Result.Observations {
+				message.Infof("--> %s: %s", key, observation)
+			}
+		}
+
+		result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
+		// If the expected result is not equal to the actual result, return an error
+		if validateOpts.ExpectedResult != result {
+			message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
+		}
+		// Print the number of passing and failing results
+		message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
+	},
+}
+
 func init() {
-	validateCmd := &cobra.Command{
-		Use:   "validate",
-		Short: "Run an individual Lula validation.",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			config.SkipLogFile = true
-		},
-		Long:    "Run an individual Lula validation for quick testing and debugging of a Lula Validation. This command is intended for development purposes only.",
-		Example: validateHelp,
-		Run: func(cmd *cobra.Command, args []string) {
-			spinnerMessage := fmt.Sprintf("Validating %s", validateOpts.InputFile)
-			spinner := message.NewProgressSpinner(spinnerMessage)
-			defer spinner.Stop()
 
-			ctx := context.Background()
-			var validationBytes []byte
-			var resourcesBytes []byte
-			var err error
-
-			// Read the validation data from STDIN or provided file
-			validationBytes, err = ReadValidation(cmd, spinner, validateOpts.InputFile, validateOpts.Timeout)
-			if err != nil {
-				message.Fatalf(err, "error reading validation: %v", err)
-			}
-
-			// Reset the spinner message
-			spinner.Updatef(spinnerMessage)
-
-			// If a resources file is provided, read the resources file
-			if validateOpts.ResourcesFile != "" {
-				if !strings.HasSuffix(validateOpts.ResourcesFile, ".json") {
-					message.Fatalf(fmt.Errorf("resource file must be a json file"), "resource file must be a json file")
-				} else {
-					// Read the resources data
-					resourcesBytes, err = common.ReadFileToBytes(validateOpts.ResourcesFile)
-					if err != nil {
-						message.Fatalf(err, "error reading file: %v", err)
-					}
-				}
-			}
-
-			validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
-			if err != nil {
-				message.Fatalf(err, "error running dev validate: %v", err)
-			}
-
-			// Write the validation result to a file if an output file is provided
-			// Otherwise, print the result to the debug console
-			err = writeValidation(validation, validateOpts.OutputFile)
-			if err != nil {
-				message.Fatalf(err, "error writing result: %v", err)
-			}
-
-			// Print observations if there are any
-			if len(validation.Result.Observations) > 0 {
-				message.Infof("Observations:")
-				for key, observation := range validation.Result.Observations {
-					message.Infof("--> %s: %s", key, observation)
-				}
-			}
-
-			result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
-			// If the expected result is not equal to the actual result, return an error
-			if validateOpts.ExpectedResult != result {
-				message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
-			}
-			// Print the number of passing and failing results
-			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
-		},
-	}
+	common.InitViper()
 
 	devCmd.AddCommand(validateCmd)
 
