@@ -273,16 +273,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				case focusControls:
-					m.selectedControl = m.controls.SelectedItem().(control)
-					m.remarks.SetContent(m.selectedControl.remarks)
-					m.description.SetContent(m.selectedControl.desc)
+					if selectedItem := m.controls.SelectedItem(); selectedItem != nil {
+						m.selectedControl = m.controls.SelectedItem().(control)
+						m.remarks.SetContent(m.selectedControl.remarks)
+						m.description.SetContent(m.selectedControl.desc)
 
-					// update validations list for selected control
-					validationItems := make([]blist.Item, len(m.selectedControl.validations))
-					for i, val := range m.selectedControl.validations {
-						validationItems[i] = val
+						// update validations list for selected control
+						validationItems := make([]blist.Item, len(m.selectedControl.validations))
+						for i, val := range m.selectedControl.validations {
+							validationItems[i] = val
+						}
+						m.validations.SetItems(validationItems)
 					}
-					m.validations.SetItems(validationItems)
 
 				case focusValidations:
 					if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
