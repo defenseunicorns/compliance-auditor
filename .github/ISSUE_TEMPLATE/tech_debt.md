@@ -17,3 +17,7 @@ A clear and concise description of what should be changed/researched. Ex. This p
 ### Additional context
 
 Add any other context or screenshots about the technical debt here.
+
+### Expected Deliverable
+
+What is the expected outcome of this issue? (Documentation, ADR, Functionality, etc)

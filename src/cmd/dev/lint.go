@@ -5,10 +5,9 @@ import (
 	"strings"
 
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
-	"github.com/defenseunicorns/lula/src/config"
-	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/cmd/common"
+	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
-	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -26,11 +25,8 @@ To lint existing validation files:
 `
 
 var lintCmd = &cobra.Command{
-	Use:   "lint",
-	Short: "Lint validation files against schema",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.SkipLogFile = true
-	},
+	Use:     "lint",
+	Short:   "Lint validation files against schema",
 	Long:    "Validate validation files are properly configured against the schema, file paths can be local or URLs (https://)",
 	Example: lintHelp,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -74,9 +70,9 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 		// handleFail is a helper function to handle the case where the validation fails from
 		// a non-schema error
 		handleFail := func(err error) {
-			result = validationResult.NewNonSchemaValidationError(err, "validation")
+			result = *oscalValidation.NewNonSchemaValidationError(err, &oscalValidation.ValidationParams{ModelType: "validation"})
 			validationResults = append(validationResults, result)
-			message.WarnErrf(validationResult.GetNonSchemaError(result), "Failed to lint %s, %s", inputFile, validationResult.GetNonSchemaError(result).Error())
+			message.WarnErrf(oscalValidation.GetNonSchemaError(&result), "Failed to lint %s, %s", inputFile, oscalValidation.GetNonSchemaError(&result).Error())
 			spinner.Stop()
 		}
 
@@ -88,7 +84,7 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 			break
 		}
 
-		validations, err := common.ReadValidationsFromYaml(validationBytes)
+		validations, err := pkgCommon.ReadValidationsFromYaml(validationBytes)
 		if err != nil {
 			handleFail(err)
 			break
@@ -119,6 +115,8 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 }
 
 func init() {
+
+	common.InitViper()
 
 	devCmd.AddCommand(lintCmd)
 

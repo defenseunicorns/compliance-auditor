@@ -11,7 +11,7 @@ This use of this prop is defined in `control-implementation[_].props` in the fol
 ```yaml
 props:
   - name: framework
-    ns: https://docs.lula.dev/ns
+    ns: https://docs.lula.dev/oscal/ns
     value: impact-level-x
 ```
 

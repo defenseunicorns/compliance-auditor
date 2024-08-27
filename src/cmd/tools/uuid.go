@@ -33,7 +33,7 @@ func init() {
 			} else if len(args) == 1 {
 				fmt.Println(uuid.NewUUIDWithSource(args[0]))
 			} else {
-				message.Fatal(fmt.Errorf("Too many arguments"), "Too many arguments")
+				message.Fatal(fmt.Errorf("too many arguments"), "Too many arguments")
 			}
 		},
 	}

@@ -12,7 +12,7 @@ After the initial `validate` operation - Lula will add a `results[_].props` entr
 ```yaml
 props:
   - name: threshold
-    ns: https://docs.lula.dev/ns
+    ns: https://docs.lula.dev/oscal/ns
     value: "false"
 ```
 
