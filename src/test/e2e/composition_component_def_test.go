@@ -2,15 +2,11 @@ package test
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -45,28 +41,17 @@ func TestComponentDefinitionComposition(t *testing.T) {
 		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
-			// Validate results from a non-composed component definition
-			compDefBytes, err := os.ReadFile(compDefPath)
-			if err != nil {
-				t.Error(err)
-			}
-
-			// Change Cwd to the directory of the component definition
-			dirPath := filepath.Dir(compDefPath)
-			resetCwd, err := common.SetCwdToFileDir(dirPath)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			results, _, err := validate.ValidateOnCompDef(compDef, "")
+			// Validate results using ValidateOnPath
+			assessment, err := validate.ValidateOnPath(compDefPath, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
+
+			if assessment.Results == nil {
+				t.Fatal("Expected to have results")
+			}
+
+			results := assessment.Results
 
 			var expectedFindings, expectedObservations int
 			expectedResults := len(results)
@@ -101,9 +86,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("Expected to find observations")
 			}
 
-			resetCwd()
-
-			// Validate results from a composed component definition
+			// Compare validation results to a composed component definition
 			oscalModel, err := composition.ComposeFromPath(compDefPath)
 			if err != nil {
 				t.Error(err)

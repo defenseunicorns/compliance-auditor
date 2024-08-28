@@ -177,7 +177,7 @@ provider:
 				t.Fatalf("UnmarshalYaml failed: %v", err)
 			}
 
-			_, err = validation.ToLulaValidation()
+			_, err = validation.ToLulaValidation("")
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error: %v, got: %v", tt.expectErr, err)
 			}

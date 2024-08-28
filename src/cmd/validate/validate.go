@@ -158,6 +158,10 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and return a slice of results that can be written to an assessment-results object
 func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, backMatter *oscalTypes_1_1_2.BackMatter, err error) {
+	if compDef == nil {
+		return results, backMatter, fmt.Errorf("cannot validate a component definition that is nil")
+	}
+
 	if *compDef.Components == nil {
 		return results, nil, fmt.Errorf("no components found in component definition")
 	}
