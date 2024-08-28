@@ -1,7 +1,6 @@
 package validationstore
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -147,11 +146,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, r
 			resourceUuid := uuid.NewUUID()
 			if saveResources == "backmatter" {
 				resourceHref = common.AddIdPrefix(resourceUuid)
-				jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
-				if err != nil {
-					message.Debugf("Error marshalling to JSON: %v", err)
-					jsonData = []byte("Error marshalling to JSON")
-				}
+				jsonData := val.GetDomainResourcesAsJSON()
 				resources = append(
 					resources, oscalTypes_1_1_2.Resource{
 						Title:       fmt.Sprintf("Resources - %s", val.Name),
@@ -167,11 +162,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, r
 				if err != nil {
 					message.Debugf("Error creating directory for remote resource: %v", err)
 				}
-				jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
-				if err != nil {
-					message.Debugf("Error marshalling to JSON: %v", err)
-					jsonData = []byte("Error marshalling to JSON")
-				}
+				jsonData := val.GetDomainResourcesAsJSON()
 				err = files.WriteOutput(jsonData, resourceFile)
 				if err != nil {
 					message.Debugf("Error writing remote resource file: %v", err)

@@ -156,39 +156,39 @@ func TestPodLabelValidation(t *testing.T) {
 					}
 				case "ID-1.1":
 					if !strings.Contains(remarks, common.ErrInvalidProvider.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrInvalidProvider")
+						t.Fatal("ID-1.1 - Remarks should contain ErrInvalidProvider")
 					}
 				case "ID-2":
 					if !strings.Contains(remarks, common.ErrInvalidSchema.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrInvalidSchema")
+						t.Fatal("ID-2 - Remarks should contain ErrInvalidSchema")
 					}
 				case "ID-3":
 					if !strings.Contains(remarks, common.ErrInvalidYaml.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrInvalidYaml")
+						t.Fatal("ID-3 - Remarks should contain ErrInvalidYaml")
 					}
 				case "ID-3.1":
 					if !strings.Contains(remarks, common.ErrInvalidYaml.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrInvalidYaml")
+						t.Fatal("ID-3.1 - Remarks should contain ErrInvalidYaml")
 					}
 				case "ID-4":
 					if !strings.Contains(remarks, types.ErrProviderEvaluate.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrProviderEvaluate")
+						t.Fatal("ID-4 - Remarks should contain ErrProviderEvaluate")
 					}
 				case "ID-5":
 					if !strings.Contains(remarks, types.ErrDomainGetResources.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrDomainGetResources")
+						t.Fatal("ID-5 - Remarks should contain ErrDomainGetResources")
 					}
 				case "ID-5.1":
 					if !strings.Contains(remarks, types.ErrDomainGetResources.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrDomainGetResources")
+						t.Fatal("ID-5.1 - Remarks should contain ErrDomainGetResources")
 					}
 				case "ID-5.2":
 					if !strings.Contains(remarks, types.ErrDomainGetResources.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrDomainGetResources")
+						t.Fatal("ID-5.2 - Remarks should contain ErrDomainGetResources")
 					}
 				case "ID-6":
 					if !strings.Contains(remarks, types.ErrExecutionNotAllowed.Error()) {
-						t.Fatal("ID-1 - Remarks should contain ErrExecutionNotAllowed")
+						t.Fatal("ID-6 - Remarks should contain ErrExecutionNotAllowed")
 					}
 				}
 			}
@@ -212,6 +212,7 @@ func TestPodLabelValidation(t *testing.T) {
 
 func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
 	message.NoProgress = true
+	validate.SaveResources = ""
 
 	tempDir := t.TempDir()
 
@@ -234,7 +235,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 
 	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
 
 	if len(assessment.Results) == 0 {
@@ -323,10 +324,11 @@ func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.F
 	message.NoProgress = true
 	validate.ConfirmExecution = false
 	validate.RunNonInteractively = true
+	validate.SaveResources = ""
 
 	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
 
 	if len(assessment.Results) == 0 {
@@ -372,7 +374,7 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 	// Validate on path
 	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
 
 	if len(assessment.Results) == 0 {
@@ -391,7 +393,6 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 			t.Fatal("Expected 2 resources, got ", len(*assessment.BackMatter.Resources))
 		}
 		// Check that the resources are the expected resources
-		// helper function to convert oscalTypes_1_1_2.Resource to map[string]interface{}
 		resourceStore := composition.NewResourceStoreFromBackMatter(assessment.BackMatter)
 
 		for _, o := range *result.Observations {
@@ -402,7 +403,7 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 				t.Fatal("Expected 1 link, got ", len(*o.Links))
 			}
 			link := (*o.Links)[0]
-			resource, found := resourceStore.GetExisting(link.Href)
+			resource, found := resourceStore.GetExisting(common.TrimIdPrefix(link.Href))
 			if !found {
 				t.Fatal("Expected resource to exist")
 			}
@@ -413,9 +414,9 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 			if err != nil {
 				t.Fatal(err)
 			}
-			// Check that podvt exists - both should have this field, one is a struct and the other is an array
-			if _, ok := data["podvt"]; !ok {
-				t.Fatal("Expected podvt to exist")
+			// Check that resource data is as expected
+			if !validaPodResourceData(data) {
+				t.Fatal("Unexpected resource data found")
 			}
 		}
 
@@ -430,7 +431,8 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 			}
 			link := (*o.Links)[0]
 
-			dataBytes, err := network.Fetch(link.Href)
+			// The link is a relative path to assessment-results.yaml, so need to provide absolute path to the file
+			dataBytes, err := network.Fetch(tempDir + strings.TrimPrefix(link.Href, "file://."))
 			if err != nil {
 				t.Fatal("Unable to fetch remote resource: ", err)
 			}
@@ -439,9 +441,9 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 			if err != nil {
 				t.Fatal("Received invalid JSON: ", err)
 			}
-			// Check that podvt exists - both should have this field, one is a struct and the other is an array
-			if _, ok := data["podvt"]; !ok {
-				t.Fatal("Expected podvt to exist")
+			// Check that resource data is as expected
+			if !validaPodResourceData(data) {
+				t.Fatal("Unexpected resource data found")
 			}
 		}
 	}
@@ -458,4 +460,22 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 	}
 
 	return ctx
+}
+
+func validaPodResourceData(data map[string]interface{}) bool {
+	for k, v := range data {
+		// Check for the expected fields
+		if k == "podsvt" {
+			vSlice := v.([]interface{})
+			if vSlice[0].(map[string]interface{})["metadata"].(map[string]interface{})["name"] == "test-pod-label" {
+				return true
+			}
+		}
+		if k == "podvt" {
+			if v.(map[string]interface{})["metadata"].(map[string]interface{})["name"] == "test-pod-label" {
+				return true
+			}
+		}
+	}
+	return false
 }
