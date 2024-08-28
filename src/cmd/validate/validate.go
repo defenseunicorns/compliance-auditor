@@ -9,7 +9,6 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -133,17 +132,16 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	data, err := os.ReadFile(path)
+	oscalModel, err := composition.ComposeFromPath(path)
 	if err != nil {
 		return assessmentResult, err
 	}
 
-	compDef, err := GetComponentDefinition(data, path)
-	if err != nil {
-		return assessmentResult, err
+	if oscalModel.ComponentDefinition == nil {
+		return assessmentResult, fmt.Errorf("component definition is nil")
 	}
 
-	results, backMatter, err := ValidateOnCompDef(compDef, target)
+	results, backMatter, err := ValidateOnCompDef(oscalModel.ComponentDefinition, target)
 	if err != nil {
 		return assessmentResult, err
 	}
@@ -155,31 +153,6 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 
 	return assessmentResult, nil
 
-}
-
-// GetComponentDefinition returns the component definition from the input file
-func GetComponentDefinition(data []byte, path string) (*oscalTypes_1_1_2.ComponentDefinition, error) {
-	// Change Cwd to the directory of the component definition
-	// This is needed to resolve relative paths in the remote validations
-	dirPath := filepath.Dir(path)
-	message.Debugf("changing cwd to %s", dirPath)
-	resetCwd, err := pkgCommon.SetCwdToFileDir(dirPath)
-	if err != nil {
-		return nil, err
-	}
-	defer resetCwd()
-
-	compDef, err := oscal.NewOscalComponentDefinition(data)
-	if err != nil {
-		return nil, err
-	}
-
-	err = composition.ComposeComponentDefinitions(compDef)
-	if err != nil {
-		return nil, err
-	}
-
-	return compDef, nil
 }
 
 // ValidateOnCompDef takes a single ComponentDefinition object

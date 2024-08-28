@@ -2,12 +2,14 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -42,29 +44,17 @@ func TestComponentDefinitionComposition(t *testing.T) {
 		}).
 		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
-			compDefBytes, err := os.ReadFile(compDefPath)
+
+			oscalFromPath, err := composition.ComposeFromPath(compDefPath)
 			if err != nil {
 				t.Error(err)
 			}
 
-			compDef, err := validate.GetComponentDefinition(compDefBytes, compDefPath)
-			if err != nil {
-				t.Error(err)
+			if oscalFromPath.ComponentDefinition == nil {
+				t.Error("component definition is nil")
 			}
 
-			// // Change Cwd to the directory of the component definition
-			// dirPath := filepath.Dir(compDefPath)
-			// resetCwd, err := common.SetCwdToFileDir(dirPath)
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-
-			// compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
-			// if err != nil {
-			// 	t.Fatal(err)
-			// }
-
-			results, _, err := validate.ValidateOnCompDef(compDef, "")
+			results, _, err := validate.ValidateOnCompDef(oscalFromPath.ComponentDefinition, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
