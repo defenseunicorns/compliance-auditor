@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
@@ -19,8 +20,15 @@ const DEFAULT_TIMEOUT = 1
 
 var devCmd = &cobra.Command{
 	Use:     "dev",
-	Aliases: []string{"t"},
+	Aliases: []string{"d"},
 	Short:   "Collection of dev commands to make dev life easier",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		config.SkipLogFile = true
+		// Call the parent's (root) PersistentPreRun
+		if parentPreRun := cmd.Parent().PersistentPreRun; parentPreRun != nil {
+			parentPreRun(cmd.Parent(), args)
+		}
+	},
 }
 
 type flags struct {

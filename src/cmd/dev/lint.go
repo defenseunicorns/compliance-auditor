@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
-	"github.com/defenseunicorns/lula/src/config"
-	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/cmd/common"
+	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -25,11 +25,8 @@ To lint existing validation files:
 `
 
 var lintCmd = &cobra.Command{
-	Use:   "lint",
-	Short: "Lint validation files against schema",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.SkipLogFile = true
-	},
+	Use:     "lint",
+	Short:   "Lint validation files against schema",
 	Long:    "Validate validation files are properly configured against the schema, file paths can be local or URLs (https://)",
 	Example: lintHelp,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -87,7 +84,7 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 			break
 		}
 
-		validations, err := common.ReadValidationsFromYaml(validationBytes)
+		validations, err := pkgCommon.ReadValidationsFromYaml(validationBytes)
 		if err != nil {
 			handleFail(err)
 			break
@@ -118,6 +115,8 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 }
 
 func init() {
+
+	common.InitViper()
 
 	devCmd.AddCommand(lintCmd)
 

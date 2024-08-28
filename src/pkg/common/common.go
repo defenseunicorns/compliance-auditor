@@ -138,42 +138,31 @@ func SetCwdToFileDir(dirPath string) (resetFunc func(), err error) {
 }
 
 // Get the domain and providers
-func GetDomain(domain *Domain, ctx context.Context) types.Domain {
+func GetDomain(domain *Domain, ctx context.Context) (types.Domain, error) {
 	if domain == nil {
-		return nil
+		return nil, fmt.Errorf("domain is nil")
 	}
 	switch domain.Type {
 	case "kubernetes":
-		return kube.KubernetesDomain{
-			Context: ctx,
-			Spec:    domain.KubernetesSpec,
-		}
+		return kube.CreateKubernetesDomain(ctx, domain.KubernetesSpec)
 	case "api":
-		return api.ApiDomain{
-			Spec: domain.ApiSpec,
-		}
+		return api.CreateApiDomain(domain.ApiSpec)
 	default:
-		return nil
+		return nil, fmt.Errorf("domain is unsupported")
 	}
 }
 
-func GetProvider(provider *Provider, ctx context.Context) types.Provider {
+func GetProvider(provider *Provider, ctx context.Context) (types.Provider, error) {
 	if provider == nil {
-		return nil
+		return nil, fmt.Errorf("provider is nil")
 	}
 	switch provider.Type {
 	case "opa":
-		return opa.OpaProvider{
-			Context: ctx,
-			Spec:    provider.OpaSpec,
-		}
+		return opa.CreateOpaProvider(ctx, provider.OpaSpec)
 	case "kyverno":
-		return kyverno.KyvernoProvider{
-			Context: ctx,
-			Spec:    provider.KyvernoSpec,
-		}
+		return kyverno.CreateKyvernoProvider(ctx, provider.KyvernoSpec)
 	default:
-		return nil
+		return nil, fmt.Errorf("provider is unsupported")
 	}
 }
 
