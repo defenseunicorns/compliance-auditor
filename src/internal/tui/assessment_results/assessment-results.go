@@ -138,7 +138,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				if m.focus == focusResultSelection {
 					if m.inResultOverlay {
-						m.selectedResult = m.results[m.selectedResultIndex]
+						if len(m.results) > 1 {
+							m.selectedResult = m.results[m.selectedResultIndex]
+						}
 						m.inResultOverlay = false
 					} else {
 						m.inResultOverlay = true
@@ -146,7 +148,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				} else if m.focus == focusCompareSelection {
 					if m.inResultOverlay {
-						m.compareResult = m.results[m.selectedResultIndex]
+						if len(m.results) > 1 {
+							m.compareResult = m.results[m.selectedResultIndex]
+						}
 						m.inResultOverlay = false
 					} else {
 						m.inResultOverlay = true

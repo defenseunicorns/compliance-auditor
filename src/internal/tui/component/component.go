@@ -219,28 +219,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch m.focus {
 				case focusComponentSelection:
 					if m.inComponentOverlay {
-						m.selectedComponent = m.components[m.selectedComponentIndex]
-						m.selectedFrameworkIndex = 0
+						if len(m.components) > 1 {
+							m.selectedComponent = m.components[m.selectedComponentIndex]
+							m.selectedFrameworkIndex = 0
 
-						// Update controls list
-						if len(m.components[m.selectedComponentIndex].frameworks) > 0 {
-							m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
-						} else {
-							m.selectedFramework = framework{}
-						}
-						controlItems := make([]blist.Item, len(m.selectedFramework.controls))
-						if len(m.selectedFramework.controls) > 0 {
-							for i, c := range m.selectedFramework.controls {
-								controlItems[i] = c
+							// Update controls list
+							if len(m.components[m.selectedComponentIndex].frameworks) > 0 {
+								m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
+							} else {
+								m.selectedFramework = framework{}
 							}
-						}
-						m.controls.SetItems(controlItems)
-						m.controls.SetDelegate(common.NewUnfocusedDelegate())
+							controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+							if len(m.selectedFramework.controls) > 0 {
+								for i, c := range m.selectedFramework.controls {
+									controlItems[i] = c
+								}
+							}
+							m.controls.SetItems(controlItems)
+							m.controls.SetDelegate(common.NewUnfocusedDelegate())
 
-						// Update remarks, description, and validations
-						m.remarks.SetContent("")
-						m.description.SetContent("")
-						m.validations.SetItems(make([]blist.Item, 0))
+							// Update remarks, description, and validations
+							m.remarks.SetContent("")
+							m.description.SetContent("")
+							m.validations.SetItems(make([]blist.Item, 0))
+						}
 
 						m.inComponentOverlay = false
 					} else {
@@ -249,22 +251,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				case focusFrameworkSelection:
 					if m.inFrameworkOverlay {
-						m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
+						if len(m.components) != 0 && len(m.components[m.selectedComponentIndex].frameworks) > 1 {
+							m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
 
-						// Update controls list
-						controlItems := make([]blist.Item, len(m.selectedFramework.controls))
-						if len(m.selectedFramework.controls) > 0 {
-							for i, c := range m.selectedFramework.controls {
-								controlItems[i] = c
+							// Update controls list
+							controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+							if len(m.selectedFramework.controls) > 0 {
+								for i, c := range m.selectedFramework.controls {
+									controlItems[i] = c
+								}
 							}
-						}
-						m.controls.SetItems(controlItems)
-						m.controls.SetDelegate(common.NewUnfocusedDelegate())
+							m.controls.SetItems(controlItems)
+							m.controls.SetDelegate(common.NewUnfocusedDelegate())
 
-						// Update remarks, description, and validations
-						m.remarks.SetContent("")
-						m.description.SetContent("")
-						m.validations.SetItems(make([]blist.Item, 0))
+							// Update remarks, description, and validations
+							m.remarks.SetContent("")
+							m.description.SetContent("")
+							m.validations.SetItems(make([]blist.Item, 0))
+						}
 
 						m.inFrameworkOverlay = false
 					} else {
