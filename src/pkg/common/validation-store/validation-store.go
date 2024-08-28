@@ -179,6 +179,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, r
 				resourceHref = fmt.Sprintf("file://./resources/%s", filename)
 			}
 		}
+
 		// Create an observation
 		relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
 			{

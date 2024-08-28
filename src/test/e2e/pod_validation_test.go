@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,6 +14,8 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
@@ -49,11 +52,11 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label (save-resources=backmatter)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			return validateSaveResources(ctx, t, config, oscalPath, "backmatter")
+			return validateSaveResources(ctx, t, oscalPath, "backmatter")
 		}).
 		Assess("Validate pod label (save-resources=remote)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			return validateSaveResources(ctx, t, config, oscalPath, "remote")
+			return validateSaveResources(ctx, t, oscalPath, "remote")
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -282,7 +285,7 @@ func validatePodLabelFail(ctx context.Context, t *testing.T, config *envconf.Con
 	return ctx
 }
 
-func validateSaveResources(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath, saveResources string) context.Context {
+func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveResources string) context.Context {
 	message.NoProgress = true
 	validate.SaveResources = saveResources
 	tempDir := t.TempDir()
@@ -294,11 +297,75 @@ func validateSaveResources(ctx context.Context, t *testing.T, config *envconf.Co
 		t.Fatal(err)
 	}
 
+	if len(assessment.Results) == 0 {
+		t.Fatal("Expected greater than zero results")
+	}
+
+	result := assessment.Results[0]
+
 	// Should I call the dev commands here?
 	if saveResources == "backmatter" {
 		// Check that assessment results backmatter has the expected resources
+		if assessment.BackMatter == nil {
+			t.Fatal("Expected assessment backmatter, got nil")
+		}
+		if len(*assessment.BackMatter.Resources) != 2 {
+			t.Fatal("Expected 2 resources, got ", len(*assessment.BackMatter.Resources))
+		}
+		// Check that the resources are the expected resources
+		// helper function to convert oscalTypes_1_1_2.Resource to map[string]interface{}
+		resourceStore := composition.NewResourceStoreFromBackMatter(assessment.BackMatter)
+
+		for _, o := range *result.Observations {
+			if o.Links == nil {
+				t.Fatal("Expected observation links, got nil")
+			}
+			if len(*o.Links) != 1 {
+				t.Fatal("Expected 1 link, got ", len(*o.Links))
+			}
+			link := (*o.Links)[0]
+			resource, found := resourceStore.GetExisting(link.Href)
+			if !found {
+				t.Fatal("Expected resource to exist")
+			}
+
+			// Check that the resource has the expected data
+			var data map[string]interface{}
+			err := json.Unmarshal([]byte(resource.Description), &data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Check that podvt exists - both should have this field, one is a struct and the other is an array
+			if _, ok := data["podvt"]; !ok {
+				t.Fatal("Expected podvt to exist")
+			}
+		}
+
 	} else if saveResources == "remote" {
 		// Check that remote files are created
+		for _, o := range *result.Observations {
+			if o.Links == nil {
+				t.Fatal("Expected observation links, got nil")
+			}
+			if len(*o.Links) != 1 {
+				t.Fatal("Expected 1 link, got ", len(*o.Links))
+			}
+			link := (*o.Links)[0]
+
+			dataBytes, err := network.Fetch(link.Href)
+			if err != nil {
+				t.Fatal("Unable to fetch remote resource: ", err)
+			}
+			var data map[string]interface{}
+			err = json.Unmarshal(dataBytes, &data)
+			if err != nil {
+				t.Fatal("Received invalid JSON: ", err)
+			}
+			// Check that podvt exists - both should have this field, one is a struct and the other is an array
+			if _, ok := data["podvt"]; !ok {
+				t.Fatal("Expected podvt to exist")
+			}
+		}
 	}
 
 	// Check that assessment results can be written to file
