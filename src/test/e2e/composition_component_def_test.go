@@ -2,16 +2,16 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/test/util"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
@@ -45,16 +45,25 @@ func TestComponentDefinitionComposition(t *testing.T) {
 		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
-			oscalFromPath, err := composition.ComposeFromPath(compDefPath)
+			// Validate results from a non-composed component definition
+			compDefBytes, err := os.ReadFile(compDefPath)
 			if err != nil {
 				t.Error(err)
 			}
 
-			if oscalFromPath.ComponentDefinition == nil {
-				t.Error("component definition is nil")
+			// Change Cwd to the directory of the component definition
+			dirPath := filepath.Dir(compDefPath)
+			resetCwd, err := common.SetCwdToFileDir(dirPath)
+			if err != nil {
+				t.Fatal(err)
 			}
 
-			results, _, err := validate.ValidateOnCompDef(oscalFromPath.ComponentDefinition, "")
+			compDef, err := oscal.NewOscalComponentDefinition(compDefBytes)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			results, _, err := validate.ValidateOnCompDef(compDef, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
@@ -92,29 +101,17 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("Expected to find observations")
 			}
 
-			// resetCwd()
+			resetCwd()
 
-			var oscalModel oscalTypes_1_1_2.OscalCompleteSchema
-			err = yaml.Unmarshal(compDefBytes, &oscalModel)
+			// Validate results from a composed component definition
+			oscalModel, err := composition.ComposeFromPath(compDefPath)
 			if err != nil {
 				t.Error(err)
 			}
 
-			oscalModel.ComponentDefinition, err = validate.GetComponentDefinition(compDefBytes, compDefPath)
-			if err != nil {
-				t.Error(err)
+			if oscalModel.ComponentDefinition == nil {
+				t.Errorf("component definition is nil")
 			}
-
-			// reset, err := common.SetCwdToFileDir(compDefPath)
-			// if err != nil {
-			// 	t.Fatalf("Error setting cwd to file dir: %v", err)
-			// }
-			// defer reset()
-
-			// err = composition.ComposeComponentDefinitions(oscalModel.ComponentDefinition)
-			// if err != nil {
-			// 	t.Error(err)
-			// }
 
 			composeResults, _, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
 			if err != nil {

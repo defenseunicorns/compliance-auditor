@@ -43,21 +43,24 @@ func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObser
 	// Calculate the state change
 	var state StateChange
 	var result bool
-	var observationRemarks, comparedObservationRemarks, name string
+	var observationRemarks, comparedObservationRemarks, observationUuid, comparedObservationUuid, name string
 	prefix := "[TEST]: "
 
 	if observation != nil {
+		observationUuid = observation.UUID
 		name = strings.TrimPrefix(observation.Description, prefix)
 		observationRemarks = getRemarks(observation.RelevantEvidence)
 		result = getObservationResult(observation.RelevantEvidence)
 		if comparedObservation == nil {
 			state = NEW
 		} else {
+			comparedObservationUuid = comparedObservation.UUID
 			comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
 			state = getStateChange(observation, comparedObservation)
 		}
 	} else {
 		if comparedObservation != nil {
+			comparedObservationUuid = comparedObservation.UUID
 			name = strings.TrimPrefix(comparedObservation.Description, prefix)
 			comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
 			state = REMOVED
@@ -71,9 +74,9 @@ func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObser
 		Satisfied:               result,
 		Name:                    name,
 		Observation:             observationRemarks,
-		ObservationUuid:         observation.UUID,
+		ObservationUuid:         observationUuid,
 		ComparedObservation:     comparedObservationRemarks,
-		ComparedObservationUuid: comparedObservation.UUID,
+		ComparedObservationUuid: comparedObservationUuid,
 	}
 }
 
