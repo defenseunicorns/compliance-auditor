@@ -93,7 +93,6 @@ func init() {
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
 	validateCmd.Flags().StringVar(&SaveResources, "save-resources", "", "location to save the resources. Accepts 'backmatter' or 'remote'")
-
 }
 
 func ValidateCommand() *cobra.Command {
