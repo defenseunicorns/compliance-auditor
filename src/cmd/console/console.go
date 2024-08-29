@@ -1,4 +1,4 @@
-package tui
+package console
 
 import (
 	"os"
@@ -17,16 +17,22 @@ type flags struct {
 
 var opts = &flags{}
 
-var tuiHelp = `
-To view an OSCAL model in the TUI:
-	lula tui -f /path/to/oscal-component.yaml
+var consoleHelp = `
+To view an OSCAL model in the Console:
+	lula console -f /path/to/oscal-component.yaml
 `
 
-var tuiCmd = &cobra.Command{
-	Use:     "tui",
-	Short:   "TUI viewer for OSCAL models",
-	Long:    "TUI viewer for OSCAL models",
-	Example: tuiHelp,
+var consoleLong = `
+The Lula Console is a text-based terminal user interface that allows users to 
+interact with the OSCAL documents in a more intuitive and visual way.
+`
+
+var consoleCmd = &cobra.Command{
+	Use:     "console",
+	Aliases: []string{"ui"},
+	Short:   "Console terminal user interface for OSCAL models",
+	Long:    consoleLong,
+	Example: consoleHelp,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get the OSCAL model from the file
 		data, err := os.ReadFile(opts.InputFile)
@@ -56,8 +62,8 @@ var tuiCmd = &cobra.Command{
 	},
 }
 
-func TuiCommand() *cobra.Command {
-	tuiCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL model")
-	tuiCmd.MarkFlagRequired("input-file")
-	return tuiCmd
+func ConsoleCommand() *cobra.Command {
+	consoleCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL model")
+	consoleCmd.MarkFlagRequired("input-file")
+	return consoleCmd
 }
