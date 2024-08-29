@@ -180,22 +180,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch k {
 
 			case common.ContainsKey(k, m.keys.Quit.Keys()):
+				// TODO: Add quit warn model
 				return m, tea.Quit
 
 			case common.ContainsKey(k, m.keys.Help.Keys()):
 				m.help.ShowAll = !m.help.ShowAll
 
 			case common.ContainsKey(k, m.keys.NavigateLeft.Keys()):
-				if m.focus == 0 {
-					m.focus = maxFocus
-				} else {
-					m.focus--
+				if !m.focusLock {
+					if m.focus == 0 {
+						m.focus = maxFocus
+					} else {
+						m.focus--
+					}
+					m.updateKeyBindings()
 				}
-				m.updateKeyBindings()
 
 			case common.ContainsKey(k, m.keys.NavigateRight.Keys()):
-				m.focus = (m.focus + 1) % (maxFocus + 1)
-				m.updateKeyBindings()
+				if !m.focusLock {
+					m.focus = (m.focus + 1) % (maxFocus + 1)
+					m.updateKeyBindings()
+				}
 
 			case common.ContainsKey(k, m.keys.Up.Keys()):
 				if m.inComponentOverlay && m.selectedComponentIndex > 0 {
@@ -245,8 +250,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 
 						m.inComponentOverlay = false
+						m.focusLock = false
 					} else {
 						m.inComponentOverlay = true
+						m.focusLock = true
 						m.componentPicker.SetContent(m.updateComponentPickerContent())
 					}
 				case focusFrameworkSelection:
@@ -271,8 +278,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 
 						m.inFrameworkOverlay = false
+						m.focusLock = false
 					} else {
 						m.inFrameworkOverlay = true
+						m.focusLock = true
 						m.frameworkPicker.SetContent(m.updateFrameworkPickerContent())
 					}
 
@@ -299,8 +308,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case common.ContainsKey(k, m.keys.Cancel.Keys()):
 				if m.inComponentOverlay {
 					m.inComponentOverlay = false
+					m.focusLock = false
 				} else if m.inFrameworkOverlay {
 					m.inFrameworkOverlay = false
+					m.focusLock = false
 				}
 			}
 		}

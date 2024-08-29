@@ -9,6 +9,7 @@ type keys struct {
 	Edit          key.Binding
 	Generate      key.Binding
 	Confirm       key.Binding
+	Save          key.Binding
 	Cancel        key.Binding
 	Navigation    key.Binding
 	NavigateLeft  key.Binding
@@ -26,6 +27,10 @@ var componentKeys = keys{
 	Edit: key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit"),
+	),
+	Save: key.NewBinding(
+		key.WithKeys("ctrl+s"),
+		key.WithHelp("ctrl+s", "save"),
 	),
 	Confirm: common.PickerHotkeys.Confirm,
 	Cancel:  common.PickerHotkeys.Cancel,

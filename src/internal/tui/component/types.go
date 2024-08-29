@@ -14,6 +14,7 @@ type Model struct {
 	help                   help.Model
 	keys                   keys
 	focus                  focus
+	focusLock              bool
 	inComponentOverlay     bool
 	components             []component
 	selectedComponent      component
