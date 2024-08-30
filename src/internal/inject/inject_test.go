@@ -101,7 +101,7 @@ metadata:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := yaml.InjectMapData(convertBytesToMap(t, tt.target), convertBytesToMap(t, tt.subset), tt.path)
+			result, err := inject.InjectMapData(convertBytesToMap(t, tt.target), convertBytesToMap(t, tt.subset), tt.path)
 			if err != nil {
 				t.Errorf("InjectMapData() error = %v", err)
 			}
