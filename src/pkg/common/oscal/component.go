@@ -100,8 +100,8 @@ func MergeComponentDefinitions(original *oscalTypes_1_1_2.ComponentDefinition, l
 	original.Components = &tempItems
 	original.Metadata.LastModified = time.Now()
 
-	// TODO: Decide if we need to generate a new top-level UUID
-	// original.UUID = uuid.NewUUID()
+	// Artifact will be modified - need to update the UUID
+	original.UUID = uuid.NewUUID()
 
 	return original, nil
 
@@ -528,6 +528,39 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	}
 
 	return controlMap
+}
+
+// Need to get components + frameworks + control implementations -> new struct?
+type ComponentFrameworks struct {
+	Component  oscalTypes_1_1_2.DefinedComponent
+	Frameworks map[string][]oscalTypes_1_1_2.ControlImplementationSet
+}
+
+func NewComponentFrameworks(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]ComponentFrameworks {
+	componentTargets := make(map[string]ComponentFrameworks)
+
+	if componentDefinition.Components != nil {
+		// Build a map[source/framework][]control-implementations
+		for _, component := range *componentDefinition.Components {
+			controlImplementationsMap := make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
+			if component.ControlImplementations != nil {
+				for _, controlImplementation := range *component.ControlImplementations {
+					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
+					controlImplementationsMap[controlImplementation.Source] = append(controlImplementationsMap[controlImplementation.Source], controlImplementation)
+					status, value := GetProp("framework", LULA_NAMESPACE, controlImplementation.Props)
+					if status {
+						controlImplementationsMap[value] = append(controlImplementationsMap[value], controlImplementation)
+					}
+				}
+			}
+			componentTargets[component.UUID] = ComponentFrameworks{
+				Component:  component,
+				Frameworks: controlImplementationsMap,
+			}
+		}
+	}
+
+	return componentTargets
 }
 
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
