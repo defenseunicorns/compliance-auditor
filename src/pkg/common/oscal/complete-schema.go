@@ -9,7 +9,7 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	cyaml "github.com/defenseunicorns/lula/src/pkg/common/yaml"
+	"github.com/defenseunicorns/lula/src/pkg/internal/inject"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	yamlV3 "gopkg.in/yaml.v3"
 	"sigs.k8s.io/yaml"
@@ -198,7 +198,7 @@ func InjectIntoOSCALModel(target *oscalTypes_1_1_2.OscalModels, values map[strin
 	}
 
 	// Inject the values into the map at the path
-	newModelMap, err := cyaml.InjectMapData(modelMap, values, path)
+	newModelMap, err := inject.InjectMapData(modelMap, values, path)
 	if err != nil {
 		return nil, err
 	}

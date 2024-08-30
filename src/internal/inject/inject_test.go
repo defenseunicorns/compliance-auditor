@@ -1,4 +1,4 @@
-package yaml_test
+package inject_test
 
 import (
 	"testing"
