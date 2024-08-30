@@ -3,7 +3,7 @@ package inject_test
 import (
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/pkg/common/yaml"
+	"github.com/defenseunicorns/lula/src/internal/inject"
 	"github.com/stretchr/testify/assert"
 	goyaml "gopkg.in/yaml.v3"
 )
