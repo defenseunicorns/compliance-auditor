@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
@@ -28,40 +28,40 @@ To hang for timeout of 5 seconds:
 	lula get-resources -t 5
 `
 
+var getResourcesCmd = &cobra.Command{
+	Use:     "get-resources",
+	Short:   "Get Resources from a Lula Validation Manifest",
+	Long:    "Get the JSON resources specified in a Lula Validation Manifest",
+	Example: getResourcesHelp,
+	Run: func(cmd *cobra.Command, args []string) {
+		spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
+		spinner := message.NewProgressSpinner(spinnerMessage)
+		defer spinner.Stop()
+
+		ctx := context.Background()
+		var validationBytes []byte
+		var err error
+
+		// Read the validation data from STDIN or provided file
+		validationBytes, err = ReadValidation(cmd, spinner, getResourcesOpts.InputFile, getResourcesOpts.Timeout)
+		if err != nil {
+			message.Fatalf(err, "error reading validation: %v", err)
+		}
+
+		collection, err := DevGetResources(ctx, validationBytes, spinner)
+		if err != nil {
+			message.Fatalf(err, "error running dev get-resources: %v", err)
+		}
+
+		writeResources(collection, getResourcesOpts.OutputFile)
+
+		spinner.Success()
+	},
+}
+
 func init() {
-	getResourcesCmd := &cobra.Command{
-		Use:   "get-resources",
-		Short: "Get Resources from a Lula Validation Manifest",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			config.SkipLogFile = true
-		},
-		Long:    "Get the JSON resources specified in a Lula Validation Manifest",
-		Example: getResourcesHelp,
-		Run: func(cmd *cobra.Command, args []string) {
-			spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
-			spinner := message.NewProgressSpinner(spinnerMessage)
-			defer spinner.Stop()
 
-			ctx := context.Background()
-			var validationBytes []byte
-			var err error
-
-			// Read the validation data from STDIN or provided file
-			validationBytes, err = ReadValidation(cmd, spinner, getResourcesOpts.InputFile, getResourcesOpts.Timeout)
-			if err != nil {
-				message.Fatalf(err, "error reading validation: %v", err)
-			}
-
-			collection, err := DevGetResources(ctx, validationBytes, spinner)
-			if err != nil {
-				message.Fatalf(err, "error running dev get-resources: %v", err)
-			}
-
-			writeResources(collection, getResourcesOpts.OutputFile)
-
-			spinner.Success()
-		},
-	}
+	common.InitViper()
 
 	devCmd.AddCommand(getResourcesCmd)
 
