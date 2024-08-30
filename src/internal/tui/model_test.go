@@ -39,6 +39,7 @@ func oscalFromPath(t *testing.T, path string) *oscalTypes_1_1_2.OscalCompleteSch
 func TestNewComponentDefinitionModel(t *testing.T) {
 	oscalModel := oscalFromPath(t, "../../test/unit/common/oscal/valid-component.yaml")
 	model := tui.NewOSCALModel(oscalModel)
+
 	testModel := teatest.NewTestModel(t, model, teatest.WithInitialTermSize(common.DefaultWidth, common.DefaultHeight))
 
 	if err := testModel.Quit(); err != nil {

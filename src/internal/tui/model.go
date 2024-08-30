@@ -31,7 +31,7 @@ type model struct {
 
 func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema) model {
 	if oscalModel == nil {
-		oscalModel = &oscalTypes_1_1_2.OscalCompleteSchema{}
+		oscalModel = new(oscalTypes_1_1_2.OscalCompleteSchema)
 	}
 
 	tabs := []string{
