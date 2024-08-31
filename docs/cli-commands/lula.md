@@ -21,6 +21,7 @@ Real Time Risk Transparency through automated validation
 ### SEE ALSO
 
 * [lula completion](/cli/cli-commands/lula_completion/)	 - Generate the autocompletion script for the specified shell
+* [lula console](/cli/cli-commands/lula_console/)	 - Console terminal user interface for OSCAL models
 * [lula dev](/cli/cli-commands/lula_dev/)	 - Collection of dev commands to make dev life easier
 * [lula evaluate](/cli/cli-commands/lula_evaluate/)	 - evaluate two results of a Security Assessment Results
 * [lula generate](/cli/cli-commands/lula_generate/)	 - Generate a specified compliance artifact template
