@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.6.0](https://github.com/defenseunicorns/lula/compare/v0.5.1...v0.6.0) (2024-08-31)
+
+
+### Features
+
+* **configuration:** add initial support for Viper command initialization ([#607](https://github.com/defenseunicorns/lula/issues/607)) ([2c94c83](https://github.com/defenseunicorns/lula/commit/2c94c8312233a40a536d0f98ca513e2bbe8bf720))
+* **console:** initial tui for component-definition read ([#608](https://github.com/defenseunicorns/lula/issues/608)) ([a0338af](https://github.com/defenseunicorns/lula/commit/a0338affd4934c5100ffc280b6fac016b9eb0b91))
+
+
+### Bug Fixes
+
+* **oscal:** ensure component definition UUID is updated on modification ([#615](https://github.com/defenseunicorns/lula/issues/615)) ([5516482](https://github.com/defenseunicorns/lula/commit/55164824f9f16c0c76c3a068d68c42aae80bd0f3))
+
+
+### Miscellaneous
+
+* **deps:** update anchore/sbom-action action to v0.17.2 ([#613](https://github.com/defenseunicorns/lula/issues/613)) ([4fb9090](https://github.com/defenseunicorns/lula/commit/4fb909046e769cacf528c88fd46d957c804affd2))
+* **deps:** update commitlint monorepo to v19.4.1 ([#619](https://github.com/defenseunicorns/lula/issues/619)) ([0adb2d0](https://github.com/defenseunicorns/lula/commit/0adb2d0093b035f60af8794722a354128bbc2446))
+* **deps:** update github/codeql-action action to v3.26.2 ([#600](https://github.com/defenseunicorns/lula/issues/600)) ([6601566](https://github.com/defenseunicorns/lula/commit/66015662002d17a7c3182f0c5d4565a50ece8093))
+* **deps:** update github/codeql-action action to v3.26.4 ([#611](https://github.com/defenseunicorns/lula/issues/611)) ([dd592ce](https://github.com/defenseunicorns/lula/commit/dd592ceabc834eeb0a453bc8a0a78b04b4576bfb))
+* **deps:** update github/codeql-action action to v3.26.5 ([#616](https://github.com/defenseunicorns/lula/issues/616)) ([aa4e122](https://github.com/defenseunicorns/lula/commit/aa4e1220c725002e448707f00c456dd09161254e))
+* **deps:** update github/codeql-action action to v3.26.6 ([#626](https://github.com/defenseunicorns/lula/issues/626)) ([488cd91](https://github.com/defenseunicorns/lula/commit/488cd915f7801dddd427edf56bb8effd2d3bbc92))
+* **deps:** update kubernetes packages to v0.31.0 ([#594](https://github.com/defenseunicorns/lula/issues/594)) ([6dd7463](https://github.com/defenseunicorns/lula/commit/6dd7463c724c91f3ec34ddca87605481bdd8356f))
+* **deps:** update module github.com/open-policy-agent/opa to v0.68.0 ([#628](https://github.com/defenseunicorns/lula/issues/628)) ([914b1f2](https://github.com/defenseunicorns/lula/commit/914b1f2717dd30d6c8b2c878da0ec1582e7b047c))
+* **deps:** update module github.com/spf13/viper to v1.19.0 ([#618](https://github.com/defenseunicorns/lula/issues/618)) ([22fd668](https://github.com/defenseunicorns/lula/commit/22fd668d81923f1f098c919d0472637aa63bb451))
+* **docs:** add docs generation command ([#606](https://github.com/defenseunicorns/lula/issues/606)) ([4dd0450](https://github.com/defenseunicorns/lula/commit/4dd0450fa5f91cf4d1b3dceee52bde8f47f50935))
+* **docs:** adding 2024 roadmap to the project documentation ([#320](https://github.com/defenseunicorns/lula/issues/320)) ([120d15a](https://github.com/defenseunicorns/lula/commit/120d15a77dbcdc553c117245d392d4dcc3238066))
+* **docs:** update CODEOWNERS ([#636](https://github.com/defenseunicorns/lula/issues/636)) ([77e60fe](https://github.com/defenseunicorns/lula/commit/77e60fe6ecf13e71acc035139904e1c9aa7ab3b4))
+
 ## [0.5.1](https://github.com/defenseunicorns/lula/compare/v0.5.0...v0.5.1) (2024-08-16)
 
 
