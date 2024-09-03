@@ -2,10 +2,12 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/davecgh/go-spew/spew"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	ar "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
@@ -14,6 +16,7 @@ import (
 
 type model struct {
 	keys                      common.Keys
+	dump                      *os.File
 	tabs                      []string
 	activeTab                 int
 	oscalModel                oscalTypes_1_1_2.OscalCompleteSchema
@@ -29,7 +32,7 @@ type model struct {
 	height                    int
 }
 
-func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema) model {
+func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema, dumpFile *os.File) model {
 	// tabs := checkNonNullFields(oscalModel)
 	tabs := []string{
 		"ComponentDefinition",
@@ -41,8 +44,13 @@ func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema) model {
 		"Profile",
 	}
 
+	if dumpFile != nil {
+		common.DumpFile = dumpFile
+	}
+
 	return model{
 		keys:                      common.CommonHotkeys,
+		dump:                      dumpFile,
 		tabs:                      tabs,
 		oscalModel:                oscalModel,
 		componentModel:            component.NewComponentDefinitionModel(oscalModel.ComponentDefinition),
@@ -62,6 +70,10 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
+
+	if common.DumpFile != nil {
+		spew.Fdump(m.dump, msg)
+	}
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:

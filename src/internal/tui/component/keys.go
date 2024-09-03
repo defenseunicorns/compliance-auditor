@@ -21,6 +21,20 @@ type keys struct {
 	Quit          key.Binding
 }
 
+func (k keys) ShortHelp() []key.Binding {
+	return []key.Binding{k.Navigation, k.Help}
+}
+
+func (k keys) SingleLineFullHelp() []key.Binding {
+	return []key.Binding{k.Confirm, k.Navigation, k.SwitchModels, k.Help, k.Quit}
+}
+
+func (k keys) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
+	}
+}
+
 var componentKeys = keys{
 	Quit: common.CommonHotkeys.Quit,
 	Help: common.CommonHotkeys.Help,
@@ -54,14 +68,10 @@ var componentKeys = keys{
 	Down: common.PickerHotkeys.Down,
 }
 
-func (k keys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Navigation, k.Help}
-}
-
-func (k keys) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
-	}
+var componentEditKeys = keys{
+	Save:    common.EditHotkeys.Save,
+	Confirm: common.PickerHotkeys.Confirm,
+	Cancel:  common.PickerHotkeys.Cancel,
 }
 
 func (m *Model) updateKeyBindings() {
@@ -83,6 +93,13 @@ func (m *Model) updateKeyBindings() {
 		m.controls.SetDelegate(common.NewFocusedDelegate())
 	case focusRemarks:
 		m.remarks.KeyMap = common.FocusedPanelKeyMap()
+		if m.remarksEditor.Focused() {
+			m.remarksEditor.KeyMap = common.FocusedTextAreaKeyMap()
+			m.keys = componentEditKeys // update to include help message + save/cancel keys? or just display help for edit too?
+		} else {
+			m.remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
+			m.keys = componentKeys
+		}
 	case focusDescription:
 		m.description.KeyMap = common.FocusedPanelKeyMap()
 	}

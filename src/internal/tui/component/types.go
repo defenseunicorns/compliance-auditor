@@ -1,8 +1,8 @@
 package component
 
 import (
-	"github.com/charmbracelet/bubbles/help"
 	blist "github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
@@ -11,7 +11,7 @@ import (
 
 type Model struct {
 	open                   bool
-	help                   help.Model
+	help                   common.HelpModel
 	keys                   keys
 	focus                  focus
 	focusLock              bool
@@ -29,6 +29,7 @@ type Model struct {
 	controls               blist.Model
 	selectedControl        control
 	remarks                viewport.Model
+	remarksEditor          textarea.Model
 	description            viewport.Model
 	validationPicker       viewport.Model
 	validations            blist.Model
@@ -108,6 +109,8 @@ func (m *Model) UpdateSizing(height, width int) {
 	validationsHeight := bottomSectionHeight - remarksOutsideHeight - descriptionOutsideHeight - 2*common.PanelTitleStyle.GetHeight()
 
 	// Update widget sizing
+	m.help.Width = m.width
+
 	m.controls.SetHeight(m.height - common.PanelTitleStyle.GetHeight() - 1)
 	m.controls.SetWidth(leftWidth - common.PanelStyle.GetHorizontalPadding())
 
@@ -117,6 +120,9 @@ func (m *Model) UpdateSizing(height, width int) {
 	m.remarks.Height = remarksInsideHeight - 1
 	m.remarks.Width = rightWidth
 	m.remarks, _ = m.remarks.Update(tea.WindowSizeMsg{Width: rightWidth, Height: remarksInsideHeight - 1})
+
+	m.remarksEditor.SetHeight(m.remarks.Height - 2) // fix the border...
+	m.remarksEditor.SetWidth(m.remarks.Width - 5)
 
 	m.description.Height = descriptionInsideHeight - 1
 	m.description.Width = rightWidth

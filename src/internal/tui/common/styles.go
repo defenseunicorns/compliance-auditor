@@ -30,6 +30,13 @@ var (
 	Special    = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
 	Background = lipgloss.AdaptiveColor{Light: "#c5c6c7", Dark: "#333436"}
 
+	HelpKey        = lipgloss.AdaptiveColor{Light: "#909090", Dark: "#626262"}
+	HelpDesc       = lipgloss.AdaptiveColor{Light: "#B2B2B2", Dark: "#4A4A4A"}
+	HelpSep        = lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}
+	ActiveHelpKey  = Highlight
+	ActiveHelpDesc = Subtle
+	ActiveHelpSep  = lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}
+
 	// Tabs
 
 	ActiveTabBorder = lipgloss.Border{
@@ -101,6 +108,14 @@ var (
 			Padding(1, 2).
 			Margin(1).
 			Width(30)
+
+	// Help
+	KeyStyle        = lipgloss.NewStyle().Foreground(HelpKey)
+	DescStyle       = lipgloss.NewStyle().Foreground(HelpDesc)
+	SepStyle        = lipgloss.NewStyle().Foreground(HelpSep)
+	ActiveKeyStyle  = lipgloss.NewStyle().Foreground(ActiveHelpKey)
+	ActiveDescStyle = lipgloss.NewStyle().Foreground(ActiveHelpDesc)
+	ActiveSepStyle  = lipgloss.NewStyle().Foreground(ActiveHelpSep)
 )
 
 func HeaderView(titleText string, width int, focusColor lipgloss.AdaptiveColor) string {

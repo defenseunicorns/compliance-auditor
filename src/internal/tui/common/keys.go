@@ -4,18 +4,40 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 )
 
-type Keys struct {
+type keys struct {
 	Quit       key.Binding
-	Confirm    key.Binding
+	Help       key.Binding
 	ModelLeft  key.Binding
 	ModelRight key.Binding
-	Help       key.Binding
+	Confirm    key.Binding
+	Select     key.Binding
 }
 
-var CommonHotkeys = Keys{
+func (k keys) ShortHelp(t HelpType) []key.Binding {
+	return []key.Binding{k.Quit, k.Help}
+}
+
+func (k keys) SingleLineFullHelp(t HelpType) []key.Binding {
+	return []key.Binding{k.Confirm, k.ModelLeft, k.ModelRight, k.Help, k.Quit}
+}
+
+func (k keys) FullHelp(t HelpType) [][]key.Binding {
+	switch t {
+	case HelpTypeEdit:
+		return [][]key.Binding{
+			{k.Confirm}, {k.Select}, {k.ModelLeft}, {k.ModelRight}, {k.Help}, {k.Quit},
+		}
+	default:
+		return [][]key.Binding{
+			{k.Confirm}, {k.ModelLeft}, {k.ModelRight}, {k.Help}, {k.Quit},
+		}
+	}
+}
+
+var CommonKeys = keys{
 	Quit: key.NewBinding(
-		key.WithKeys("q", "ctrl+c"),
-		key.WithHelp("q", "quit"),
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
@@ -28,6 +50,14 @@ var CommonHotkeys = Keys{
 	ModelLeft: key.NewBinding(
 		key.WithKeys("shift+tab"),
 		key.WithHelp("shift+tab", "model left"),
+	),
+	Confirm: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↳", "confirm"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↳", "select"),
 	),
 }
 
@@ -45,6 +75,7 @@ type listKeys struct {
 	Down    key.Binding
 	Slash   key.Binding
 	Confirm key.Binding
+	Select  key.Binding
 	Escape  key.Binding
 	Help    key.Binding
 }
@@ -64,7 +95,11 @@ var ListHotkeys = listKeys{
 	),
 	Confirm: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("enter", "select"),
+		key.WithHelp("↳", "confirm"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↳", "select"),
 	),
 	Escape: key.NewBinding(
 		key.WithKeys("esc"),
@@ -119,5 +154,46 @@ func (k pickerKeys) ShortHelp() []key.Binding {
 func (k pickerKeys) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up}, {k.Down}, {k.Confirm}, {k.Cancel},
+	}
+}
+
+// Implemented for
+type editorKeys struct {
+	Confirm key.Binding
+	NewLine key.Binding
+	Save    key.Binding
+	Cancel  key.Binding
+}
+
+var EditHotkeys = editorKeys{
+	Confirm: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "confirm"),
+	),
+	NewLine: key.NewBinding(
+		key.WithKeys("ctrl+e"),
+		key.WithHelp("ctrl+e", "new line"),
+	),
+	Save: key.NewBinding(
+		key.WithKeys("ctrl+s"),
+		key.WithHelp("ctrl+s", "save"),
+	),
+	Cancel: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "cancel"),
+	),
+}
+
+func (k editorKeys) ShortHelp() []key.Binding {
+	return []key.Binding{k.Confirm, k.NewLine, k.Save, k.Cancel}
+}
+
+func (k editorKeys) SingleLineFullHelp() []key.Binding {
+	return []key.Binding{k.Confirm, k.NewLine, k.Save, k.Cancel}
+}
+
+func (k editorKeys) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Confirm}, {k.NewLine}, {k.Confirm}, {k.Cancel},
 	}
 }

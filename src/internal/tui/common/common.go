@@ -1,13 +1,20 @@
 package common
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/mattn/go-runewidth"
 )
 
 const TabOffset = 10
+
+var DumpFile *os.File
 
 func TruncateText(text string, width int) string {
 	if runewidth.StringWidth(text) <= width {
@@ -82,4 +89,28 @@ func UnfocusedPanelKeyMap() viewport.KeyMap {
 	km := viewport.KeyMap{}
 
 	return km
+}
+
+func FocusedTextAreaKeyMap() textarea.KeyMap {
+	km := textarea.DefaultKeyMap
+
+	km.InsertNewline = key.NewBinding(
+		key.WithKeys("ctrl+e"),
+		key.WithHelp("ctrl+e", "insert newline"),
+	)
+
+	return km
+}
+
+func UnfocusedTextAreaKeyMap() textarea.KeyMap {
+	km := textarea.KeyMap{}
+
+	return km
+}
+
+func PrintToLog(format string, a ...any) {
+	if DumpFile != nil {
+		out := fmt.Sprintf(format, a...)
+		spew.Fprintln(DumpFile, out)
+	}
 }

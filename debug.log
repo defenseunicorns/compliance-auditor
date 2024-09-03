@@ -1,0 +1,8 @@
+(tea.WindowSizeMsg) {
+ Width: (int) 200,
+ Height: (int) 59
+}
+(tea.KeyMsg) ?
+(tea.KeyMsg) ?
+(tea.KeyMsg) ?
+(tea.KeyMsg) ?

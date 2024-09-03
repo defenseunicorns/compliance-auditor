@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	blist "github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -139,6 +140,10 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 
 	remarks := viewport.New(width, height)
 	remarks.Style = common.PanelStyle
+	remarksEditor := textarea.New()
+	remarksEditor.CharLimit = 0
+	remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
+
 	description := viewport.New(width, height)
 	description.Style = common.PanelStyle
 	validationPicker := viewport.New(width, height)
@@ -146,7 +151,7 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 
 	return Model{
 		keys:              componentKeys,
-		help:              help.New(),
+		help:              common.NewHelpModel(),
 		components:        components,
 		selectedComponent: selectedComponent,
 		componentPicker:   componentPicker,
@@ -156,6 +161,7 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 		controlPicker:     controlPicker,
 		controls:          l,
 		remarks:           remarks,
+		remarksEditor:     remarksEditor,
 		description:       description,
 		validationPicker:  validationPicker,
 		validations:       v,
@@ -169,6 +175,12 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+
+	// this will register in this model first, then register to the comopnent model... is that what I want?
+	if m.remarksEditor.Focused() {
+		m.remarksEditor, cmd = m.remarksEditor.Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -256,6 +268,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.focusLock = true
 						m.componentPicker.SetContent(m.updateComponentPickerContent())
 					}
+
 				case focusFrameworkSelection:
 					if m.inFrameworkOverlay {
 						if len(m.components) != 0 && len(m.components[m.selectedComponentIndex].frameworks) > 1 {
@@ -303,15 +316,52 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
 						m.selectedValidation = selectedItem.(validationLink)
 					}
+
+				case focusRemarks:
+					if m.remarksEditor.Focused() {
+						// save remarks
+						m.selectedControl.remarks = m.remarksEditor.Value()
+						m.remarksEditor.Blur()
+						m.remarks.SetContent(m.selectedControl.remarks)
+						common.PrintToLog("remarks blurred")
+						m.updateKeyBindings()
+					}
+				}
+
+			case common.ContainsKey(k, m.keys.Edit.Keys()):
+				switch m.focus {
+				case focusRemarks:
+					if !m.remarksEditor.Focused() {
+						common.PrintToLog("remarks in focus")
+						m.remarksEditor.SetValue(m.selectedControl.remarks)
+						m.remarks.SetContent(m.remarksEditor.View())
+						_ = m.remarksEditor.Focus()
+						m.updateKeyBindings() // lock all keys except save (ctrl+s), cancel (esc), confirm (enter)
+						// cmds = append(cmds, cmd)
+					}
 				}
 
 			case common.ContainsKey(k, m.keys.Cancel.Keys()):
-				if m.inComponentOverlay {
-					m.inComponentOverlay = false
-					m.focusLock = false
-				} else if m.inFrameworkOverlay {
-					m.inFrameworkOverlay = false
-					m.focusLock = false
+				switch m.focus {
+				case focusComponentSelection:
+					if m.inComponentOverlay {
+						m.inComponentOverlay = false
+						m.focusLock = false
+					}
+				case focusFrameworkSelection:
+					if m.inFrameworkOverlay {
+						m.inFrameworkOverlay = false
+						m.focusLock = false
+					}
+				case focusRemarks:
+					if m.remarksEditor.Focused() {
+						m.remarksEditor.Blur()
+						common.PrintToLog("remarks blurred")
+						// Set old remarks, don't save changes
+						m.remarks.SetContent(m.selectedControl.remarks)
+						m.updateKeyBindings()
+						// save remarks? or enter to save remarks?
+					}
 				}
 			}
 		}
@@ -349,11 +399,11 @@ func (m Model) View() string {
 }
 
 func (m Model) mainView() string {
-	// Add help panel at the top left
+	// Add help panel at the top right
 	helpStyle := common.HelpStyle(m.width)
 	helpView := helpStyle.Render(m.help.View(m.keys))
 
-	// Add viewport styles
+	// Add viewport and focus styles
 	focusedViewport := common.PanelStyle.BorderForeground(common.Focused)
 	focusedViewportHeaderColor := common.Focused
 	focusedDialogBox := common.DialogBoxStyle.BorderForeground(common.Focused)
@@ -413,6 +463,13 @@ func (m Model) mainView() string {
 
 	m.validationPicker.Style = validationPickerViewport
 	m.validationPicker.SetContent(m.validations.View())
+
+	editorHelp := common.HelpStyle(m.remarks.Width).Render(m.help.View(common.EditHotkeys))
+
+	// remarksView = m.remarks.View()
+	if m.remarksEditor.Focused() {
+		m.remarks.SetContent(lipgloss.JoinVertical(lipgloss.Top, m.remarksEditor.View(), editorHelp))
+	}
 
 	remarksPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Remarks", m.remarks.Width-common.PanelStyle.GetPaddingRight(), remarksHeaderColor), m.remarks.View())
 	descriptionPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Description", m.description.Width-common.PanelStyle.GetPaddingRight(), descHeaderColor), m.description.View())
