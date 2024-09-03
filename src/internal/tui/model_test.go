@@ -1,7 +1,6 @@
 package tui_test
 
 import (
-	"io"
 	"os"
 	"testing"
 	"time"
@@ -46,11 +45,9 @@ func TestNewComponentDefinitionModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := io.ReadAll(testModel.FinalOutput(t, teatest.WithFinalTimeout(time.Second*5)))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+
+	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
 
 // TestMultiComponentDefinitionModel tests that the NewOSCALModel creates the expected model from component definition file
@@ -72,11 +69,9 @@ func TestMultiComponentDefinitionModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := io.ReadAll(testModel.FinalOutput(t, teatest.WithFinalTimeout(time.Second*5)))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+
+	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
 
 // TestNewAssessmentResultsModel tests that the NewOSCALModel creates the expected model from assessment results file
@@ -91,11 +86,9 @@ func TestNewAssessmentResultsModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := io.ReadAll(testModel.FinalOutput(t, teatest.WithFinalTimeout(time.Second*5)))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+
+	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
 
 // TestComponentControlSelect tests that the user can navigate to a control, select it, and see expected
@@ -115,9 +108,7 @@ func TestComponentControlSelect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := io.ReadAll(testModel.FinalOutput(t, teatest.WithFinalTimeout(time.Second*5)))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+
+	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
