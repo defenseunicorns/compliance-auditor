@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
+	"github.com/defenseunicorns/lula/src/cmd/console"
 	"github.com/defenseunicorns/lula/src/cmd/dev"
 	"github.com/defenseunicorns/lula/src/cmd/evaluate"
 	"github.com/defenseunicorns/lula/src/cmd/generate"
@@ -36,6 +37,7 @@ func init() {
 		validate.ValidateCommand(),
 		evaluate.EvaluateCommand(),
 		generate.GenerateCommand(),
+		console.ConsoleCommand(),
 	}
 
 	rootCmd.AddCommand(commands...)

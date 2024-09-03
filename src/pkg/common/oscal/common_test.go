@@ -2,6 +2,7 @@ package oscal_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -175,6 +176,116 @@ func TestGetProps(t *testing.T) {
 			}
 			if gotValue != tt.wantValue {
 				t.Errorf("GetProp() got = %v, want %v", gotValue, tt.wantValue)
+			}
+		})
+	}
+}
+
+func TestCompareControls(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		a        string
+		b        string
+		expected bool
+	}{
+		{
+			name:     "Compare controls with XX-##.## format 1, a sorted before b",
+			a:        "AC-1",
+			b:        "AC-1.10",
+			expected: true,
+		},
+		{
+			name:     "Compare controls with XX-##.## format 2, a sorted before b",
+			a:        "ac-1.10",
+			b:        "ac-2",
+			expected: true,
+		},
+		{
+			name:     "Compare controls with only one XX-##.## format, a sorted before b",
+			a:        "apple",
+			b:        "AC-2",
+			expected: true,
+		},
+		{
+			name:     "Compare controls with XX-##.## format 1, b sorted before a",
+			a:        "AC-1.10",
+			b:        "AC-1.2",
+			expected: false,
+		},
+		{
+			name:     "Compare controls with XX-##.## format 2, b sorted before a",
+			a:        "ac-1.10",
+			b:        "ac-1.2",
+			expected: false,
+		},
+		{
+			name:     "Compare controls with one XX-##.## format, b sorted before a",
+			a:        "AC-2",
+			b:        "apple",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := oscal.CompareControls(tt.a, tt.b)
+			if got != tt.expected {
+				t.Errorf("CompareControls() got = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestSortControls(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		controls []oscalTypes_1_1_2.Control
+		expected []oscalTypes_1_1_2.Control
+	}{
+		{
+			name: "Sort controls with XX-##.## format 1",
+			controls: []oscalTypes_1_1_2.Control{
+				{
+					Title: "ac-14",
+				},
+				{
+					Title: "ac-4",
+				},
+				{
+					Title: "ac-4.21",
+				},
+				{
+					Title: "ac-4.4",
+				},
+			},
+			expected: []oscalTypes_1_1_2.Control{
+				{
+					Title: "ac-4",
+				},
+				{
+					Title: "ac-4.4",
+				},
+				{
+					Title: "ac-4.21",
+				},
+				{
+					Title: "ac-14",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sort.Slice(tt.controls, func(i, j int) bool {
+				return oscal.CompareControls(tt.controls[i].Title, tt.controls[j].Title)
+			})
+			if !reflect.DeepEqual(tt.controls, tt.expected) {
+				t.Errorf("SortControls() got = %v, want %v", tt.controls, tt.expected)
 			}
 		})
 	}

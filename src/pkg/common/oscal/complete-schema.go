@@ -111,26 +111,32 @@ func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *osc
 
 	// Component definition
 	if modelType == "component" {
+
+		if existingModel.ComponentDefinition == nil && newModel.ComponentDefinition != nil {
+			return newModel, nil
+		}
+
 		merged, err := MergeComponentDefinitions(existingModel.ComponentDefinition, newModel.ComponentDefinition)
 		if err != nil {
 			return nil, err
 		}
 		// Re-assign after processing errors
 		existingModel.ComponentDefinition = merged
-	} else if existingModel.ComponentDefinition == nil && newModel.ComponentDefinition != nil {
-		existingModel.ComponentDefinition = newModel.ComponentDefinition
 	}
 
 	// Assessment Results
 	if modelType == "assessment-results" {
+
+		if existingModel.AssessmentResults == nil && newModel.AssessmentResults != nil {
+			return newModel, nil
+		}
+
 		merged, err := MergeAssessmentResults(existingModel.AssessmentResults, newModel.AssessmentResults)
 		if err != nil {
 			return existingModel, err
 		}
 		// Re-assign after processing errors
 		existingModel.AssessmentResults = merged
-	} else if existingModel.AssessmentResults == nil && newModel.AssessmentResults != nil {
-		existingModel.AssessmentResults = newModel.AssessmentResults
 	}
 
 	return existingModel, err

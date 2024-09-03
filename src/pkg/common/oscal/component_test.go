@@ -559,3 +559,21 @@ func TestFilterControlImplementations(t *testing.T) {
 		})
 	}
 }
+
+func TestNewComponentFrameworks(t *testing.T) {
+	t.Parallel()
+	validBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-multi-component.yaml")
+	validComponent, _ := oscal.NewOscalComponentDefinition(validBytes)
+
+	t.Run("It populates a componentFrameworks map", func(t *testing.T) {
+		componentFrameworks := oscal.NewComponentFrameworks(validComponent)
+		if len(componentFrameworks) != 2 {
+			t.Errorf("Expected 2 componentFrameworks, got %v", len(componentFrameworks))
+		}
+		for _, c := range componentFrameworks {
+			if len(c.Frameworks) != 4 {
+				t.Errorf("Expected 4 targets in each framework, got %v", len(c.Frameworks))
+			}
+		}
+	})
+}
