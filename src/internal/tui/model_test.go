@@ -45,6 +45,10 @@ func TestNewComponentDefinitionModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if testModel == nil {
+		t.Fatal("testModel is nil")
+	}
+
 	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
 
 	teatest.RequireEqualOutput(t, []byte(fm.View()))
@@ -69,6 +73,10 @@ func TestMultiComponentDefinitionModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if testModel == nil {
+		t.Fatal("testModel is nil")
+	}
+
 	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
 
 	teatest.RequireEqualOutput(t, []byte(fm.View()))
@@ -84,6 +92,10 @@ func TestNewAssessmentResultsModel(t *testing.T) {
 
 	if err := testModel.Quit(); err != nil {
 		t.Fatal(err)
+	}
+
+	if testModel == nil {
+		t.Fatal("testModel is nil")
 	}
 
 	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
@@ -106,6 +118,10 @@ func TestComponentControlSelect(t *testing.T) {
 
 	if err := testModel.Quit(); err != nil {
 		t.Fatal(err)
+	}
+
+	if testModel == nil {
+		t.Fatal("testModel is nil")
 	}
 
 	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
