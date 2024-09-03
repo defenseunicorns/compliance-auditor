@@ -57,7 +57,7 @@ func TestOutputs(t *testing.T) {
 			components := *compDef.Components
 			validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-			findingMap, observations, _, err := validate.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
+			findingMap, observations, err := validate.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -105,9 +105,8 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, resourcesDir string) ([]oscalTypes_1_1_2.Observation, []oscalTypes_1_1_2.Resource) {
+func (v *ValidationStore) RunValidations(confirmExecution, saveResources bool, resourcesDir string) []oscalTypes_1_1_2.Observation {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
-	resources := make([]oscalTypes_1_1_2.Resource, 0, len(v.validationMap))
 
 	for k, val := range v.validationMap {
 		completedText := "evaluated"
@@ -142,33 +141,21 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, r
 
 		// Save Resources if specified
 		var resourceHref string
-		if saveResources != "" {
+		if saveResources {
 			resourceUuid := uuid.NewUUID()
-			if saveResources == "backmatter" {
-				resourceHref = common.AddIdPrefix(resourceUuid)
-				jsonData := val.GetDomainResourcesAsJSON()
-				resources = append(
-					resources, oscalTypes_1_1_2.Resource{
-						Title:       fmt.Sprintf("Resources - %s", val.Name),
-						Description: string(jsonData),
-						UUID:        resourceUuid,
-					},
-				)
-			} else if saveResources == "remote" {
-				// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
-				filename := fmt.Sprintf("%s.json", resourceUuid)
-				resourceFile := filepath.Join(resourcesDir, "resources", filename)
-				err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm)
-				if err != nil {
-					message.Debugf("Error creating directory for remote resource: %v", err)
-				}
-				jsonData := val.GetDomainResourcesAsJSON()
-				err = files.WriteOutput(jsonData, resourceFile)
-				if err != nil {
-					message.Debugf("Error writing remote resource file: %v", err)
-				}
-				resourceHref = fmt.Sprintf("file://./resources/%s", filename)
+			// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
+			filename := fmt.Sprintf("%s.json", resourceUuid)
+			resourceFile := filepath.Join(resourcesDir, "resources", filename)
+			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm)
+			if err != nil {
+				message.Debugf("Error creating directory for remote resource: %v", err)
 			}
+			jsonData := val.GetDomainResourcesAsJSON()
+			err = files.WriteOutput(jsonData, resourceFile)
+			if err != nil {
+				message.Debugf("Error writing remote resource file: %v", err)
+			}
+			resourceHref = fmt.Sprintf("file://./resources/%s", filename)
 		}
 
 		// Create an observation
@@ -184,7 +171,7 @@ func (v *ValidationStore) RunValidations(confirmExecution bool, saveResources, r
 
 		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
 	}
-	return observations, resources
+	return observations
 }
 
 // GetObservation returns the observation with the given ID as well as pass status

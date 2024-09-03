@@ -99,7 +99,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result}, nil)
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -127,7 +127,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result}, nil)
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -137,7 +137,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultSecond}, nil)
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultSecond})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -179,7 +179,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, nil)
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -189,7 +189,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, nil)
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -229,7 +229,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, nil)
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -239,7 +239,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, nil)
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -285,7 +285,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail}, nil)
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -295,7 +295,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass}, nil)
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -638,106 +638,4 @@ func TestCreateResult(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestMergeAssessmentResults(t *testing.T) {
-	t.Parallel()
-
-	t.Run("Test merging two assessments - one with backmatter", func(t *testing.T) {
-
-		resultA, err := oscal.CreateResult(findingMapPass, observations)
-		if err != nil {
-			t.Fatalf("error generating result from findings and observations: %v", err)
-		}
-
-		backmatterA := &oscalTypes_1_1_2.BackMatter{
-			Resources: &[]oscalTypes_1_1_2.Resource{
-				{
-					Title:       "Resource A",
-					Description: "Some data for resource A",
-					UUID:        "a50c374a-deee-4032-9a0e-38e624f49c3d",
-				},
-			},
-		}
-
-		resultB, err := oscal.CreateResult(findingMapPass, observations)
-		if err != nil {
-			t.Fatalf("error generating result from findings and observations: %v", err)
-		}
-
-		assessmentA, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultA}, backmatterA)
-		if err != nil {
-			t.Fatalf("error generating assessment results: %v", err)
-		}
-
-		assessmentB, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultB}, nil)
-		if err != nil {
-			t.Fatalf("error generating assessment results: %v", err)
-		}
-
-		// TODO: review assumptions made about order of assessments during merge
-		assessment, err := oscal.MergeAssessmentResults(assessmentA, assessmentB)
-		if err != nil {
-			t.Fatalf("error merging assessment results: %v", err)
-		}
-
-		// Check that the backmatter was merged
-		if len(*assessment.BackMatter.Resources) != 1 {
-			t.Fatalf("Expected 1 resources, got %d", len(*assessment.BackMatter.Resources))
-		}
-	})
-
-	t.Run("Test merging two assessments - both with backmatter", func(t *testing.T) {
-
-		resultA, err := oscal.CreateResult(findingMapPass, observations)
-		if err != nil {
-			t.Fatalf("error generating result from findings and observations: %v", err)
-		}
-
-		backmatterA := &oscalTypes_1_1_2.BackMatter{
-			Resources: &[]oscalTypes_1_1_2.Resource{
-				{
-					Title:       "Resource A",
-					Description: "Some data for resource A",
-					UUID:        "a50c374a-deee-4032-9a0e-38e624f49c3d",
-				},
-			},
-		}
-
-		resultB, err := oscal.CreateResult(findingMapPass, observations)
-		if err != nil {
-			t.Fatalf("error generating result from findings and observations: %v", err)
-		}
-
-		backmatterB := &oscalTypes_1_1_2.BackMatter{
-			Resources: &[]oscalTypes_1_1_2.Resource{
-				{
-					Title:       "Resource B",
-					Description: "Some data for resource B",
-					UUID:        "691e04dd-35f0-4eb3-a2a0-0d053c0284fd",
-				},
-			},
-		}
-
-		assessmentA, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultA}, backmatterA)
-		if err != nil {
-			t.Fatalf("error generating assessment results: %v", err)
-		}
-
-		assessmentB, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultB}, backmatterB)
-		if err != nil {
-			t.Fatalf("error generating assessment results: %v", err)
-		}
-
-		// TODO: review assumptions made about order of assessments during merge
-		assessment, err := oscal.MergeAssessmentResults(assessmentA, assessmentB)
-		if err != nil {
-			t.Fatalf("error merging assessment results: %v", err)
-		}
-
-		// Check that the backmatter was merged
-		if len(*assessment.BackMatter.Resources) != 2 {
-			t.Fatalf("Expected 1 resources, got %d", len(*assessment.BackMatter.Resources))
-		}
-	})
 }

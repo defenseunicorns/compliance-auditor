@@ -38,7 +38,7 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			// TODO: fix this nonsense
 			validate.ConfirmExecution = true
 			validate.RunNonInteractively = true
-			validate.SaveResources = ""
+			validate.SaveResources = false
 
 			assessment, err := validate.ValidateOnPath(oscalPath, "")
 			if err != nil {

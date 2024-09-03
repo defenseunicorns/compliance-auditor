@@ -41,7 +41,7 @@ func NewAssessmentResults(data []byte) (*oscalTypes_1_1_2.AssessmentResults, err
 	return oscalModels.AssessmentResults, nil
 }
 
-func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result, backMatter *oscalTypes_1_1_2.BackMatter) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	var assessmentResults = &oscalTypes_1_1_2.AssessmentResults{}
 
 	// Single time used for all time related fields
@@ -64,11 +64,6 @@ func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result, backMatter *os
 	// Create results object
 	assessmentResults.Results = results
 
-	// Add the back matter
-	if backMatter != nil {
-		assessmentResults.BackMatter = backMatter
-	}
-
 	return assessmentResults, nil
 }
 
@@ -85,15 +80,6 @@ func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest
 	// Update pertinent information
 	original.Metadata.LastModified = time.Now()
 	original.UUID = uuid.NewUUID()
-
-	// merge the back-matter resources
-	if original.BackMatter != nil && latest.BackMatter != nil {
-		original.BackMatter = &oscalTypes_1_1_2.BackMatter{
-			Resources: mergeResources(original.BackMatter.Resources, latest.BackMatter.Resources),
-		}
-	} else if original.BackMatter == nil && latest.BackMatter != nil {
-		original.BackMatter = latest.BackMatter
-	}
 
 	return original, nil
 }

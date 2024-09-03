@@ -16,7 +16,6 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -53,13 +52,9 @@ func TestPodLabelValidation(t *testing.T) {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
 			return validatePodLabelPass(ctx, t, config, oscalPath)
 		}).
-		Assess("Validate pod label (save-resources=backmatter)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			return validateSaveResources(ctx, t, oscalPath, "backmatter")
-		}).
 		Assess("Validate pod label (save-resources=remote)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			return validateSaveResources(ctx, t, oscalPath, "remote")
+			return validateSaveResources(ctx, t, oscalPath)
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod := ctx.Value("test-pod-label").(*corev1.Pod)
@@ -212,7 +207,7 @@ func TestPodLabelValidation(t *testing.T) {
 
 func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
 	message.NoProgress = true
-	validate.SaveResources = ""
+	validate.SaveResources = false
 
 	tempDir := t.TempDir()
 
@@ -256,7 +251,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 
 	// Test report generation
-	report, err := oscal.GenerateAssessmentResults(assessment.Results, nil)
+	report, err := oscal.GenerateAssessmentResults(assessment.Results)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
@@ -274,7 +269,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	initialResultCount := len(report.Results)
 
 	//Perform the write operation again and read the file to ensure result was appended
-	report, err = oscal.GenerateAssessmentResults(assessment.Results, nil)
+	report, err = oscal.GenerateAssessmentResults(assessment.Results)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
@@ -324,7 +319,7 @@ func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.F
 	message.NoProgress = true
 	validate.ConfirmExecution = false
 	validate.RunNonInteractively = true
-	validate.SaveResources = ""
+	validate.SaveResources = false
 
 	assessment, err := validate.ValidateOnPath(oscalPath, "")
 	if err != nil {
@@ -365,9 +360,9 @@ func generateObservationRemarksMap(observations []oscalTypes_1_1_2.Observation) 
 	return observationMap
 }
 
-func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveResources string) context.Context {
+func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) context.Context {
 	message.NoProgress = true
-	validate.SaveResources = saveResources
+	validate.SaveResources = true
 	tempDir := t.TempDir()
 	validate.ResourcesDir = tempDir
 
@@ -383,68 +378,29 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath, saveRes
 
 	result := assessment.Results[0]
 
-	// Should I call the dev commands here?
-	if saveResources == "backmatter" {
-		// Check that assessment results backmatter has the expected resources
-		if assessment.BackMatter == nil {
-			t.Fatal("Expected assessment backmatter, got nil")
+	// Check that remote files are created
+	for _, o := range *result.Observations {
+		if o.Links == nil {
+			t.Fatal("Expected observation links, got nil")
 		}
-		if len(*assessment.BackMatter.Resources) != 2 {
-			t.Fatal("Expected 2 resources, got ", len(*assessment.BackMatter.Resources))
+		if len(*o.Links) != 1 {
+			t.Fatal("Expected 1 link, got ", len(*o.Links))
 		}
-		// Check that the resources are the expected resources
-		resourceStore := composition.NewResourceStoreFromBackMatter(assessment.BackMatter)
+		link := (*o.Links)[0]
 
-		for _, o := range *result.Observations {
-			if o.Links == nil {
-				t.Fatal("Expected observation links, got nil")
-			}
-			if len(*o.Links) != 1 {
-				t.Fatal("Expected 1 link, got ", len(*o.Links))
-			}
-			link := (*o.Links)[0]
-			resource, found := resourceStore.GetExisting(common.TrimIdPrefix(link.Href))
-			if !found {
-				t.Fatal("Expected resource to exist")
-			}
-
-			// Check that the resource has the expected data
-			var data map[string]interface{}
-			err := json.Unmarshal([]byte(resource.Description), &data)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// Check that resource data is as expected
-			if !validaPodResourceData(data) {
-				t.Fatal("Unexpected resource data found")
-			}
+		// The link is a relative path to assessment-results.yaml, so need to provide absolute path to the file
+		dataBytes, err := network.Fetch(tempDir + strings.TrimPrefix(link.Href, "file://."))
+		if err != nil {
+			t.Fatal("Unable to fetch remote resource: ", err)
 		}
-
-	} else if saveResources == "remote" {
-		// Check that remote files are created
-		for _, o := range *result.Observations {
-			if o.Links == nil {
-				t.Fatal("Expected observation links, got nil")
-			}
-			if len(*o.Links) != 1 {
-				t.Fatal("Expected 1 link, got ", len(*o.Links))
-			}
-			link := (*o.Links)[0]
-
-			// The link is a relative path to assessment-results.yaml, so need to provide absolute path to the file
-			dataBytes, err := network.Fetch(tempDir + strings.TrimPrefix(link.Href, "file://."))
-			if err != nil {
-				t.Fatal("Unable to fetch remote resource: ", err)
-			}
-			var data map[string]interface{}
-			err = json.Unmarshal(dataBytes, &data)
-			if err != nil {
-				t.Fatal("Received invalid JSON: ", err)
-			}
-			// Check that resource data is as expected
-			if !validaPodResourceData(data) {
-				t.Fatal("Unexpected resource data found")
-			}
+		var data map[string]interface{}
+		err = json.Unmarshal(dataBytes, &data)
+		if err != nil {
+			t.Fatal("Received invalid JSON: ", err)
+		}
+		// Check that resource data is as expected
+		if !validaPodResourceData(data) {
+			t.Fatal("Unexpected resource data found")
 		}
 	}
 
