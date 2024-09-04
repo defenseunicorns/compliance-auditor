@@ -4,8 +4,8 @@ go 1.22.5
 
 require (
 	github.com/charmbracelet/bubbles v0.18.0
-	github.com/charmbracelet/bubbletea v0.26.6
-	github.com/charmbracelet/lipgloss v0.12.1
+	github.com/charmbracelet/bubbletea v0.27.1
+	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
@@ -154,7 +154,7 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
