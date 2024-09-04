@@ -34,9 +34,10 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 	viewedValidations := make([]blist.Item, 0)
 	components := make([]component, 0)
 	frameworks := make([]framework, 0)
+	componentFrameworks := make(map[string]oscal.ComponentFrameworks)
 
 	if oscalComponent != nil {
-		componentFrameworks := oscal.NewComponentFrameworks(oscalComponent)
+		componentFrameworks = oscal.NewComponentFrameworks(oscalComponent)
 
 		validationStore := validationstore.NewValidationStore()
 		if oscalComponent.BackMatter != nil {
@@ -130,9 +131,11 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 	frameworkPicker.Style = common.OverlayStyle
 
 	l := blist.New(viewedControls, common.NewUnfocusedDelegate(), width, height)
+	l.SetShowHelp(false) // help to be at top right
 	l.KeyMap = common.FocusedListKeyMap()
 
 	v := blist.New(viewedValidations, common.NewUnfocusedDelegate(), width, height)
+	v.SetShowHelp(false) // help to be at top right
 	v.KeyMap = common.UnfocusedListKeyMap()
 
 	controlPicker := viewport.New(width, height)
@@ -150,21 +153,22 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 	validationPicker.Style = common.PanelStyle
 
 	return Model{
-		keys:              componentKeys,
-		help:              common.NewHelpModel(),
-		components:        components,
-		selectedComponent: selectedComponent,
-		componentPicker:   componentPicker,
-		frameworks:        frameworks,
-		selectedFramework: selectedFramework,
-		frameworkPicker:   frameworkPicker,
-		controlPicker:     controlPicker,
-		controls:          l,
-		remarks:           remarks,
-		remarksEditor:     remarksEditor,
-		description:       description,
-		validationPicker:  validationPicker,
-		validations:       v,
+		keys:                componentKeys,
+		help:                common.NewHelpModel(false),
+		componentFrameworks: componentFrameworks,
+		components:          components,
+		selectedComponent:   selectedComponent,
+		componentPicker:     componentPicker,
+		frameworks:          frameworks,
+		selectedFramework:   selectedFramework,
+		frameworkPicker:     frameworkPicker,
+		controlPicker:       controlPicker,
+		controls:            l,
+		remarks:             remarks,
+		remarksEditor:       remarksEditor,
+		description:         description,
+		validationPicker:    validationPicker,
+		validations:         v,
 	}
 }
 
@@ -190,7 +194,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.open {
 			k := msg.String()
 			switch k {
-
 			case common.ContainsKey(k, m.keys.Quit.Keys()):
 				// TODO: Add quit warn model
 				return m, tea.Quit
@@ -401,7 +404,7 @@ func (m Model) View() string {
 func (m Model) mainView() string {
 	// Add help panel at the top right
 	helpStyle := common.HelpStyle(m.width)
-	helpView := helpStyle.Render(m.help.View(m.keys))
+	helpView := helpStyle.Render(m.help.View())
 
 	// Add viewport and focus styles
 	focusedViewport := common.PanelStyle.BorderForeground(common.Focused)
@@ -464,11 +467,9 @@ func (m Model) mainView() string {
 	m.validationPicker.Style = validationPickerViewport
 	m.validationPicker.SetContent(m.validations.View())
 
-	editorHelp := common.HelpStyle(m.remarks.Width).Render(m.help.View(common.EditHotkeys))
-
 	// remarksView = m.remarks.View()
 	if m.remarksEditor.Focused() {
-		m.remarks.SetContent(lipgloss.JoinVertical(lipgloss.Top, m.remarksEditor.View(), editorHelp))
+		m.remarks.SetContent(lipgloss.JoinVertical(lipgloss.Top, m.remarksEditor.View()))
 	}
 
 	remarksPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Remarks", m.remarks.Width-common.PanelStyle.GetPaddingRight(), remarksHeaderColor), m.remarks.View())

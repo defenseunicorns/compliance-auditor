@@ -10,26 +10,16 @@ import (
 
 // Note: This package has been adapted from the original help package in github.com/charmbracelet/bubbles
 
-// KeyMap is a map of keybindings used to generate help. Since it's an
-// interface it can be any type, though struct or a map[string][]key.Binding
-// are likely candidates.
-//
-// Note that if a key is disabled (via key.Binding.SetEnabled) it will not be
-// rendered in the help view, so in theory generated help should self-manage.
-type KeyMap interface {
-	// ShortHelp returns a slice of bindings to be displayed in the short
-	// version of the help. The help bubble will render help in the order in
-	// which the help items are returned here.
-	ShortHelp(t HelpType) []key.Binding
+type HelpType int
 
-	// FullHelp returns an extended group of help items, grouped by columns.
-	// The help bubble will render the help in the order in which the help
-	// items are returned here.
-	FullHelp(t HelpType) [][]key.Binding
-
-	// SingleLineFullHelp returns a single line extended group of help items
-	SingleLineFullHelp(t HelpType) []key.Binding
-}
+const (
+	HelpTypeMain HelpType = iota
+	HelpTypeEdit
+	HelpTypeList
+	HelpTypeSelect
+	HelpTypePanel
+	HelpTypeQuit
+)
 
 // Styles is a set of available style definitions for the Help bubble.
 type HelpStyles struct {
@@ -69,19 +59,16 @@ func NewStyles(active bool) HelpStyles {
 	}
 }
 
-type HelpType int
-
-const (
-	HelpTypeGeneral HelpType = iota
-	HelpTypeEdit
-)
-
 // HelpModel contains the state of the help view.
 type HelpModel struct {
-	Width    int
-	ShowAll  bool // if true, render the "full" help menu
-	OneLine  bool
-	HelpType HelpType
+	Width int
+
+	ShowAll bool // if true, render the "full" help menu
+	OneLine bool
+
+	ShortHelp       []key.Binding
+	FullHelpOneLine []key.Binding
+	FullHelp        [][]key.Binding
 
 	ShortSeparator string
 	FullSeparator  string
@@ -94,12 +81,11 @@ type HelpModel struct {
 }
 
 // New creates a new help view with some useful defaults.
-func NewHelpModel(t HelpType, active bool) HelpModel {
+func NewHelpModel(active bool) HelpModel {
 	return HelpModel{
 		ShortSeparator: " • ",
 		FullSeparator:  "    ",
 		Ellipsis:       "…",
-		HelpType:       t,
 		Styles:         NewStyles(active),
 	}
 }
@@ -110,14 +96,14 @@ func (m HelpModel) Update(_ tea.Msg) (HelpModel, tea.Cmd) {
 }
 
 // View renders the help view's current state.
-func (m HelpModel) View(k KeyMap) string {
+func (m HelpModel) View() string {
 	if m.ShowAll {
 		if m.OneLine {
-			return m.SingleLineHelpView(k.SingleLineFullHelp(m.HelpType))
+			return m.SingleLineHelpView(m.FullHelpOneLine)
 		}
-		return m.FullHelpView(k.FullHelp(m.HelpType))
+		return m.FullHelpView(m.FullHelp)
 	}
-	return m.SingleLineHelpView(k.ShortHelp(m.HelpType))
+	return m.SingleLineHelpView(m.ShortHelp)
 }
 
 // SingleLineHelpView renders a single line help view from a slice of keybindings.

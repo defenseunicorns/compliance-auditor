@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,6 +13,7 @@ import (
 	ar "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 type model struct {
@@ -19,7 +21,9 @@ type model struct {
 	dump                      *os.File
 	tabs                      []string
 	activeTab                 int
-	oscalModel                oscalTypes_1_1_2.OscalCompleteSchema
+	oscalFilePath             string
+	oscalModel                *oscalTypes_1_1_2.OscalCompleteSchema
+	writtenOscalModel         *oscalTypes_1_1_2.OscalCompleteSchema
 	componentModel            component.Model
 	assessmentResultsModel    ar.Model
 	catalogModel              common.TbdModal
@@ -27,13 +31,16 @@ type model struct {
 	assessmentPlanModel       common.TbdModal
 	systemSecurityPlanModel   common.TbdModal
 	profileModel              common.TbdModal
-	warnModel                 common.WarnModal
+	warnModel                 common.WarnPopupModel
 	width                     int
 	height                    int
 }
 
-func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema, dumpFile *os.File) model {
-	// tabs := checkNonNullFields(oscalModel)
+func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema, oscalFilePath string, dumpFile *os.File) model {
+	if oscalModel == nil {
+		oscalModel = new(oscalTypes_1_1_2.OscalCompleteSchema)
+	}
+
 	tabs := []string{
 		"ComponentDefinition",
 		"AssessmentResults",
@@ -48,11 +55,18 @@ func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema, dumpFile *os
 		common.DumpFile = dumpFile
 	}
 
+	if oscalFilePath != "" {
+		oscalFilePath = "oscal.yaml"
+	}
+
 	return model{
-		keys:                      common.CommonHotkeys,
+		keys:                      common.CommonKeys,
 		dump:                      dumpFile,
 		tabs:                      tabs,
+		oscalFilePath:             oscalFilePath,
 		oscalModel:                oscalModel,
+		writtenOscalModel:         oscalModel,
+		warnModel:                 common.NewWarnPopup(),
 		componentModel:            component.NewComponentDefinitionModel(oscalModel.ComponentDefinition),
 		assessmentResultsModel:    ar.NewAssessmentResultsModel(oscalModel.AssessmentResults),
 		systemSecurityPlanModel:   common.NewTbdModal("System Security Plan"),
@@ -60,6 +74,29 @@ func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema, dumpFile *os
 		profileModel:              common.NewTbdModal("Profile"),
 		assessmentPlanModel:       common.NewTbdModal("Assessment Plan"),
 		planOfActionAndMilestones: common.NewTbdModal("Plan of Action and Milestones"),
+	}
+}
+
+// UpdateOscalModel runs on edit + confirm cmds
+func (m *model) UpdateOscalModel() {
+	m.oscalModel = &oscalTypes_1_1_2.OscalCompleteSchema{
+		ComponentDefinition: m.componentModel.GetComponentDefinition(),
+	}
+}
+
+// WriteOscalModel runs on save cmds
+func (m *model) WriteOscalModel() {
+	writtenIsCurrent := reflect.DeepEqual(m.writtenOscalModel, m.oscalModel)
+	if !writtenIsCurrent {
+		err := oscal.WriteOscalModel(m.oscalFilePath, m.writtenOscalModel)
+		if err != nil {
+			// todo: add popup with error on save
+			common.PrintToLog("error writing oscal model: %v", err)
+		} else {
+			m.writtenOscalModel = m.oscalModel
+		}
+	} else {
+		common.PrintToLog("no changes to oscal model, nothing written")
 	}
 }
 
@@ -85,7 +122,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch k {
 		case common.ContainsKey(k, m.keys.Quit.Keys()):
-			return m, tea.Quit
+			// add quit warn pop-up
+			if m.warnModel.Open {
+				m.warnModel.Open = false
+				return m, tea.Quit
+			} else {
+				m.warnModel.Open = true
+			}
 
 		case common.ContainsKey(k, m.keys.ModelRight.Keys()):
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
@@ -97,6 +140,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.activeTab = m.activeTab - 1
 			}
 
+		case common.ContainsKey(k, m.keys.Confirm.Keys()):
+			if m.warnModel.Open {
+				return m, tea.Quit
+			}
+
+		case common.ContainsKey(k, m.keys.Save.Keys()):
+			m.WriteOscalModel(m.oscalModel)
 		}
 	}
 
@@ -117,6 +167,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	if m.warnModel.Open {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.warnModel.View(), lipgloss.WithWhitespaceChars(" "))
+	}
+	return m.mainView()
+}
+
+func (m model) mainView() string {
 	var tabs []string
 	for i, t := range m.tabs {
 		if i == m.activeTab {

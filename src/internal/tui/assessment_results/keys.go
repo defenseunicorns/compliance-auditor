@@ -21,8 +21,8 @@ type keys struct {
 }
 
 var assessmentHotkeys = keys{
-	Quit: common.CommonHotkeys.Quit,
-	Help: common.CommonHotkeys.Help,
+	Quit: common.CommonKeys.Quit,
+	Help: common.CommonKeys.Help,
 	Validate: key.NewBinding(
 		key.WithKeys("v"),
 		key.WithHelp("v", "validate"),

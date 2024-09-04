@@ -29,6 +29,7 @@ var (
 	Focused    = lipgloss.AdaptiveColor{Light: "#8378ab", Dark: "#bfb2eb"}
 	Special    = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
 	Background = lipgloss.AdaptiveColor{Light: "#c5c6c7", Dark: "#333436"}
+	Warning    = lipgloss.AdaptiveColor{Light: "#FFA100", Dark: "#F9A431"}
 
 	HelpKey        = lipgloss.AdaptiveColor{Light: "#909090", Dark: "#626262"}
 	HelpDesc       = lipgloss.AdaptiveColor{Light: "#B2B2B2", Dark: "#4A4A4A"}
@@ -101,6 +102,11 @@ var (
 			Border(lipgloss.DoubleBorder(), true).
 			BorderForeground(Focused).
 			Padding(1, 1)
+
+	OverlayWarnStyle = lipgloss.NewStyle().
+				Border(lipgloss.DoubleBorder(), true).
+				BorderForeground(Warning).
+				Padding(1, 1)
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), true).

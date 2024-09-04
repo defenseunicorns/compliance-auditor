@@ -4,37 +4,27 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 )
 
-type keys struct {
-	Quit       key.Binding
-	Help       key.Binding
-	ModelLeft  key.Binding
-	ModelRight key.Binding
-	Confirm    key.Binding
-	Select     key.Binding
+type Keys struct {
+	Quit           key.Binding
+	Help           key.Binding
+	ModelLeft      key.Binding
+	ModelRight     key.Binding
+	NavigateModels key.Binding
+	Navigation     key.Binding
+	NavigateLeft   key.Binding
+	NavigateRight  key.Binding
+	Confirm        key.Binding
+	Select         key.Binding
+	Cancel         key.Binding
+	Up             key.Binding
+	Down           key.Binding
+	Filter         key.Binding
+	Edit           key.Binding
+	Save           key.Binding
+	Newline        key.Binding
 }
 
-func (k keys) ShortHelp(t HelpType) []key.Binding {
-	return []key.Binding{k.Quit, k.Help}
-}
-
-func (k keys) SingleLineFullHelp(t HelpType) []key.Binding {
-	return []key.Binding{k.Confirm, k.ModelLeft, k.ModelRight, k.Help, k.Quit}
-}
-
-func (k keys) FullHelp(t HelpType) [][]key.Binding {
-	switch t {
-	case HelpTypeEdit:
-		return [][]key.Binding{
-			{k.Confirm}, {k.Select}, {k.ModelLeft}, {k.ModelRight}, {k.Help}, {k.Quit},
-		}
-	default:
-		return [][]key.Binding{
-			{k.Confirm}, {k.ModelLeft}, {k.ModelRight}, {k.Help}, {k.Quit},
-		}
-	}
-}
-
-var CommonKeys = keys{
+var CommonKeys = Keys{
 	Quit: key.NewBinding(
 		key.WithKeys("ctrl+c"),
 		key.WithHelp("ctrl+c", "quit"),
@@ -51,6 +41,22 @@ var CommonKeys = keys{
 		key.WithKeys("shift+tab"),
 		key.WithHelp("shift+tab", "model left"),
 	),
+	NavigateModels: key.NewBinding(
+		key.WithKeys("tab", "shift+tab"),
+		key.WithHelp("tab/shift+tab", "switch models"),
+	),
+	Navigation: key.NewBinding(
+		key.WithKeys("left", "h", "right", "l"),
+		key.WithHelp("←/h, →/l", "navigation"),
+	),
+	NavigateLeft: key.NewBinding(
+		key.WithKeys("left", "h"),
+		key.WithHelp("←/h", "navigate left"),
+	),
+	NavigateRight: key.NewBinding(
+		key.WithKeys("right", "l"),
+		key.WithHelp("→/l", "navigate right"),
+	),
 	Confirm: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("↳", "confirm"),
@@ -58,6 +64,34 @@ var CommonKeys = keys{
 	Select: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("↳", "select"),
+	),
+	Cancel: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "cancel"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "move down"),
+	),
+	Filter: key.NewBinding(
+		key.WithKeys("/"),
+		key.WithHelp("/", "filter"),
+	),
+	Newline: key.NewBinding(
+		key.WithKeys("ctrl+e"),
+		key.WithHelp("ctrl+e", "new line"),
+	),
+	Edit: key.NewBinding(
+		key.WithKeys("e"),
+		key.WithHelp("e", "edit"),
+	),
+	Save: key.NewBinding(
+		key.WithKeys("ctrl+s"),
+		key.WithHelp("ctrl+s", "save"),
 	),
 }
 

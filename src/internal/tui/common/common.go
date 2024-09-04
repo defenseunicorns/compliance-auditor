@@ -79,8 +79,6 @@ func UnfocusedListKeyMap() blist.KeyMap {
 
 func FocusedPanelKeyMap() viewport.KeyMap {
 	km := viewport.DefaultKeyMap()
-	// km.Up.SetEnabled(true)
-	// km.Down.SetEnabled(true)
 
 	return km
 }

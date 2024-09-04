@@ -1,34 +1,49 @@
 package common
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-type WarnPopupModal struct {
+const (
+	popupWidth  = 40
+	popupHeight = 10
+)
+
+type WarnPopupModel struct {
 	Open  bool
 	Saved bool
-	Keys  KeyMap
+	Help  HelpModel
 }
 
-func New() WarnPopupModal {
-	return WarnPopupModal{
+func NewWarnPopup() WarnPopupModel {
+	help := NewHelpModel(true)
+	help.ShortHelp = []key.Binding{
+		CommonKeys.Confirm, CommonKeys.Save, CommonKeys.Cancel,
+	}
+	return WarnPopupModel{
 		Open:  false,
 		Saved: false,
-		Keys:  CommonKeys,
+		Help:  help,
 	}
 }
 
-func (m WarnPopupModal) Update(_ tea.Msg) (WarnPopupModal, tea.Cmd) {
+func (m WarnPopupModel) Update(_ tea.Msg) (WarnPopupModel, tea.Cmd) {
 	// update Saved?
 	return m, nil
 }
 
-func (m WarnPopupModal) View() string {
+func (m WarnPopupModel) View() string {
+	popupStyle := OverlayWarnStyle.
+		Width(popupWidth).
+		Height(popupHeight)
+
 	title := "Quit Console"
-	content := "Are you sure you want to quit the Lula Console?"
+	text := "Are you sure you want to quit the Lula Console?"
 	if !m.Saved {
-		content += "⚠️ Changes not written ⚠️"
+		text += "⚠️ Changes not written ⚠️"
 	}
-	return lipgloss.JoinVertical(lipgloss.Top, title, content, NewHelpModel(true).View(m.Keys))
+	content := lipgloss.JoinVertical(lipgloss.Top, title, text, NewHelpModel(true).View())
+	return popupStyle.Render(content)
 }

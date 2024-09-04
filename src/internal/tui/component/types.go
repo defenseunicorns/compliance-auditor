@@ -1,11 +1,14 @@
 package component
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/types"
 )
 
@@ -15,6 +18,7 @@ type Model struct {
 	keys                   keys
 	focus                  focus
 	focusLock              bool
+	componentFrameworks    map[string]oscal.ComponentFrameworks
 	inComponentOverlay     bool
 	components             []component
 	selectedComponent      component
@@ -89,6 +93,30 @@ func (m *Model) Open(height, width int) {
 	m.UpdateSizing(height, width)
 }
 
+// GetComponentDefinition returns the component definition model, used on save events
+func (m *Model) GetComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
+	return m.componentModel
+}
+
+func (m *Model) UpdateRemarks(component, framework, controlId string) {
+	// runs when edit + confirm cmds
+	for c, f := range m.componentFrameworks {
+		if c == component {
+			for fw, controlSet := range f.Frameworks {
+				if fw == framework {
+					for _, c := range controlSet {
+						for _, reqt := range c.ImplementedRequirements {
+							if reqt.ControlId == controlId {
+								reqt.Remarks = m.remarksEditor.Value()
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 func (m *Model) UpdateSizing(height, width int) {
 	m.height = height
 	m.width = width
@@ -121,8 +149,8 @@ func (m *Model) UpdateSizing(height, width int) {
 	m.remarks.Width = rightWidth
 	m.remarks, _ = m.remarks.Update(tea.WindowSizeMsg{Width: rightWidth, Height: remarksInsideHeight - 1})
 
-	m.remarksEditor.SetHeight(m.remarks.Height - 2) // fix the border...
-	m.remarksEditor.SetWidth(m.remarks.Width - 5)
+	m.remarksEditor.SetHeight(m.remarks.Height - 1)
+	m.remarksEditor.SetWidth(m.remarks.Width - 5) // probably need to fix this to be a func
 
 	m.description.Height = descriptionInsideHeight - 1
 	m.description.Width = rightWidth
@@ -137,4 +165,107 @@ func (m *Model) UpdateSizing(height, width int) {
 
 func (m *Model) GetDimensions() (height, width int) {
 	return m.height, m.width
+}
+
+func (m *Model) updateKeyBindings() {
+	m.controls.KeyMap = common.UnfocusedListKeyMap()
+	// m.controls.SetDelegate(common.NewUnfocusedDelegate())
+	m.validations.KeyMap = common.UnfocusedListKeyMap()
+	m.validations.SetDelegate(common.NewUnfocusedDelegate())
+
+	m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
+	m.description.KeyMap = common.UnfocusedPanelKeyMap()
+
+	switch m.focus {
+	case focusComponentSelection:
+		m.setDialogBoxHelpKeys()
+
+	case focusFrameworkSelection:
+		m.setDialogBoxHelpKeys()
+
+	case focusControls:
+		m.setListHelpKeys()
+		m.controls.KeyMap = common.FocusedListKeyMap()
+		m.controls.SetDelegate(common.NewFocusedDelegate())
+
+	case focusValidations:
+		m.setListHelpKeys()
+		m.validations.KeyMap = common.FocusedListKeyMap()
+		m.validations.SetDelegate(common.NewFocusedDelegate())
+
+	case focusRemarks:
+		m.remarks.KeyMap = common.FocusedPanelKeyMap()
+		if m.remarksEditor.Focused() {
+			m.setEditingDialogBoxHelpKeys()
+			m.remarksEditor.KeyMap = common.FocusedTextAreaKeyMap()
+			m.keys = componentEditKeys
+		} else {
+			m.setEditableDialogBoxHelpKeys()
+			m.remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
+			m.keys = componentKeys
+		}
+
+	case focusDescription:
+		m.description.KeyMap = common.FocusedPanelKeyMap()
+	}
+}
+
+func (m *Model) setNoFocusHelpKeys() {
+	m.help.ShortHelp = []key.Binding{
+		componentKeys.Navigation, componentKeys.Help,
+	}
+	m.help.FullHelpOneLine = []key.Binding{
+		componentKeys.Navigation, componentKeys.Help, componentKeys.Quit,
+	}
+	m.help.FullHelp = [][]key.Binding{
+		{componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+	}
+}
+
+func (m *Model) setDialogBoxHelpKeys() {
+	m.help.ShortHelp = []key.Binding{
+		componentKeys.Select, componentKeys.Help,
+	}
+	m.help.FullHelpOneLine = []key.Binding{
+		componentKeys.Select, componentKeys.Navigation, componentKeys.Help, componentKeys.Quit,
+	}
+	m.help.FullHelp = [][]key.Binding{
+		{componentKeys.Select}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+	}
+}
+
+func (m *Model) setEditableDialogBoxHelpKeys() {
+	m.help.ShortHelp = []key.Binding{
+		componentKeys.Edit, componentKeys.Help,
+	}
+	m.help.FullHelpOneLine = []key.Binding{
+		componentKeys.Edit, componentKeys.Navigation, componentKeys.Help, componentKeys.Quit,
+	}
+	m.help.FullHelp = [][]key.Binding{
+		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+	}
+}
+
+func (m *Model) setEditingDialogBoxHelpKeys() {
+	m.help.ShortHelp = []key.Binding{
+		componentKeys.Confirm, componentKeys.Newline, componentKeys.Cancel, componentKeys.Help,
+	}
+	m.help.FullHelpOneLine = []key.Binding{
+		componentKeys.Confirm, componentKeys.Newline, componentKeys.Cancel, componentKeys.Save, componentKeys.Help, componentKeys.Quit,
+	}
+	m.help.FullHelp = [][]key.Binding{
+		{componentKeys.Confirm}, {componentKeys.Newline}, {componentKeys.Cancel}, {componentKeys.Quit},
+	}
+}
+
+func (m *Model) setListHelpKeys() {
+	m.help.ShortHelp = []key.Binding{
+		componentKeys.Up, componentKeys.Down, componentKeys.Help,
+	}
+	m.help.FullHelpOneLine = []key.Binding{
+		componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Help, componentKeys.Quit,
+	}
+	m.help.FullHelp = [][]key.Binding{
+		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+	}
 }

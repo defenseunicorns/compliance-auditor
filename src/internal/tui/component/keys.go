@@ -9,8 +9,10 @@ type keys struct {
 	Edit          key.Binding
 	Generate      key.Binding
 	Confirm       key.Binding
+	Select        key.Binding
 	Save          key.Binding
 	Cancel        key.Binding
+	Newline       key.Binding
 	Navigation    key.Binding
 	NavigateLeft  key.Binding
 	NavigateRight key.Binding
@@ -36,71 +38,24 @@ func (k keys) FullHelp() [][]key.Binding {
 }
 
 var componentKeys = keys{
-	Quit: common.CommonHotkeys.Quit,
-	Help: common.CommonHotkeys.Help,
-	Edit: key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "edit"),
-	),
-	Save: key.NewBinding(
-		key.WithKeys("ctrl+s"),
-		key.WithHelp("ctrl+s", "save"),
-	),
-	Confirm: common.PickerHotkeys.Confirm,
-	Cancel:  common.PickerHotkeys.Cancel,
-	Navigation: key.NewBinding(
-		key.WithKeys("left", "h", "right", "l"),
-		key.WithHelp("←/h, →/l", "navigation"),
-	),
-	NavigateLeft: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("←/h", "navigate left"),
-	),
-	NavigateRight: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("→/l", "navigate right"),
-	),
-	SwitchModels: key.NewBinding(
-		key.WithKeys("tab", "shift+tab"),
-		key.WithHelp("tab/shift+tab", "switch models"),
-	),
-	Up:   common.PickerHotkeys.Up,
-	Down: common.PickerHotkeys.Down,
+	Quit:          common.CommonKeys.Quit,
+	Help:          common.CommonKeys.Help,
+	Edit:          common.CommonKeys.Edit,
+	Save:          common.CommonKeys.Save,
+	Select:        common.CommonKeys.Select,
+	Confirm:       common.CommonKeys.Confirm,
+	Cancel:        common.CommonKeys.Cancel,
+	Newline:       common.CommonKeys.Newline,
+	Navigation:    common.CommonKeys.Navigation,
+	NavigateLeft:  common.CommonKeys.NavigateLeft,
+	NavigateRight: common.CommonKeys.NavigateRight,
+	SwitchModels:  common.CommonKeys.NavigateModels,
+	Up:            common.CommonKeys.Up,
+	Down:          common.CommonKeys.Down,
 }
 
 var componentEditKeys = keys{
 	Save:    common.EditHotkeys.Save,
 	Confirm: common.PickerHotkeys.Confirm,
 	Cancel:  common.PickerHotkeys.Cancel,
-}
-
-func (m *Model) updateKeyBindings() {
-	m.controls.KeyMap = common.UnfocusedListKeyMap()
-	// m.controls.SetDelegate(common.NewUnfocusedDelegate())
-	m.validations.KeyMap = common.UnfocusedListKeyMap()
-	m.validations.SetDelegate(common.NewUnfocusedDelegate())
-
-	m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
-	m.description.KeyMap = common.UnfocusedPanelKeyMap()
-
-	switch m.focus {
-	case focusComponentSelection:
-	case focusValidations:
-		m.validations.KeyMap = common.FocusedListKeyMap()
-		m.validations.SetDelegate(common.NewFocusedDelegate())
-	case focusControls:
-		m.controls.KeyMap = common.FocusedListKeyMap()
-		m.controls.SetDelegate(common.NewFocusedDelegate())
-	case focusRemarks:
-		m.remarks.KeyMap = common.FocusedPanelKeyMap()
-		if m.remarksEditor.Focused() {
-			m.remarksEditor.KeyMap = common.FocusedTextAreaKeyMap()
-			m.keys = componentEditKeys // update to include help message + save/cancel keys? or just display help for edit too?
-		} else {
-			m.remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
-			m.keys = componentKeys
-		}
-	case focusDescription:
-		m.description.KeyMap = common.FocusedPanelKeyMap()
-	}
 }
