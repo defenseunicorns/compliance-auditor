@@ -59,7 +59,7 @@ var consoleCmd = &cobra.Command{
 			defer dumpFile.Close()
 		}
 
-		p := tea.NewProgram(tui.NewOSCALModel(*oscalModel, dumpFile), tea.WithAltScreen(), tea.WithMouseCellMotion())
+		p := tea.NewProgram(tui.NewOSCALModel(oscalModel, opts.InputFile, dumpFile), tea.WithAltScreen(), tea.WithMouseCellMotion())
 
 		if _, err := p.Run(); err != nil {
 			message.Fatalf(err, err.Error())

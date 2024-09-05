@@ -1,8 +1,390 @@
-(tea.WindowSizeMsg) {
- Width: (int) 200,
- Height: (int) 59
+([]interface {}) (len=1 cap=1) {
+ (tea.WindowSizeMsg) {
+  Width: (int) 172,
+  Height: (int) 48
+ }
 }
-(tea.KeyMsg) ?
-(tea.KeyMsg) ?
-(tea.KeyMsg) ?
-(tea.KeyMsg) ?
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "component"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+in picker down
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 1,
+  From: (common.PickerKind) (len=9) "component"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+in picker down
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+in picker down
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+in picker down
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 3,
+  From: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+in picker up
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 2,
+  From: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+in picker up
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 1,
+  From: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+in picker up
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 0,
+  From: (common.PickerKind) (len=9) "framework"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "component"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+in picker up
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 0,
+  From: (common.PickerKind) (len=9) "component"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) e
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) e
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) /
+}
+([]interface {}) (len=1 cap=1) {
+ (cursor.initialBlinkMsg) {
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (cursor.BlinkMsg) {
+  id: (int) 0,
+  tag: (int) 3
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) backspace
+}
+([]interface {}) (len=1 cap=1) {
+ (cursor.BlinkMsg) {
+  id: (int) 0,
+  tag: (int) 4
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (cursor.BlinkMsg) {
+  id: (int) 0,
+  tag: (int) 5
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (cursor.BlinkMsg) {
+  id: (int) 0,
+  tag: (int) 6
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) e
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerOpenMsg) {
+  Kind: (common.PickerKind) (len=9) "component"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+in picker down
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (common.PickerItemSelected) {
+  Selected: (int) 1,
+  From: (common.PickerKind) (len=9) "component"
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) ctrl+c
+}
+in popup view
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+in popup view
+in popup view

@@ -26,6 +26,7 @@ var (
 
 	Subtle     = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	Highlight  = lipgloss.AdaptiveColor{Light: "#6d26fc", Dark: "#7D56F4"}
+	Highlight2 = lipgloss.AdaptiveColor{Light: "#8f58fc", Dark: "#8f6ef0"}
 	Focused    = lipgloss.AdaptiveColor{Light: "#8378ab", Dark: "#bfb2eb"}
 	Special    = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
 	Background = lipgloss.AdaptiveColor{Light: "#c5c6c7", Dark: "#333436"}
@@ -34,9 +35,9 @@ var (
 	HelpKey        = lipgloss.AdaptiveColor{Light: "#909090", Dark: "#626262"}
 	HelpDesc       = lipgloss.AdaptiveColor{Light: "#B2B2B2", Dark: "#4A4A4A"}
 	HelpSep        = lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}
-	ActiveHelpKey  = Highlight
-	ActiveHelpDesc = Subtle
-	ActiveHelpSep  = lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}
+	ActiveHelpKey  = Highlight2
+	ActiveHelpDesc = Highlight
+	ActiveHelpSep  = Highlight
 
 	// Tabs
 

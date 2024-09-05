@@ -8,38 +8,39 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/types"
 )
 
 type Model struct {
-	open                   bool
-	help                   common.HelpModel
-	keys                   keys
-	focus                  focus
-	focusLock              bool
-	componentFrameworks    map[string]oscal.ComponentFrameworks
-	inComponentOverlay     bool
-	components             []component
-	selectedComponent      component
-	selectedComponentIndex int
-	componentPicker        viewport.Model
-	inFrameworkOverlay     bool
-	frameworks             []framework
-	selectedFramework      framework
-	selectedFrameworkIndex int
-	frameworkPicker        viewport.Model
-	controlPicker          viewport.Model
-	controls               blist.Model
-	selectedControl        control
-	remarks                viewport.Model
-	remarksEditor          textarea.Model
-	description            viewport.Model
-	validationPicker       viewport.Model
-	validations            blist.Model
-	selectedValidation     validationLink
-	width                  int
-	height                 int
+	open  bool
+	help  common.HelpModel
+	keys  keys
+	focus focus
+	// focusLock              bool
+	componentModel *oscalTypes_1_1_2.ComponentDefinition
+	// inComponentOverlay     bool
+	components        []component
+	selectedComponent component
+	// selectedComponentIndex int
+	componentPicker common.PickerModel
+	// componentPicker        viewport.Model
+	inFrameworkOverlay bool
+	frameworks         []framework
+	selectedFramework  framework
+	// selectedFrameworkIndex int
+	frameworkPicker    common.PickerModel
+	controlPicker      viewport.Model
+	controls           blist.Model
+	selectedControl    control
+	remarks            viewport.Model
+	remarksEditor      textarea.Model
+	description        viewport.Model
+	descriptionEditor  textarea.Model
+	validationPicker   viewport.Model
+	validations        blist.Model
+	selectedValidation validationLink
+	width              int
+	height             int
 }
 
 type focus int
@@ -57,16 +58,29 @@ const (
 var maxFocus = focusValidations
 
 type component struct {
+	oscalComponent    *oscalTypes_1_1_2.DefinedComponent
 	uuid, title, desc string
 	frameworks        []framework
 }
 
 type framework struct {
-	name     string
-	controls []control
+	oscalFramework *oscalTypes_1_1_2.ControlImplementationSet
+	name, uuid     string
+	controls       []control
 }
 
+type control struct {
+	oscalControl *oscalTypes_1_1_2.ImplementedRequirementControlImplementation
+	uuid, title  string
+	validations  []validationLink
+}
+
+func (i control) Title() string       { return i.title }
+func (i control) Description() string { return i.uuid }
+func (i control) FilterValue() string { return i.title }
+
 type validationLink struct {
+	oscalLink  *oscalTypes_1_1_2.Link
 	text       string
 	validation *types.LulaValidation
 }
@@ -74,15 +88,6 @@ type validationLink struct {
 func (i validationLink) Title() string       { return i.validation.Name }
 func (i validationLink) Description() string { return i.text }
 func (i validationLink) FilterValue() string { return i.validation.Name }
-
-type control struct {
-	uuid, remarks, title, desc string
-	validations                []validationLink
-}
-
-func (i control) Title() string       { return i.title }
-func (i control) Description() string { return i.uuid }
-func (i control) FilterValue() string { return i.title }
 
 func (m *Model) Close() {
 	m.open = false
@@ -93,27 +98,62 @@ func (m *Model) Open(height, width int) {
 	m.UpdateSizing(height, width)
 }
 
+// UpdateComponentDefinition updates and returns the component definition model, used on save events
+// func (m *Model) UpdateComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
+// 	// Add all edits to the component definition
+// 	oscalModel := &oscalTypes_1_1_2.OscalCompleteSchema{
+// 		ComponentDefinition: m.componentModel,
+// 	}
+// 	var err error
+// 	if !m.editor.IsEmpty() {
+// 		// run inject for each edit...
+// 		for path, edits := range m.editor.EditsByPath {
+// 			// TODO: probably handle different edit types here?
+// 			// Also, how to parse all edits? right now it's just updates so just taking the last but if I do add and delete ones...
+// 			edit := edits[len(edits)-1]
+// 			oscalModel, err = oscal.InjectIntoOSCALModel(oscalModel, edit.Value, path)
+// 			if err != nil {
+// 				common.PrintToLog("error injecting edits: %v", err)
+// 				common.PrintToLog("non-injected edit at %s: %v", path, edit.Value)
+// 			}
+// 		}
+
+// 		m.editor.ResetEditor()
+// 	}
+// 	m.componentModel = oscalModel.ComponentDefinition
+// 	return m.componentModel
+// }
+
 // GetComponentDefinition returns the component definition model, used on save events
 func (m *Model) GetComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
 	return m.componentModel
 }
 
-func (m *Model) UpdateRemarks(component, framework, controlId string) {
-	// runs when edit + confirm cmds
-	for c, f := range m.componentFrameworks {
-		if c == component {
-			for fw, controlSet := range f.Frameworks {
-				if fw == framework {
-					for _, c := range controlSet {
-						for _, reqt := range c.ImplementedRequirements {
-							if reqt.ControlId == controlId {
-								reqt.Remarks = m.remarksEditor.Value()
-							}
-						}
-					}
-				}
-			}
+func (m *Model) TestSetControl() {
+	controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+	if len(m.selectedFramework.controls) > 0 {
+		for i, c := range m.selectedFramework.controls {
+			controlItems[i] = c
 		}
+	}
+	m.controls.SetItems(controlItems)
+
+	if len(m.controls.Items()) != 0 {
+		m.selectedControl = m.controls.Items()[0].(control)
+	}
+}
+
+func (m *Model) UpdateRemarks(remarks string) {
+	// TODO: handle any race conditions updating the control?
+	if m.selectedControl.oscalControl != nil {
+		m.selectedControl.oscalControl.Remarks = remarks
+	}
+}
+
+func (m *Model) UpdateDescription(description string) {
+	// TODO: handle any race conditions updating the control?
+	if m.selectedControl.oscalControl != nil {
+		m.selectedControl.oscalControl.Description = description
 	}
 }
 
@@ -156,6 +196,9 @@ func (m *Model) UpdateSizing(height, width int) {
 	m.description.Width = rightWidth
 	m.description, _ = m.description.Update(tea.WindowSizeMsg{Width: rightWidth, Height: descriptionInsideHeight - 1})
 
+	m.descriptionEditor.SetHeight(m.description.Height - 1)
+	m.descriptionEditor.SetWidth(m.description.Width - 5) // probably need to fix this to be a func
+
 	m.validations.SetHeight(validationsHeight - common.PanelTitleStyle.GetHeight())
 	m.validations.SetWidth(rightWidth - common.PanelStyle.GetHorizontalPadding())
 
@@ -168,13 +211,14 @@ func (m *Model) GetDimensions() (height, width int) {
 }
 
 func (m *Model) updateKeyBindings() {
-	m.controls.KeyMap = common.UnfocusedListKeyMap()
-	// m.controls.SetDelegate(common.NewUnfocusedDelegate())
-	m.validations.KeyMap = common.UnfocusedListKeyMap()
-	m.validations.SetDelegate(common.NewUnfocusedDelegate())
+	// m.controls.KeyMap = common.UnfocusedListKeyMap()
+	// // m.controls.SetDelegate(common.NewUnfocusedDelegate())
+	// m.validations.KeyMap = common.UnfocusedListKeyMap()
+	// m.validations.SetDelegate(common.NewUnfocusedDelegate())
 
-	m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
-	m.description.KeyMap = common.UnfocusedPanelKeyMap()
+	// m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
+	// m.description.KeyMap = common.UnfocusedPanelKeyMap()
+	m.outOfFocus()
 
 	switch m.focus {
 	case focusComponentSelection:
@@ -207,6 +251,49 @@ func (m *Model) updateKeyBindings() {
 
 	case focusDescription:
 		m.description.KeyMap = common.FocusedPanelKeyMap()
+		if m.descriptionEditor.Focused() {
+			m.setEditingDialogBoxHelpKeys()
+			m.descriptionEditor.KeyMap = common.FocusedTextAreaKeyMap()
+			m.keys = componentEditKeys
+		} else {
+			m.setEditableDialogBoxHelpKeys()
+			m.descriptionEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
+			m.keys = componentKeys
+		}
+
+	default:
+		m.setNoFocusHelpKeys()
+	}
+}
+
+// func for outOfFocus to run just when focus switches between items
+func (m *Model) outOfFocus() {
+	focusMinusOne := m.focus - 1
+	focusPlusOne := m.focus + 1
+
+	if m.focus == 0 {
+		focusMinusOne = maxFocus
+	}
+	if m.focus == maxFocus {
+		focusPlusOne = 0
+	}
+
+	for _, f := range []focus{focusMinusOne, focusPlusOne} {
+		// Turn off keys for out of focus items
+		switch f {
+		case focusControls:
+			m.controls.KeyMap = common.UnfocusedListKeyMap()
+
+		case focusValidations:
+			m.validations.KeyMap = common.UnfocusedListKeyMap()
+			m.validations.SetDelegate(common.NewUnfocusedDelegate())
+
+		case focusRemarks:
+			m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
+
+		case focusDescription:
+			m.description.KeyMap = common.UnfocusedPanelKeyMap()
+		}
 	}
 }
 
@@ -260,10 +347,10 @@ func (m *Model) setEditingDialogBoxHelpKeys() {
 
 func (m *Model) setListHelpKeys() {
 	m.help.ShortHelp = []key.Binding{
-		componentKeys.Up, componentKeys.Down, componentKeys.Help,
+		componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Help,
 	}
 	m.help.FullHelpOneLine = []key.Binding{
-		componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Help, componentKeys.Quit,
+		componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Cancel, componentKeys.Help, componentKeys.Quit,
 	}
 	m.help.FullHelp = [][]key.Binding{
 		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},

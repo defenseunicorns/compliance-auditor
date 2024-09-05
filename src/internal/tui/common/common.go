@@ -112,3 +112,9 @@ func PrintToLog(format string, a ...any) {
 		spew.Fprintln(DumpFile, out)
 	}
 }
+
+func DumpToLog(msg ...any) {
+	if DumpFile != nil {
+		spew.Fdump(DumpFile, msg)
+	}
+}
