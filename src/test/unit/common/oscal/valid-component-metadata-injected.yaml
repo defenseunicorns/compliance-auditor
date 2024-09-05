@@ -37,6 +37,8 @@ component-definition:
           implemented-requirements:
             - uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
               control-id: ID-1
+              remarks: >-
+                Here are some remarks about this control.
               description: >-
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
                 quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
