@@ -62,8 +62,8 @@ github.com/charmbracelet/x/ansi v0.2.3 h1:VfFN0NUpcjBRd4DnKfRaIRo53KRgey/nhOoEqo
 github.com/charmbracelet/x/ansi v0.2.3/go.mod h1:dk73KoMTT5AX5BsX0KrqhsTqAnhZZoCBjs7dGWp4Ktw=
 github.com/charmbracelet/x/exp/golden v0.0.0-20240904165849-e8e43e13f84b h1:RgxGYl8ddy5ozXS6ZXcfkMynPzwReLeS54Xy1PBXoNo=
 github.com/charmbracelet/x/exp/golden v0.0.0-20240904165849-e8e43e13f84b/go.mod h1:wDlXFlCrmJ8J+swcL/MnGUuYnqgQdW9rhSD61oNMb6U=
-github.com/charmbracelet/x/exp/teatest v0.0.0-20240904165849-e8e43e13f84b h1:z9Ee00s5nYD5NNus928wHhGIZ9o9lIDon9zTsZrihHw=
-github.com/charmbracelet/x/exp/teatest v0.0.0-20240904165849-e8e43e13f84b/go.mod h1:TH9f7ZBw4+XDnWcM8VnZ10NVcufPkVA5iqyqFjpzVxo=
+github.com/charmbracelet/x/exp/teatest v0.0.0-20240906161213-162f3037fef5 h1:T77pFBMu+Qfy/WRzckkxH3wQL18KYZA+/idUIzuuIM4=
+github.com/charmbracelet/x/exp/teatest v0.0.0-20240906161213-162f3037fef5/go.mod h1:FPA461CU2/mxzDb7pZgAiQY/LaK4p/yAFqJAJGsLvyk=
 github.com/charmbracelet/x/term v0.2.0 h1:cNB9Ot9q8I711MyZ7myUR5HFWL/lc3OpU8jZ4hwm0x0=
 github.com/charmbracelet/x/term v0.2.0/go.mod h1:GVxgxAbjUrmpvIINHIQnJJKpMlHiZ4cktEQCN6GWyF0=
 github.com/containerd/console v1.0.3/go.mod h1:7LqA/THxQ86k76b8c/EMSiaJ3h1eZkMkXar0TQ1gf3U=
