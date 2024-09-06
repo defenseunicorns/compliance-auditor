@@ -25,7 +25,7 @@ require (
 	k8s.io/client-go v0.31.0
 	k8s.io/kubectl v0.31.0
 	sigs.k8s.io/e2e-framework v0.4.0
-	sigs.k8s.io/kustomize/kyaml v0.17.1
+	sigs.k8s.io/kustomize/kyaml v0.17.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
