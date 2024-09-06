@@ -16,7 +16,7 @@ type model struct {
 	keys                      common.Keys
 	tabs                      []string
 	activeTab                 int
-	oscalModel                oscalTypes_1_1_2.OscalCompleteSchema
+	oscalModel                *oscalTypes_1_1_2.OscalCompleteSchema
 	componentModel            component.Model
 	assessmentResultsModel    ar.Model
 	catalogModel              common.TbdModal
@@ -29,8 +29,11 @@ type model struct {
 	height                    int
 }
 
-func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema) model {
-	// tabs := checkNonNullFields(oscalModel)
+func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema) model {
+	if oscalModel == nil {
+		oscalModel = new(oscalTypes_1_1_2.OscalCompleteSchema)
+	}
+
 	tabs := []string{
 		"ComponentDefinition",
 		"AssessmentResults",
@@ -52,6 +55,8 @@ func NewOSCALModel(oscalModel oscalTypes_1_1_2.OscalCompleteSchema) model {
 		profileModel:              common.NewTbdModal("Profile"),
 		assessmentPlanModel:       common.NewTbdModal("Assessment Plan"),
 		planOfActionAndMilestones: common.NewTbdModal("Plan of Action and Milestones"),
+		width:                     common.DefaultWidth,
+		height:                    common.DefaultHeight,
 	}
 }
 
