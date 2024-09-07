@@ -40,5 +40,5 @@ To lint existing validation files:
 
 ### SEE ALSO
 
-* [lula dev](/cli/cli-commands/lula_dev/)	 - Collection of dev commands to make dev life easier
+* [lula dev](/cli-commands/lula_dev/)	 - Collection of dev commands to make dev life easier
 

@@ -21,9 +21,9 @@ Collection of additional commands to make OSCAL easier
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
-* [lula tools compose](/cli/cli-commands/lula_tools_compose/)	 - compose an OSCAL component definition
-* [lula tools lint](/cli/cli-commands/lula_tools_lint/)	 - Validate OSCAL against schema
-* [lula tools upgrade](/cli/cli-commands/lula_tools_upgrade/)	 - Upgrade OSCAL document to a new version if possible.
-* [lula tools uuidgen](/cli/cli-commands/lula_tools_uuidgen/)	 - Generate a UUID
+* [lula](/cli-commands/lula/)	 - Risk Management as Code
+* [lula tools compose](/cli-commands/lula_tools_compose/)	 - compose an OSCAL component definition
+* [lula tools lint](/cli-commands/lula_tools_lint/)	 - Validate OSCAL against schema
+* [lula tools upgrade](/cli-commands/lula_tools_upgrade/)	 - Upgrade OSCAL document to a new version if possible.
+* [lula tools uuidgen](/cli-commands/lula_tools_uuidgen/)	 - Generate a UUID
 

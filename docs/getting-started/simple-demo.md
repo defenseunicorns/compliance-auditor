@@ -1,6 +1,6 @@
 # Simple Demo
 
-The following simple demo will step through a process to validate and evaluate Kubernets cluster resources for a simple `component-definition`. The following pre-requisites are required to successfully run this demo:
+The following simple demo will step through a process to validate and evaluate Kubernetes cluster resources for a simple `component-definition`. The following pre-requisites are required to successfully run this demo:
 
 ### Pre-Requisites
 

@@ -38,5 +38,5 @@ Get the current Lula version:
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
+* [lula](/cli-commands/lula/)	 - Risk Management as Code
 

@@ -51,5 +51,5 @@ To run validations non-interactively (no execution)
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
+* [lula](/cli-commands/lula/)	 - Risk Management as Code
 

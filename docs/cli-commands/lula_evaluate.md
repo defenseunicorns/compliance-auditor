@@ -48,5 +48,5 @@ To target a specific framework for validation:
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
+* [lula](/cli-commands/lula/)	 - Risk Management as Code
 
