@@ -4,7 +4,7 @@ Lula allows the use and specification of a config file in the following ways:
 - Checking current working directory for a `lula-config.yaml` file
 - Specification with environment variable `LULA_CONFIG=<path>`
 
-Environment Variables can be specified through use of `LULA_<VAR>` -> Example: `LULA_TARGET=il5` 
+Environment Variables can be used to specify configuration values through use of `LULA_<VAR>` -> Example: `LULA_TARGET=il5` 
 
 ## Identification
 
