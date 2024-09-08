@@ -37,7 +37,7 @@ func oscalFromPath(t *testing.T, path string) *oscalTypes_1_1_2.OscalCompleteSch
 // TestNewComponentDefinitionModel tests that the NewOSCALModel creates the expected model from component definition file
 func TestNewComponentDefinitionModel(t *testing.T) {
 	oscalModel := oscalFromPath(t, "../../test/unit/common/oscal/valid-component.yaml")
-	model := tui.NewOSCALModel(oscalModel, "", os.NewFile(0, "test"))
+	model := tui.NewOSCALModel(oscalModel, "", nil)
 
 	testModel := teatest.NewTestModel(t, model, teatest.WithInitialTermSize(common.DefaultWidth, common.DefaultHeight))
 
@@ -58,7 +58,7 @@ func TestNewComponentDefinitionModel(t *testing.T) {
 // and checks the component selection overlay -> new component section
 func TestMultiComponentDefinitionModel(t *testing.T) {
 	oscalModel := oscalFromPath(t, "../../test/unit/common/oscal/valid-multi-component.yaml")
-	model := tui.NewOSCALModel(oscalModel, "", os.NewFile(0, "test"))
+	model := tui.NewOSCALModel(oscalModel, "", nil)
 	testModel := teatest.NewTestModel(t, model, teatest.WithInitialTermSize(common.DefaultWidth, common.DefaultHeight))
 
 	testModel.Send(tea.KeyMsg{Type: tea.KeyRight}) // Select component
@@ -85,7 +85,7 @@ func TestMultiComponentDefinitionModel(t *testing.T) {
 // TestNewAssessmentResultsModel tests that the NewOSCALModel creates the expected model from assessment results file
 func TestNewAssessmentResultsModel(t *testing.T) {
 	oscalModel := oscalFromPath(t, "../../test/unit/common/oscal/valid-assessment-results.yaml")
-	model := tui.NewOSCALModel(oscalModel, "", os.NewFile(0, "test"))
+	model := tui.NewOSCALModel(oscalModel, "", nil)
 	testModel := teatest.NewTestModel(t, model, teatest.WithInitialTermSize(common.DefaultWidth, common.DefaultHeight))
 
 	testModel.Send(tea.KeyMsg{Type: tea.KeyTab})
@@ -107,7 +107,7 @@ func TestNewAssessmentResultsModel(t *testing.T) {
 // remarks, description, and validations
 func TestComponentControlSelect(t *testing.T) {
 	oscalModel := oscalFromPath(t, "../../test/unit/common/oscal/valid-component.yaml")
-	model := tui.NewOSCALModel(oscalModel, "", os.NewFile(0, "test"))
+	model := tui.NewOSCALModel(oscalModel, "", nil)
 	testModel := teatest.NewTestModel(t, model, teatest.WithInitialTermSize(common.DefaultWidth, common.DefaultHeight))
 
 	// Navigate to the control
