@@ -3,10 +3,10 @@ module github.com/defenseunicorns/lula
 go 1.22.5
 
 require (
-	github.com/charmbracelet/bubbles v0.19.0
+	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.0
 	github.com/charmbracelet/lipgloss v0.13.0
-	github.com/charmbracelet/x/exp/teatest v0.0.0-20240904165849-e8e43e13f84b
+	github.com/charmbracelet/x/exp/teatest v0.0.0-20240906161213-162f3037fef5
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
@@ -25,7 +25,7 @@ require (
 	k8s.io/client-go v0.31.0
 	k8s.io/kubectl v0.31.0
 	sigs.k8s.io/e2e-framework v0.4.0
-	sigs.k8s.io/kustomize/kyaml v0.17.1
+	sigs.k8s.io/kustomize/kyaml v0.17.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
