@@ -12,7 +12,11 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
-const TabOffset = 10
+const (
+	TabOffset     = 10
+	DefaultWidth  = 200
+	DefaultHeight = 60
+)
 
 var DumpFile *os.File
 

@@ -85,7 +85,45 @@ func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema, oscalFilePa
 		profileModel:              common.NewTbdModal("Profile"),
 		assessmentPlanModel:       common.NewTbdModal("Assessment Plan"),
 		planOfActionAndMilestones: common.NewTbdModal("Plan of Action and Milestones"),
+		width:                     common.DefaultWidth,
+		height:                    common.DefaultHeight,
 	}
+}
+
+// UpdateOscalModel runs on edit + confirm cmds(?)
+func (m *model) UpdateOscalModel() {
+	m.oscalModel = &oscalTypes_1_1_2.OscalCompleteSchema{
+		ComponentDefinition: m.componentModel.GetComponentDefinition(),
+	}
+}
+
+func (m *model) isModelSaved() bool {
+	m.oscalModel = &oscalTypes_1_1_2.OscalCompleteSchema{
+		ComponentDefinition: m.componentModel.GetComponentDefinition(),
+	}
+
+	return reflect.DeepEqual(m.writtenOscalModel, m.oscalModel)
+}
+
+// WriteOscalModel runs on save cmds
+func (m *model) writeOscalModel() tea.Msg {
+	common.PrintToLog("oscalFilePath: %s", m.oscalFilePath)
+
+	saveStart := time.Now()
+	err := oscal.OverwriteOscalModel(m.oscalFilePath, m.oscalModel)
+	saveDuration := time.Since(saveStart)
+	// just adding a minimum of 2 seconds to the "saving" popup
+	if saveDuration < time.Second*2 {
+		time.Sleep(time.Second*2 - saveDuration)
+	}
+	if err != nil {
+		common.PrintToLog("error writing oscal model: %v", err)
+		return common.SaveFailMsg{Err: err}
+	}
+	common.PrintToLog("model saved")
+
+	DeepCopy(m.oscalModel, m.writtenOscalModel)
+	return common.SaveSuccessMsg{}
 }
 
 // UpdateOscalModel runs on edit + confirm cmds(?)

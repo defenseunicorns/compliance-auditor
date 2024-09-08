@@ -3,13 +3,15 @@ module github.com/defenseunicorns/lula
 go 1.22.5
 
 require (
-	github.com/charmbracelet/bubbles v0.19.0
+	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.0
 	github.com/charmbracelet/lipgloss v0.13.0
+	github.com/charmbracelet/x/exp/teatest v0.0.0-20240906161213-162f3037fef5
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
 	github.com/mattn/go-runewidth v0.0.16
+	github.com/muesli/termenv v0.15.2
 	github.com/open-policy-agent/opa v0.68.0
 	github.com/pterm/pterm v0.12.79
 	github.com/sergi/go-diff v1.3.1
@@ -23,7 +25,7 @@ require (
 	k8s.io/client-go v0.31.0
 	k8s.io/kubectl v0.31.0
 	sigs.k8s.io/e2e-framework v0.4.0
-	sigs.k8s.io/kustomize/kyaml v0.17.1
+	sigs.k8s.io/kustomize/kyaml v0.17.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -154,9 +156,9 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
