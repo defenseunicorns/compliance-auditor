@@ -42,5 +42,5 @@ To view an OSCAL model in the Console:
 
 ### SEE ALSO
 
-* [lula](/cli-commands/lula/)	 - Risk Management as Code
+* [lula](./lula.md)	 - Risk Management as Code
 
