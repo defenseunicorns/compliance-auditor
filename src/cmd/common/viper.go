@@ -11,6 +11,8 @@ import (
 
 const (
 	VLogLevel = "log_level"
+	VTarget   = "target"
+	VSummary  = "summary"
 )
 
 var (
@@ -75,6 +77,7 @@ func isVersionCmd() bool {
 
 func setDefaults() {
 	v.SetDefault(VLogLevel, "info")
+	v.SetDefault(VSummary, false)
 }
 
 func printViperConfigUsed() {

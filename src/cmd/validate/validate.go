@@ -74,12 +74,12 @@ var validateCmd = &cobra.Command{
 }
 
 func init() {
-	common.InitViper()
+	v := common.InitViper()
 
 	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
 	validateCmd.MarkFlagRequired("input-file")
-	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
+	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
 
