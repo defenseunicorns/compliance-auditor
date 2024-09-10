@@ -96,18 +96,19 @@ func (m *Model) GetComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
 	return m.componentModel
 }
 
-func (m *Model) TestSetControl() {
-	controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+// TestSetSelectedControl is a test helper function to set the selected control
+func (m *Model) TestSetSelectedControl(title string) {
+	var idx int
 	if len(m.selectedFramework.controls) > 0 {
 		for i, c := range m.selectedFramework.controls {
-			controlItems[i] = c
+			if c.title == title {
+				m.selectedControl = c
+				idx = i
+				break
+			}
 		}
 	}
-	m.controls.SetItems(controlItems)
-
-	if len(m.controls.Items()) != 0 {
-		m.selectedControl = m.controls.Items()[0].(control)
-	}
+	m.controls.Select(idx)
 }
 
 func (m *Model) UpdateRemarks(remarks string) {

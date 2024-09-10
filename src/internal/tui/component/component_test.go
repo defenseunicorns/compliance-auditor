@@ -5,72 +5,59 @@ import (
 	"testing"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
-func oscalFromPath(t *testing.T, path string) *oscalTypes_1_1_2.OscalCompleteSchema {
-	t.Helper()
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("error reading file: %v", err)
-	}
-	oscalModel, err := oscal.NewOscalModel(data)
-	if err != nil {
-		t.Fatalf("error creating oscal model from file: %v", err)
-	}
-
-	return oscalModel
-}
-
+// TestEditComponentDefinitionModel tests that a component definition model can be modified, written, and re-read
 func TestEditComponentDefinitionModel(t *testing.T) {
-	// create temp file and copy the file to it
-	tempFile, err := os.CreateTemp("", "testfile")
-	if err != nil {
-		t.Fatalf("failed to create temp file: %v", err)
-	}
-	defer os.Remove(tempFile.Name())
+	tempOscalFile := testhelpers.CreateTempFile(t, "yaml")
+	defer os.Remove(tempOscalFile.Name())
 
-	oscalModel := oscalFromPath(t, "../../../test/unit/common/oscal/valid-generated-component.yaml")
+	oscalModel := testhelpers.OscalFromPath(t, "../../../test/unit/common/oscal/valid-generated-component.yaml")
 	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
-	model.TestSetControl()
-	model.UpdateRemarks("test")
 
-	// read remarks from the component definition
-	compDefn := model.GetComponentDefinition()
+	testControlId := "ac-1"
+	testRemarks := "test remarks"
+	testDescription := "test description"
 
-	// try to write the model?
+	model.TestSetSelectedControl(testControlId)
+	model.UpdateRemarks(testRemarks)
+	model.UpdateDescription(testDescription)
+
+	// Create OSCAL model
 	mdl := &oscalTypes_1_1_2.OscalCompleteSchema{
-		ComponentDefinition: compDefn,
+		ComponentDefinition: model.GetComponentDefinition(),
 	}
-	oscal.OverwriteOscalModel("./oscal_test.yaml", mdl)
+
+	// Write the model to a temp file
+	err := oscal.OverwriteOscalModel(tempOscalFile.Name(), mdl)
+	if err != nil {
+		t.Errorf("error overwriting oscal model: %v", err)
+	}
+
+	// Read the model from the temp file
+	modifiedOscalModel := testhelpers.OscalFromPath(t, tempOscalFile.Name())
+	compDefn := modifiedOscalModel.ComponentDefinition
+	if compDefn == nil {
+		t.Errorf("component definition is nil")
+	}
 	for _, c := range *compDefn.Components {
+		if c.ControlImplementations == nil {
+			t.Errorf("control implementations are nil")
+		}
 		for _, f := range *c.ControlImplementations {
 			for _, r := range f.ImplementedRequirements {
-				if r.ControlId == "ac-1" {
-					if r.Remarks != "test" {
-						t.Errorf("Expected remarks to be 'test', got %s", r.Remarks)
+				if r.ControlId == testControlId {
+					if r.Remarks != testRemarks {
+						t.Errorf("Expected remarks to be %s, got %s", testRemarks, r.Remarks)
+					}
+					if r.Description != testDescription {
+						t.Errorf("Expected remarks to be %s, got %s", testDescription, r.Description)
 					}
 				}
 			}
 		}
 	}
 }
-
-// func NewComponentDefinitionModel(t *testing.T) {
-// 	tests := []struct {
-// 		name     string
-// 		component *component.Model
-// 		want     *component.Model
-// 	}{
-// 	}
-// 	// do a teatest thing here to update fields? and write?
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			m := component.NewComponentDefinitionModel(tt.component)
-// 			// test editing the pointers in the model
-// 			m.
-// 			assert.Equal(t, got, tt.want)
-// 		})
-// 	}
-// }
