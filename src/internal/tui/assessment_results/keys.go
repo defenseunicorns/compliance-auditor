@@ -37,6 +37,8 @@ var assessmentHotkeys = keys{
 	NavigateLeft:  common.CommonKeys.NavigateLeft,
 	NavigateRight: common.CommonKeys.NavigateRight,
 	SwitchModels:  common.CommonKeys.NavigateModels,
+	Up:            common.PickerKeys.Up,
+	Down:          common.PickerKeys.Down,
 }
 
 func (k keys) ShortHelp() []key.Binding {

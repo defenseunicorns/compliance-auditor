@@ -250,7 +250,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				switch m.focus {
 				case focusComponentSelection:
-					if !m.componentPicker.Open {
+					if len(m.components) > 0 && !m.componentPicker.Open {
 						return m, func() tea.Msg {
 							return common.PickerOpenMsg{
 								Kind: componentPicker,
@@ -259,7 +259,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				case focusFrameworkSelection:
-					if !m.frameworkPicker.Open {
+					if len(m.frameworks) > 0 && !m.frameworkPicker.Open {
 						return m, func() tea.Msg {
 							return common.PickerOpenMsg{
 								Kind: frameworkPicker,
@@ -501,11 +501,14 @@ func (m Model) mainView() string {
 
 func getComponentText(component component) string {
 	if component.uuid == "" {
-		return "No Component Selected"
+		return "No Components"
 	}
 	return fmt.Sprintf("%s - %s", component.title, component.uuid)
 }
 
 func getFrameworkText(framework framework) string {
+	if framework.name == "" {
+		return "No Frameworks"
+	}
 	return framework.name
 }
