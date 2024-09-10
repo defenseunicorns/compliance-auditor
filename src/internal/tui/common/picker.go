@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -37,7 +36,7 @@ type PickerModel struct {
 
 func NewPickerModel(title string, kind PickerKind, items []string, initSelected int) PickerModel {
 	help := NewHelpModel(true)
-	help.ShortHelp = []key.Binding{CommonKeys.Confirm, CommonKeys.Cancel}
+	help.ShortHelp = ShortHelpPicker
 	return PickerModel{
 		items:    items,
 		selected: initSelected,
@@ -59,23 +58,19 @@ func (m PickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		k := msg.String()
 		if m.Open {
 			switch k {
-			case ContainsKey(k, CommonKeys.Up.Keys()):
-				PrintToLog("in picker up")
+			case ContainsKey(k, PickerKeys.Up.Keys()):
 				m.selected--
 				if m.selected < 0 {
 					m.selected = len(m.items) - 1
 				}
 
-			case ContainsKey(k, CommonKeys.Down.Keys()):
-				PrintToLog("in picker down")
-
+			case ContainsKey(k, PickerKeys.Down.Keys()):
 				m.selected++
 				if m.selected >= len(m.items) {
 					m.selected = 0
 				}
 
-			case ContainsKey(k, CommonKeys.Confirm.Keys()):
-				// return the selected item
+			case ContainsKey(k, PickerKeys.Select.Keys()):
 				m.Open = false
 				return m, func() tea.Msg {
 					return PickerItemSelected{
@@ -84,8 +79,7 @@ func (m PickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
-			case ContainsKey(k, CommonKeys.Cancel.Keys()):
-				// close with nothing happened
+			case ContainsKey(k, PickerKeys.Cancel.Keys()):
 				m.Open = false
 			}
 		}

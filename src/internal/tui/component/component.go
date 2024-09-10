@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -180,6 +181,7 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 
 	help := common.NewHelpModel(false)
 	help.OneLine = true
+	help.ShortHelp = []key.Binding{componentKeys.Help}
 
 	return Model{
 		keys:              componentKeys,
@@ -370,6 +372,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// Update remarks, description, and validations
 		m.controls.SetDelegate(common.NewUnfocusedDelegate())
+		m.controls.ResetSelected()
+		m.controls.ResetFilter()
 		m.selectedControl = control{}
 		m.remarks.SetContent("")
 		m.remarksEditor.SetValue("")
@@ -377,8 +381,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.descriptionEditor.SetValue("")
 		m.validations.SetItems(make([]blist.Item, 0))
 		m.validations.ResetSelected()
+		m.validations.ResetFilter()
 		m.selectedValidation = validationLink{}
-
 	}
 
 	mdl, cmd := m.componentPicker.Update(msg)

@@ -1,7 +1,6 @@
 package assessmentresults
 
 import (
-	"github.com/charmbracelet/bubbles/help"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -10,7 +9,7 @@ import (
 
 type Model struct {
 	open                bool
-	help                help.Model
+	help                common.HelpModel
 	keys                keys
 	focus               focus
 	inResultOverlay     bool

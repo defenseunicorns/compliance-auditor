@@ -1,7 +1,6 @@
 package component
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -12,22 +11,16 @@ import (
 )
 
 type Model struct {
-	open  bool
-	help  common.HelpModel
-	keys  keys
-	focus focus
-	// focusLock              bool
-	componentModel *oscalTypes_1_1_2.ComponentDefinition
-	// inComponentOverlay     bool
-	components        []component
-	selectedComponent component
-	// selectedComponentIndex int
-	componentPicker common.PickerModel
-	// componentPicker        viewport.Model
-	inFrameworkOverlay bool
+	open               bool
+	help               common.HelpModel
+	keys               keys
+	focus              focus
+	componentModel     *oscalTypes_1_1_2.ComponentDefinition
+	components         []component
+	selectedComponent  component
+	componentPicker    common.PickerModel
 	frameworks         []framework
 	selectedFramework  framework
-	// selectedFrameworkIndex int
 	frameworkPicker    common.PickerModel
 	controlPicker      viewport.Model
 	controls           blist.Model
@@ -97,32 +90,6 @@ func (m *Model) Open(height, width int) {
 	m.open = true
 	m.UpdateSizing(height, width)
 }
-
-// UpdateComponentDefinition updates and returns the component definition model, used on save events
-// func (m *Model) UpdateComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
-// 	// Add all edits to the component definition
-// 	oscalModel := &oscalTypes_1_1_2.OscalCompleteSchema{
-// 		ComponentDefinition: m.componentModel,
-// 	}
-// 	var err error
-// 	if !m.editor.IsEmpty() {
-// 		// run inject for each edit...
-// 		for path, edits := range m.editor.EditsByPath {
-// 			// TODO: probably handle different edit types here?
-// 			// Also, how to parse all edits? right now it's just updates so just taking the last but if I do add and delete ones...
-// 			edit := edits[len(edits)-1]
-// 			oscalModel, err = oscal.InjectIntoOSCALModel(oscalModel, edit.Value, path)
-// 			if err != nil {
-// 				common.PrintToLog("error injecting edits: %v", err)
-// 				common.PrintToLog("non-injected edit at %s: %v", path, edit.Value)
-// 			}
-// 		}
-
-// 		m.editor.ResetEditor()
-// 	}
-// 	m.componentModel = oscalModel.ComponentDefinition
-// 	return m.componentModel
-// }
 
 // GetComponentDefinition returns the component definition model, used on save events
 func (m *Model) GetComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
@@ -211,40 +178,34 @@ func (m *Model) GetDimensions() (height, width int) {
 }
 
 func (m *Model) updateKeyBindings() {
-	// m.controls.KeyMap = common.UnfocusedListKeyMap()
-	// // m.controls.SetDelegate(common.NewUnfocusedDelegate())
-	// m.validations.KeyMap = common.UnfocusedListKeyMap()
-	// m.validations.SetDelegate(common.NewUnfocusedDelegate())
-
-	// m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
-	// m.description.KeyMap = common.UnfocusedPanelKeyMap()
 	m.outOfFocus()
+	m.updateFocusHelpKeys()
 
 	switch m.focus {
-	case focusComponentSelection:
-		m.setDialogBoxHelpKeys()
+	// case focusComponentSelection:
+	// 	m.setDialogBoxHelpKeys()
 
-	case focusFrameworkSelection:
-		m.setDialogBoxHelpKeys()
+	// case focusFrameworkSelection:
+	// 	m.setDialogBoxHelpKeys()
 
 	case focusControls:
-		m.setListHelpKeys()
+		// m.setListHelpKeys()
 		m.controls.KeyMap = common.FocusedListKeyMap()
 		m.controls.SetDelegate(common.NewFocusedDelegate())
 
 	case focusValidations:
-		m.setListHelpKeys()
+		// m.setListHelpKeys()
 		m.validations.KeyMap = common.FocusedListKeyMap()
 		m.validations.SetDelegate(common.NewFocusedDelegate())
 
 	case focusRemarks:
 		m.remarks.KeyMap = common.FocusedPanelKeyMap()
 		if m.remarksEditor.Focused() {
-			m.setEditingDialogBoxHelpKeys()
+			// m.setEditingDialogBoxHelpKeys()
 			m.remarksEditor.KeyMap = common.FocusedTextAreaKeyMap()
 			m.keys = componentEditKeys
 		} else {
-			m.setEditableDialogBoxHelpKeys()
+			// m.setEditableDialogBoxHelpKeys()
 			m.remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
 			m.keys = componentKeys
 		}
@@ -252,17 +213,17 @@ func (m *Model) updateKeyBindings() {
 	case focusDescription:
 		m.description.KeyMap = common.FocusedPanelKeyMap()
 		if m.descriptionEditor.Focused() {
-			m.setEditingDialogBoxHelpKeys()
+			// m.setEditingDialogBoxHelpKeys()
 			m.descriptionEditor.KeyMap = common.FocusedTextAreaKeyMap()
 			m.keys = componentEditKeys
 		} else {
-			m.setEditableDialogBoxHelpKeys()
+			// m.setEditableDialogBoxHelpKeys()
 			m.descriptionEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
 			m.keys = componentKeys
 		}
 
-	default:
-		m.setNoFocusHelpKeys()
+		// default:
+		// 	m.setNoFocusHelpKeys()
 	}
 }
 
@@ -297,62 +258,112 @@ func (m *Model) outOfFocus() {
 	}
 }
 
-func (m *Model) setNoFocusHelpKeys() {
-	m.help.ShortHelp = []key.Binding{
-		componentKeys.Navigation, componentKeys.Help,
-	}
-	m.help.FullHelpOneLine = []key.Binding{
-		componentKeys.Navigation, componentKeys.Help, componentKeys.Quit,
-	}
-	m.help.FullHelp = [][]key.Binding{
-		{componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
-	}
-}
-
-func (m *Model) setDialogBoxHelpKeys() {
-	m.help.ShortHelp = []key.Binding{
-		componentKeys.Select, componentKeys.Help,
-	}
-	m.help.FullHelpOneLine = []key.Binding{
-		componentKeys.Select, componentKeys.Navigation, componentKeys.Help, componentKeys.Quit,
-	}
-	m.help.FullHelp = [][]key.Binding{
-		{componentKeys.Select}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
-	}
-}
-
-func (m *Model) setEditableDialogBoxHelpKeys() {
-	m.help.ShortHelp = []key.Binding{
-		componentKeys.Edit, componentKeys.Help,
-	}
-	m.help.FullHelpOneLine = []key.Binding{
-		componentKeys.Edit, componentKeys.Navigation, componentKeys.Help, componentKeys.Quit,
-	}
-	m.help.FullHelp = [][]key.Binding{
-		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
-	}
-}
-
-func (m *Model) setEditingDialogBoxHelpKeys() {
-	m.help.ShortHelp = []key.Binding{
-		componentKeys.Confirm, componentKeys.Newline, componentKeys.Cancel, componentKeys.Help,
-	}
-	m.help.FullHelpOneLine = []key.Binding{
-		componentKeys.Confirm, componentKeys.Newline, componentKeys.Cancel, componentKeys.Save, componentKeys.Help, componentKeys.Quit,
-	}
-	m.help.FullHelp = [][]key.Binding{
-		{componentKeys.Confirm}, {componentKeys.Newline}, {componentKeys.Cancel}, {componentKeys.Quit},
+func (m *Model) updateFocusHelpKeys() {
+	switch m.focus {
+	case focusComponentSelection:
+		m.help.ShortHelp = shortHelpDialogBox
+		m.help.FullHelpOneLine = fullHelpDialogBoxOneLine
+		m.help.FullHelp = fullHelpDialogBox
+	case focusFrameworkSelection:
+		m.help.ShortHelp = shortHelpDialogBox
+		m.help.FullHelpOneLine = fullHelpDialogBoxOneLine
+		m.help.FullHelp = fullHelpDialogBox
+	case focusControls:
+		m.help.ShortHelp = common.ShortHelpList
+		m.help.FullHelpOneLine = common.FullHelpListOneLine
+		m.help.FullHelp = common.FullHelpList
+	case focusRemarks:
+		if m.remarksEditor.Focused() {
+			m.help.ShortHelp = common.ShortHelpEditing
+			m.help.FullHelpOneLine = common.FullHelpEditingOneLine
+			m.help.FullHelp = common.FullHelpEditing
+		} else {
+			m.help.ShortHelp = shortHelpEditableDialogBox
+			m.help.FullHelpOneLine = fullHelpEditableDialogBoxOneLine
+			m.help.FullHelp = fullHelpEditableDialogBox
+		}
+	case focusDescription:
+		if m.descriptionEditor.Focused() {
+			m.help.ShortHelp = common.ShortHelpEditing
+			m.help.FullHelpOneLine = common.FullHelpEditingOneLine
+			m.help.FullHelp = common.FullHelpEditing
+		} else {
+			m.help.ShortHelp = shortHelpEditableDialogBox
+			m.help.FullHelpOneLine = fullHelpEditableDialogBoxOneLine
+			m.help.FullHelp = fullHelpEditableDialogBox
+		}
+	case focusValidations:
+		m.help.ShortHelp = common.ShortHelpList
+		m.help.FullHelpOneLine = common.FullHelpListOneLine
+		m.help.FullHelp = common.FullHelpList
+	default:
+		m.help.ShortHelp = shortHelpNoFocus
+		m.help.FullHelpOneLine = fullHelpNoFocusOneLine
+		m.help.FullHelp = fullHelpNoFocus
 	}
 }
 
-func (m *Model) setListHelpKeys() {
-	m.help.ShortHelp = []key.Binding{
-		componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Help,
-	}
-	m.help.FullHelpOneLine = []key.Binding{
-		componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Cancel, componentKeys.Help, componentKeys.Quit,
-	}
-	m.help.FullHelp = [][]key.Binding{
-		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
-	}
-}
+// func (m *Model) setNoFocusHelpKeys() {
+// 	m.help.ShortHelp = []key.Binding{
+// 		componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+// 	}
+// 	m.help.FullHelpOneLine = []key.Binding{
+// 		componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help, componentKeys.Quit,
+// 	}
+// 	// This is currently unused - TODO: help overlay?
+// 	m.help.FullHelp = [][]key.Binding{
+// 		{componentKeys.SwitchModels}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+// 	}
+// }
+
+// func (m *Model) setDialogBoxHelpKeys() {
+// 	m.help.ShortHelp = []key.Binding{
+// 		componentKeys.Select, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+// 	}
+// 	m.help.FullHelpOneLine = []key.Binding{
+// 		componentKeys.Select, componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help, componentKeys.Quit,
+// 	}
+// 	// This is currently unused - TODO: help overlay?
+// 	m.help.FullHelp = [][]key.Binding{
+// 		{componentKeys.SwitchModels}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+// 	}
+// }
+
+// func (m *Model) setEditableDialogBoxHelpKeys() {
+// 	m.help.ShortHelp = []key.Binding{
+// 		componentKeys.Edit, componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+// 	}
+// 	m.help.FullHelpOneLine = []key.Binding{
+// 		componentKeys.Edit, componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help, componentKeys.Quit,
+// 	}
+// 	// This is currently unused - TODO: help overlay?
+// 	m.help.FullHelp = [][]key.Binding{
+// 		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+// 	}
+// }
+
+// func (m *Model) setEditingDialogBoxHelpKeys() {
+// 	m.help.ShortHelp = []key.Binding{
+// 		componentKeys.Confirm, componentKeys.Newline, componentKeys.Cancel,
+// 	}
+// 	m.help.FullHelpOneLine = []key.Binding{
+// 		componentKeys.Confirm, componentKeys.Newline, componentKeys.Cancel, componentKeys.Save, componentKeys.Help, componentKeys.Quit,
+// 	}
+// 	// This is currently unused - TODO: help overlay?
+// 	m.help.FullHelp = [][]key.Binding{
+// 		{componentKeys.Confirm}, {componentKeys.Newline}, {componentKeys.Cancel}, {componentKeys.Quit},
+// 	}
+// }
+
+// func (m *Model) setListHelpKeys() {
+// 	m.help.ShortHelp = []key.Binding{
+// 		componentKeys.Select, componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Help,
+// 	}
+// 	m.help.FullHelpOneLine = []key.Binding{
+// 		componentKeys.Select, componentKeys.Up, componentKeys.Down, common.CommonKeys.Filter, componentKeys.Cancel, componentKeys.Help, componentKeys.Quit,
+// 	}
+// 	// This is currently unused - TODO: help overlay?
+// 	m.help.FullHelp = [][]key.Binding{
+// 		{componentKeys.Edit}, {componentKeys.Navigation}, {componentKeys.Help}, {componentKeys.Quit},
+// 	}
+// }

@@ -39,7 +39,7 @@ func NewUnfocusedDelegate() blist.DefaultDelegate {
 	d.Styles.SelectedDesc = d.Styles.NormalDesc
 
 	d.ShortHelpFunc = func() []key.Binding {
-		return []key.Binding{ListHotkeys.Confirm, ListHotkeys.Help}
+		return []key.Binding{ListKeys.Confirm, ListKeys.Help}
 	}
 
 	return d
@@ -49,7 +49,7 @@ func NewUnfocusedHighlightDelegate() blist.DefaultDelegate {
 	d := blist.NewDefaultDelegate()
 
 	d.ShortHelpFunc = func() []key.Binding {
-		return []key.Binding{ListHotkeys.Confirm, ListHotkeys.Help}
+		return []key.Binding{ListKeys.Confirm, ListKeys.Help}
 	}
 
 	return d
@@ -59,7 +59,7 @@ func NewFocusedDelegate() blist.DefaultDelegate {
 	d := blist.NewDefaultDelegate()
 
 	d.ShortHelpFunc = func() []key.Binding {
-		return []key.Binding{ListHotkeys.Confirm, ListHotkeys.Help}
+		return []key.Binding{ListKeys.Confirm, ListKeys.Help}
 	}
 
 	return d

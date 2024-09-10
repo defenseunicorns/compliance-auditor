@@ -24,6 +24,13 @@ func oscalFromPath(t *testing.T, path string) *oscalTypes_1_1_2.OscalCompleteSch
 }
 
 func TestEditComponentDefinitionModel(t *testing.T) {
+	// create temp file and copy the file to it
+	tempFile, err := os.CreateTemp("", "testfile")
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+	defer os.Remove(tempFile.Name())
+
 	oscalModel := oscalFromPath(t, "../../../test/unit/common/oscal/valid-generated-component.yaml")
 	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 	model.TestSetControl()
@@ -36,7 +43,7 @@ func TestEditComponentDefinitionModel(t *testing.T) {
 	mdl := &oscalTypes_1_1_2.OscalCompleteSchema{
 		ComponentDefinition: compDefn,
 	}
-	oscal.WriteOscalModel("./oscal_test.yaml", mdl)
+	oscal.OverwriteOscalModel("./oscal_test.yaml", mdl)
 	for _, c := range *compDefn.Components {
 		for _, f := range *c.ControlImplementations {
 			for _, r := range f.ImplementedRequirements {

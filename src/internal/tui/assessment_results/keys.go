@@ -31,26 +31,12 @@ var assessmentHotkeys = keys{
 		key.WithKeys("e"),
 		key.WithHelp("e", "evaluate"),
 	),
-	Confirm: common.PickerHotkeys.Confirm,
-	Cancel:  common.PickerHotkeys.Cancel,
-	Navigation: key.NewBinding(
-		key.WithKeys("left", "h", "right", "l"),
-		key.WithHelp("←/h, →/l", "navigation"),
-	),
-	NavigateLeft: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("←/h", "navigate left"),
-	),
-	NavigateRight: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("→/l", "navigate right"),
-	),
-	SwitchModels: key.NewBinding(
-		key.WithKeys("tab", "shift+tab"),
-		key.WithHelp("tab/shift+tab", "switch models"),
-	),
-	Up:   common.PickerHotkeys.Up,
-	Down: common.PickerHotkeys.Down,
+	Confirm:       common.CommonKeys.Confirm,
+	Cancel:        common.CommonKeys.Cancel,
+	Navigation:    common.CommonKeys.Navigation,
+	NavigateLeft:  common.CommonKeys.NavigateLeft,
+	NavigateRight: common.CommonKeys.NavigateRight,
+	SwitchModels:  common.CommonKeys.NavigateModels,
 }
 
 func (k keys) ShortHelp() []key.Binding {

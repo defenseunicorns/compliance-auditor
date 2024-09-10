@@ -10,9 +10,9 @@ type Keys struct {
 	ModelLeft      key.Binding
 	ModelRight     key.Binding
 	NavigateModels key.Binding
-	Navigation     key.Binding
 	NavigateLeft   key.Binding
 	NavigateRight  key.Binding
+	Navigation     key.Binding
 	Confirm        key.Binding
 	Select         key.Binding
 	Cancel         key.Binding
@@ -69,22 +69,6 @@ var CommonKeys = Keys{
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "cancel"),
 	),
-	Up: key.NewBinding(
-		key.WithKeys("up", "k"),
-		key.WithHelp("↑/k", "move up"),
-	),
-	Down: key.NewBinding(
-		key.WithKeys("down", "j"),
-		key.WithHelp("↓/j", "move down"),
-	),
-	Filter: key.NewBinding(
-		key.WithKeys("/"),
-		key.WithHelp("/", "filter"),
-	),
-	Newline: key.NewBinding(
-		key.WithKeys("ctrl+e"),
-		key.WithHelp("ctrl+e", "new line"),
-	),
 	Edit: key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit"),
@@ -107,14 +91,14 @@ func ContainsKey(v string, a []string) string {
 type listKeys struct {
 	Up      key.Binding
 	Down    key.Binding
-	Slash   key.Binding
+	Filter  key.Binding
 	Confirm key.Binding
 	Select  key.Binding
-	Escape  key.Binding
+	Cancel  key.Binding
 	Help    key.Binding
 }
 
-var ListHotkeys = listKeys{
+var ListKeys = listKeys{
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
 		key.WithHelp("↑/k", "move up"),
@@ -123,7 +107,7 @@ var ListHotkeys = listKeys{
 		key.WithKeys("down", "j"),
 		key.WithHelp("↓/j", "move down"),
 	),
-	Slash: key.NewBinding(
+	Filter: key.NewBinding(
 		key.WithKeys("/"),
 		key.WithHelp("/", "filter"),
 	),
@@ -135,7 +119,7 @@ var ListHotkeys = listKeys{
 		key.WithKeys("enter"),
 		key.WithHelp("↳", "select"),
 	),
-	Escape: key.NewBinding(
+	Cancel: key.NewBinding(
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "cancel"),
 	),
@@ -145,24 +129,26 @@ var ListHotkeys = listKeys{
 	),
 }
 
-func (k listKeys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Help}
-}
-
-func (k listKeys) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Up, k.Down}, {k.Slash, k.Confirm}, {k.Escape, k.Help},
+var (
+	ShortHelpList = []key.Binding{
+		ListKeys.Select, ListKeys.Up, ListKeys.Down, ListKeys.Filter, ListKeys.Help,
 	}
-}
+	FullHelpListOneLine = []key.Binding{
+		ListKeys.Select, ListKeys.Up, ListKeys.Down, ListKeys.Filter, ListKeys.Cancel, ListKeys.Help,
+	}
+	FullHelpList = [][]key.Binding{
+		{ListKeys.Select}, {ListKeys.Up}, {ListKeys.Down}, {ListKeys.Filter}, {ListKeys.Cancel}, {ListKeys.Help},
+	}
+)
 
 type pickerKeys struct {
-	Up      key.Binding
-	Down    key.Binding
-	Confirm key.Binding
-	Cancel  key.Binding
+	Up     key.Binding
+	Down   key.Binding
+	Select key.Binding
+	Cancel key.Binding
 }
 
-var PickerHotkeys = pickerKeys{
+var PickerKeys = pickerKeys{
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
 		key.WithHelp("↑/k", "move up"),
@@ -171,7 +157,7 @@ var PickerHotkeys = pickerKeys{
 		key.WithKeys("down", "j"),
 		key.WithHelp("↓/j", "move down"),
 	),
-	Confirm: key.NewBinding(
+	Select: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("↳", "select"),
 	),
@@ -181,25 +167,27 @@ var PickerHotkeys = pickerKeys{
 	),
 }
 
-func (k pickerKeys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Confirm, k.Cancel}
-}
-
-func (k pickerKeys) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Up}, {k.Down}, {k.Confirm}, {k.Cancel},
+var (
+	ShortHelpPicker = []key.Binding{
+		PickerKeys.Up, PickerKeys.Down, PickerKeys.Select, PickerKeys.Cancel,
 	}
-}
+	FullHelpPickerOneLine = []key.Binding{
+		PickerKeys.Up, PickerKeys.Down, PickerKeys.Select, PickerKeys.Cancel,
+	}
+	FullHelpPicker = [][]key.Binding{
+		{PickerKeys.Up}, {PickerKeys.Down}, {PickerKeys.Select}, {PickerKeys.Cancel},
+	}
+)
 
 // Implemented for
 type editorKeys struct {
-	Confirm key.Binding
-	NewLine key.Binding
-	Save    key.Binding
-	Cancel  key.Binding
+	Confirm    key.Binding
+	NewLine    key.Binding
+	DeleteWord key.Binding
+	Cancel     key.Binding
 }
 
-var EditHotkeys = editorKeys{
+var EditKeys = editorKeys{
 	Confirm: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "confirm"),
@@ -208,9 +196,9 @@ var EditHotkeys = editorKeys{
 		key.WithKeys("ctrl+e"),
 		key.WithHelp("ctrl+e", "new line"),
 	),
-	Save: key.NewBinding(
-		key.WithKeys("ctrl+s"),
-		key.WithHelp("ctrl+s", "save"),
+	DeleteWord: key.NewBinding(
+		key.WithKeys("alt+backspace"),
+		key.WithHelp("alt+backspace", "delete word"),
 	),
 	Cancel: key.NewBinding(
 		key.WithKeys("esc"),
@@ -218,16 +206,14 @@ var EditHotkeys = editorKeys{
 	),
 }
 
-func (k editorKeys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Confirm, k.NewLine, k.Save, k.Cancel}
-}
-
-func (k editorKeys) SingleLineFullHelp() []key.Binding {
-	return []key.Binding{k.Confirm, k.NewLine, k.Save, k.Cancel}
-}
-
-func (k editorKeys) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Confirm}, {k.NewLine}, {k.Confirm}, {k.Cancel},
+var (
+	ShortHelpEditing = []key.Binding{
+		EditKeys.Confirm, EditKeys.NewLine, EditKeys.DeleteWord, EditKeys.Cancel,
 	}
-}
+	FullHelpEditingOneLine = []key.Binding{
+		EditKeys.Confirm, EditKeys.NewLine, EditKeys.DeleteWord, EditKeys.Cancel,
+	}
+	FullHelpEditing = [][]key.Binding{
+		{EditKeys.Confirm}, {EditKeys.NewLine}, {EditKeys.DeleteWord}, {EditKeys.Cancel},
+	}
+)
