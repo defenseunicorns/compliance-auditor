@@ -5,7 +5,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -181,7 +180,7 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 
 	help := common.NewHelpModel(false)
 	help.OneLine = true
-	help.ShortHelp = []key.Binding{componentKeys.Help}
+	help.ShortHelp = shortHelpNoFocus
 
 	return Model{
 		keys:              componentKeys,
