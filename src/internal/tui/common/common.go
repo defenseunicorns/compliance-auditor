@@ -7,7 +7,11 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
-const TabOffset = 10
+const (
+	TabOffset     = 10
+	DefaultWidth  = 200
+	DefaultHeight = 60
+)
 
 func TruncateText(text string, width int) string {
 	if runewidth.StringWidth(text) <= width {

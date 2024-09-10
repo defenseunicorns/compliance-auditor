@@ -23,6 +23,6 @@ Generate a specified compliance artifact template
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
-* [lula generate component](/cli/cli-commands/lula_generate_component/)	 - Generate a component definition OSCAL template
+* [lula](./lula.md)	 - Risk Management as Code
+* [lula generate component](./lula_generate_component.md)	 - Generate a component definition OSCAL template
 

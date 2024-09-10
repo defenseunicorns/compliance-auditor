@@ -27,9 +27,9 @@ See each sub-command's help for details on how to use the generated script.
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
-* [lula completion bash](/cli/cli-commands/lula_completion_bash/)	 - Generate the autocompletion script for bash
-* [lula completion fish](/cli/cli-commands/lula_completion_fish/)	 - Generate the autocompletion script for fish
-* [lula completion powershell](/cli/cli-commands/lula_completion_powershell/)	 - Generate the autocompletion script for powershell
-* [lula completion zsh](/cli/cli-commands/lula_completion_zsh/)	 - Generate the autocompletion script for zsh
+* [lula](./lula.md)	 - Risk Management as Code
+* [lula completion bash](./lula_completion_bash.md)	 - Generate the autocompletion script for bash
+* [lula completion fish](./lula_completion_fish.md)	 - Generate the autocompletion script for fish
+* [lula completion powershell](./lula_completion_powershell.md)	 - Generate the autocompletion script for powershell
+* [lula completion zsh](./lula_completion_zsh.md)	 - Generate the autocompletion script for zsh
 

@@ -2,10 +2,10 @@
 component-definition:
   uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
   metadata:
-    title: OSCAL Demo Tool
+    title: My OSCAL Injection Model
     last-modified: "2022-09-13T12:00:00Z"
     version: "20220913"
-    oscal-version: 1.1.1
+    oscal-version: 1.1.2
     parties:
       # Should be consistent across all of the packages, but where is ground truth?
       - uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
@@ -14,6 +14,11 @@ component-definition:
         links:
           - href: https://github.com/defenseunicorns/lula
             rel: website
+      - uuid: e71d5dc5-3f5d-46ac-b6f1-f8ec41183d0f
+        type: organization
+        name: My Party
+        links:
+          - href: https://github.com/defenseunicorns/go-oscal
   components:
     - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
       type: software

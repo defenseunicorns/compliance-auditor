@@ -21,8 +21,8 @@ Collection of dev commands to make dev life easier
 
 ### SEE ALSO
 
-* [lula](/cli/cli-commands/lula/)	 - Risk Management as Code
-* [lula dev get-resources](/cli/cli-commands/lula_dev_get-resources/)	 - Get Resources from a Lula Validation Manifest
-* [lula dev lint](/cli/cli-commands/lula_dev_lint/)	 - Lint validation files against schema
-* [lula dev validate](/cli/cli-commands/lula_dev_validate/)	 - Run an individual Lula validation.
+* [lula](./lula.md)	 - Risk Management as Code
+* [lula dev get-resources](./lula_dev_get-resources.md)	 - Get Resources from a Lula Validation Manifest
+* [lula dev lint](./lula_dev_lint.md)	 - Lint validation files against schema
+* [lula dev validate](./lula_dev_validate.md)	 - Run an individual Lula validation.
 

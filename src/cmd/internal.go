@@ -58,7 +58,7 @@ type: docs
 		}
 
 		var linkHandler = func(link string) string {
-			return "/cli/cli-commands/" + link[:len(link)-3] + "/"
+			return "./" + link
 		}
 
 		err = doc.GenMarkdownTreeCustom(rootCmd, "./docs/cli-commands", prependTitle, linkHandler)
