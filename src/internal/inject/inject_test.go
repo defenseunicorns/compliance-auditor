@@ -78,7 +78,6 @@ some-map:
 `),
 		},
 		{
-			// TODO: Should we extend the functionaly to allow for non-existent paths?
 			name: "test-merge-at-non-existant-path",
 			path: "metadata.test",
 			target: []byte(`
@@ -92,68 +91,10 @@ more-metdata: here
 			expected: []byte(`
 name: target
 some-information: some-data
-`),
-		},
-		{
-			name: "test-inject-at-index",
-			path: "foo.subset[uuid=123]",
-			target: []byte(`
-foo:
-  subset:
-    - uuid: 321
-      test: some data
-    - uuid: 123
-      test: some data to be replaced
-`),
-			subset: []byte(`
-test: just a string to inject
-`),
-			expected: []byte(`
-foo:
-  subset:
-    - uuid: 321
-      test: some data
-    - uuid: 123
-      test: just a string to inject
-`),
-		},
-		{
-			name: "test-inject-at-double-index",
-			path: "foo.subset[uuid=xyz].subsubset[uuid=123]",
-			target: []byte(`
-foo:
-  subset:
-  - uuid: abc
-    subsubset:
-    - uuid: 321
-      test: some data
-    - uuid: 123
-      test: just some data at 123
-  - uuid: xyz
-    subsubset:
-     - uuid: 321
-       test: more data
-     - uuid: 123
-       test: some data to be replaced
-`),
-			subset: []byte(`
-test: just a string to inject
-`),
-			expected: []byte(`
-foo:
-  subset:
-  - uuid: abc
-    subsubset:
-    - uuid: 321
-      test: some data
-    - uuid: 123
-      test: just some data at 123
-  - uuid: xyz
-    subsubset:
-     - uuid: 321
-       test: more data
-     - uuid: 123
-       test: just a string to inject
+metadata:
+  test:
+    name: some-name
+    more-metdata: here
 `),
 		},
 	}
@@ -164,7 +105,7 @@ foo:
 			if err != nil {
 				t.Errorf("InjectMapData() error = %v", err)
 			}
-			assert.Equal(t, convertBytesToMap(t, tt.expected), result, "The maps should be equal")
+			assert.Equal(t, result, convertBytesToMap(t, tt.expected), "The maps should be equal")
 		})
 	}
 }

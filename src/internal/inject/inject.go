@@ -2,20 +2,14 @@ package inject
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
 // InjectMapData injects the subset map into a target map at the path
-// TODO: should this behave differently if the path is not found? Or if you want to replace a seq instead of append?
 func InjectMapData(target, subset map[string]interface{}, path string) (map[string]interface{}, error) {
-	pathSlice, err := splitPath(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to split path: %v", err)
-	}
-
+	pathSlice := splitPath(path)
 	// Convert the target and subset maps to yaml nodes
 	targetNode, err := yaml.FromMap(target)
 	if err != nil {
@@ -27,28 +21,22 @@ func InjectMapData(target, subset map[string]interface{}, path string) (map[stri
 		return nil, fmt.Errorf("failed to create subset node from map: %v", err)
 	}
 
-	// Build the target filters, update the target with subset data
-	filters, err := buildFilters(pathSlice)
-	if err != nil {
-		return nil, err
-	}
-	targetSubsetNode, err := targetNode.Pipe(filters...)
+	// Get the subset node from target
+	targetSubsetNode, err := targetNode.Pipe(yaml.LookupCreate(yaml.MappingNode, pathSlice...))
 	if err != nil {
 		return nil, fmt.Errorf("error identifying subset node: %v", err)
 	}
 
 	// Alternate merge based on custom merge function
-	// TODO: add option to replace all and use the kyaml merge function?
 	err = mergeYAMLNodes(targetSubsetNode, subsetNode)
 	if err != nil {
 		return nil, fmt.Errorf("error merging subset into target: %v", err)
 	}
 
-	// Inject the updated node back into targetNode
-	if len(pathSlice) == 0 {
+	if pathSlice[0] == "" {
 		targetNode = targetSubsetNode
 	} else {
-		if err = setNodeAtPath(targetNode, targetSubsetNode, filters, pathSlice); err != nil {
+		if err := targetNode.PipeE(yaml.Lookup(pathSlice[:len(pathSlice)-1]...), yaml.SetField(pathSlice[len(pathSlice)-1], targetSubsetNode)); err != nil {
 			return nil, fmt.Errorf("error setting merged node back into target: %v", err)
 		}
 	}
@@ -62,74 +50,14 @@ func InjectMapData(target, subset map[string]interface{}, path string) (map[stri
 	return targetMap, nil
 }
 
-// setNodeAtPath injects the updated node into targetNode according to the specified path
-func setNodeAtPath(targetNode *yaml.RNode, targetSubsetNode *yaml.RNode, filters []yaml.Filter, pathSlice []string) error {
-	// Check if the last segment is a filter, changes the behavior of the set function
-	lastSegment := pathSlice[len(pathSlice)-1]
-
-	if isFilter, _, filterParts, err := extractFilter(pathSlice[len(pathSlice)-1]); err != nil {
-		return err
-	} else if isFilter {
-		filters = append(filters[:len(filters)-1], yaml.ElementSetter{
-			Element: targetSubsetNode.Document(),
-			Keys:    []string{filterParts[0]},
-			Values:  []string{filterParts[1]},
-		})
-	} else {
-		filters = append(filters[:len(filters)-1], yaml.SetField(lastSegment, targetSubsetNode))
+// splitPath splits a path by '.' into a path array
+// TODO: This could be a more complicated path: is there a lib function to do this and possibly handle things like [] or escaped '.'
+func splitPath(path string) []string {
+	// strip leading '.' if present
+	if len(path) > 0 && path[0] == '.' {
+		path = path[1:]
 	}
-
-	return targetNode.PipeE(filters...)
-}
-
-func buildFilters(pathSlice []string) ([]yaml.Filter, error) {
-	filters := make([]yaml.Filter, 0, len(pathSlice))
-	for _, segment := range pathSlice {
-		if isFilter, fieldName, filterParts, err := extractFilter(segment); err != nil {
-			return nil, err
-		} else if isFilter {
-			filters = append(filters, yaml.Lookup(fieldName))
-			filters = append(filters, yaml.MatchElement(filterParts[0], filterParts[1]))
-		} else {
-			filters = append(filters, yaml.Lookup(segment))
-		}
-	}
-	return filters, nil
-}
-
-func extractFilter(item string) (bool, string, []string, error) {
-	if !isFilter(item) {
-		return false, "", []string{}, nil
-	}
-	segmentParts := strings.SplitN(item, "[", 2)
-	fieldName := segmentParts[0]
-	filter := strings.TrimSuffix(segmentParts[1], "]")
-
-	filterParts := strings.SplitN(filter, "=", 2)
-	if len(filterParts) != 2 {
-		return false, "", []string{}, fmt.Errorf("invalid filter format: %s", item)
-	}
-
-	return true, fieldName, filterParts, nil
-}
-
-func isFilter(item string) bool {
-	return strings.Contains(item, "[") && strings.Contains(item, "]")
-}
-
-// splitPath splits a path by '.' into a path array and handles filters in the path
-func splitPath(path string) ([]string, error) {
-	if path == "" {
-		return []string{}, nil
-	}
-
-	// Regex to match path segments including filters
-	re := regexp.MustCompile(`(?:[^.\[\]]+|\[[^\[\]]+\])+`)
-	matches := re.FindAllString(path, -1)
-	if matches == nil {
-		return nil, fmt.Errorf("invalid path format")
-	}
-	return matches, nil
+	return strings.Split(path, ".")
 }
 
 // mergeYAMLNodes recursively merges the subset node into the target node
