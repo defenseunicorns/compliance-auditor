@@ -51,7 +51,7 @@ component-definition:
               resource-rule:
                 group:
                 version: v1
-                resource: pods
+                resource: {{ .version }}
                 namespaces: [validation-test]
         provider:
           type: opa

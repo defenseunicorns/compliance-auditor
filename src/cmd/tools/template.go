@@ -40,12 +40,10 @@ var templateCmd = &cobra.Command{
 			message.Fatal(err, err.Error())
 		}
 
-		v := common.GetViper()
-		viperMap := v.AllSettings()
+		// Handles merging viper config file data + environment variables
+		mergedMap := template.CollectTemplatingData()
 
-		// TODO: Need to collect all possible environment variables in some way?
-
-		templatedData, err := template.ExecuteTemplate(viperMap, string(data))
+		templatedData, err := template.ExecuteTemplate(mergedMap, string(data))
 		if err != nil {
 			message.Fatalf(err, "error templating validation: %v", err)
 		}
