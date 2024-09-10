@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -12,23 +13,25 @@ import (
 
 func TestTemplateCommand(t *testing.T) {
 
-	test := func(t *testing.T, expectedError bool, args ...string) (string, error) {
+	test := func(t *testing.T, expectError bool, args ...string) (string, error) {
 		t.Helper()
 
 		cmd := cmd.RootCommand()
-		cmdArgs := []string{"tools", "template"}
-		cmdArgs = append(cmdArgs, args...)
+		// cmdArgs := []string{"tools", "template"}
+		// cmdArgs = append(cmdArgs, args...)
 
-		output, err := util.ExecuteCommand(cmd, cmdArgs...)
-		if err != nil && !expectedError {
-			t.Fatal("erroring in the error location")
+		cmd, output, err := util.ExecuteCommand(cmd, args...)
+		if err != nil && !expectError {
+			t.Fatal(err)
 		}
+
+		cmd.Execute()
 
 		return output, err
 	}
 
-	t.Run("Test --help", func(t *testing.T) {
-		out, _ := test(t, false, "--help")
+	t.Run("Test help", func(t *testing.T) {
+		out, _ := test(t, false)
 
 		if !strings.Contains(out, "Resolving templated artifacts with configuration data") {
 			t.Fatalf("Expected help string")
@@ -46,7 +49,9 @@ func TestTemplateCommand(t *testing.T) {
 	// })
 
 	t.Run("Template Valid File", func(t *testing.T) {
-		test(t, false, "-f", "../../unit/common/oscal/valid-component-template.yaml", "-o", "valid.yaml")
+		out, _ := test(t, false, "-f", "../../unit/common/oscal/valid-component-template.yaml", "-o", "valid.yaml")
+
+		fmt.Println(out)
 
 		templated, err := os.ReadFile("valid.yaml")
 		if err != nil {

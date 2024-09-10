@@ -67,6 +67,10 @@ var templateCmd = &cobra.Command{
 	},
 }
 
+func TemplateCommand() *cobra.Command {
+	return templateCmd
+}
+
 func init() {
 	common.InitViper()
 
