@@ -1,0 +1,8 @@
+resources:
+  jsoncm: configmaps
+  yamlcm: configmaps
+  secret: secrets
+  pod: pods
+
+type: software
+title: lula

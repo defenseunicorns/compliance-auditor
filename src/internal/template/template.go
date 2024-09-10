@@ -32,12 +32,17 @@ func ExecuteTemplate(data map[string]interface{}, templateString string) ([]byte
 
 func CollectTemplatingData() map[string]interface{} {
 
+	// Get current viper pointer
 	v := common.GetViper()
-
+	// Get all viper settings
+	// This will only return config file items and resolved environment variables
+	// that have an associated key in the config file
 	viperMap := v.AllSettings()
 
-	envMap := getEnvVars(PREFIX)
+	// Get all environment variables with a specific prefix
+	envMap := GetEnvVars(PREFIX)
 
+	// Merge the data into a single map for use with templating
 	mergedMap := helpers.MergeMapRecursive(envMap, viperMap)
 
 	return mergedMap
@@ -45,7 +50,7 @@ func CollectTemplatingData() map[string]interface{} {
 }
 
 // get all environment variables with the established prefix
-func getEnvVars(prefix string) map[string]interface{} {
+func GetEnvVars(prefix string) map[string]interface{} {
 	envMap := make(map[string]interface{})
 
 	// Get all environment variables

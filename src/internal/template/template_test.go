@@ -1,6 +1,8 @@
 package template_test
 
 import (
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/internal/template"
@@ -37,12 +39,28 @@ func TestExecuteTemplate(t *testing.T) {
 
 }
 
-// func TestGetEnvVars(t *testing.T) {
-// 	test := func(t *testing.T, data string, expected string) {
-// 		t.Helper()
-// 	}
+func TestGetEnvVars(t *testing.T) {
 
-// 	t.Run("Test One - Passing", func(t *testing.T) {
-// 		test(t, "test", "test")
-// 	})
-// }
+	test := func(t *testing.T, prefix string, key string, value string) {
+		t.Helper()
+
+		os.Setenv(key, value)
+		envMap := template.GetEnvVars(prefix)
+
+		// convert key to expected format
+		strippedKey := strings.TrimPrefix(key, prefix)
+
+		if envMap[strings.ToLower(strippedKey)] != value {
+			t.Fatalf("Expected %s - Got %s\n", value, envMap[strings.ToLower(strippedKey)])
+		}
+		os.Unsetenv(key)
+	}
+
+	t.Run("Test LULA_RESOURCE - Pass", func(t *testing.T) {
+		test(t, "LULA_", "LULA_RESOURCE", "pods")
+	})
+
+	t.Run("Test OTHER_RESOURCE - Pass", func(t *testing.T) {
+		test(t, "OTHER_", "OTHER_RESOURCE", "deployments")
+	})
+}

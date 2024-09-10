@@ -1,8 +1,10 @@
 package util
 
 import (
+	"bytes"
 	"os"
 
+	"github.com/spf13/cobra"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -108,4 +110,20 @@ func GetNamespace(name string) (*v1.Namespace, error) {
 			Name: name,
 		},
 	}, nil
+}
+
+func ExecuteCommand(root *cobra.Command, args ...string) (output string, err error) {
+	_, output, err = ExecuteCommandC(root, args...)
+	return output, err
+}
+
+func ExecuteCommandC(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
+	buf := new(bytes.Buffer)
+	root.SetOut(buf)
+	root.SetErr(buf)
+	root.SetArgs(args)
+
+	c, err = root.ExecuteC()
+
+	return c, buf.String(), err
 }
