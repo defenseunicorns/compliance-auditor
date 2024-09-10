@@ -45,5 +45,5 @@ Data for the templating should be stored under the 'variables' configuration ite
 
 ### SEE ALSO
 
-* [lula tools](/cli/cli-commands/lula_tools/)	 - Collection of additional commands to make OSCAL easier
+* [lula tools](./lula_tools.md)	 - Collection of additional commands to make OSCAL easier
 
