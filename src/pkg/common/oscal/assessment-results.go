@@ -327,7 +327,7 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		observation.Props = &[]oscalTypes_1_1_2.Property{
 			{
 				Name:  "validation",
-				Ns:    "https://docs.lula.dev/oscal/ns/validation",
+				Ns:    "https://docs.lula.dev/oscal/ns",
 				Value: common.AddIdPrefix(validation.UUID),
 			},
 		}
