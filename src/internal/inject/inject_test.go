@@ -169,6 +169,123 @@ foo:
 	}
 }
 
+// TestInjectMapData2 tests the InjectMapData function -> more complex filtering
+// actually do I need this if I could support like:
+// pods[metadata.namespace=monitoring,metadata.labels.app=kube-prometheus-stack-operator].spec.containers[name=istio-proxy]
+// if I pass nothing in value, will it delete it?
+// ^^ this one should be deleted though to support the policy...
+func TestInjectMapData2(t *testing.T) {
+	// Add a test if multiple nodes meet the criteria
+	tests := []struct {
+		name     string
+		path     string
+		target   []byte
+		subset   []byte
+		expected []byte
+	}{
+		{
+			name: "test-inject-at-double-filter",
+			path: "pods.metadata[namespace=foo,name=bar].labels",
+			target: []byte(`
+pods:
+  - metadata:
+      name: bar
+      namespace: foo
+      labels:
+        app: replace-me
+  - metadata:
+      name: baz
+      namespace: foo
+	  labels:
+        app: dont-replace-me
+`),
+			subset: []byte(`
+app: new-app
+`),
+			expected: []byte(`
+pods:
+  - metadata:
+      name: bar
+      namespace: foo
+      labels:
+        app: new-app
+  - metadata:
+      name: baz
+      namespace: foo
+	  labels:
+        app: dont-replace-me
+`),
+		},
+		{
+			name: "test-inject-at-nested-double-filter",
+			path: "pods[metadata.namespace=foo,metadata.name=bar].spec.containers[name=istio-proxy]",
+			target: []byte(`
+pods:
+  - metadata:
+      name: bar
+      namespace: foo
+      labels:
+        app: my-foo-app
+    spec:
+      containers:
+        - name: istio-proxy
+          image: replace-me
+        - name: foo-app
+          image: foo-app:v1
+  - metadata:
+      name: baz
+      namespace: foo
+      labels:
+        app: my-foo-app
+    spec:
+      containers:
+        - name: istio-proxy
+          image: proxyv2
+        - name: foo-app
+          image: foo-app:v1
+`),
+			subset: []byte(`
+image: new-image
+`),
+			expected: []byte(`
+pods:
+  - metadata:
+      name: bar
+      namespace: foo
+      labels:
+        app: my-foo-app
+    spec:
+      containers:
+        - name: istio-proxy
+          image: new-image
+        - name: foo-app
+          image: foo-app:v1
+  - metadata:
+      name: baz
+      namespace: foo
+      labels:
+        app: my-foo-app
+    spec:
+      containers:
+        - name: istio-proxy
+          image: proxyv2
+        - name: foo-app
+          image: foo-app:v1
+`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := inject.InjectMapData(convertBytesToMap(t, tt.target), convertBytesToMap(t, tt.subset), tt.path)
+			if err != nil {
+				t.Errorf("InjectMapData() error = %v", err)
+			}
+			assert.Equal(t, convertBytesToMap(t, tt.expected), result, "The maps should be equal")
+		})
+	}
+}
+
 // convertBytesToMap converts a byte slice to a map[string]interface{}
 func convertBytesToMap(t *testing.T, data []byte) map[string]interface{} {
 	var dataMap map[string]interface{}

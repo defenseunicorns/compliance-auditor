@@ -30,10 +30,11 @@ var (
 
 // Data structures for ingesting validation data
 type Validation struct {
-	LulaVersion string    `json:"lula-version" yaml:"lula-version"`
-	Metadata    *Metadata `json:"metadata,omitempty" yaml:"metadata,omitempty"`
-	Provider    *Provider `json:"provider,omitempty" yaml:"provider,omitempty"`
-	Domain      *Domain   `json:"domain,omitempty" yaml:"domain,omitempty"`
+	LulaVersion string        `json:"lula-version" yaml:"lula-version"`
+	Metadata    *Metadata     `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	Provider    *Provider     `json:"provider,omitempty" yaml:"provider,omitempty"`
+	Domain      *Domain       `json:"domain,omitempty" yaml:"domain,omitempty"`
+	Tests       *[]types.Test `json:"tests,omitempty" yaml:"tests,omitempty"`
 }
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
@@ -145,6 +146,11 @@ func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValid
 		lulaValidation.Name = "lula-validation"
 	} else {
 		lulaValidation.Name = validation.Metadata.Name
+	}
+
+	// Add tests if they exist
+	if validation.Tests != nil {
+		lulaValidation.Tests = validation.Tests
 	}
 
 	return lulaValidation, nil

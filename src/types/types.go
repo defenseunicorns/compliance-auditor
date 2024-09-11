@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/defenseunicorns/lula/src/internal/inject"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -39,6 +40,9 @@ type LulaValidation struct {
 
 	// Evaluated is a boolean that represents if the validation has been evaluated
 	Evaluated bool
+
+	// Tests is a slice of tests that are defined for the validation
+	Tests *[]Test `json:"tests" yaml:"tests"`
 
 	// Result is the result of the validation
 	Result *Result
@@ -171,6 +175,52 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 	return nil
 }
 
+// RunTests executes any tests defined in the validation
+func (v *LulaValidation) RunTests() error {
+	if v.DomainResources == nil {
+		return fmt.Errorf("domain resources are nil, tests cannot be run") // actually this probably isn't true...
+	}
+
+	// For each test, apply the permutation to the domain resources and run validate using those resources
+	if v.Tests != nil {
+		for _, test := range *v.Tests {
+			message.Infof("Running test %s", test.Name)
+			var err error
+			testResources := *v.DomainResources
+
+			for _, permutation := range test.Permutations {
+				// First grab the modified resources, if "target" is specified...
+				// modifiedResources := *v.DomainResources // do I need to do like a deep copy
+				// how do I make an empty map[string]interface{}?
+				// emptyMap := make(map[string]interface{})
+				// inject.ExtractMapData(*v.DomainResources, permutation.Target) -> subset
+				// inject.InjectMapData(subset, permutation.Value, permutation.Path) -> subsetWithValue
+				// inject.InjectMapData(*v.DomainResources, subsetWithValue, permutation.Target) -> modifiedResources
+				// run validate with modifiedResources
+				// run inject and return the modified resources
+				testResources, err := inject.InjectMapData(*v.DomainResources, permutation.Value, permutation.Path)
+				if err != nil {
+					return err
+				}
+				err = v.Validate(WithStaticResources(testResources))
+				if err != nil {
+					return err
+				}
+				// Check the expected result - pass or fail
+			}
+
+			err = v.Validate(WithStaticResources(testResources))
+			if err != nil {
+				return err
+			}
+
+			// Check result
+		}
+	} else {
+		message.Debugf("No tests defined for validation %s", v.Name)
+	}
+}
+
 // Check if the validation requires confirmation before possible execution code is run
 func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
 	return !(*val.Domain).IsExecutable()
@@ -196,4 +246,17 @@ type Result struct {
 	Failing      int               `json:"failing" yaml:"failing"`
 	State        string            `json:"state" yaml:"state"`
 	Observations map[string]string `json:"observations" yaml:"observations"`
+}
+
+// Test is a struct that contains the name of the test, the permutations, and the expected result
+type Test struct {
+	Name           string        `json:"name" yaml:"name"`
+	Permutations   []Permutation `json:"permutations" yaml:"permutations"`
+	ExpectedResult string        `json:"expected-result" yaml:"expected-result"`
+}
+
+type Permutation struct {
+	ListTarget string                 `json:"list-target" yaml:"list-target"`
+	Path       string                 `json:"path" yaml:"path"`
+	Value      map[string]interface{} `json:"value" yaml:"value"`
 }
