@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -113,10 +114,8 @@ func GetNamespace(name string) (*v1.Namespace, error) {
 }
 
 func ExecuteCommand(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
-	cmd, _, _ := root.Find([]string{"tools", "template"})
-
-	_, output, err = ExecuteCommandC(cmd, args...)
-	return cmd, output, err
+	_, output, err = ExecuteCommandC(root, args...)
+	return root, output, err
 }
 
 func ExecuteCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
@@ -127,5 +126,7 @@ func ExecuteCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, outp
 
 	cmd.Execute()
 
-	return cmd, buf.String(), err
+	out, err := io.ReadAll(buf)
+
+	return cmd, string(out), err
 }

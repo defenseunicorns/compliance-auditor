@@ -5,7 +5,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/pkg/helpers"
 )
 
@@ -30,20 +29,13 @@ func ExecuteTemplate(data map[string]interface{}, templateString string) ([]byte
 
 // Prepare the map of data for use in templating
 
-func CollectTemplatingData() map[string]interface{} {
-
-	// Get current viper pointer
-	v := common.GetViper()
-	// Get all viper settings
-	// This will only return config file items and resolved environment variables
-	// that have an associated key in the config file
-	viperMap := v.AllSettings()
+func CollectTemplatingData(data map[string]interface{}) map[string]interface{} {
 
 	// Get all environment variables with a specific prefix
 	envMap := GetEnvVars(PREFIX)
 
 	// Merge the data into a single map for use with templating
-	mergedMap := helpers.MergeMapRecursive(envMap, viperMap)
+	mergedMap := helpers.MergeMapRecursive(envMap, data)
 
 	return mergedMap
 

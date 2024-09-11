@@ -40,8 +40,15 @@ var templateCmd = &cobra.Command{
 			message.Fatal(err, err.Error())
 		}
 
+		// Get current viper pointer
+		v := common.GetViper()
+		// Get all viper settings
+		// This will only return config file items and resolved environment variables
+		// that have an associated key in the config file
+		viperData := v.AllSettings()
+
 		// Handles merging viper config file data + environment variables
-		mergedMap := template.CollectTemplatingData()
+		mergedMap := template.CollectTemplatingData(viperData)
 
 		templatedData, err := template.ExecuteTemplate(mergedMap, string(data))
 		if err != nil {

@@ -25,7 +25,10 @@ var rootCmd = &cobra.Command{
 }
 
 func RootCommand() *cobra.Command {
-	return rootCmd
+
+	cmd := rootCmd
+
+	return cmd
 }
 
 func Execute() {
