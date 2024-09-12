@@ -1,5 +1,1 @@
 log_level: info
-
-variables:
-  validation:
-    resource: pods
