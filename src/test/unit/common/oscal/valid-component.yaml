@@ -16,8 +16,8 @@ component-definition:
             rel: website
   components:
     - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
-      type: "software"
-      title: "Lula"
+      type: software
+      title: lula
       description: |
         Defense Unicorns lula
       purpose: Validate compliance controls
@@ -58,7 +58,7 @@ component-definition:
                   resource-rule:
                     name: configmap-json
                     version: v1
-                    resource: "configmaps"
+                    resource: configmaps
                     namespaces: [validation-test]
                     field:
                       jsonpath: .data.person.json
@@ -67,7 +67,7 @@ component-definition:
                   resource-rule:
                     name: configmap-yaml
                     version: v1
-                    resource: "configmaps"
+                    resource: configmaps
                     namespaces: [validation-test]
                     field:
                       jsonpath: .data.app-config.yaml
@@ -76,7 +76,7 @@ component-definition:
                   resource-rule:
                     name: example-secret
                     version: v1
-                    resource: "secrets"
+                    resource: secrets
                     namespaces: [validation-test]
                     field:
                       jsonpath: .data.auth
@@ -86,7 +86,7 @@ component-definition:
                   resource-rule:
                     name: example-pod
                     version: v1
-                    resource: "pods"
+                    resource: pods
                     namespaces: [validation-test]
                     field:
                       jsonpath: .metadata.annotations.annotation.io/simple
