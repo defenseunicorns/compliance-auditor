@@ -24,6 +24,6 @@ jobs:
     - name: Display Go version
       run: go version
       
-    - name: e2e Tests
+    - name: Unit Tests
       run: | 
         make test-unit
