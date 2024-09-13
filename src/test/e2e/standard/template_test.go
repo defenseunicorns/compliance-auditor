@@ -31,10 +31,6 @@ func TestTemplateCommand(t *testing.T) {
 
 	t.Run("Template Valid File", func(t *testing.T) {
 
-		// Override the variable with Lula vs lula
-		os.Setenv("LULA_TITLE", "Lula")
-		defer os.Unsetenv("LULA_TITLE")
-
 		_, err := test(t, false, "-f", "../../unit/common/oscal/valid-component-template.yaml", "-o", "valid.yaml")
 		defer os.Remove("valid.yaml")
 		if err != nil {
