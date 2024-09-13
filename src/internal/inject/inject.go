@@ -39,6 +39,7 @@ func InjectMapData(target, subset map[string]interface{}, path string) (map[stri
 	}
 
 	// if subset is empty, add a field clearer to the filters:
+	// actually this might be better in a separate function...
 	// filters = append(filters, yaml.FieldClearer{Name: pathSlice[len(pathSlice)-1]})
 
 	targetSubsetNode, err := targetNode.Pipe(filters...)
@@ -69,6 +70,25 @@ func InjectMapData(target, subset map[string]interface{}, path string) (map[stri
 	}
 
 	return targetMap, nil
+}
+
+func ModifyMapValue(target map[string]interface{}, path string, value interface{}) (map[string]interface{}, error) {
+	pathSlice, err := splitPath(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to split path: %v", err)
+	}
+
+	// Create a new node from the target map
+	targetNode, err := yaml.FromMap(target)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create target node from map: %v", err)
+	}
+
+	filters, err := buildFilters(pathSlice)
+	if err != nil {
+		return nil, err
+	}
+	// add a elementsetter?
 }
 
 // DeleteMapData
@@ -155,6 +175,7 @@ func buildFilters(pathSlice []string) ([]yaml.Filter, error) {
 					if err != nil {
 						return nil, err
 					}
+					// I think this field matcher only works for maps, not sequences...
 					filters = append(filters, yaml.FieldMatcher{
 						Name:  fieldName,
 						Value: valueRnode,
@@ -203,7 +224,7 @@ func splitPath(path string) ([]string, error) {
 	}
 
 	// Regex to match path segments including filters
-	re := regexp.MustCompile(`(?:[^.\[\]]+|\[[^\[\]]+\])+`)
+	re := regexp.MustCompile(`[^.\[\]]+(?:\[[^\[\]]+\])?`)
 	matches := re.FindAllString(path, -1)
 	if matches == nil {
 		return nil, fmt.Errorf("invalid path format")

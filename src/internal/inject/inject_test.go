@@ -196,7 +196,7 @@ pods:
   - metadata:
       name: baz
       namespace: foo
-	  labels:
+    labels:
         app: dont-replace-me
 `),
 			subset: []byte(`
@@ -212,7 +212,7 @@ pods:
   - metadata:
       name: baz
       namespace: foo
-	  labels:
+    labels:
         app: dont-replace-me
 `),
 		},
@@ -294,3 +294,8 @@ func convertBytesToMap(t *testing.T, data []byte) map[string]interface{} {
 	}
 	return dataMap
 }
+
+// Things to do:
+// 1. update a single value in a map (could need to be identified by target, e.g., if you're pulling something in a sequence)
+// 2. delete a single key in a map (could need to be identified by target, e.g., if you're pulling something in a sequence)
+// 3.
