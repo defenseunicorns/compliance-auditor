@@ -30,11 +30,18 @@ func TestTemplateCommand(t *testing.T) {
 	}
 
 	t.Run("Template Valid File", func(t *testing.T) {
+
+		// Override the variable with Lula vs lula
+		// os.Setenv("LULA_TITLE", "Lula")
+		// defer os.Unsetenv("LULA_TITLE")
+
 		_, err := test(t, false, "-f", "../../unit/common/oscal/valid-component-template.yaml", "-o", "valid.yaml")
+		defer os.Remove("valid.yaml")
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		// this comparison using golden files would make more sense
 		templated, err := os.ReadFile("valid.yaml")
 		if err != nil {
 			t.Fatal(err)
@@ -48,9 +55,6 @@ func TestTemplateCommand(t *testing.T) {
 		if !bytes.Equal(templated, valid) {
 			t.Fatalf("Expected: \n%s\n - Got \n%s\n", valid, templated)
 		}
-
-		// cleanup
-		os.Remove("valid.yaml")
 
 	})
 

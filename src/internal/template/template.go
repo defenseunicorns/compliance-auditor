@@ -16,7 +16,7 @@ func ExecuteTemplate(data map[string]interface{}, templateString string) ([]byte
 	if err != nil {
 		return []byte{}, err
 	}
-	tmpl.Option("missingkey=zero")
+	tmpl.Option("missingkey=default")
 
 	var buffer strings.Builder
 	err = tmpl.Execute(&buffer, data)
