@@ -58,5 +58,6 @@ tests:
     expected-result: pass
   - name: grafana-no-istio-injection
     permutations:
-      - path: namespaces.metadata[name=grafana].labels.istio-injection
-        type: delete # add/replace? I think an empty value without specifying delete would just set the value to empty
+      # Deletes the istio-injection label in the grafana namespace
+      - path: namespaces.[metadata.name=grafana].labels.istio-injection
+        type: delete 

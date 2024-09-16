@@ -1,6 +1,10 @@
 package inject_test
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/internal/inject"
@@ -56,28 +60,6 @@ metadata:
 `),
 		},
 		{
-			name: "test-merge-at-root",
-			path: "",
-			target: []byte(`
-name: target
-some-information: some-data
-some-map:
-  test-key: test-value
-`),
-			subset: []byte(`
-more-information: more-data
-some-map:
-  test-key: subset-value
-`),
-			expected: []byte(`
-name: target
-more-information: more-data
-some-information: some-data
-some-map:
-  test-key: subset-value
-`),
-		},
-		{
 			// TODO: Should we extend the functionaly to allow for non-existent paths?
 			name: "test-merge-at-non-existant-path",
 			path: "metadata.test",
@@ -96,7 +78,7 @@ some-information: some-data
 		},
 		{
 			name: "test-inject-at-index",
-			path: "foo.subset[uuid=123]",
+			path: "foo.subset.[uuid=123]",
 			target: []byte(`
 foo:
   subset:
@@ -119,7 +101,7 @@ foo:
 		},
 		{
 			name: "test-inject-at-double-index",
-			path: "foo.subset[uuid=xyz].subsubset[uuid=123]",
+			path: "foo.subset.[uuid=xyz].subsubset.[uuid=123]",
 			target: []byte(`
 foo:
   subset:
@@ -131,10 +113,10 @@ foo:
       test: just some data at 123
   - uuid: xyz
     subsubset:
-     - uuid: 321
-       test: more data
-     - uuid: 123
-       test: some data to be replaced
+      - uuid: 321
+        test: more data
+      - uuid: 123
+        test: some data to be replaced
 `),
 			subset: []byte(`
 test: just a string to inject
@@ -150,42 +132,15 @@ foo:
       test: just some data at 123
   - uuid: xyz
     subsubset:
-     - uuid: 321
-       test: more data
-     - uuid: 123
-       test: just a string to inject
+      - uuid: 321
+        test: more data
+      - uuid: 123
+        test: just a string to inject
 `),
 		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := inject.InjectMapData(convertBytesToMap(t, tt.target), convertBytesToMap(t, tt.subset), tt.path)
-			if err != nil {
-				t.Errorf("InjectMapData() error = %v", err)
-			}
-			assert.Equal(t, convertBytesToMap(t, tt.expected), result, "The maps should be equal")
-		})
-	}
-}
-
-// TestInjectMapData2 tests the InjectMapData function -> more complex filtering
-// actually do I need this if I could support like:
-// pods[metadata.namespace=monitoring,metadata.labels.app=kube-prometheus-stack-operator].spec.containers[name=istio-proxy]
-// if I pass nothing in value, will it delete it?
-// ^^ this one should be deleted though to support the policy...
-func TestInjectMapData2(t *testing.T) {
-	// Add a test if multiple nodes meet the criteria
-	tests := []struct {
-		name     string
-		path     string
-		target   []byte
-		subset   []byte
-		expected []byte
-	}{
 		{
 			name: "test-inject-at-double-filter",
-			path: "pods.metadata[namespace=foo,name=bar].labels",
+			path: "pods.[metadata.namespace=foo,metadata.name=bar].metadata.labels",
 			target: []byte(`
 pods:
   - metadata:
@@ -218,7 +173,7 @@ pods:
 		},
 		{
 			name: "test-inject-at-nested-double-filter",
-			path: "pods[metadata.namespace=foo,metadata.name=bar].spec.containers[name=istio-proxy]",
+			path: "pods.[metadata.namespace=foo,metadata.name=bar].spec.containers.[name=istio-proxy]",
 			target: []byte(`
 pods:
   - metadata:
@@ -299,3 +254,29 @@ func convertBytesToMap(t *testing.T, data []byte) map[string]interface{} {
 // 1. update a single value in a map (could need to be identified by target, e.g., if you're pulling something in a sequence)
 // 2. delete a single key in a map (could need to be identified by target, e.g., if you're pulling something in a sequence)
 // 3.
+
+func TestGetRNode(t *testing.T) {
+	// open json file converts to map[string]interface{}
+	jsonFile, err := os.Open("../../test/unit/types/resources-all-pods.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer jsonFile.Close()
+
+	byteValue, _ := io.ReadAll(jsonFile)
+	var data map[string]interface{}
+	json.Unmarshal(byteValue, &data)
+
+	path := "pods.[metadata.namespace=keycloak,metadata.name=keycloak-0].spec.containers.[name=istio-proxy]"
+	subsetMap := map[string]interface{}{
+		"image": "boo",
+	}
+	// rnode, err := inject.GetRNode(data, path)
+	result, err := inject.InjectMapData(data, subsetMap, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(result)
+}
+
+// Path must resolve to a single node

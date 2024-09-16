@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"sigs.k8s.io/kustomize/kyaml/utils"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
@@ -16,10 +17,7 @@ type filterParts struct {
 // InjectMapData injects the subset map into a target map at the path
 // TODO: should this behave differently if the path is not found? Or if you want to replace a seq instead of append?
 func InjectMapData(target, subset map[string]interface{}, path string) (map[string]interface{}, error) {
-	pathSlice, err := splitPath(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to split path: %v", err)
-	}
+	pathSlice := utils.SmarterPathSplitter(path, ".")
 
 	// Convert the target and subset maps to yaml nodes
 	targetNode, err := yaml.FromMap(target)
@@ -33,14 +31,10 @@ func InjectMapData(target, subset map[string]interface{}, path string) (map[stri
 	}
 
 	// Build the target filters, update the target with subset data
-	filters, err := buildFilters(pathSlice)
+	filters, err := buildFilters(targetNode, pathSlice)
 	if err != nil {
 		return nil, err
 	}
-
-	// if subset is empty, add a field clearer to the filters:
-	// actually this might be better in a separate function...
-	// filters = append(filters, yaml.FieldClearer{Name: pathSlice[len(pathSlice)-1]})
 
 	targetSubsetNode, err := targetNode.Pipe(filters...)
 	if err != nil {
@@ -64,36 +58,85 @@ func InjectMapData(target, subset map[string]interface{}, path string) (map[stri
 	}
 
 	// Write targetNode into map[string]interface{}
-	targetMap, err := targetNode.Map()
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert target node to map: %v", err)
-	}
+	var targetMap map[string]interface{}
+	targetNode.YNode().Decode(&targetMap)
 
 	return targetMap, nil
 }
 
-func ModifyMapValue(target map[string]interface{}, path string, value interface{}) (map[string]interface{}, error) {
-	pathSlice, err := splitPath(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to split path: %v", err)
-	}
+func GetRNode(target map[string]interface{}, path string) (*yaml.RNode, error) {
+	pathSlice := utils.SmarterPathSplitter(path, ".")
 
-	// Create a new node from the target map
+	// Convert the target to yaml nodes
 	targetNode, err := yaml.FromMap(target)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create target node from map: %v", err)
 	}
 
-	filters, err := buildFilters(pathSlice)
+	// Build the target filters, update the target with subset data
+	filters, err := buildFilters(targetNode, pathSlice)
 	if err != nil {
 		return nil, err
 	}
-	// add a elementsetter?
+
+	targetSubsetNode, err := targetNode.Pipe(filters...)
+	if err != nil {
+		return nil, fmt.Errorf("error finding subset node in target: %v", err)
+	}
+
+	return targetSubsetNode, nil
 }
 
-// DeleteMapData
-// add a fieldclearer to the filters... or do above?
-// func DeleteMapData(target map[string]interface{}, path string) (map[string]interface{}, error) {
+// TODO: add support to delete a field
+// func EjectMapData(target map[string]interface{}, path string) (map[string]interface{}, error) {
+// 	pathSlice, err := splitPath(path)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to split path: %v", err)
+// 	}
+
+// 	// Create a new node from the target map
+// 	targetNode, err := yaml.FromMap(target)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to create target node from map: %v", err)
+// 	}
+
+// 	filters, err := buildFilters(targetNode, pathSlice)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// filters = append(filters, yaml.FieldClearer{Name: pathSlice[len(pathSlice)-1]})
+
+// 	targetSubsetNode, err := targetNode.Pipe(filters...)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error finding subset node in target: %v", err)
+// 	}
+
+// 	// merge it back in?
+
+// 	var targetMap map[string]interface{}
+// 	targetNode.YNode().Decode(&targetMap)
+
+// 	return targetMap, nil
+// }
+
+// TODO: add support to add an element or map
+// func ModifyMapValue(target map[string]interface{}, path string, value interface{}) (map[string]interface{}, error) {
+// 	pathSlice, err := splitPath(path)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to split path: %v", err)
+// 	}
+
+// 	// Create a new node from the target map
+// 	targetNode, err := yaml.FromMap(target)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to create target node from map: %v", err)
+// 	}
+
+// 	filters, err := buildFilters(pathSlice)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// add a elementsetter?
 // }
 
 // ExtractMapData extracts a subset of data from a map[string]interface{} and returns it as a map[string]interface{}
@@ -110,7 +153,7 @@ func ExtractMapData(target map[string]interface{}, path string) (map[string]inte
 	}
 
 	// Build the target filters, update the target with subset data
-	filters, err := buildFilters(pathSlice)
+	filters, err := buildFilters(targetNode, pathSlice)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +176,7 @@ func setNodeAtPath(targetNode *yaml.RNode, targetSubsetNode *yaml.RNode, filters
 	// Check if the last segment is a filter, changes the behavior of the set function
 	lastSegment := pathSlice[len(pathSlice)-1]
 
-	if isFilter, _, filterParts, err := extractFilter(pathSlice[len(pathSlice)-1]); err != nil {
+	if isFilter, filterParts, err := extractFilter(pathSlice[len(pathSlice)-1]); err != nil {
 		return err
 	} else if isFilter {
 		keys := make([]string, 0)
@@ -159,30 +202,72 @@ func setNodeAtPath(targetNode *yaml.RNode, targetSubsetNode *yaml.RNode, filters
 	return targetNode.PipeE(filters...)
 }
 
-func buildFilters(pathSlice []string) ([]yaml.Filter, error) {
+// returnIndexFromComplexFilters returns the index of the node that matches the filterParts
+// e.g., [key1=value1,key2=value2], [composite.key=value], [val.key.test=bar]
+func returnIndexFromComplexFilters(targetNode *yaml.RNode, parentFilters []yaml.Filter, filterParts []filterParts) (int, error) {
+	index := -1
+
+	parentNode, err := targetNode.Pipe(parentFilters...)
+	if err != nil {
+		return index, err
+	}
+
+	if parentNode.YNode().Kind == yaml.SequenceNode {
+		nodes, err := parentNode.Elements()
+		if err != nil {
+			return index, err
+		}
+		for i, node := range nodes {
+			if nodeMatchesAllFilters(node, filterParts) {
+				index = i
+				break
+			}
+		}
+	} else {
+		return index, fmt.Errorf("expected sequence node, but got %v", parentNode.YNode().Kind)
+	}
+
+	return index, nil
+}
+
+func nodeMatchesAllFilters(node *yaml.RNode, filterParts []filterParts) bool {
+	for _, part := range filterParts {
+		if isComposite(part.key) {
+			compositeFilters := buildCompositeFilters(part.key, part.value)
+			n, err := node.Pipe(compositeFilters...)
+			if err != nil || n == nil {
+				return false
+			}
+		} else {
+			n, err := node.Pipe(yaml.MatchElement(part.key, part.value))
+			if err != nil || n == nil {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func buildFilters(targetNode *yaml.RNode, pathSlice []string) ([]yaml.Filter, error) {
 	filters := make([]yaml.Filter, 0)
 	for _, segment := range pathSlice {
-		if isFilter, fieldName, filterParts, err := extractFilter(segment); err != nil {
+		if isFilter, filterParts, err := extractFilter(segment); err != nil {
 			return nil, err
 		} else if isFilter {
-			filters = append(filters, yaml.Lookup(fieldName))
-
-			// Add the filters for each index selection schema
-			for _, part := range filterParts {
-				if isComposite(fieldName) {
-					// add the fieldMatcherFilter
-					valueRnode, err := yaml.FromMap(stringToMap(fmt.Sprintf("%s=%s", part.key, part.value)))
-					if err != nil {
-						return nil, err
-					}
-					// I think this field matcher only works for maps, not sequences...
-					filters = append(filters, yaml.FieldMatcher{
-						Name:  fieldName,
-						Value: valueRnode,
-					})
-				} else {
-					filters = append(filters, yaml.MatchElement(part.key, part.value))
+			// if it's a complex filter, e.g., [key1=value1,key2=value2] or [composite.key=value], lookup the index
+			if len(filterParts) > 1 || isComposite(filterParts[0].key) {
+				index, err := returnIndexFromComplexFilters(targetNode, filters, filterParts)
+				if err != nil {
+					return nil, err
 				}
+
+				if index == -1 {
+					return nil, fmt.Errorf("composite path not found")
+				} else {
+					filters = append(filters, yaml.GetElementByIndex(index))
+				}
+			} else {
+				filters = append(filters, yaml.MatchElement(filterParts[0].key, filterParts[0].value))
 			}
 		} else {
 			filters = append(filters, yaml.Lookup(segment))
@@ -191,30 +276,50 @@ func buildFilters(pathSlice []string) ([]yaml.Filter, error) {
 	return filters, nil
 }
 
-// extractFilter extracts the filter parts from a string
-// e.g., fieldName[key1=value1,key2=value2], fieldName[composite.key=value]
-func extractFilter(item string) (bool, string, []filterParts, error) {
-	if !isFilter(item) {
-		return false, "", []filterParts{}, nil
+func buildCompositeFilters(key, value string) []yaml.Filter {
+	path := strings.Split(key, ".")
+	compositeFilters := make([]yaml.Filter, 0, len(path))
+	if len(path) > 1 {
+		for i := 0; i < (len(path) - 1); i++ {
+			compositeFilters = append(compositeFilters, yaml.Get(path[i]))
+		}
 	}
-	segmentParts := strings.SplitN(item, "[", 2)
-	fieldName := segmentParts[0]
-	filter := strings.TrimSuffix(segmentParts[1], "]")
 
-	items := strings.Split(filter, ",")
+	compositeFilters = append(compositeFilters, yaml.MatchField(path[len(path)-1], value))
+	return compositeFilters
+}
+
+// extractFilter extracts the filter parts from a string
+// e.g., [key1=value1,key2=value2], [composite.key=value], [val.key.test=bar]
+func extractFilter(item string) (bool, []filterParts, error) {
+	if !isFilter(item) {
+		return false, []filterParts{}, nil
+	}
+	item = strings.TrimPrefix(item, "[")
+	item = strings.TrimSuffix(item, "]")
+
+	items := strings.Split(item, ",")
+	if len(items) == 0 {
+		return false, []filterParts{}, fmt.Errorf("filter is empty")
+	}
+
 	filterPartsSlice := make([]filterParts, 0, len(items))
-	for _, item := range items {
+	for _, i := range items {
+		if !strings.Contains(i, "=") {
+			return false, []filterParts{}, fmt.Errorf("filter is not in the correct format")
+		}
 		filterPartsSlice = append(filterPartsSlice, filterParts{
-			key:   strings.SplitN(item, "=", 2)[0],
-			value: strings.SplitN(item, "=", 2)[1],
+			key:   strings.SplitN(i, "=", 2)[0],
+			value: strings.SplitN(i, "=", 2)[1],
 		})
 	}
 
-	return true, fieldName, filterPartsSlice, nil
+	return true, filterPartsSlice, nil
 }
 
 func isFilter(item string) bool {
-	return strings.Contains(item, "[") && strings.Contains(item, "]")
+	// check if first and last char are [ and ]
+	return strings.HasPrefix(item, "[") && strings.HasSuffix(item, "]")
 }
 
 // splitPath splits a path by '.' into a path array and handles filters in the path
@@ -232,7 +337,7 @@ func splitPath(path string) ([]string, error) {
 	return matches, nil
 }
 
-// isComposite checks if a string is a composite string
+// isComposite checks if a string is a composite string, e.g., metadata.name
 func isComposite(input string) bool {
 	keys := strings.Split(input, ".")
 	return len(keys) > 1
