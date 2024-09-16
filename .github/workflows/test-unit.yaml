@@ -1,4 +1,4 @@
-name: E2E Testing
+name: Unit Testing
 
 permissions:
   contents: read
@@ -24,6 +24,6 @@ jobs:
     - name: Display Go version
       run: go version
       
-    - name: e2e Tests
+    - name: Unit Tests
       run: | 
-        make test-e2e
+        make test-unit
