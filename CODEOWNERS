@@ -1,23 +1,5 @@
 * @defenseunicorns/lula-dev
 
-# Docs & examples
-/adr/ @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-/docs/ @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-*.md @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-
-
-# Core code
-/src/ @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-/go.* @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-main.go @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-
-# Privileged pipeline files
-/.github/ @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-/.gitignore @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-/.goreleaser.yaml @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-/renovate.json @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-/Makefile @brandtkeller @mildwonkey @CloudBeard @meganwolf0
-
 # Additional privileged files
 /CODEOWNERS @jeff-mccoy @brandtkeller @daveworth
-/LICENSE @jeff-mccoy @brandtkeller @daveworth
+/LICENSE @jeff-mccoy @austenbryan
