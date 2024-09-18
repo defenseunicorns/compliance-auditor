@@ -73,3 +73,9 @@ func TestTemplateCommand(t *testing.T) {
 	// })
 
 }
+
+// TODO:
+// 1. Test --set for variables
+// 2. Test with env vars + config vars
+// 3. Test a type mismatch
+// 4. Test secrets

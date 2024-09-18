@@ -1,1 +1,35 @@
+
+# constants = place to define non-changing values that can be of any type
+# I think stuff here probably shouldn't be set by env vars - it's hard to be deterministic because of the character set differences, also type differences could lead to weird side effects
+# Another note about this - we could probably easily pull in values of child components if this was referenced from a system-level - so this kind of behaves a bit like help values.yaml
+constants:
+  # map[string]interface{} - elements referenced via template as {{ .const.key }}
+  type: software
+  title: lula
+  # Sample: Istio-specific values
+  istio:
+    namespace: istio-system # overriden by --set const.istio.namespace=my-istio-namespace
+  resources:
+    jsoncm: configmaps # (NOT) overriden by LULA_VAR_RESOURCES_JSONCM
+    # Problem with this is that json-cm and json_cm are different yaml keys, but would possibly reconcile to the same thing... so you're getting some side effects here that aren't great.
+    yamlcm: configmaps
+    secret: secrets
+    pod: pods
+    boolean: false  # (NOT) overriden by LULA_VAR_RESOURCES_BOOLEAN 
+    # ok how does this work when they're different types? an env var will always be a string...
+  exemptions:
+    - one
+    - two
+    - three
+
+# variables = place to define changing values of string type, and optionally sensitive values
+variables:
+  - key: some_lula_secret # set by LULA_VAR_SOME_LULA_SECRET / overriden by --set var.some_lula_secret=my-secret
+    default: blahblah  # optional
+    sensitive: true # {{ var.some_lula_secret | mask }}
+  - key: some_env_var
+    default: this-should-be-overridden
+
+# Lula config values, still accessible via LULA_*, where * is the key
 log_level: info
+target: il5

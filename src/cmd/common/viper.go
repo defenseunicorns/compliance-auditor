@@ -10,9 +10,11 @@ import (
 )
 
 const (
-	VLogLevel = "log_level"
-	VTarget   = "target"
-	VSummary  = "summary"
+	VLogLevel  = "log_level"
+	VTarget    = "target"
+	VSummary   = "summary"
+	VConstants = "constants"
+	VVariables = "variables"
 )
 
 var (
@@ -78,6 +80,8 @@ func isVersionCmd() bool {
 func setDefaults() {
 	v.SetDefault(VLogLevel, "info")
 	v.SetDefault(VSummary, false)
+	v.SetDefault(VConstants, make(map[string]interface{}))
+	v.SetDefault(VVariables, make([]interface{}, 0))
 }
 
 func printViperConfigUsed() {
