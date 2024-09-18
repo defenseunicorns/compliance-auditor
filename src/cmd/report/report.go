@@ -34,7 +34,13 @@ var opts = &flags{}
 
 var reportHelp = `
 To create a new report:
-lula report -f oscal-component-definition.yaml -o report.yaml
+lula report -f oscal-component-definition.yaml
+
+To create a new report in json format:
+lula report -f oscal-component-definition.yaml --file-format json
+
+To create a new report in yaml format:
+lula report -f oscal-component-definition.yaml --file-format yaml
 `
 
 var reportCmd = &cobra.Command{
@@ -44,48 +50,42 @@ var reportCmd = &cobra.Command{
 	Short:   "Build a compliance report",
 	Example: reportHelp,
 	Run: func(_ *cobra.Command, args []string) {
-		if opts.InputFile == "" {
-			message.Fatal(errors.New("flag input-file is not set"),
-				"Please specify an input file with the -f flag")
-		}
-
-		spinner := message.NewProgressSpinner("Fetching or reading file %s", opts.InputFile)
-		getOSCALModelsFile, err := fetchOrReadFile(opts.InputFile)
+		// Call the core logic for generating the report
+		err := GenerateReport(opts.InputFile, opts.FileFormat)
 		if err != nil {
-			spinner.Fatalf(err, "Failed to get OSCAL file")
-		}
-		spinner.Success()
-
-		spinner = message.NewProgressSpinner("Reading OSCAL model from file")
-		oscalModels, err := readOSCALModel(getOSCALModelsFile)
-		if err != nil {
-			spinner.Fatalf(err, "Failed to get OSCAL Model data")
-		}
-		spinner.Success()
-
-		spinner = message.NewProgressSpinner("Determining OSCAL model type")
-		modelType, err := determineOSCALModel(oscalModels)
-		if err != nil {
-			spinner.Fatalf(err, "Unable to determine OSCAL model type")
-		}
-		spinner.Success()
-
-		spinner = message.NewProgressSpinner("Generating report")
-		var reportModelErr error
-		switch modelType {
-		case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "plan-of-action-and-milestones":
-			message.Warnf("Reporting does not create reports for %s at this time", modelType)
-		case "component-definition":
-			reportModelErr = handleComponentDefinition(oscalModels.ComponentDefinition, opts.FileFormat)
-		default:
-			spinner.Fatalf(fmt.Errorf("unknown OSCAL model type: %s", modelType), "Failed to process OSCAL file")
-		}
-		spinner.Success()
-
-		if reportModelErr != nil {
-			message.Fatal(reportModelErr, "Failed to create report")
+			message.Fatal(err, "error running report")
 		}
 	},
+}
+
+// Runs the logic of report generation
+func GenerateReport(inputFile string, fileFormat string) error {
+	spinner := message.NewProgressSpinner("Fetching or reading file %s", inputFile)
+	getOSCALModelsFile, err := fetchOrReadFile(inputFile)
+	if err != nil {
+		spinner.Fatalf(fmt.Errorf("failed to get OSCAL file: %v", err), "failed to get OSCAL file")
+	}
+	spinner.Success()
+
+	spinner = message.NewProgressSpinner("Reading OSCAL model from file")
+	oscalModels, err := readOSCALModel(getOSCALModelsFile)
+	if err != nil {
+		spinner.Fatalf(fmt.Errorf("failed to read OSCAL Model data: %v", err), "failed to read OSCAL Model")
+	}
+	spinner.Success()
+
+	spinner = message.NewProgressSpinner("Determining OSCAL model type")
+	modelType, err := determineOSCALModel(oscalModels)
+	if err != nil {
+		spinner.Fatalf(fmt.Errorf("unable to determine OSCAL model type: %v", err), "unable to determine OSCAL model type")
+	}
+	spinner.Success()
+
+	err = handleOSCALModel(oscalModels, modelType, fileFormat)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func ReportCommand() *cobra.Command {
@@ -96,7 +96,8 @@ func ReportCommand() *cobra.Command {
 func reportFlags() {
 	reportFlags := reportCmd.PersistentFlags()
 	reportFlags.StringVarP(&opts.InputFile, "input-file", "f", "", "Path to an OSCAL file")
-	reportFlags.StringVar(&opts.FileFormat, "file-format", "table", "File format of output file")
+	reportFlags.StringVar(&opts.FileFormat, "file-format", "table", "File format of the report")
+	reportCmd.MarkPersistentFlagRequired("input-file")
 }
 
 func fetchOrReadFile(source string) ([]byte, error) {
@@ -105,7 +106,7 @@ func fetchOrReadFile(source string) ([]byte, error) {
 		defer spinner.Stop()
 		data, err := network.Fetch(source)
 		if err != nil {
-			spinner.Fatalf(err, "Failed to fetch data from URL")
+			spinner.Fatalf(err, "failed to fetch data from URL")
 		}
 		spinner.Success()
 		return data, nil
@@ -114,7 +115,7 @@ func fetchOrReadFile(source string) ([]byte, error) {
 	defer spinner.Stop()
 	data, err := os.ReadFile(source)
 	if err != nil {
-		spinner.Fatalf(err, "Failed to read file")
+		spinner.Fatalf(err, "failed to read file")
 	}
 	spinner.Success()
 	return data, nil
@@ -154,6 +155,38 @@ func determineOSCALModel(oscalModels oscalTypes_1_1_2.OscalModels) (string, erro
 	default:
 		return "", fmt.Errorf("unable to determine OSCAL model type")
 	}
+}
+
+// Processes an OSCAL Model based on the model type
+func handleOSCALModel(oscalModels oscalTypes_1_1_2.OscalModels, modelType string, format string) error {
+    // Start a new spinner for the report generation process
+    spinner := message.NewProgressSpinner("Processing OSCAL model type: %s", modelType)
+    defer spinner.Stop() // Ensure the spinner stops even if an error occurs
+
+    switch modelType {
+    case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "plan-of-action-and-milestones":
+        // If the model type is not supported, stop the spinner with a warning
+        spinner.Warnf("reporting does not create reports for %s at this time", modelType)
+        return fmt.Errorf("reporting does not create reports for %s at this time", modelType)
+
+    case "component-definition":
+        // Process the component-definition model
+        err := handleComponentDefinition(oscalModels.ComponentDefinition, format)
+        if err != nil {
+            // If an error occurs, stop the spinner and display the error
+            spinner.Fatalf(err, "failed to process component-definition model")
+            return err
+        }
+
+    default:
+        // For unknown model types, stop the spinner with a failure
+        spinner.Fatalf(fmt.Errorf("unknown OSCAL model type: %s", modelType), "failed to process OSCAL file")
+        return fmt.Errorf("unknown OSCAL model type: %s", modelType)
+    }
+
+    spinner.Success()
+    message.Info(fmt.Sprintf("Successfully processed OSCAL model: %s", modelType))
+    return nil
 }
 
 // Handler for Component Definition OSCAL files to create the report
