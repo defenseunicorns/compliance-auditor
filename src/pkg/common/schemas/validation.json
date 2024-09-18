@@ -238,11 +238,18 @@
                     "description": "Resource type (API-recognized type, not Kind)"
                 },
                 "namespaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "Namespaces to validate the above resources in. Empty or \"\" for all namespace or non-namespaced resources. Required if name is specified"
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Namespaces to validate the above resources in. Empty or \"\" for all namespace or non-namespaced resources. Required if name is specified for namespaced resources"
                 },
                 "field": {
                     "$ref": "#/definitions/field"
@@ -402,13 +409,22 @@
                     "type": "object",
                     "properties": {
                         "validation": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "optional: variable for validation, must be jsonpath <package>.<variable-path> and resolve to boolean"
                         },
                         "observations": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "oneOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "optional: any additional observations to include, fields must be jsonpath <package>.<variable-path> and resolve to strings"
                         }
                     }
                 }

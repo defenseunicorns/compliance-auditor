@@ -4,7 +4,10 @@
     "dictionaryDefinitions": [],
     "dictionaries": [],
     "words": [
-        "OSCAL"
+        "fips",
+        "OSCAL",
+        "POAM",
+        "templating"
     ],
     "ignoreWords": [],
     "import": []

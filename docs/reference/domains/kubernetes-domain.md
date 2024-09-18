@@ -22,7 +22,7 @@ domain:
         group:                          # Optional - empty or "" for core group
         version: v1                     # Required - Version of resource
         resource: pods                  # Required - Resource type (API-recognized type, not Kind)
-        namespaces: [validation-test]   # Optional - Namespaces to validate the above resources in. Empty or "" for all namespace pr non-namespaced resources
+        namespaces: [validation-test]   # Optional - Namespaces to validate the above resources in. Empty or "" for all namespace or non-namespaced resources
         field:                          # Optional - Field to grab in a resource if it is in an unusable type, e.g., string json data. Must specify named resource to use.
           jsonpath:                     # Required - Jsonpath specifier of where to find the field from the top level object
           type:                         # Optional - Accepts "json" or "yaml". Default is "json".
@@ -68,7 +68,7 @@ domain:
 
 ## Lists vs Named Resource
 
-When Lula retrieves all targeted resources (bounded by namespace when applicable), the payload is a list of resources. When a resource Name is specified - with a target Namespace - the payload will be a single object. 
+When Lula retrieves all targeted resources (bounded by namespace when applicable), the payload is a list of resources. When a resource Name is specified - the payload will be a single object. 
 
 ### Example
 
@@ -131,6 +131,29 @@ provider:
 
 > [!IMPORTANT]
 > Note how the rego now evaluates a single object called `podvt`. This is the name of the resource that is being validated.
+
+We can also retrieve a single cluster-scoped resource as follows, where the rego evaluates a single object called `namespaceVt`.
+
+```yaml
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: namespaceVt
+      resource-rule:
+        name: validation-test
+        version: v1
+        resource: namespaces
+provider: 
+  type: opa
+  opa-spec:  
+    rego: |
+      package validate
+
+      validate {
+        input.namespaceVt.metadata.name == "validation-test"
+      }
+```
 
 ## Extracting Resource Field Data
 Many of the tool-specific configuration data is stored as json or yaml text inside configmaps and secrets. Some valuable data may also be stored in json or yaml strings in other resource locations, such as annotations. The `field` parameter of the `resource-rule` allows this data to be extracted and used by the Rego.

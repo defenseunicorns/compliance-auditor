@@ -185,7 +185,7 @@ func TestComponentFromCatalog(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := oscal.ComponentFromCatalog(tt.source, &tt.data, tt.title, tt.requirements, tt.remarks)
+			got, err := oscal.ComponentFromCatalog("Mock Command", tt.source, &tt.data, tt.title, tt.requirements, tt.remarks, "impact")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ComponentFromCatalog() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -299,7 +299,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 				existingImplementedRequirementsMap[req.ControlId] = true
 			}
 
-			generated, _ := oscal.ComponentFromCatalog(tt.source, catalog, tt.title, tt.requirements, tt.remarks)
+			generated, _ := oscal.ComponentFromCatalog("Mock Command", tt.source, catalog, tt.title, tt.requirements, tt.remarks, "impact")
 
 			merged, err := oscal.MergeComponentDefinitions(validComponent, generated)
 			if (err != nil) != tt.wantErr {
@@ -558,4 +558,22 @@ func TestFilterControlImplementations(t *testing.T) {
 
 		})
 	}
+}
+
+func TestNewComponentFrameworks(t *testing.T) {
+	t.Parallel()
+	validBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-multi-component.yaml")
+	validComponent, _ := oscal.NewOscalComponentDefinition(validBytes)
+
+	t.Run("It populates a componentFrameworks map", func(t *testing.T) {
+		componentFrameworks := oscal.NewComponentFrameworks(validComponent)
+		if len(componentFrameworks) != 2 {
+			t.Errorf("Expected 2 componentFrameworks, got %v", len(componentFrameworks))
+		}
+		for _, c := range componentFrameworks {
+			if len(c.Frameworks) != 4 {
+				t.Errorf("Expected 4 targets in each framework, got %v", len(c.Frameworks))
+			}
+		}
+	})
 }

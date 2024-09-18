@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -27,36 +28,37 @@ To compose an OSCAL Model:
 To indicate a specific output file:
 	lula tools compose -f ./oscal-component.yaml -o composed-oscal-component.yaml
 `
+var composeCmd = &cobra.Command{
+	Use:     "compose",
+	Short:   "compose an OSCAL component definition",
+	Long:    "Lula Composition of an OSCAL component definition. Used to compose remote validations within a component definition in order to resolve any references for portability.",
+	Example: composeHelp,
+	Run: func(cmd *cobra.Command, args []string) {
+		composeSpinner := message.NewProgressSpinner("Composing %s", composeOpts.InputFile)
+		defer composeSpinner.Stop()
+
+		if composeOpts.InputFile == "" {
+			message.Fatal(errors.New("flag input-file is not set"),
+				"Please specify an input file with the -f flag")
+		}
+
+		outputFile := composeOpts.OutputFile
+		if outputFile == "" {
+			outputFile = GetDefaultOutputFile(composeOpts.InputFile)
+		}
+
+		err := Compose(composeOpts.InputFile, outputFile)
+		if err != nil {
+			message.Fatalf(err, "Composition error: %s", err)
+		}
+
+		message.Infof("Composed OSCAL Component Definition to: %s", outputFile)
+		composeSpinner.Success()
+	},
+}
 
 func init() {
-	composeCmd := &cobra.Command{
-		Use:     "compose",
-		Short:   "compose an OSCAL component definition",
-		Long:    "Lula Composition of an OSCAL component definition. Used to compose remote validations within a component definition in order to resolve any references for portability.",
-		Example: composeHelp,
-		Run: func(cmd *cobra.Command, args []string) {
-			composeSpinner := message.NewProgressSpinner("Composing %s", composeOpts.InputFile)
-			defer composeSpinner.Stop()
-
-			if composeOpts.InputFile == "" {
-				message.Fatal(errors.New("flag input-file is not set"),
-					"Please specify an input file with the -f flag")
-			}
-
-			outputFile := composeOpts.OutputFile
-			if outputFile == "" {
-				outputFile = GetDefaultOutputFile(composeOpts.InputFile)
-			}
-
-			err := Compose(composeOpts.InputFile, outputFile)
-			if err != nil {
-				message.Fatalf(err, "Composition error: %s", err)
-			}
-
-			message.Infof("Composed OSCAL Component Definition to: %s", outputFile)
-			composeSpinner.Success()
-		},
-	}
+	common.InitViper()
 
 	toolsCmd.AddCommand(composeCmd)
 

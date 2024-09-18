@@ -5,19 +5,17 @@ import (
 	"fmt"
 	"io/fs"
 	"strings"
-	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/model"
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
-	validationResult "github.com/defenseunicorns/lula/src/pkg/common/validation-result"
-	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 //go:embed *.json
 var Schemas embed.FS
 
 const (
-	SCHEMA_SUFFIX = ".json"
+	SCHEMA_SUFFIX      = ".json"
+	SCHEMA_PATH_PREFIX = "https://github.com/defenseunicorns/lula/tree/main/src/pkg/schemas/"
 )
 
 func PrefixSchema(path string) string {
@@ -25,6 +23,10 @@ func PrefixSchema(path string) string {
 		path = path + SCHEMA_SUFFIX
 	}
 	return path
+}
+
+func GetSchemaPath(schemaName string) string {
+	return SCHEMA_PATH_PREFIX + schemaName + SCHEMA_SUFFIX
 }
 
 // HasSchema checks if a schema exists in the schemas directory
@@ -75,46 +77,29 @@ func GetSchema(path string) ([]byte, error) {
 }
 
 func Validate(schema string, data model.InterfaceOrBytes) oscalValidation.ValidationResult {
-
-	jsonMap, err := model.CoerceToJsonMap(data)
-	if err != nil {
-		return validationResult.NewNonSchemaValidationError(err, "validation")
+	validationParams := &oscalValidation.ValidationParams{
+		ModelType: schema,
 	}
 
 	schemaBytes, err := GetSchema(schema)
 	if err != nil {
-		return validationResult.NewNonSchemaValidationError(err, "validation")
+		return *oscalValidation.NewNonSchemaValidationError(err, validationParams)
 	}
-
-	sch, err := jsonschema.CompileString(schema, string(schemaBytes))
+	schemaData, err := model.CoerceToJsonMap(schemaBytes)
 	if err != nil {
-		return validationResult.NewNonSchemaValidationError(err, "validation")
+		return *oscalValidation.NewNonSchemaValidationError(err, validationParams)
 	}
 
-	err = sch.Validate(jsonMap)
+	modelData, err := model.CoerceToJsonMap(data)
 	if err != nil {
-		// If the error is not a validation error, return the error
-		validationErr, ok := err.(*jsonschema.ValidationError)
-		if !ok {
-			return validationResult.NewNonSchemaValidationError(err, "validation")
-		}
+		return *oscalValidation.NewNonSchemaValidationError(err, validationParams)
+	}
 
-		// Extract the specific errors from the schema error
-		// Return the errors as a string
-		basicOutput := validationErr.BasicOutput()
-		basicErrors := oscalValidation.ExtractErrors(jsonMap, basicOutput)
-		return oscalValidation.ValidationResult{
-			Valid:     false,
-			TimeStamp: time.Now(),
-			Errors:    basicErrors,
-		}
-	}
-	return oscalValidation.ValidationResult{
-		Valid:     true,
-		TimeStamp: time.Now(),
-		Errors:    []oscalValidation.ValidatorError{},
-		Metadata: oscalValidation.ValidationResultMetadata{
-			DocumentType: "validation",
-		},
-	}
+	validationParams.SchemaData = schemaData
+	validationParams.SchemaPath = GetSchemaPath(schema)
+	validationParams.ModelData = modelData
+
+	result, _ := oscalValidation.ValidateFromParams(validationParams)
+
+	return *result
 }
