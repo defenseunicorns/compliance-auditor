@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.1
 	github.com/charmbracelet/lipgloss v0.13.0
-	github.com/charmbracelet/x/exp/teatest v0.0.0-20240913162256-9ef7ff40e654
+	github.com/charmbracelet/x/exp/teatest v0.0.0-20240918160051-227168dc0568
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/defenseunicorns/pkg/helpers v1.1.3
 	github.com/hashicorp/go-version v1.7.0
