@@ -1,10 +1,13 @@
 package template
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 const (
@@ -13,36 +16,82 @@ const (
 	VAR    = "var"
 )
 
-func createTemplate() *template.Template {
-	// Register custom template functions
-	funcMap := template.FuncMap{
-		"concatToRegoList": func(a []any) string {
-			return concatToRegoList(a)
-		},
-		"mask": func(a string) string {
-			return "********"
-		},
-		// Add more custom functions as needed
-	}
+type RenderType string
 
-	// Parse the template and apply the function map
-	tpl := template.New("template").Funcs(funcMap)
-	tpl.Option("missingkey=zero")
-	return tpl
+const (
+	MASKED       RenderType = "masked"
+	CONSTANTS    RenderType = "constants"
+	NONSENSITIVE RenderType = "non-sensitive"
+	ALL          RenderType = "all"
+)
+
+type TemplateRenderer struct {
+	tpl            *template.Template
+	TemplateString string
+	*TemplateData
+	RenderType
+}
+
+func NewTemplateRenderer(templateString string, renderType RenderType, templateData *TemplateData) *TemplateRenderer {
+	return &TemplateRenderer{
+		tpl:            createTemplate(),
+		TemplateString: templateString,
+		RenderType:     renderType,
+		TemplateData:   templateData,
+	}
+}
+
+func (r *TemplateRenderer) SetRenderType(t RenderType) {
+	r.RenderType = t
+}
+
+func (r *TemplateRenderer) Render() ([]byte, error) {
+	switch r.RenderType {
+	case MASKED:
+		return r.ExecuteMaskedTemplate()
+	case CONSTANTS:
+		return r.ExecuteConstTemplate()
+	case NONSENSITIVE:
+		return r.ExecuteNonSensitiveTemplate()
+	case ALL:
+		return r.ExecuteFullTemplate()
+	default:
+		return r.ExecuteMaskedTemplate()
+	}
+}
+
+type TemplateData struct {
+	Constants          map[string]interface{}
+	Variables          map[string]string
+	SensitiveVariables map[string]string
+}
+
+func NewTemplateData() *TemplateData {
+	return &TemplateData{
+		Constants:          make(map[string]interface{}),
+		Variables:          make(map[string]string),
+		SensitiveVariables: make(map[string]string),
+	}
+}
+
+type VariableConfig struct {
+	Key       string
+	Default   string
+	Sensitive bool
 }
 
 // ExecuteFullTemplate templates everything
-func ExecuteFullTemplate(templateData *TemplateData, templateString string) ([]byte, error) {
-	tpl := createTemplate()
-	tpl, err := tpl.Parse(templateString)
+func (r *TemplateRenderer) ExecuteFullTemplate() ([]byte, error) {
+	templateString := r.TemplateString
+	tpl, err := r.tpl.Parse(templateString)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var buffer strings.Builder
-	allVars := MergeStringMaps(templateData.Variables, templateData.SensitiveVariables)
+	allVars := concatStringMaps(r.TemplateData.Variables, r.TemplateData.SensitiveVariables)
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: templateData.Constants,
+		CONST: r.TemplateData.Constants,
 		VAR:   allVars})
 	if err != nil {
 		return []byte{}, err
@@ -53,20 +102,19 @@ func ExecuteFullTemplate(templateData *TemplateData, templateString string) ([]b
 
 // ExecuteConstTemplate templates only constants
 // this templates only values in the constants map
-func ExecuteConstTemplate(constants map[string]interface{}, templateString string) ([]byte, error) {
+func (r *TemplateRenderer) ExecuteConstTemplate() ([]byte, error) {
 	// Find anything {{ var.KEY }} and replace with {{ "{{ var.KEY }}" }}
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
-	templateString = re.ReplaceAllString(templateString, "{{ \"{{ ."+VAR+".$1 }}\" }}")
+	templateString := re.ReplaceAllString(r.TemplateString, "{{ \"{{ ."+VAR+".$1 }}\" }}")
 
-	tpl := createTemplate()
-	tpl, err := tpl.Parse(templateString)
+	tpl, err := r.tpl.Parse(templateString)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var buffer strings.Builder
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: constants})
+		CONST: r.TemplateData.Constants})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -76,46 +124,27 @@ func ExecuteConstTemplate(constants map[string]interface{}, templateString strin
 
 // ExecuteNonSensitiveTemplate templates only constants and non-sensitive variables
 // used for compose operations
-func ExecuteNonSensitiveTemplate(templateData *TemplateData, templateString string) ([]byte, error) {
+func (r *TemplateRenderer) ExecuteNonSensitiveTemplate() ([]byte, error) {
 	// Find any sensitive keys {{ var.KEY }}, where KEY is in templateData.SensitiveVariables and replace with {{ "{{ var.KEY }}" }}
+	templateString := r.TemplateString
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
-	varMatches := re.FindStringSubmatch(templateString)
-	for _, m := range varMatches {
-		if _, ok := templateData.SensitiveVariables[m]; ok {
-			reSensitive := regexp.MustCompile(`{{\s*\.` + VAR + `\.` + m + `\s*}}`)
-			templateString = reSensitive.ReplaceAllString(templateString, "{{ \"{{ ."+VAR+"."+m+" }}\" }}")
+	varMatches := re.FindAllStringSubmatch(templateString, -1)
+	uniqueMatches := returnUniqueMatches(varMatches, 1)
+	for k, matches := range uniqueMatches {
+		if _, ok := r.TemplateData.SensitiveVariables[matches[0]]; ok {
+			templateString = strings.ReplaceAll(templateString, k, "{{ \""+k+"\" }}")
 		}
 	}
 
-	tpl := createTemplate()
-	tpl, err := tpl.Parse(templateString)
+	tpl, err := r.tpl.Parse(templateString)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var buffer strings.Builder
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: templateData.Constants,
-		VAR:   templateData.Variables})
-	if err != nil {
-		return []byte{}, err
-	}
-
-	return []byte(buffer.String()), nil
-}
-
-// ExecuteSensitiveTemplate templates the sensitive variables
-// for use immediately before validation, after non-sensitive data is templated, results should not be written
-func ExecuteSensitiveTemplate(templateData *TemplateData, templateString string) ([]byte, error) {
-	tpl := createTemplate()
-	tpl, err := tpl.Parse(templateString)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	var buffer strings.Builder
-	err = tpl.Execute(&buffer, map[string]interface{}{
-		VAR: templateData.SensitiveVariables})
+		CONST: r.TemplateData.Constants,
+		VAR:   r.TemplateData.Variables})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -125,28 +154,27 @@ func ExecuteSensitiveTemplate(templateData *TemplateData, templateString string)
 
 // ExecuteMaskedTemplate templates all values, but masks the sensitive ones
 // for display/printing only
-func ExecuteMaskedTemplate(templateData *TemplateData, templateString string) ([]byte, error) {
+func (r *TemplateRenderer) ExecuteMaskedTemplate() ([]byte, error) {
 	// Find any sensitive keys {{ var.KEY }}, where KEY is in templateData.SensitiveVariables and replace with {{ var.KEY | mask }}
+	templateString := r.TemplateString
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
-	varMatches := re.FindStringSubmatch(templateString)
-	for _, m := range varMatches {
-		if _, ok := templateData.SensitiveVariables[m]; ok {
-			reSensitive := regexp.MustCompile(`{{\s*\.` + VAR + `\.` + m + `\s*}}`)
-			templateString = reSensitive.ReplaceAllString(templateString, "{{ ."+VAR+"."+m+" | mask }}")
+	varMatches := re.FindAllStringSubmatch(templateString, -1)
+	uniqueMatches := returnUniqueMatches(varMatches, 1)
+	for k, matches := range uniqueMatches {
+		if _, ok := r.TemplateData.SensitiveVariables[matches[0]]; ok {
+			templateString = strings.ReplaceAll(templateString, k, "********")
 		}
 	}
 
-	tpl := createTemplate()
-	tpl, err := tpl.Parse(templateString)
+	tpl, err := r.tpl.Parse(templateString)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var buffer strings.Builder
-	allVars := MergeStringMaps(templateData.Variables, templateData.SensitiveVariables)
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: templateData.Constants,
-		VAR:   allVars})
+		CONST: r.TemplateData.Constants,
+		VAR:   r.TemplateData.Variables})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -155,19 +183,22 @@ func ExecuteMaskedTemplate(templateData *TemplateData, templateString string) ([
 }
 
 // Prepare the templateData object for use in templating
-func CollectTemplatingData(constants map[string]interface{}, variables []VariableConfig) *TemplateData {
+func CollectTemplatingData(constants map[string]interface{}, variables []VariableConfig, overrides map[string]string) (*TemplateData, error) {
 	// Create the TemplateData object from the constants and variables
 	templateData := NewTemplateData()
+
+	// check for invalid characters in keys
+	err := checkForInvalidKeys(constants, variables)
+	if err != nil {
+		return templateData, err
+	}
+
 	templateData.Constants = constants
 	for _, variable := range variables {
-		// convert '-' to '_' in the key and remove any special characters
-		variable.Key = strings.ReplaceAll(variable.Key, "-", "_")
-		re := regexp.MustCompile(`[^a-zA-Z0-9_]`)
-		variable.Key = re.ReplaceAllString(variable.Key, "")
-
-		templateData.Variables[variable.Key] = variable.Default
 		if variable.Sensitive {
 			templateData.SensitiveVariables[variable.Key] = variable.Default
+		} else {
+			templateData.Variables[variable.Key] = variable.Default
 		}
 	}
 
@@ -175,10 +206,27 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 	envMap := GetEnvVars(PREFIX)
 
 	// Update the templateData with the environment variables overrides
-	templateData.Variables = MergeStringMaps(templateData.Variables, envMap)
-	templateData.SensitiveVariables = MergeStringMaps(templateData.SensitiveVariables, envMap)
+	templateData.Variables = mergeStringMaps(templateData.Variables, envMap)
+	templateData.SensitiveVariables = mergeStringMaps(templateData.SensitiveVariables, envMap)
 
-	return templateData
+	// Apply overrides
+	overrideTemplateValues(templateData, overrides)
+
+	// Validate that all env vars have values - currently debug prints missing env vars (do we want to return an error?)
+	var variablesMissing strings.Builder
+	for k, v := range templateData.Variables {
+		if v == "" {
+			variablesMissing.WriteString(fmt.Sprintf("variable %s is missing a value;\n", k))
+		}
+	}
+	for k, v := range templateData.SensitiveVariables {
+		if v == "" {
+			variablesMissing.WriteString(fmt.Sprintf("sensitive variable %s is missing a value;\n", k))
+		}
+	}
+	message.Debugf(variablesMissing.String())
+
+	return templateData, nil
 }
 
 // get all environment variables with the established prefix
@@ -210,10 +258,46 @@ func GetEnvVars(prefix string) map[string]string {
 	return envMap
 }
 
-// MergeStringMaps merges two maps of strings into a single map of strings.
-// m2 will overwrite m1 if a key exists in both maps.
-func MergeStringMaps(m1, m2 map[string]string) map[string]string {
+// createTemplate creates a new template object
+func createTemplate() *template.Template {
+	// Register custom template functions
+	funcMap := template.FuncMap{
+		"concatToRegoList": func(a []any) string {
+			return concatToRegoList(a)
+		},
+		// Add more custom functions as needed
+	}
+
+	// Parse the template and apply the function map
+	tpl := template.New("template").Funcs(funcMap)
+	tpl.Option("missingkey=error")
+
+	return tpl
+}
+
+// mergeStringMaps merges two maps of strings into a single map of strings.
+// m2 will overwrite m1 if a key exists in both maps, similar to left-join operation
+func mergeStringMaps(m1, m2 map[string]string) map[string]string {
 	r := map[string]string{}
+
+	for key, value := range m1 {
+		r[key] = value
+	}
+
+	for key, value := range m2 {
+		// only add the key if it does exist in r
+		if _, ok := r[key]; ok {
+			r[key] = value
+		}
+	}
+
+	return r
+}
+
+// concatStringMaps concatenates two maps of strings into a single map of strings.
+// m2 will overwrite m1 if a key exists in both maps
+func concatStringMaps(m1, m2 map[string]string) map[string]string {
+	r := make(map[string]string)
 
 	for key, value := range m1 {
 		r[key] = value
@@ -222,6 +306,101 @@ func MergeStringMaps(m1, m2 map[string]string) map[string]string {
 	for key, value := range m2 {
 		r[key] = value
 	}
-
 	return r
+}
+
+// returnUniqueMatches returns a slice of unique matches from a slice of strings
+func returnUniqueMatches(matches [][]string, captures int) map[string][]string {
+	uniqueMatches := make(map[string][]string)
+	for _, match := range matches {
+		fullMatch := match[0]
+		if _, exists := uniqueMatches[fullMatch]; !exists {
+			uniqueMatches[fullMatch] = match[captures:]
+		}
+	}
+	return uniqueMatches
+}
+
+// checkForInvalidKeys checks for invalid characters in keys for go text/template
+// cannot contain '-' or '.'
+func checkForInvalidKeys(constants map[string]interface{}, variables []VariableConfig) error {
+	var errors strings.Builder
+
+	containsInvalidChars := func(key string) {
+		if strings.Contains(key, "-") {
+			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
+		}
+		if strings.Contains(key, ".") {
+			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
+		}
+	}
+
+	// check for invalid characters in keys, recursively through constants
+	var validateKeys func(m map[string]interface{})
+	validateKeys = func(m map[string]interface{}) {
+		for key, value := range m {
+			containsInvalidChars(key)
+			if nestedMap, ok := value.(map[string]interface{}); ok {
+				validateKeys(nestedMap)
+			}
+		}
+	}
+
+	validateKeys(constants)
+
+	// check for invalid characters in keys in variables
+	for _, variable := range variables {
+		containsInvalidChars(variable.Key)
+	}
+
+	if errors.Len() > 0 {
+		return fmt.Errorf(errors.String()[:len(errors.String())-1])
+	}
+
+	return nil
+}
+
+// overrideTemplateValues overrides values in the templateData object with values from the overrides map
+func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) {
+	for path, value := range overrides {
+		// for each key, check if .var or .const
+		// if .var, set the value in the templateData.Variables or templateData.SensitiveVariables
+		// if .const, set the value in the templateData.Constants
+		if strings.HasPrefix(path, "."+VAR+".") {
+			key := strings.TrimPrefix(path, "."+VAR+".")
+
+			if _, ok := templateData.SensitiveVariables[key]; ok {
+				templateData.SensitiveVariables[key] = value
+			} else {
+				templateData.Variables[key] = value
+			}
+		} else if strings.HasPrefix(path, "."+CONST+".") {
+			// Set the value in the templateData.Constants
+			key := strings.TrimPrefix(path, "."+CONST+".")
+			setNestedValue(templateData.Constants, key, value)
+		}
+	}
+}
+
+// Helper function to set a value in a map based on a JSON-like key path
+// Only supports basic map path (root.key.subkey)
+func setNestedValue(m map[string]interface{}, path string, value interface{}) error {
+	keys := strings.Split(path, ".")
+	lastKey := keys[len(keys)-1]
+
+	// Traverse the map, creating intermediate maps if necessary
+	for _, key := range keys[:len(keys)-1] {
+		if _, exists := m[key]; !exists {
+			m[key] = make(map[string]interface{})
+		}
+		if nestedMap, ok := m[key].(map[string]interface{}); ok {
+			m = nestedMap
+		} else {
+			return fmt.Errorf("path %s contains a non-map value", key)
+		}
+	}
+
+	// Set the final value
+	m[lastKey] = value
+	return nil
 }

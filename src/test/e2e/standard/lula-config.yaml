@@ -1,33 +1,20 @@
-
-# If we had remote variables, e.g., co-located with the oscal data, are those automatically pulled in? and what is the override mechanism? Probably the system overrides the components... really this is just like re-hashing helm charts with values.yaml...
-# If we wanted to move the validations to be CRDs at some point, this could give us a leg-up...
-
-# I think stuff here maybe shouldn't be set by env vars - as described it's hard to be deterministic
 constants:
-# since this field can take anything, even list data, there's not really a good mechanism for validating the data
   type: software
   title: lula
-  # Example: Istio-specific values
-  istio:
-    namespace: istio-system # overriden by --set const.istio.namespace=my-istio-namespace
+
   resources:
-    jsoncm: configmaps # overriden by LULA_VAR_RESOURCES_JSONCM
-    # Problem with this is that json-cm and json_cm are different yaml keys, but would possibly reconcile to the same thing... so you're getting some side effects here that aren't great.
-    yamlcm: configmaps
-    secret: secrets
-    pod: pods
-    boolean: false  # overriden by LULA_VAR_RESOURCES_BOOLEAN 
-    # ok how does this work when they're different types? an env var will always be a string...
-# how to handle "set"
+    name: test-pod-label
+    namespace: validation-test
+    exemptions:
+      - one
+      - two
+      - three
 
-# string only variables, basically just from env vars
-# the way zarf does this is they have to be defined here to be available, I believe
 variables:
-  - key: some_lula_secret # LULA_VAR_SOME_LULA_SECRET? # overriden by --set var.some_lula_secret=my-secret
-    default: blahblah  # optional
-    sensitive: true # {{ var.some_lula_secret }} -> look-up
+  - key: some_lula_secret
+    sensitive: true 
   - key: some_env_var
+    default: this-should-be-overridden
 
-# Lula config values
 log_level: info
 target: il5
