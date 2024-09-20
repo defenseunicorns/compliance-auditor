@@ -8,7 +8,7 @@ To view an OSCAL Component Definition model in the Console:
 ```shell
 lula console -f /path/to/oscal-component.yaml
 ```
-The `oscal-component.yaml` will need to be a valid OSCAL model - to use with the Component Definition view, it must contain the `component-definition`.
+The `oscal-component.yaml` will need to be a valid OSCAL model - to use with the Component Definition view, it must contain the `component-definition` top level key.
 
 ## Keys
 

@@ -48,10 +48,6 @@ var consoleCmd = &cobra.Command{
 		// TODO: need to integrate with the log file handled by messages
 		var dumpFile *os.File
 		if message.GetLogLevel() == message.DebugLevel {
-			// f, err := tea.LogToFile("debug.log", "debug")
-			// if err != nil {
-			// 	message.Fatalf(err, err.Error())
-			// }
 			dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 			if err != nil {
 				message.Fatalf(err, err.Error())
