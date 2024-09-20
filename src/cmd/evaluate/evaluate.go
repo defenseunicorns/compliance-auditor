@@ -53,12 +53,12 @@ var evaluateCmd = &cobra.Command{
 }
 
 func init() {
-	common.InitViper()
+	v := common.InitViper()
 
 	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
 	evaluateCmd.MarkFlagRequired("input-file")
-	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", "", "the specific control implementations or framework to validate against")
-	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", false, "Print a summary of the evaluation")
+	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
+	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", v.GetBool(common.VSummary), "Print a summary of the evaluation")
 }
 
 func EvaluateCommand() *cobra.Command {

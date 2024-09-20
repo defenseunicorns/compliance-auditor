@@ -38,5 +38,5 @@ lula completion powershell [flags]
 
 ### SEE ALSO
 
-* [lula completion](/cli/cli-commands/lula_completion/)	 - Generate the autocompletion script for the specified shell
+* [lula completion](./lula_completion.md)	 - Generate the autocompletion script for the specified shell
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -55,6 +56,12 @@ func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err erro
 	} else {
 		resource.UUID = uuid.NewUUID()
 	}
+	// If the provider is opa, trim whitespace from the rego
+	if v.Provider != nil && v.Provider.OpaSpec != nil {
+		re := regexp.MustCompile(`[ \t]+\r?\n`)
+		v.Provider.OpaSpec.Rego = re.ReplaceAllString(v.Provider.OpaSpec.Rego, "\n")
+	}
+
 	validationBytes, err := v.MarshalYaml()
 	if err != nil {
 		return nil, err

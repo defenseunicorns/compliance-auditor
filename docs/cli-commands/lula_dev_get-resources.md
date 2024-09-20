@@ -52,5 +52,5 @@ To hang for timeout of 5 seconds:
 
 ### SEE ALSO
 
-* [lula dev](/cli/cli-commands/lula_dev/)	 - Collection of dev commands to make dev life easier
+* [lula dev](./lula_dev.md)	 - Collection of dev commands to make dev life easier
 

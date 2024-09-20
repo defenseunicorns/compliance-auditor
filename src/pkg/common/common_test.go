@@ -18,6 +18,7 @@ import (
 
 const multiValidationPath = "../../test/e2e/scenarios/remote-validations/multi-validations.yaml"
 const singleValidationPath = "../../test/e2e/scenarios/remote-validations/validation.opa.yaml"
+const whitespaceValidationPath = "../../test/e2e/scenarios/remote-validations/validation.whitespace.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {
@@ -390,6 +391,29 @@ func TestValidationToResource(t *testing.T) {
 
 		if resource.UUID == validation.Metadata.UUID {
 			t.Errorf("ToResource() description = \"\", want a valid UUID")
+		}
+	})
+
+	t.Run("It trims whitespace from the validation", func(t *testing.T) {
+		t.Parallel()
+		validationBytes := loadTestData(t, whitespaceValidationPath)
+
+		validation, err := common.ReadValidationsFromYaml(validationBytes)
+		if err != nil {
+			t.Fatalf("yaml.Unmarshal failed: %v", err)
+		}
+
+		if len(validation) > 1 {
+			t.Errorf("Expected 1 validation, got %d", len(validation))
+		}
+
+		resource, err := validation[0].ToResource()
+		if err != nil {
+			t.Errorf("ToResource() error = %v", err)
+		}
+		strings.Contains(resource.Description, " \n")
+		if strings.Contains(resource.Description, " \n") {
+			t.Errorf("ToResource() description = should not contain whitespace followed by newline")
 		}
 	})
 }

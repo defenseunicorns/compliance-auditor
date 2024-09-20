@@ -52,5 +52,5 @@ lula generate component -c <catalog source url> -r control-a --remarks guidance,
 
 ### SEE ALSO
 
-* [lula generate](/cli/cli-commands/lula_generate/)	 - Generate a specified compliance artifact template
+* [lula generate](./lula_generate.md)	 - Generate a specified compliance artifact template
 
