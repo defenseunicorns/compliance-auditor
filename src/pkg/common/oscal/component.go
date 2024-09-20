@@ -661,10 +661,12 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 			}
 
 			var tabs string
-			for range level {
+			// Indents based on labels
+			for i := 0; i < level; i++ {
 				tabs += "\t"
 			}
-			prose := part.Prose
+			// Trims the whitespace
+			prose := strings.TrimSpace(part.Prose)
 			if prose == "" {
 				result += fmt.Sprintf("%s%s\n", tabs, label)
 			} else if strings.Contains(prose, "{{ insert: param,") {
