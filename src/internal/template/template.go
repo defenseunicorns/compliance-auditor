@@ -27,26 +27,20 @@ const (
 
 type TemplateRenderer struct {
 	tpl            *template.Template
-	TemplateString string
-	*TemplateData
-	RenderType
+	templateString string
+	templateData   *TemplateData
 }
 
-func NewTemplateRenderer(templateString string, renderType RenderType, templateData *TemplateData) *TemplateRenderer {
+func NewTemplateRenderer(templateString string, templateData *TemplateData) *TemplateRenderer {
 	return &TemplateRenderer{
 		tpl:            createTemplate(),
-		TemplateString: templateString,
-		RenderType:     renderType,
-		TemplateData:   templateData,
+		templateString: templateString,
+		templateData:   templateData,
 	}
 }
 
-func (r *TemplateRenderer) SetRenderType(t RenderType) {
-	r.RenderType = t
-}
-
-func (r *TemplateRenderer) Render() ([]byte, error) {
-	switch r.RenderType {
+func (r *TemplateRenderer) Render(t RenderType) ([]byte, error) {
+	switch t {
 	case MASKED:
 		return r.ExecuteMaskedTemplate()
 	case CONSTANTS:
@@ -82,16 +76,15 @@ type VariableConfig struct {
 
 // ExecuteFullTemplate templates everything
 func (r *TemplateRenderer) ExecuteFullTemplate() ([]byte, error) {
-	templateString := r.TemplateString
-	tpl, err := r.tpl.Parse(templateString)
+	tpl, err := r.tpl.Parse(r.templateString)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var buffer strings.Builder
-	allVars := concatStringMaps(r.TemplateData.Variables, r.TemplateData.SensitiveVariables)
+	allVars := concatStringMaps(r.templateData.Variables, r.templateData.SensitiveVariables)
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: r.TemplateData.Constants,
+		CONST: r.templateData.Constants,
 		VAR:   allVars})
 	if err != nil {
 		return []byte{}, err
@@ -105,16 +98,16 @@ func (r *TemplateRenderer) ExecuteFullTemplate() ([]byte, error) {
 func (r *TemplateRenderer) ExecuteConstTemplate() ([]byte, error) {
 	// Find anything {{ var.KEY }} and replace with {{ "{{ var.KEY }}" }}
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
-	templateString := re.ReplaceAllString(r.TemplateString, "{{ \"{{ ."+VAR+".$1 }}\" }}")
+	templateStringReplaced := re.ReplaceAllString(r.templateString, "{{ \"{{ ."+VAR+".$1 }}\" }}")
 
-	tpl, err := r.tpl.Parse(templateString)
+	tpl, err := r.tpl.Parse(templateStringReplaced)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var buffer strings.Builder
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: r.TemplateData.Constants})
+		CONST: r.templateData.Constants})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -126,12 +119,12 @@ func (r *TemplateRenderer) ExecuteConstTemplate() ([]byte, error) {
 // used for compose operations
 func (r *TemplateRenderer) ExecuteNonSensitiveTemplate() ([]byte, error) {
 	// Find any sensitive keys {{ var.KEY }}, where KEY is in templateData.SensitiveVariables and replace with {{ "{{ var.KEY }}" }}
-	templateString := r.TemplateString
+	templateString := r.templateString
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
 	varMatches := re.FindAllStringSubmatch(templateString, -1)
 	uniqueMatches := returnUniqueMatches(varMatches, 1)
 	for k, matches := range uniqueMatches {
-		if _, ok := r.TemplateData.SensitiveVariables[matches[0]]; ok {
+		if _, ok := r.templateData.SensitiveVariables[matches[0]]; ok {
 			templateString = strings.ReplaceAll(templateString, k, "{{ \""+k+"\" }}")
 		}
 	}
@@ -143,8 +136,8 @@ func (r *TemplateRenderer) ExecuteNonSensitiveTemplate() ([]byte, error) {
 
 	var buffer strings.Builder
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: r.TemplateData.Constants,
-		VAR:   r.TemplateData.Variables})
+		CONST: r.templateData.Constants,
+		VAR:   r.templateData.Variables})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -156,12 +149,12 @@ func (r *TemplateRenderer) ExecuteNonSensitiveTemplate() ([]byte, error) {
 // for display/printing only
 func (r *TemplateRenderer) ExecuteMaskedTemplate() ([]byte, error) {
 	// Find any sensitive keys {{ var.KEY }}, where KEY is in templateData.SensitiveVariables and replace with {{ var.KEY | mask }}
-	templateString := r.TemplateString
+	templateString := r.templateString
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
 	varMatches := re.FindAllStringSubmatch(templateString, -1)
 	uniqueMatches := returnUniqueMatches(varMatches, 1)
 	for k, matches := range uniqueMatches {
-		if _, ok := r.TemplateData.SensitiveVariables[matches[0]]; ok {
+		if _, ok := r.templateData.SensitiveVariables[matches[0]]; ok {
 			templateString = strings.ReplaceAll(templateString, k, "********")
 		}
 	}
@@ -173,8 +166,8 @@ func (r *TemplateRenderer) ExecuteMaskedTemplate() ([]byte, error) {
 
 	var buffer strings.Builder
 	err = tpl.Execute(&buffer, map[string]interface{}{
-		CONST: r.TemplateData.Constants,
-		VAR:   r.TemplateData.Variables})
+		CONST: r.templateData.Constants,
+		VAR:   r.templateData.Variables})
 	if err != nil {
 		return []byte{}, err
 	}

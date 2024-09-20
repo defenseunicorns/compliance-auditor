@@ -84,8 +84,8 @@ func TemplateCommand() *cobra.Command {
 				return fmt.Errorf("error collecting templating data: %v", err)
 			}
 
-			templateRenderer := template.NewTemplateRenderer(string(data), renderType, templateData)
-			output, err := templateRenderer.Render()
+			templateRenderer := template.NewTemplateRenderer(string(data), templateData)
+			output, err := templateRenderer.Render(renderType)
 			if err != nil {
 				return fmt.Errorf("error rendering template: %v", err)
 			}
