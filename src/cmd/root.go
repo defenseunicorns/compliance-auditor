@@ -24,6 +24,13 @@ var rootCmd = &cobra.Command{
 	Long:  `Real Time Risk Transparency through automated validation`,
 }
 
+func RootCommand() *cobra.Command {
+
+	cmd := rootCmd
+
+	return cmd
+}
+
 func Execute() {
 
 	cobra.CheckErr(rootCmd.Execute())
