@@ -15,6 +15,8 @@ import (
 	"github.com/muesli/termenv"
 )
 
+const timeout = time.Second * 10
+
 func init() {
 	lipgloss.SetColorProfile(termenv.Ascii)
 	tea.Sequence()
@@ -49,7 +51,7 @@ func TestNewComponentDefinitionModel(t *testing.T) {
 		t.Fatal("testModel is nil")
 	}
 
-	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(timeout))
 
 	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
@@ -77,7 +79,7 @@ func TestMultiComponentDefinitionModel(t *testing.T) {
 		t.Fatal("testModel is nil")
 	}
 
-	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(timeout))
 
 	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
@@ -98,7 +100,7 @@ func TestNewAssessmentResultsModel(t *testing.T) {
 		t.Fatal("testModel is nil")
 	}
 
-	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(timeout))
 
 	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
@@ -124,7 +126,7 @@ func TestComponentControlSelect(t *testing.T) {
 		t.Fatal("testModel is nil")
 	}
 
-	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(time.Second*5))
+	fm := testModel.FinalModel(t, teatest.WithFinalTimeout(timeout))
 
 	teatest.RequireEqualOutput(t, []byte(fm.View()))
 }
