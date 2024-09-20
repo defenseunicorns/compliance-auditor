@@ -16,16 +16,19 @@ type SaveFailMsg struct {
 	Err error
 }
 type SaveCloseAndResetMsg struct{}
-type SaveModelMsg struct{}
+type SaveModelMsg struct {
+	InQuitWorkflow bool
+}
 
 type SaveModel struct {
-	Open     bool
-	Save     bool
-	FilePath string
-	Title    string
-	Content  string
-	Warning  string
-	Help     HelpModel
+	Open               bool
+	Save               bool
+	FilePath           string
+	Title              string
+	Content            string
+	Warning            string
+	RenderedDuringQuit bool
+	Help               HelpModel
 }
 
 func NewSaveModel(filepath string) SaveModel {
@@ -52,13 +55,17 @@ func (m SaveModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch k {
 			case ContainsKey(k, CommonKeys.Confirm.Keys()):
 				if m.Save {
-					cmdSaveMsg := func() tea.Msg {
+					var cmds []tea.Cmd
+					cmds = append(cmds, func() tea.Msg {
 						return SaveStartMsg{}
-					}
-					cmdSaveModel := func() tea.Msg {
-						return SaveModelMsg{}
-					}
-					return m, tea.Sequence(cmdSaveMsg, cmdSaveModel)
+					})
+					cmds = append(cmds, func() tea.Msg {
+						return SaveModelMsg{
+							InQuitWorkflow: m.RenderedDuringQuit,
+						}
+					})
+
+					return m, tea.Sequence(cmds...)
 				} else {
 					m.Open = false
 					return m, nil

@@ -165,12 +165,14 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 
 	remarks := viewport.New(width, height)
 	remarks.Style = common.PanelStyle
+	remarks.MouseWheelEnabled = false
 	remarksEditor := textarea.New()
 	remarksEditor.CharLimit = 0
 	remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
 
 	description := viewport.New(width, height)
 	description.Style = common.PanelStyle
+	description.MouseWheelEnabled = false
 	descriptionEditor := textarea.New()
 	descriptionEditor.CharLimit = 0
 	descriptionEditor.KeyMap = common.UnfocusedTextAreaKeyMap()

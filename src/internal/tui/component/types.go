@@ -136,12 +136,13 @@ func (m *Model) UpdateSizing(height, width int) {
 
 	topSectionHeight := common.HelpStyle(m.width).GetHeight() + common.DialogBoxStyle.GetHeight()
 	bottomSectionHeight := totalHeight - topSectionHeight
+	panelHeight := common.PanelTitleStyle.GetHeight() + common.PanelStyle.GetVerticalPadding() + common.PanelStyle.GetVerticalMargins() + 1 // 1 for border
 
 	remarksOutsideHeight := bottomSectionHeight / 4
-	remarksInsideHeight := remarksOutsideHeight - common.PanelTitleStyle.GetHeight()
+	remarksInsideHeight := remarksOutsideHeight - panelHeight
 
 	descriptionOutsideHeight := bottomSectionHeight / 4
-	descriptionInsideHeight := descriptionOutsideHeight - common.PanelTitleStyle.GetHeight()
+	descriptionInsideHeight := descriptionOutsideHeight - panelHeight
 	validationsHeight := bottomSectionHeight - remarksOutsideHeight - descriptionOutsideHeight - 2*common.PanelTitleStyle.GetHeight()
 
 	// Update widget sizing
@@ -153,16 +154,16 @@ func (m *Model) UpdateSizing(height, width int) {
 	m.controlPicker.Height = bottomSectionHeight
 	m.controlPicker.Width = leftWidth - common.PanelStyle.GetHorizontalPadding()
 
-	m.remarks.Height = remarksInsideHeight - 1
+	m.remarks.Height = remarksInsideHeight
 	m.remarks.Width = rightWidth
-	m.remarks, _ = m.remarks.Update(tea.WindowSizeMsg{Width: rightWidth, Height: remarksInsideHeight - 1})
+	m.remarks, _ = m.remarks.Update(tea.WindowSizeMsg{Width: rightWidth, Height: remarksInsideHeight}) // rebuild remarks for line wrapping?
 
 	m.remarksEditor.SetHeight(m.remarks.Height - 1)
 	m.remarksEditor.SetWidth(m.remarks.Width - 5) // probably need to fix this to be a func
 
-	m.description.Height = descriptionInsideHeight - 1
+	m.description.Height = descriptionInsideHeight
 	m.description.Width = rightWidth
-	m.description, _ = m.description.Update(tea.WindowSizeMsg{Width: rightWidth, Height: descriptionInsideHeight - 1})
+	m.description, _ = m.description.Update(tea.WindowSizeMsg{Width: rightWidth, Height: descriptionInsideHeight})
 
 	m.descriptionEditor.SetHeight(m.description.Height - 1)
 	m.descriptionEditor.SetWidth(m.description.Width - 5) // probably need to fix this to be a func
@@ -183,48 +184,37 @@ func (m *Model) updateKeyBindings() {
 	m.updateFocusHelpKeys()
 
 	switch m.focus {
-	// case focusComponentSelection:
-	// 	m.setDialogBoxHelpKeys()
-
-	// case focusFrameworkSelection:
-	// 	m.setDialogBoxHelpKeys()
 
 	case focusControls:
-		// m.setListHelpKeys()
 		m.controls.KeyMap = common.FocusedListKeyMap()
 		m.controls.SetDelegate(common.NewFocusedDelegate())
 
 	case focusValidations:
-		// m.setListHelpKeys()
 		m.validations.KeyMap = common.FocusedListKeyMap()
 		m.validations.SetDelegate(common.NewFocusedDelegate())
 
 	case focusRemarks:
 		m.remarks.KeyMap = common.FocusedPanelKeyMap()
+		m.remarks.MouseWheelEnabled = true
 		if m.remarksEditor.Focused() {
-			// m.setEditingDialogBoxHelpKeys()
 			m.remarksEditor.KeyMap = common.FocusedTextAreaKeyMap()
 			m.keys = componentEditKeys
 		} else {
-			// m.setEditableDialogBoxHelpKeys()
 			m.remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
 			m.keys = componentKeys
 		}
 
 	case focusDescription:
 		m.description.KeyMap = common.FocusedPanelKeyMap()
+		m.description.MouseWheelEnabled = true
 		if m.descriptionEditor.Focused() {
-			// m.setEditingDialogBoxHelpKeys()
 			m.descriptionEditor.KeyMap = common.FocusedTextAreaKeyMap()
 			m.keys = componentEditKeys
 		} else {
-			// m.setEditableDialogBoxHelpKeys()
 			m.descriptionEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
 			m.keys = componentKeys
 		}
 
-		// default:
-		// 	m.setNoFocusHelpKeys()
 	}
 }
 
@@ -252,9 +242,11 @@ func (m *Model) outOfFocus() {
 
 		case focusRemarks:
 			m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
+			m.remarks.MouseWheelEnabled = false
 
 		case focusDescription:
 			m.description.KeyMap = common.UnfocusedPanelKeyMap()
+			m.description.MouseWheelEnabled = false
 		}
 	}
 }

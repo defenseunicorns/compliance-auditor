@@ -67,7 +67,7 @@ func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema, oscalFilePa
 		common.PrintToLog("error creating deep copy of oscal model: %v", err)
 	}
 
-	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Save, common.CommonKeys.Cancel})
+	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
 	saveModel := common.NewSaveModel(oscalFilePath)
 
 	return model{
@@ -161,6 +161,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case common.ContainsKey(k, m.keys.Save.Keys()):
+			m.saveModel.RenderedDuringQuit = false
+			if m.closeModel.Open {
+				m.saveModel.RenderedDuringQuit = true
+				if m.isModelSaved() {
+					return m, nil
+				} else {
+					m.closeModel.Open = false
+				}
+			}
+
 			m.saveModel.Open = true
 			m.saveModel.Save = true
 			if m.isModelSaved() {
@@ -173,6 +183,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if _, err := os.Stat(m.oscalFilePath); err == nil {
 				m.saveModel.Warning = fmt.Sprintf("%s will be overwritten", m.oscalFilePath)
 			}
+
 			return m, nil
 
 		case common.ContainsKey(k, m.keys.Cancel.Keys()):
@@ -186,6 +197,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// add quit warn pop-up
 			if !m.isModelSaved() {
 				m.closeModel.Warning = "Changes not written"
+				m.closeModel.Help.ShortHelp = []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Save, common.CommonKeys.Cancel}
 			}
 			if m.closeModel.Open {
 				return m, tea.Quit
@@ -204,6 +216,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			time.Sleep(time.Second * 2)
 			return common.SaveCloseAndResetMsg{}
 		})
+
+		if (saveResultMsg == common.SaveSuccessMsg{}) && msg.InQuitWorkflow {
+			cmds = append(cmds, tea.Quit)
+		}
 		return m, tea.Sequence(cmds...)
 	}
 
