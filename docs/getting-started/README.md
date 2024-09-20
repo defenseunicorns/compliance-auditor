@@ -64,3 +64,7 @@ See the following tutorials for some introductory lessons on how to use Lula. If
 Lula Validation manifests are the underlying mechanisms that dictates the evaluation of a system against a control as resulting in `satisfied` or `not satisfied`. A Lula Validation is linked to a control within a component definition via the OSCAL-specific property, [links](../oscal/oscal-validation-links.md).
 
 Developing Lula Validations can sometimes be more art than science, but generally they should aim to be clear, concise, and robust to system changes. See our guide for [developing Lula Validations](./develop-a-validation.md) and the [references](../reference/README.md) for additional information.
+
+### Configuration
+
+Lula supports the addition of a configuration file for specifying CLI flags and templating values. See our [configuration](./configuration.md) guide for more information.
