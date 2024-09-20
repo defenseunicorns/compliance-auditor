@@ -1,7 +1,9 @@
 package evaluate
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
@@ -145,17 +147,17 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 		}
 
 		// Print machine-readable output
-		if machine {
-			var machineOutput strings.Builder
-			machineOutput.WriteString("<diagnostic-inputs>\n")
-			if len(resultComparison["no-longer-satisfied"]) == 0 {
-				fmt.Println("No observations to diagnose")
-			} else {
-				out := result.GetMachineFriendlyObservations(resultComparison["no-longer-satisfied"])
-				machineOutput.WriteString(out)
+		if machine && len(resultComparison["no-longer-satisfied"]) > 0 {
+			machineOutput := result.GetMachineFriendlyObservations(resultComparison["no-longer-satisfied"])
+
+			jsonData, err := json.MarshalIndent(map[string]interface{}{
+				"SATISFIED_TO_NOT_SATISFIED": machineOutput[result.SATISFIED_TO_NOT_SATISFIED],
+			}, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshaling map to JSON: %v", err)
 			}
-			machineOutput.WriteString("</diagnostic-inputs>\n")
-			defer fmt.Println(machineOutput.String())
+
+			defer fmt.Println(string(jsonData))
 		}
 
 		// Check 'status' - Result if evaluation is passing or failing
