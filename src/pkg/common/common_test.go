@@ -244,32 +244,38 @@ func TestValidationFromString(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    string
+		uuid    string
 		wantErr bool
 	}{
 		{
 			name:    "Valid Validation string",
 			data:    validationStrings[0],
+			uuid:    "88AB3470-B96B-4D7C-BC36-02BF9563C46C",
 			wantErr: false,
 		},
 		{
-			name:    "Invalid Validation string",
+			name:    "Invalid Validation, successfully unmarshalled",
 			data:    "Test: test",
+			uuid:    "a50c374a-deee-4032-9a0e-38e624f49c3d", // check that still returns a valid UUID even if invalid validation string
 			wantErr: true,
 		},
 		{
 			name:    "Empty Data",
 			data:    "",
+			uuid:    "",
 			wantErr: true,
 		},
-		// Additional test cases can be added here
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := common.ValidationFromString(tt.data)
+			lulaValidation, err := common.ValidationFromString(tt.data, tt.uuid)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidationFromString() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if lulaValidation.UUID != tt.uuid {
+				t.Errorf("ValidationFromString() UUID = %v, want %v", lulaValidation.UUID, tt.uuid)
 			}
 		})
 	}

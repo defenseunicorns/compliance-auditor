@@ -91,6 +91,38 @@ func CompareControls(a, b string) bool {
 	return !isANistFormat
 }
 
+// CompareControlsInt compares two controls by their title, handling both XX-##.## formats and regular strings.
+// returns -1 if a < b, 0 if a == b, and 1 if a > b
+// TODO: add tests for this function
+func CompareControlsInt(a, b string) int {
+	// Define a regex to match the XX-##.## format
+	nistFormat := regexp.MustCompile(`(?i)^[a-z]{2}-\d+(\.\d+)?$`)
+
+	// Check if both strings match the XX-##.## format
+	isANistFormat := nistFormat.MatchString(a)
+	isBNistFormat := nistFormat.MatchString(b)
+
+	// If both are in XX-##.## format, apply the custom comparison logic
+	if isANistFormat && isBNistFormat {
+		if compareNistFormat(a, b) {
+			return -1
+		} else {
+			return 1
+		}
+	}
+
+	// If neither are in XX-##.## format, use simple lexicographical comparison
+	if !isANistFormat && !isBNistFormat {
+		return strings.Compare(a, b)
+	}
+
+	// If only one is in XX-##.## format, treat it as "less than" the regular string
+	if isANistFormat {
+		return -1
+	}
+	return 1
+}
+
 // compareNistFormat handles the comparison for strings in the XX-##.## format.
 func compareNistFormat(a, b string) bool {
 	// Split the strings by "-"

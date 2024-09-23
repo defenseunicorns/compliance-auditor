@@ -63,7 +63,7 @@ domain:
         namespace: validation-test      # Optional - Namespace to be created if applicable (no need to specify if ns exists OR resource is non-namespaced)
         manifest: |                     # Optional - Manifest string for resource(s) to create; Only optional if file is not specified
           <some manifest(s)>
-        file: '<some url>'              # Optional - File name where resource(s) to create are stored; Only optional if manifest is not specified
+        file: '<some url>'              # Optional - File name where resource(s) to create are stored; Only optional if manifest is not specified. Currently does not support relative paths.
 ```
 
 ## Lists vs Named Resource

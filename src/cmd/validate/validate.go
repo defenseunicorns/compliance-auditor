@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,7 +8,6 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -27,6 +25,8 @@ type flags struct {
 var opts = &flags{}
 var ConfirmExecution bool    // --confirm-execution
 var RunNonInteractively bool // --non-interactive
+var SaveResources bool       // --save-resources
+var ResourcesDir string
 
 var validateHelp = `
 To validate on a cluster:
@@ -47,9 +47,13 @@ var validateCmd = &cobra.Command{
 	Long:    "Lula Validation of an OSCAL component definition",
 	Example: validateHelp,
 	Run: func(cmd *cobra.Command, componentDefinitionPath []string) {
-		if opts.InputFile == "" {
-			message.Fatal(errors.New("flag input-file is not set"),
-				"Please specify an input file with the -f flag")
+		outputFile := opts.OutputFile
+		if outputFile == "" {
+			outputFile = getDefaultOutputFile(opts.InputFile)
+		}
+
+		if SaveResources {
+			ResourcesDir = filepath.Join(filepath.Dir(outputFile))
 		}
 
 		if err := files.IsJsonOrYaml(opts.InputFile); err != nil {
@@ -66,7 +70,7 @@ var validateCmd = &cobra.Command{
 		}
 
 		// Write the assessment results to file
-		err = oscal.WriteOscalModel(opts.OutputFile, &model)
+		err = oscal.WriteOscalModel(outputFile, &model)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}
@@ -82,7 +86,7 @@ func init() {
 	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
 	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
-
+	validateCmd.Flags().BoolVar(&SaveResources, "save-resources", false, "saves the resources to 'resources' directory at assessment-results level")
 }
 
 func ValidateCommand() *cobra.Command {
@@ -121,26 +125,16 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	data, err := os.ReadFile(path)
+	oscalModel, err := composition.ComposeFromPath(path)
 	if err != nil {
 		return assessmentResult, err
 	}
 
-	// Change Cwd to the directory of the component definition
-	dirPath := filepath.Dir(path)
-	message.Debugf("changing cwd to %s", dirPath)
-	resetCwd, err := pkgCommon.SetCwdToFileDir(dirPath)
-	if err != nil {
-		return assessmentResult, err
-	}
-	defer resetCwd()
-
-	compDef, err := oscal.NewOscalComponentDefinition(data)
-	if err != nil {
-		return assessmentResult, err
+	if oscalModel.ComponentDefinition == nil {
+		return assessmentResult, fmt.Errorf("component definition is nil")
 	}
 
-	results, err := ValidateOnCompDef(compDef, target)
+	results, err := ValidateOnCompDef(oscalModel.ComponentDefinition, target)
 	if err != nil {
 		return assessmentResult, err
 	}
@@ -157,10 +151,8 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and return a slice of results that can be written to an assessment-results object
 func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
-	err = composition.ComposeComponentDefinitions(compDef)
-	if err != nil {
-		return nil, err
-
+	if compDef == nil {
+		return results, fmt.Errorf("cannot validate a component definition that is nil")
 	}
 
 	if *compDef.Components == nil {
@@ -247,7 +239,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(ConfirmExecution)
+	observations := validationStore.RunValidations(ConfirmExecution, SaveResources, ResourcesDir)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 
@@ -267,4 +259,12 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 	}
 
 	return findings, observations, nil
+}
+
+// GetDefaultOutputFile returns the default output file name
+func getDefaultOutputFile(inputFile string) string {
+	dirPath := filepath.Dir(inputFile)
+	filename := "assessment-results" + filepath.Ext(inputFile)
+
+	return filepath.Join(dirPath, filename)
 }

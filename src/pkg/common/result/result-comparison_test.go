@@ -2,6 +2,7 @@ package result_test
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -39,6 +40,41 @@ func createTestResult(findingId, observationId, findingState, observationSatisfa
 				},
 			},
 		},
+	}
+}
+
+func createTestResultMultipleObs(findingId, findingState string, observationUuids, observationIds, observationSatisfaction []string) oscalTypes_1_1_2.Result {
+	relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0)
+	observations := make([]oscalTypes_1_1_2.Observation, 0)
+	for i, observationUuid := range observationUuids {
+		relatedObservations = append(relatedObservations, oscalTypes_1_1_2.RelatedObservation{
+			ObservationUuid: observationUuid,
+		})
+		observations = append(observations, oscalTypes_1_1_2.Observation{
+			UUID:        observationUuid,
+			Description: observationIds[i],
+			RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
+				{
+					Description: fmt.Sprintf("Result: %s", observationSatisfaction[i]),
+					Remarks:     "Some remarks about this observation",
+				},
+			},
+		})
+	}
+
+	return oscalTypes_1_1_2.Result{
+		Findings: &[]oscalTypes_1_1_2.Finding{
+			{
+				Target: oscalTypes_1_1_2.FindingTarget{
+					TargetId: findingId,
+					Status: oscalTypes_1_1_2.ObjectiveStatus{
+						State: findingState,
+					},
+				},
+				RelatedObservations: &relatedObservations,
+			},
+		},
+		Observations: &observations,
 	}
 }
 
@@ -208,5 +244,46 @@ func TestRefactorObservationsByControls(t *testing.T) {
 	}
 	if !contains(noObservations, "id-5") {
 		t.Errorf("Expected id-5 to be in no observations, but it's not")
+	}
+}
+
+func TestGetMachineFriendlyObservations(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		result          oscalTypes_1_1_2.Result
+		thresholdResult oscalTypes_1_1_2.Result
+		expected        map[result.StateChange]interface{}
+	}{
+		{
+			name:            "No observations",
+			result:          createTestResultMultipleObs("id-1", "not-satisfied", []string{"asdf", "qwer"}, []string{"ob-1", "ob-2"}, []string{"not-satisfied", "satisfied"}),
+			thresholdResult: createTestResultMultipleObs("id-1", "satisfied", []string{"fdsa", "rewq"}, []string{"ob-1", "ob-2"}, []string{"satisfied", "satisfied"}),
+			expected: map[result.StateChange]interface{}{
+				result.UNCHANGED: []interface{}{
+					map[string]string{
+						"original_observation": "rewq",
+						"new_observation":      "qwer",
+					},
+				},
+				result.SATISFIED_TO_NOT_SATISFIED: []interface{}{
+					map[string]string{
+						"original_observation": "fdsa",
+						"new_observation":      "asdf",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resultComparisonMap := result.NewResultComparisonMap(tt.result, tt.thresholdResult)
+			observations := result.GetMachineFriendlyObservations(resultComparisonMap)
+			if !reflect.DeepEqual(observations, tt.expected) {
+				t.Errorf("Expected %v, but got %v", tt.expected, observations)
+			}
+		})
 	}
 }

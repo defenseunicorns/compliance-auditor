@@ -102,7 +102,10 @@ func (validation *Validation) Lint() oscalValidation.ValidationResult {
 }
 
 // ToLulaValidation converts a Validation object to a LulaValidation object
-func (validation *Validation) ToLulaValidation() (lulaValidation types.LulaValidation, err error) {
+func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation types.LulaValidation, err error) {
+	// set uuid
+	lulaValidation.UUID = uuid
+
 	// Do version checking here to establish if the version is correct/acceptable
 	currentVersion := strings.Split(config.CLIVersion, "-")[0]
 

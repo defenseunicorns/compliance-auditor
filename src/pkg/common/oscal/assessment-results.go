@@ -9,7 +9,9 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
+	"github.com/defenseunicorns/lula/src/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -66,7 +68,6 @@ func GenerateAssessmentResults(results []oscalTypes_1_1_2.Result) (*oscalTypes_1
 }
 
 func MergeAssessmentResults(original *oscalTypes_1_1_2.AssessmentResults, latest *oscalTypes_1_1_2.AssessmentResults) (*oscalTypes_1_1_2.AssessmentResults, error) {
-
 	// If UUID's are matching - this must be a prop update for threshold
 	// This is used during evaluate to update the threshold prop automatically
 	if original.UUID == latest.UUID {
@@ -310,16 +311,34 @@ func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map
 }
 
 // Helper function to create observation
-func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
+func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, validation *types.LulaValidation, resourcesHref string, descriptionPattern string, descriptionArgs ...any) oscalTypes_1_1_2.Observation {
 	rfc3339Time := time.Now()
-	uuid := uuid.NewUUID()
-	return oscalTypes_1_1_2.Observation{
+	observationUuid := uuid.NewUUID()
+
+	observation := oscalTypes_1_1_2.Observation{
 		Collected:        rfc3339Time,
 		Methods:          []string{method},
-		UUID:             uuid,
+		UUID:             observationUuid,
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
+	// TODO: should the props be added regardless?
+	if resourcesHref != "" {
+		observation.Props = &[]oscalTypes_1_1_2.Property{
+			{
+				Name:  "validation",
+				Ns:    "https://docs.lula.dev/oscal/ns",
+				Value: common.AddIdPrefix(validation.UUID),
+			},
+		}
+		observation.Links = &[]oscalTypes_1_1_2.Link{
+			{
+				Href: resourcesHref,
+				Rel:  "lula.resources",
+			},
+		}
+	}
+	return observation
 }
 
 // Creates a result from findings and observations

@@ -90,7 +90,7 @@ func RunSingleValidation(validationBytes []byte, opts ...types.LulaValidationOpt
 		return lulaValidation, err
 	}
 
-	lulaValidation, err = validation.ToLulaValidation()
+	lulaValidation, err = validation.ToLulaValidation("")
 	if err != nil {
 		return lulaValidation, err
 	}

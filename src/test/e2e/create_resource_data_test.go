@@ -35,9 +35,11 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			oscalPath := "./scenarios/create-resources/oscal-component.yaml"
 			message.NoProgress = true
 
-			// Check that validation passes
+			// TODO: fix this nonsense
 			validate.ConfirmExecution = true
 			validate.RunNonInteractively = true
+			validate.SaveResources = false
+
 			assessment, err := validate.ValidateOnPath(oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
