@@ -2,11 +2,11 @@ package component
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/help"
 	blist "github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -20,9 +20,12 @@ import (
 const (
 	height           = 20
 	width            = 12
-	pickerHeight     = 20
-	pickerWidth      = 80
 	dialogFixedWidth = 40
+)
+
+const (
+	componentPicker common.PickerKind = "component"
+	frameworkPicker common.PickerKind = "framework"
 )
 
 // NewComponentDefinitionModel create new model for component definition view
@@ -35,76 +38,91 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 	frameworks := make([]framework, 0)
 
 	if oscalComponent != nil {
-		componentFrameworks := oscal.NewComponentFrameworks(oscalComponent)
-
 		validationStore := validationstore.NewValidationStore()
 		if oscalComponent.BackMatter != nil {
 			validationStore = validationstore.NewValidationStoreFromBackMatter(*oscalComponent.BackMatter)
 		}
 
-		for uuid, c := range componentFrameworks {
-			frameworks := make([]framework, 0)
-			for k, f := range c.Frameworks {
-				controls := make([]control, 0)
-
-				for _, controlImpl := range f {
-					for _, implementedRequirement := range controlImpl.ImplementedRequirements {
-						// get validations from implementedRequirement.Links
-						validationLinks := make([]validationLink, 0)
-						if implementedRequirement.Links != nil {
-							for _, link := range *implementedRequirement.Links {
-								if pkgcommon.IsLulaLink(link) {
-									validation, err := validationStore.GetLulaValidation(link.Href)
-									if err == nil {
-										// add the lula validation to the validations array
-										validationLinks = append(validationLinks, validationLink{
-											text:       link.Text,
-											validation: validation,
-										})
+		if oscalComponent.Components != nil {
+			for cIdx, c := range *oscalComponent.Components {
+				// for each component, add the control implementation to the framework
+				componentFrameworks := make([]framework, 0)
+				if c.ControlImplementations != nil {
+					for ctrlImpIdx, controlImpl := range *c.ControlImplementations {
+						// get the controls for each framework
+						controls := make([]control, 0, len(controlImpl.ImplementedRequirements))
+						for reqIdx, implementedRequirement := range controlImpl.ImplementedRequirements {
+							// get validations from implementedRequirement.Links
+							validationLinks := make([]validationLink, 0)
+							if implementedRequirement.Links != nil {
+								for _, link := range *implementedRequirement.Links {
+									if pkgcommon.IsLulaLink(link) {
+										validation, err := validationStore.GetLulaValidation(link.Href)
+										if err == nil {
+											// add the lula validation to the validations array
+											validationLinks = append(validationLinks, validationLink{
+												oscalLink:  &link, //&(*(*c.ControlImplementations)[ctrlImpIdx].ImplementedRequirements[reqIdx].Links)[linkIdx],
+												text:       link.Text,
+												validation: validation,
+											})
+										}
 									}
 								}
 							}
+
+							controls = append(controls, control{
+								oscalControl: &(*c.ControlImplementations)[ctrlImpIdx].ImplementedRequirements[reqIdx], //&implementedRequirement,
+								title:        implementedRequirement.ControlId,
+								uuid:         implementedRequirement.UUID,
+								validations:  validationLinks,
+							})
 						}
 
-						controls = append(controls, control{
-							title:       implementedRequirement.ControlId,
-							uuid:        implementedRequirement.UUID,
-							desc:        implementedRequirement.Description,
-							remarks:     implementedRequirement.Remarks,
-							validations: validationLinks,
+						// sort controls by title
+						slices.SortStableFunc(controls, func(a, b control) int {
+							return oscal.CompareControlsInt(a.title, b.title)
 						})
+
+						componentFrameworks = append(componentFrameworks, framework{
+							oscalFramework: &(*c.ControlImplementations)[ctrlImpIdx], //&controlImpl,
+							name:           controlImpl.Source,
+							uuid:           controlImpl.UUID,
+							controls:       controls,
+						})
+
+						// Add named framework if set
+						status, value := oscal.GetProp("framework", oscal.LULA_NAMESPACE, controlImpl.Props)
+						if status {
+							componentFrameworks = append(componentFrameworks, framework{
+								oscalFramework: &(*c.ControlImplementations)[ctrlImpIdx], //&controlImpl,
+								name:           value,
+								uuid:           controlImpl.UUID,
+								controls:       controls,
+							})
+						}
 					}
 				}
-				// sort controls by title
-				sort.Slice(controls, func(i, j int) bool {
-					// custom sort function to sort controls by title
-					return oscal.CompareControls(controls[i].title, controls[j].title)
+
+				// sort componentFrameworks by name
+				slices.SortStableFunc(componentFrameworks, func(a, b framework) int {
+					return strings.Compare(a.name, b.name)
 				})
 
-				frameworks = append(frameworks, framework{
-					name:     k,
-					controls: controls,
+				components = append(components, component{
+					oscalComponent: &(*oscalComponent.Components)[cIdx], //&c,
+					uuid:           c.UUID,
+					title:          c.Title,
+					desc:           c.Description,
+					frameworks:     componentFrameworks,
 				})
-
 			}
-			// sort frameworks by name
-			sort.Slice(frameworks, func(i, j int) bool {
-				return frameworks[i].name < frameworks[j].name
-			})
-
-			components = append(components, component{
-				uuid:       uuid,
-				title:      c.Component.Title,
-				desc:       c.Component.Description,
-				frameworks: frameworks,
-			})
 		}
 	}
 
 	if len(components) > 0 {
 		// sort components by title
-		sort.Slice(components, func(i, j int) bool {
-			return components[i].title < components[j].title
+		slices.SortStableFunc(components, func(a, b component) int {
+			return strings.Compare(a.title, b.title)
 		})
 
 		selectedComponent = components[0]
@@ -122,16 +140,24 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 		}
 	}
 
-	componentPicker := viewport.New(pickerWidth, pickerHeight)
-	componentPicker.Style = common.OverlayStyle
+	componentItems := make([]string, len(components))
+	for i, c := range components {
+		componentItems[i] = getComponentText(c)
+	}
+	componentPicker := common.NewPickerModel("Select a Component", componentPicker, componentItems, 0)
 
-	frameworkPicker := viewport.New(pickerWidth, pickerHeight)
-	frameworkPicker.Style = common.OverlayStyle
+	frameworkItems := make([]string, len(frameworks))
+	for i, f := range frameworks {
+		frameworkItems[i] = getFrameworkText(f)
+	}
+	frameworkPicker := common.NewPickerModel("Select a Framework", frameworkPicker, frameworkItems, 0)
 
 	l := blist.New(viewedControls, common.NewUnfocusedDelegate(), width, height)
+	l.SetShowHelp(false) // help to be at top right
 	l.KeyMap = common.FocusedListKeyMap()
 
 	v := blist.New(viewedValidations, common.NewUnfocusedDelegate(), width, height)
+	v.SetShowHelp(false) // help to be at top right
 	v.KeyMap = common.UnfocusedListKeyMap()
 
 	controlPicker := viewport.New(width, height)
@@ -139,14 +165,29 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 
 	remarks := viewport.New(width, height)
 	remarks.Style = common.PanelStyle
+	remarks.MouseWheelEnabled = false
+	remarksEditor := textarea.New()
+	remarksEditor.CharLimit = 0
+	remarksEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
+
 	description := viewport.New(width, height)
 	description.Style = common.PanelStyle
+	description.MouseWheelEnabled = false
+	descriptionEditor := textarea.New()
+	descriptionEditor.CharLimit = 0
+	descriptionEditor.KeyMap = common.UnfocusedTextAreaKeyMap()
+
 	validationPicker := viewport.New(width, height)
 	validationPicker.Style = common.PanelStyle
 
+	help := common.NewHelpModel(false)
+	help.OneLine = true
+	help.ShortHelp = shortHelpNoFocus
+
 	return Model{
 		keys:              componentKeys,
-		help:              help.New(),
+		help:              help,
+		componentModel:    oscalComponent,
 		components:        components,
 		selectedComponent: selectedComponent,
 		componentPicker:   componentPicker,
@@ -156,7 +197,9 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 		controlPicker:     controlPicker,
 		controls:          l,
 		remarks:           remarks,
+		remarksEditor:     remarksEditor,
 		description:       description,
+		descriptionEditor: descriptionEditor,
 		validationPicker:  validationPicker,
 		validations:       v,
 	}
@@ -170,6 +213,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	// up front so it doesn't capture the first key ('e')
+	if m.remarksEditor.Focused() {
+		m.remarksEditor, cmd = m.remarksEditor.Update(msg)
+		cmds = append(cmds, cmd)
+	} else if m.descriptionEditor.Focused() {
+		m.descriptionEditor, cmd = m.descriptionEditor.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.UpdateSizing(msg.Height-common.TabOffset, msg.Width)
@@ -178,109 +230,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.open {
 			k := msg.String()
 			switch k {
-
-			case common.ContainsKey(k, m.keys.Quit.Keys()):
-				return m, tea.Quit
-
 			case common.ContainsKey(k, m.keys.Help.Keys()):
 				m.help.ShowAll = !m.help.ShowAll
 
 			case common.ContainsKey(k, m.keys.NavigateLeft.Keys()):
-				if m.focus == 0 {
-					m.focus = maxFocus
-				} else {
-					m.focus--
+				if !m.componentPicker.Open && !m.frameworkPicker.Open {
+					if m.focus == 0 {
+						m.focus = maxFocus
+					} else {
+						m.focus--
+					}
+					m.updateKeyBindings()
 				}
-				m.updateKeyBindings()
 
 			case common.ContainsKey(k, m.keys.NavigateRight.Keys()):
-				m.focus = (m.focus + 1) % (maxFocus + 1)
-				m.updateKeyBindings()
-
-			case common.ContainsKey(k, m.keys.Up.Keys()):
-				if m.inComponentOverlay && m.selectedComponentIndex > 0 {
-					m.selectedComponentIndex--
-					m.componentPicker.SetContent(m.updateComponentPickerContent())
-				} else if m.inFrameworkOverlay && m.selectedFrameworkIndex > 0 {
-					m.selectedFrameworkIndex--
-					m.frameworkPicker.SetContent(m.updateFrameworkPickerContent())
-				}
-
-			case common.ContainsKey(k, m.keys.Down.Keys()):
-				if m.inComponentOverlay && m.selectedComponentIndex < len(m.components)-1 {
-					m.selectedComponentIndex++
-					m.componentPicker.SetContent(m.updateComponentPickerContent())
-				} else if m.inFrameworkOverlay && m.selectedFrameworkIndex < len(m.selectedComponent.frameworks)-1 {
-					m.selectedFrameworkIndex++
-					m.frameworkPicker.SetContent(m.updateFrameworkPickerContent())
+				if !m.componentPicker.Open && !m.frameworkPicker.Open {
+					m.focus = (m.focus + 1) % (maxFocus + 1)
+					m.updateKeyBindings()
 				}
 
 			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				switch m.focus {
 				case focusComponentSelection:
-					if m.inComponentOverlay {
-						if len(m.components) > 1 {
-							m.selectedComponent = m.components[m.selectedComponentIndex]
-							m.selectedFrameworkIndex = 0
-
-							// Update controls list
-							if len(m.components[m.selectedComponentIndex].frameworks) > 0 {
-								m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
-							} else {
-								m.selectedFramework = framework{}
+					if len(m.components) > 0 && !m.componentPicker.Open {
+						return m, func() tea.Msg {
+							return common.PickerOpenMsg{
+								Kind: componentPicker,
 							}
-							controlItems := make([]blist.Item, len(m.selectedFramework.controls))
-							if len(m.selectedFramework.controls) > 0 {
-								for i, c := range m.selectedFramework.controls {
-									controlItems[i] = c
-								}
-							}
-							m.controls.SetItems(controlItems)
-							m.controls.SetDelegate(common.NewUnfocusedDelegate())
-
-							// Update remarks, description, and validations
-							m.remarks.SetContent("")
-							m.description.SetContent("")
-							m.validations.SetItems(make([]blist.Item, 0))
 						}
-
-						m.inComponentOverlay = false
-					} else {
-						m.inComponentOverlay = true
-						m.componentPicker.SetContent(m.updateComponentPickerContent())
 					}
+
 				case focusFrameworkSelection:
-					if m.inFrameworkOverlay {
-						if len(m.components) != 0 && len(m.components[m.selectedComponentIndex].frameworks) > 1 {
-							m.selectedFramework = m.components[m.selectedComponentIndex].frameworks[m.selectedFrameworkIndex]
-
-							// Update controls list
-							controlItems := make([]blist.Item, len(m.selectedFramework.controls))
-							if len(m.selectedFramework.controls) > 0 {
-								for i, c := range m.selectedFramework.controls {
-									controlItems[i] = c
-								}
+					if len(m.frameworks) > 0 && !m.frameworkPicker.Open {
+						return m, func() tea.Msg {
+							return common.PickerOpenMsg{
+								Kind: frameworkPicker,
 							}
-							m.controls.SetItems(controlItems)
-							m.controls.SetDelegate(common.NewUnfocusedDelegate())
-
-							// Update remarks, description, and validations
-							m.remarks.SetContent("")
-							m.description.SetContent("")
-							m.validations.SetItems(make([]blist.Item, 0))
 						}
-
-						m.inFrameworkOverlay = false
-					} else {
-						m.inFrameworkOverlay = true
-						m.frameworkPicker.SetContent(m.updateFrameworkPickerContent())
 					}
 
 				case focusControls:
 					if selectedItem := m.controls.SelectedItem(); selectedItem != nil {
 						m.selectedControl = m.controls.SelectedItem().(control)
-						m.remarks.SetContent(m.selectedControl.remarks)
-						m.description.SetContent(m.selectedControl.desc)
+						m.remarks.SetContent(m.selectedControl.oscalControl.Remarks)
+						m.description.SetContent(m.selectedControl.oscalControl.Description)
 
 						// update validations list for selected control
 						validationItems := make([]blist.Item, len(m.selectedControl.validations))
@@ -294,22 +287,111 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
 						m.selectedValidation = selectedItem.(validationLink)
 					}
+
+				case focusRemarks:
+					if m.remarksEditor.Focused() {
+						remarks := m.remarksEditor.Value()
+						m.UpdateRemarks(remarks)
+						m.remarksEditor.Blur()
+						m.remarks.SetContent(remarks)
+						m.updateKeyBindings()
+					}
+
+				case focusDescription:
+					if m.descriptionEditor.Focused() {
+						description := m.descriptionEditor.Value()
+						m.UpdateDescription(description)
+						m.descriptionEditor.Blur()
+						m.description.SetContent(description)
+						m.updateKeyBindings()
+					}
+				}
+
+			case common.ContainsKey(k, m.keys.Edit.Keys()):
+				if m.selectedControl.oscalControl != nil {
+					switch m.focus {
+					case focusRemarks:
+						if !m.remarksEditor.Focused() {
+							m.remarksEditor.SetValue(m.selectedControl.oscalControl.Remarks)
+							m.remarks.SetContent(m.remarksEditor.View())
+							_ = m.remarksEditor.Focus()
+							m.updateKeyBindings()
+						}
+					case focusDescription:
+						if !m.descriptionEditor.Focused() {
+							m.descriptionEditor.SetValue(m.selectedControl.oscalControl.Description)
+							m.description.SetContent(m.descriptionEditor.View())
+							_ = m.descriptionEditor.Focus()
+							m.updateKeyBindings()
+						}
+					}
 				}
 
 			case common.ContainsKey(k, m.keys.Cancel.Keys()):
-				if m.inComponentOverlay {
-					m.inComponentOverlay = false
-				} else if m.inFrameworkOverlay {
-					m.inFrameworkOverlay = false
+				if m.selectedControl.oscalControl != nil {
+					switch m.focus {
+					case focusRemarks:
+						if m.remarksEditor.Focused() {
+							m.remarksEditor.Blur()
+							m.remarks.SetContent(m.selectedControl.oscalControl.Remarks)
+							m.updateKeyBindings()
+						}
+
+					case focusDescription:
+						if m.descriptionEditor.Focused() {
+							m.descriptionEditor.Blur()
+							m.description.SetContent(m.selectedControl.oscalControl.Description)
+							m.updateKeyBindings()
+						}
+					}
 				}
 			}
 		}
+
+	case common.PickerItemSelected:
+		// reset all the controls, contents - if component is selected, reset the framework list as well
+		if msg.From == componentPicker {
+			m.selectedComponent = m.components[msg.Selected]
+			m.selectedFramework = framework{}
+
+			// Update controls list
+			if len(m.components[msg.Selected].frameworks) > 0 {
+				m.selectedFramework = m.components[msg.Selected].frameworks[0]
+			}
+		} else if msg.From == frameworkPicker {
+			m.selectedFramework = m.selectedComponent.frameworks[msg.Selected]
+		}
+		if m.selectedFramework.oscalFramework != nil {
+			controlItems := make([]blist.Item, len(m.selectedFramework.controls))
+			if len(m.selectedFramework.controls) > 0 {
+				for i, c := range m.selectedFramework.controls {
+					controlItems[i] = c
+				}
+			}
+			m.controls.SetItems(controlItems)
+			m.controls.ResetSelected()
+		}
+		// Update remarks, description, and validations
+		m.controls.SetDelegate(common.NewUnfocusedDelegate())
+		m.controls.ResetSelected()
+		m.controls.ResetFilter()
+		m.selectedControl = control{}
+		m.remarks.SetContent("")
+		m.remarksEditor.SetValue("")
+		m.description.SetContent("")
+		m.descriptionEditor.SetValue("")
+		m.validations.SetItems(make([]blist.Item, 0))
+		m.validations.ResetSelected()
+		m.validations.ResetFilter()
+		m.selectedValidation = validationLink{}
 	}
 
-	m.componentPicker, cmd = m.componentPicker.Update(msg)
+	mdl, cmd := m.componentPicker.Update(msg)
+	m.componentPicker = mdl.(common.PickerModel)
 	cmds = append(cmds, cmd)
 
-	m.frameworkPicker, cmd = m.frameworkPicker.Update(msg)
+	mdl, cmd = m.frameworkPicker.Update(msg)
+	m.frameworkPicker = mdl.(common.PickerModel)
 	cmds = append(cmds, cmd)
 
 	m.remarks, cmd = m.remarks.Update(msg)
@@ -328,21 +410,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.inComponentOverlay {
+	if m.componentPicker.Open {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.componentPicker.View(), lipgloss.WithWhitespaceChars(" "))
 	}
-	if m.inFrameworkOverlay {
+	if m.frameworkPicker.Open {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.frameworkPicker.View(), lipgloss.WithWhitespaceChars(" "))
 	}
 	return m.mainView()
 }
 
 func (m Model) mainView() string {
-	// Add help panel at the top left
-	helpStyle := common.HelpStyle(m.width)
-	helpView := helpStyle.Render(m.help.View(m.keys))
-
-	// Add viewport styles
+	// Add viewport and focus styles
 	focusedViewport := common.PanelStyle.BorderForeground(common.Focused)
 	focusedViewportHeaderColor := common.Focused
 	focusedDialogBox := common.DialogBoxStyle.BorderForeground(common.Focused)
@@ -376,6 +454,9 @@ func (m Model) mainView() string {
 		validationPickerViewport = focusedViewport
 		validationHeaderColor = focusedViewportHeaderColor
 	}
+	// Add help panel at the top right
+	helpStyle := common.HelpStyle(m.width)
+	helpView := helpStyle.Render(m.help.View())
 
 	// Add widgets for dialogs
 	selectedComponentLabel := common.LabelStyle.Render("Selected Component")
@@ -403,6 +484,13 @@ func (m Model) mainView() string {
 	m.validationPicker.Style = validationPickerViewport
 	m.validationPicker.SetContent(m.validations.View())
 
+	// remarksView = m.remarks.View()
+	if m.remarksEditor.Focused() {
+		m.remarks.SetContent(lipgloss.JoinVertical(lipgloss.Top, m.remarksEditor.View()))
+	} else if m.descriptionEditor.Focused() {
+		m.description.SetContent(lipgloss.JoinVertical(lipgloss.Top, m.descriptionEditor.View()))
+	}
+
 	remarksPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Remarks", m.remarks.Width-common.PanelStyle.GetPaddingRight(), remarksHeaderColor), m.remarks.View())
 	descriptionPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Description", m.description.Width-common.PanelStyle.GetPaddingRight(), descHeaderColor), m.description.View())
 	validationsPanel := fmt.Sprintf("%s\n%s", common.HeaderView("Validations", m.validationPicker.Width-common.PanelStyle.GetPaddingRight(), validationHeaderColor), m.validationPicker.View())
@@ -415,51 +503,14 @@ func (m Model) mainView() string {
 
 func getComponentText(component component) string {
 	if component.uuid == "" {
-		return "No Component Selected"
+		return "No Components"
 	}
 	return fmt.Sprintf("%s - %s", component.title, component.uuid)
 }
 
 func getFrameworkText(framework framework) string {
+	if framework.name == "" {
+		return "No Frameworks"
+	}
 	return framework.name
-}
-
-func (m Model) updateComponentPickerContent() string {
-	helpStyle := common.HelpStyle(pickerWidth)
-	helpView := helpStyle.Render(help.New().View(common.PickerHotkeys))
-
-	s := strings.Builder{}
-	s.WriteString("Select a Component:\n\n")
-
-	for i, component := range m.components {
-		if m.selectedComponentIndex == i {
-			s.WriteString("(•) ") //[✔] Todo: many components?
-		} else {
-			s.WriteString("( ) ")
-		}
-		s.WriteString(getComponentText(component))
-		s.WriteString("\n")
-	}
-
-	return lipgloss.JoinVertical(lipgloss.Top, helpView, s.String())
-}
-
-func (m Model) updateFrameworkPickerContent() string {
-	helpStyle := common.HelpStyle(pickerWidth)
-	helpView := helpStyle.Render(help.New().View(common.PickerHotkeys))
-
-	s := strings.Builder{}
-	s.WriteString("Select a Framework:\n\n")
-
-	for i, fw := range m.selectedComponent.frameworks {
-		if m.selectedFrameworkIndex == i {
-			s.WriteString("(•) ")
-		} else {
-			s.WriteString("( ) ")
-		}
-		s.WriteString(getFrameworkText(fw))
-		s.WriteString("\n")
-	}
-
-	return lipgloss.JoinVertical(lipgloss.Top, helpView, s.String())
 }

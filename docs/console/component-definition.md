@@ -1,6 +1,6 @@
 # Component Definition
 
-The Component Definition view currently allows for a read-only experience of the OSCAL Component Definition model. The view is tailored to the usage of the Component Definition in the context of Lula, and is not intended to be a comprehensive view of the model.
+The Component Definition view currently allows for a read and limited write experience of the OSCAL Component Definition model. The view is tailored to the usage of the Component Definition in the context of Lula, and is not intended to be a comprehensive view of the model.
 
 ## Usage
 
@@ -8,10 +8,11 @@ To view an OSCAL Component Definition model in the Console:
 ```shell
 lula console -f /path/to/oscal-component.yaml
 ```
+The `oscal-component.yaml` will need to be a valid OSCAL model - to use with the Component Definition view, it must contain the `component-definition` top level key.
 
 ## Keys
 
-The Component Definition model responds to the following keys for navigation and interaction:
+The Component Definition model responds to the following keys for navigation and interaction (some widgets have additional key response, see respective help views for more information):
 
 | Key | Description |
 |-----|-------------|
@@ -21,12 +22,22 @@ The Component Definition model responds to the following keys for navigation and
 | `shift+tab` | Tab left between models |
 | `←/h` | Navigate left in model|
 | `→/l` | Navigate right in model |
-| `↑/k` | Move up in list OR scroll up |
-| `↓/j` | Move down in list OR scroll down |
+| `↑/k` | Move up in list OR scroll up in panel |
+| `↓/j` | Move down in list OR scroll up in panel |
 | `/` | Filter list |
 | `↳` | Select item |
+| `e` | Edit available fields (remarks and description) |
+| `ctrl+s` | Save changes (Note: this will overwrite the original file) |
 | `esc` | Cancel |
 
-## View
+During console viewing, the top-right corner will display the help keys availble in the context of the selected widget. When an overlay is open, the help keys will be displayed in the overlay.
 
-<img align="right" src="../../images/component-defn-console.gif" alt="component definition console" style="width:100%; height:auto;">
+## Views
+
+### Read-Only Navigation
+
+<img align="right" src="../../images/component-defn-console-read.gif" alt="component definition console read" style="width:100%; height:auto;">
+
+### Editing Remarks and Description
+
+<img align="right" src="../../images/component-defn-console-edit.gif" alt="component definition console edit" style="width:100%; height:auto;">

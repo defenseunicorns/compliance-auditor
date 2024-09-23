@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -75,9 +75,13 @@ func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentRes
 	observationSummary := viewport.New(width, height)
 	observationSummary.Style = common.PanelStyle
 
+	help := common.NewHelpModel(false)
+	help.OneLine = true
+	help.ShortHelp = []key.Binding{assessmentHotkeys.Help}
+
 	return Model{
 		keys:               assessmentHotkeys,
-		help:               help.New(),
+		help:               help,
 		results:            results,
 		resultsPicker:      resultsPicker,
 		selectedResult:     selectedResult,
@@ -183,7 +187,7 @@ func (m Model) View() string {
 func (m Model) mainView() string {
 	// Add help panel at the top left
 	helpStyle := common.HelpStyle(m.width)
-	helpView := helpStyle.Render(m.help.View(m.keys))
+	helpView := helpStyle.Render(m.help.View())
 
 	// Add viewport styles
 	focusedViewport := common.PanelStyle.BorderForeground(common.Focused)
@@ -252,9 +256,9 @@ func (m Model) mainView() string {
 }
 
 func (m Model) updateViewportContent(resultType string) string {
-	helpStyle := common.HelpStyle(pickerWidth)
-	helpView := helpStyle.Render(help.New().View(common.PickerHotkeys))
-
+	// TODO: refactor this to use the PiickerModel
+	help := common.NewHelpModel(true)
+	help.ShortHelp = common.ShortHelpPicker
 	s := strings.Builder{}
 	s.WriteString(fmt.Sprintf("Select a result to %s:\n\n", resultType))
 
@@ -268,7 +272,7 @@ func (m Model) updateViewportContent(resultType string) string {
 		s.WriteString("\n")
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Top, helpView, s.String())
+	return lipgloss.JoinVertical(lipgloss.Top, s.String(), help.View())
 }
 
 func (m Model) renderSummary() string {
