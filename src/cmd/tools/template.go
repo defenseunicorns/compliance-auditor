@@ -3,7 +3,6 @@ package tools
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/cmd/common"
@@ -52,9 +51,10 @@ func TemplateCommand() *cobra.Command {
 			}
 
 			// Validate render type
-			renderType, err := parseRenderType(renderTypeString)
+			renderType, err := template.ParseRenderType(renderTypeString)
 			if err != nil {
 				message.Warnf("invalid render type, defaulting to masked: %v", err)
+				renderType = template.MASKED
 			}
 
 			// Get constants and variables for templating from viper config
@@ -113,18 +113,4 @@ func TemplateCommand() *cobra.Command {
 func init() {
 	common.InitViper()
 	toolsCmd.AddCommand(TemplateCommand())
-}
-
-func parseRenderType(item string) (template.RenderType, error) {
-	switch strings.ToLower(item) {
-	case "masked":
-		return template.MASKED, nil
-	case "constants":
-		return template.CONSTANTS, nil
-	case "non-sensitive":
-		return template.NONSENSITIVE, nil
-	case "all":
-		return template.ALL, nil
-	}
-	return template.MASKED, fmt.Errorf("invalid render type: %s", item)
 }

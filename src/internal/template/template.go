@@ -247,6 +247,33 @@ func GetEnvVars(prefix string) map[string]string {
 	return envMap
 }
 
+// IsTemplate checks if the given string contains valid template syntax
+func IsTemplate(data string) bool {
+	// Check for basic template syntax markers
+	if !strings.Contains(data, "{{") || !strings.Contains(data, "}}") {
+		return false
+	}
+
+	// Attempt to parse the template
+	tpl := createTemplate()
+	_, err := tpl.Parse(data)
+	return err == nil
+}
+
+func ParseRenderType(item string) (RenderType, error) {
+	switch strings.ToLower(item) {
+	case "masked":
+		return MASKED, nil
+	case "constants":
+		return CONSTANTS, nil
+	case "non-sensitive":
+		return NONSENSITIVE, nil
+	case "all":
+		return ALL, nil
+	}
+	return "", fmt.Errorf("invalid render type: %s", item)
+}
+
 // createTemplate creates a new template object
 func createTemplate() *template.Template {
 	// Register custom template functions

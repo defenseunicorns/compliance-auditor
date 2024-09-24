@@ -3,9 +3,11 @@ package composition
 import (
 	"fmt"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 // ResourceStore is a store of resources.
@@ -13,13 +15,16 @@ type ResourceStore struct {
 	existing  map[string]*oscalTypes_1_1_2.Resource
 	fetched   map[string]*oscalTypes_1_1_2.Resource
 	hrefIdMap map[string][]string
+	cctx      *CompositionContext
 }
 
 // NewResourceStoreFromBackMatter creates a new resource store from the back matter of a component definition.
-func NewResourceStoreFromBackMatter(backMatter *oscalTypes_1_1_2.BackMatter) *ResourceStore {
+func NewResourceStoreFromBackMatter(cctx *CompositionContext, backMatter *oscalTypes_1_1_2.BackMatter) *ResourceStore {
 	store := &ResourceStore{
-		existing: make(map[string]*oscalTypes_1_1_2.Resource),
-		fetched:  make(map[string]*oscalTypes_1_1_2.Resource),
+		existing:  make(map[string]*oscalTypes_1_1_2.Resource),
+		fetched:   make(map[string]*oscalTypes_1_1_2.Resource),
+		hrefIdMap: make(map[string][]string),
+		cctx:      cctx,
 	}
 
 	if backMatter != nil && *backMatter.Resources != nil {
@@ -94,7 +99,7 @@ func (s *ResourceStore) Has(id string) bool {
 }
 
 // AddFromLink adds resources from a link to the store.
-func (s *ResourceStore) AddFromLink(link *oscalTypes_1_1_2.Link) (ids []string, err error) {
+func (s *ResourceStore) AddFromLink(link *oscalTypes_1_1_2.Link, baseDir string) (ids []string, err error) {
 	if link == nil {
 		return nil, fmt.Errorf("link is nil")
 	}
@@ -112,29 +117,36 @@ func (s *ResourceStore) AddFromLink(link *oscalTypes_1_1_2.Link) (ids []string, 
 		return ids, err
 	}
 
-	return s.fetchFromRemoteLink(link)
+	return s.fetchFromRemoteLink(link, baseDir)
 }
 
-func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link) (ids []string, err error) {
+// fetchFromRemoteLink expects a link to a remote validation or validation template
+func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link, baseDir string) (ids []string, err error) {
 	wantedId := common.TrimIdPrefix(link.ResourceFragment)
 
-	validationBytes, err := network.Fetch(link.Href)
+	validationBytes, err := network.Fetch(link.Href, network.WithBaseDir(baseDir))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error fetching remote resource: %v", err)
+	}
+
+	if s.cctx.renderRemote {
+		validationBytes, err = s.cctx.templateRenderer.Render(string(validationBytes), s.cctx.renderType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	validationArr, err := common.ReadValidationsFromYaml(validationBytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read validations from link: %v", err)
 	}
 	isSingleValidation := len(validationArr) == 1
 
 	for _, validation := range validationArr {
 		resource, err := validation.ToResource()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to create validation resource: %v", err)
 		}
-
 		s.AddFetched(resource)
 
 		if wantedId == resource.UUID || wantedId == common.WILDCARD || isSingleValidation {
@@ -142,5 +154,22 @@ func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link) (ids []
 		}
 	}
 
+	s.SetHrefIds(link.Href, ids)
+
 	return ids, err
+}
+
+func createTemplateResource(data []byte) *oscalTypes_1_1_2.Resource {
+	return &oscalTypes_1_1_2.Resource{
+		Title:       "Validation Template",
+		UUID:        uuid.NewUUID(),
+		Description: common.CleanMultilineString(string(data)),
+		Props: &[]oscalTypes_1_1_2.Property{
+			{
+				Name:  "resource-type",
+				Value: "validation-template",
+				Ns:    oscal.LULA_NAMESPACE,
+			},
+		},
+	}
 }

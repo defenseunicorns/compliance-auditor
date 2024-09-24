@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -49,25 +48,26 @@ func (v *Validation) MarshalYaml() ([]byte, error) {
 
 // ToResource converts a Validation object to a Resource object
 func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err error) {
-	resource = &oscalTypes_1_1_2.Resource{}
-	resource.Title = v.Metadata.Name
+	resourceUuid := uuid.NewUUID()
 	if v.Metadata.UUID != "" {
-		resource.UUID = v.Metadata.UUID
-	} else {
-		resource.UUID = uuid.NewUUID()
-	}
-	// If the provider is opa, trim whitespace from the rego
-	if v.Provider != nil && v.Provider.OpaSpec != nil {
-		re := regexp.MustCompile(`[ \t]+\r?\n`)
-		v.Provider.OpaSpec.Rego = re.ReplaceAllString(v.Provider.OpaSpec.Rego, "\n")
+		resourceUuid = v.Metadata.UUID
 	}
 
 	validationBytes, err := v.MarshalYaml()
 	if err != nil {
 		return nil, err
 	}
-	resource.Description = string(validationBytes)
-	return resource, nil
+
+	if v.Provider != nil && v.Provider.OpaSpec != nil {
+		// Clean multiline string in rego
+		CleanMultilineString(v.Provider.OpaSpec.Rego)
+	}
+
+	return &oscalTypes_1_1_2.Resource{
+		Title:       v.Metadata.Name,
+		UUID:        resourceUuid,
+		Description: CleanMultilineString(string(validationBytes)),
+	}, nil
 }
 
 // Metadata is a structure that contains the name and uuid of a validation

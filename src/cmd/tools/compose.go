@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,13 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type composeFlags struct {
-	InputFile  string // -f --input-file
-	OutputFile string // -o --output-file
-}
-
-var composeOpts = &composeFlags{}
-
 var composeHelp = `
 To compose an OSCAL Model:
 	lula tools compose -f ./oscal-component.yaml
@@ -28,65 +21,113 @@ To compose an OSCAL Model:
 To indicate a specific output file:
 	lula tools compose -f ./oscal-component.yaml -o composed-oscal-component.yaml
 `
-var composeCmd = &cobra.Command{
-	Use:     "compose",
-	Short:   "compose an OSCAL component definition",
-	Long:    "Lula Composition of an OSCAL component definition. Used to compose remote validations within a component definition in order to resolve any references for portability.",
-	Example: composeHelp,
-	Run: func(cmd *cobra.Command, args []string) {
-		composeSpinner := message.NewProgressSpinner("Composing %s", composeOpts.InputFile)
-		defer composeSpinner.Stop()
 
-		if composeOpts.InputFile == "" {
-			message.Fatal(errors.New("flag input-file is not set"),
-				"Please specify an input file with the -f flag")
-		}
+var composeLong = `
+Lula Composition of an OSCAL component definition. Used to compose remote validations within a component definition in order to resolve any references for portability.
 
-		outputFile := composeOpts.OutputFile
-		if outputFile == "" {
-			outputFile = GetDefaultOutputFile(composeOpts.InputFile)
-		}
+Supports templating of the composed component definition with the following configuration options:
+- To compose with templating applied, specify '--render, -r' with values of 'all', 'non-sensitive', 'constants', or 'masked' (choice will depend on the use case for the composed content)
+- To render Lula Validations include '--render-validations'
+- To perform any manual overrides to the template data, specify '--set, -s' with the format '.const.key=value' or '.var.key=value'
+`
 
-		err := Compose(composeOpts.InputFile, outputFile)
-		if err != nil {
-			message.Fatalf(err, "Composition error: %s", err)
-		}
+func ComposeCommand() *cobra.Command {
+	var (
+		inputFile         string   // -f --input-file
+		outputFile        string   // -o --output-file
+		setOpts           []string // -s --set
+		renderTypeString  string   // -r --render
+		renderValidations bool     // --render-validations
+	)
 
-		message.Infof("Composed OSCAL Component Definition to: %s", outputFile)
-		composeSpinner.Success()
-	},
+	var cmd = &cobra.Command{
+		Use:     "compose",
+		Short:   "compose an OSCAL component definition",
+		Long:    composeLong,
+		Example: composeHelp,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			composeSpinner := message.NewProgressSpinner("Composing %s", inputFile)
+			defer composeSpinner.Stop()
+
+			// TODO: check if remote or local?
+			_, err := os.Stat(inputFile)
+			if os.IsNotExist(err) {
+				return fmt.Errorf("input-file: %v does not exist - unable to digest document", inputFile)
+			}
+
+			// Update path if relative
+			path := inputFile
+			if filepath.IsLocal(inputFile) {
+				path = filepath.Join(filepath.Dir(inputFile), filepath.Base(inputFile))
+			}
+
+			if outputFile == "" {
+				outputFile = GetDefaultOutputFile(inputFile)
+			}
+
+			opts := []composition.Option{
+				composition.WithModelFromPath(path),
+				composition.WithTemplateRenderer(renderTypeString, renderValidations, setOpts),
+			}
+
+			compositionCtx, err := composition.New(context.Background(), opts...)
+			if err != nil {
+				return fmt.Errorf("error creating composition context: %v", err)
+			}
+
+			err = compositionCtx.ComposeFromPath(path)
+			if err != nil {
+				return fmt.Errorf("error composing model: %v", err)
+			}
+
+			// Write the composed OSCAL model to a file
+			err = oscal.WriteOscalModel(outputFile, compositionCtx.GetModel())
+			if err != nil {
+				return fmt.Errorf("error writing composed model: %v", err)
+			}
+
+			message.Infof("Composed OSCAL Component Definition to: %s", outputFile)
+			composeSpinner.Success()
+
+			return nil
+		},
+	}
+	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
+	cmd.MarkFlagRequired("input-file")
+	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-composed` appended")
+	cmd.Flags().StringVarP(&renderTypeString, "render", "r", "", "values to render the template with, options are: masked, constants, non-sensitive, all")
+	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set value overrides for templated data")
+	cmd.Flags().BoolVar(&renderValidations, "render-validations", false, "extend render to remote Lula Validations")
+
+	return cmd
 }
 
 func init() {
 	common.InitViper()
-
-	toolsCmd.AddCommand(composeCmd)
-
-	composeCmd.Flags().StringVarP(&composeOpts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	composeCmd.Flags().StringVarP(&composeOpts.OutputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-composed` appended")
+	toolsCmd.AddCommand(ComposeCommand())
 }
 
 // Compose composes an OSCAL model from a file path
-func Compose(inputFile, outputFile string) error {
-	_, err := os.Stat(inputFile)
-	if os.IsNotExist(err) {
-		return fmt.Errorf("input file: %v does not exist - unable to compose document", inputFile)
-	}
+// func Compose(inputFile, outputFile string, templateRenderer *template.TemplateRenderer, renderType template.RenderType) error {
+// 	_, err := os.Stat(inputFile)
+// 	if os.IsNotExist(err) {
+// 		return fmt.Errorf("input file: %v does not exist - unable to compose document", inputFile)
+// 	}
 
-	// Compose the OSCAL model
-	model, err := composition.ComposeFromPath(inputFile)
-	if err != nil {
-		return err
-	}
+// 	// Compose the OSCAL model
+// 	model, err := composition.ComposeFromPath(inputFile)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Write the composed OSCAL model to a file
-	err = oscal.WriteOscalModel(outputFile, model)
-	if err != nil {
-		return err
-	}
+// 	// Write the composed OSCAL model to a file
+// 	err = oscal.WriteOscalModel(outputFile, model)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // GetDefaultOutputFile returns the default output file name
 func GetDefaultOutputFile(inputFile string) string {

@@ -1,12 +1,13 @@
 package composition_test
 
 import (
+	"context"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"gopkg.in/yaml.v3"
 )
@@ -19,11 +20,34 @@ const (
 	localAndRemote     = "../../../test/unit/common/composition/component-definition-local-and-remote.yaml"
 	subComponentDef    = "../../../test/unit/common/composition/component-definition-import-compdefs.yaml"
 	compDefMultiImport = "../../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
+
+	// TODO: add tests for templating
+	compDefNestedImport = "../../../test/unit/common/composition/component-definition-import-nested-compdef"
+	compDefMultiTmpl    = "../../../test/unit/common/composition/component-definition-local-and-remote-template.yaml"
+
+	// Also, add cmd tests...? compare golden composed file?
 )
 
 func TestComposeFromPath(t *testing.T) {
+	test := func(t *testing.T, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
+		t.Helper()
+
+		options := append([]composition.Option{composition.WithModelFromPath(path)}, opts...)
+		ctx, err := composition.New(context.Background(), options...)
+		if err != nil {
+			return nil, err
+		}
+
+		err = ctx.ComposeFromPath(path)
+		if err != nil {
+			return nil, err
+		}
+
+		return ctx.GetModel(), nil
+	}
+
 	t.Run("No imports, local validations", func(t *testing.T) {
-		model, err := composition.ComposeFromPath(allLocal)
+		model, err := test(t, allLocal)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
@@ -33,7 +57,7 @@ func TestComposeFromPath(t *testing.T) {
 	})
 
 	t.Run("No imports, local validations, bad href", func(t *testing.T) {
-		model, err := composition.ComposeFromPath(allLocalBadHref)
+		model, err := test(t, allLocalBadHref)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
@@ -43,7 +67,17 @@ func TestComposeFromPath(t *testing.T) {
 	})
 
 	t.Run("No imports, remote validations", func(t *testing.T) {
-		model, err := composition.ComposeFromPath(allRemote)
+		model, err := test(t, allRemote)
+		if err != nil {
+			t.Fatalf("Error composing component definitions: %v", err)
+		}
+		if model == nil {
+			t.Error("expected the model to be composed")
+		}
+	})
+
+	t.Run("Imports, no components", func(t *testing.T) {
+		model, err := test(t, allRemote)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
@@ -53,7 +87,7 @@ func TestComposeFromPath(t *testing.T) {
 	})
 
 	t.Run("No imports, bad remote validations", func(t *testing.T) {
-		model, err := composition.ComposeFromPath(allRemoteBadHref)
+		model, err := test(t, allRemoteBadHref)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
@@ -63,14 +97,14 @@ func TestComposeFromPath(t *testing.T) {
 	})
 
 	t.Run("Errors when file does not exist", func(t *testing.T) {
-		_, err := composition.ComposeFromPath("nonexistent")
+		_, err := test(t, "nonexistent")
 		if err == nil {
 			t.Error("expected an error")
 		}
 	})
 
 	t.Run("Resolves relative paths", func(t *testing.T) {
-		model, err := composition.ComposeFromPath(localAndRemote)
+		model, err := test(t, localAndRemote)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
@@ -81,21 +115,41 @@ func TestComposeFromPath(t *testing.T) {
 }
 
 func TestComposeComponentDefinitions(t *testing.T) {
+	test := func(t *testing.T, compDef *oscalTypes_1_1_2.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
+		t.Helper()
+
+		options := append([]composition.Option{composition.WithModelFromPath(path)}, opts...)
+		ctx, err := composition.New(context.Background(), options...)
+		if err != nil {
+			return nil, err
+		}
+
+		baseDir := filepath.Dir(path)
+
+		err = ctx.ComposeComponentDefinitions(compDef, baseDir)
+		if err != nil {
+			return nil, err
+		}
+
+		return ctx.GetModel(), nil
+	}
+
 	t.Run("No imports, local validations", func(t *testing.T) {
 		og := getComponentDef(allLocal, t)
 		compDef := getComponentDef(allLocal, t)
-		reset, err := common.SetCwdToFileDir(allLocal)
-		defer reset()
-		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
-		}
-		err = composition.ComposeComponentDefinitions(compDef)
+
+		model, err := test(t, compDef, allLocal)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
 
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
+		}
+
 		// Only the last-modified timestamp should be different
-		if !reflect.DeepEqual(*og.BackMatter, *compDef.BackMatter) {
+		if !reflect.DeepEqual(*og.BackMatter, *compDefComposed.BackMatter) {
 			t.Error("expected the back matter to be unchanged")
 		}
 	})
@@ -103,17 +157,18 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("No imports, remote validations", func(t *testing.T) {
 		og := getComponentDef(allRemote, t)
 		compDef := getComponentDef(allRemote, t)
-		reset, err := common.SetCwdToFileDir(allRemote)
-		defer reset()
-		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
-		}
-		err = composition.ComposeComponentDefinitions(compDef)
+
+		model, err := test(t, compDef, allRemote)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
 
-		if reflect.DeepEqual(*og, *compDef) {
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
+		}
+
+		if reflect.DeepEqual(*og, *compDefComposed) {
 			t.Errorf("expected component definition to have changed.")
 		}
 	})
@@ -121,21 +176,22 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("Imports, no components", func(t *testing.T) {
 		og := getComponentDef(subComponentDef, t)
 		compDef := getComponentDef(subComponentDef, t)
-		reset, err := common.SetCwdToFileDir(subComponentDef)
-		defer reset()
-		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
-		}
-		err = composition.ComposeComponentDefinitions(compDef)
+
+		model, err := test(t, compDef, subComponentDef)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
 
-		if compDef.Components == og.Components {
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
+		}
+
+		if compDefComposed.Components == og.Components {
 			t.Error("expected there to be components")
 		}
 
-		if compDef.BackMatter == og.BackMatter {
+		if compDefComposed.BackMatter == og.BackMatter {
 			t.Error("expected the back matter to be changed")
 		}
 	})
@@ -143,47 +199,68 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("imports, no components, multiple component definitions from import", func(t *testing.T) {
 		og := getComponentDef(compDefMultiImport, t)
 		compDef := getComponentDef(compDefMultiImport, t)
-		reset, err := common.SetCwdToFileDir(compDefMultiImport)
-		defer reset()
-		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
-		}
-		err = composition.ComposeComponentDefinitions(compDef)
+
+		model, err := test(t, compDef, subComponentDef)
 		if err != nil {
 			t.Fatalf("Error composing component definitions: %v", err)
 		}
-		if compDef.Components == og.Components {
+
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
+		}
+
+		if compDefComposed.Components == og.Components {
 			t.Error("expected there to be components")
 		}
 
-		if compDef.BackMatter == og.BackMatter {
+		if compDefComposed.BackMatter == og.BackMatter {
 			t.Error("expected the back matter to be changed")
 		}
 
-		if len(*compDef.Components) != 1 {
-			t.Error("expected there to be 2 components")
+		if len(*compDefComposed.Components) != 1 {
+			t.Error("expected there to be 1 component")
 		}
 	})
 
 }
 
 func TestCompileComponentValidations(t *testing.T) {
+	test := func(t *testing.T, compDef *oscalTypes_1_1_2.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
+		t.Helper()
+
+		options := append([]composition.Option{composition.WithModelFromPath(path)}, opts...)
+		ctx, err := composition.New(context.Background(), options...)
+		if err != nil {
+			return nil, err
+		}
+
+		baseDir := filepath.Dir(path)
+
+		err = ctx.ComposeComponentValidations(compDef, baseDir)
+		if err != nil {
+			return nil, err
+		}
+
+		return ctx.GetModel(), nil
+	}
 
 	t.Run("all local", func(t *testing.T) {
 		og := getComponentDef(allLocal, t)
 		compDef := getComponentDef(allLocal, t)
-		reset, err := common.SetCwdToFileDir(allLocal)
-		defer reset()
+
+		model, err := test(t, compDef, allLocal)
 		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
+			t.Fatalf("error composing validations: %v", err)
 		}
-		err = composition.ComposeComponentValidations(compDef)
-		if err != nil {
-			t.Fatalf("Error compiling component validations: %v", err)
+
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
 		}
 
 		// Only the last-modified timestamp should be different
-		if !reflect.DeepEqual(*og.BackMatter, *compDef.BackMatter) {
+		if !reflect.DeepEqual(*og.BackMatter, *compDefComposed.BackMatter) {
 			t.Error("expected the back matter to be unchanged")
 		}
 	})
@@ -191,24 +268,26 @@ func TestCompileComponentValidations(t *testing.T) {
 	t.Run("all remote", func(t *testing.T) {
 		og := getComponentDef(allRemote, t)
 		compDef := getComponentDef(allRemote, t)
-		reset, err := common.SetCwdToFileDir(allRemote)
-		defer reset()
+
+		model, err := test(t, compDef, allRemote)
 		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
+			t.Fatalf("error composing validations: %v", err)
 		}
-		err = composition.ComposeComponentValidations(compDef)
-		if err != nil {
-			t.Fatalf("Error compiling component validations: %v", err)
+
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
 		}
-		if reflect.DeepEqual(*og, *compDef) {
+
+		if reflect.DeepEqual(*og, *compDefComposed) {
 			t.Error("expected the component definition to be changed")
 		}
 
-		if compDef.BackMatter == nil {
+		if compDefComposed.BackMatter == nil {
 			t.Error("expected the component definition to have back matter")
 		}
 
-		if og.Metadata.LastModified == compDef.Metadata.LastModified {
+		if og.Metadata.LastModified == compDefComposed.Metadata.LastModified {
 			t.Error("expected the component definition to have a different last modified timestamp")
 		}
 	})
@@ -216,17 +295,18 @@ func TestCompileComponentValidations(t *testing.T) {
 	t.Run("local and remote", func(t *testing.T) {
 		og := getComponentDef(localAndRemote, t)
 		compDef := getComponentDef(localAndRemote, t)
-		reset, err := common.SetCwdToFileDir(localAndRemote)
-		defer reset()
+
+		model, err := test(t, compDef, localAndRemote)
 		if err != nil {
-			t.Fatalf("Error setting cwd to file dir: %v", err)
-		}
-		err = composition.ComposeComponentValidations(compDef)
-		if err != nil {
-			t.Fatalf("Error compiling component validations: %v", err)
+			t.Fatalf("error composing validations: %v", err)
 		}
 
-		if reflect.DeepEqual(*og, *compDef) {
+		compDefComposed := model.ComponentDefinition
+		if compDefComposed == nil {
+			t.Error("expected the component definition to be non-nil")
+		}
+
+		if reflect.DeepEqual(*og, *compDefComposed) {
 			t.Error("expected the component definition to be changed")
 		}
 	})

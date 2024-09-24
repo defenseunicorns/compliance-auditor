@@ -1,19 +1,14 @@
-package test
+package cmd_test
 
 import (
-	"flag"
 	"os"
-	"path/filepath"
 
 	"testing"
-
-	"github.com/defenseunicorns/lula/src/cmd"
-	"github.com/defenseunicorns/lula/src/test/util"
 )
 
-var updateGolden = flag.Bool("update", false, "update golden files")
+// var updateGolden = flag.Bool("update", false, "update golden files")
 
-func TestTemplateCommand(t *testing.T) {
+func TestToolsTemplateCommand(t *testing.T) {
 
 	test := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
 		t.Helper()
@@ -21,38 +16,7 @@ func TestTemplateCommand(t *testing.T) {
 		cmdArgs := []string{"tools", "template"}
 		cmdArgs = append(cmdArgs, args...)
 
-		cmd := cmd.RootCommand()
-
-		_, output, err := util.ExecuteCommand(cmd, cmdArgs...)
-		if err != nil {
-			if !expectError {
-				return err
-			} else {
-				return nil
-			}
-		}
-
-		if !expectError {
-			goldenFile := filepath.Join("testdata", goldenFileName+".golden")
-
-			if *updateGolden && !expectError {
-				err = os.WriteFile(goldenFile, []byte(output), 0644)
-				if err != nil {
-					return err
-				}
-			}
-
-			expected, err := os.ReadFile(goldenFile)
-			if err != nil {
-				return err
-			}
-
-			if output != string(expected) {
-				t.Fatalf("Expected:\n%s\n - Got \n%s\n", expected, output)
-			}
-		}
-
-		return nil
+		return runCmdTest(t, "tools/template/"+goldenFileName, expectError, cmdArgs...)
 	}
 
 	t.Run("Template Validation", func(t *testing.T) {

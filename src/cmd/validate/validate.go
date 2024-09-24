@@ -8,7 +8,6 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
@@ -125,7 +124,8 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	oscalModel, err := composition.ComposeFromPath(path)
+	// oscalModel, err := composition.ComposeFromPath(path)
+	oscalModel := &oscalTypes_1_1_2.OscalCompleteSchema{}
 	if err != nil {
 		return assessmentResult, err
 	}

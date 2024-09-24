@@ -15,8 +15,8 @@ component-definition:
             rel: website
   components:
     - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
-      type: software
-      title: lula
+      type: {{ .const.type }}
+      title: {{ .const.title }}
       description: |
         Lula - the Compliance Validator
       purpose: Validate compliance controls
@@ -35,8 +35,14 @@ component-definition:
                 This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
                 - href: "#a7377430-2328-4dc4-a9e2-b3f31dc1dff9"
+                  text: local template validation
                   rel: lula
-                  resource-fragment: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
+                - href: "../validation/validation.trailing-spaces.yaml"
+                  text: validation with spaces that need to be cleaned
+                  rel: lula
+                - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/unit/common/validation/validation.tmpl.yaml
+                  text: validation with template from remote
+                  rel: lula
   back-matter:
     resources:
       - uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
@@ -51,8 +57,8 @@ component-definition:
                 resource-rule:
                   group:
                   version: v1
-                  resource: pods
-                  namespaces: [validation-test]
+                  resource: {{ .const.resources.name }}
+                  namespaces: [{{ .const.resources.namespace }}]
           provider:
             type: opa
             opa-spec:
