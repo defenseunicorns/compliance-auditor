@@ -164,7 +164,7 @@ func TestRunValidations(t *testing.T) {
 				v.AddLulaValidation(validation, uuid.NewUUID())
 			}
 
-			observations := v.RunValidations(true)
+			observations := v.RunValidations(true, false, "")
 			if len(observations) != tt.expectedObservations {
 				t.Errorf("Expected %d observations, but got %d", tt.expectedObservations, len(observations))
 			}
@@ -180,7 +180,7 @@ func TestGetRelatedObservation(t *testing.T) {
 	v.AddLulaValidation(validationPass, "1")
 	v.AddLulaValidation(validationFail, "2")
 
-	v.RunValidations(true)
+	v.RunValidations(true, false, "")
 
 	tests := []struct {
 		name               string

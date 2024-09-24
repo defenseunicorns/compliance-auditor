@@ -39,7 +39,7 @@ component-definition:
               links:
                 # - href: 'file://./validation.yaml'
                 #   rel: lula
-                #   text: Test creation of resources (currently broken due to YAML Delimiter)
+                #   text: Test creation of resources remote
                 - href: '#bfca025a-b92e-467c-8350-56cb10eb5575'
                   rel: lula
                   text: Test creation of resources local
@@ -117,7 +117,7 @@ component-definition:
                       restartPolicy: Never
             - name: remotePod
               namespace: validation-test
-              file: 'file:../pod-label/pod.pass.yaml'
+              file: 'https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/pod-label/pod.pass.yaml'
         provider: 
           type: opa
           opa-spec:

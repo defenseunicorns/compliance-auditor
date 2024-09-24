@@ -32,6 +32,7 @@ func ComposeFromPath(inputFile string) (model *oscalTypes_1_1_2.OscalCompleteSch
 	if err != nil {
 		return nil, err
 	}
+	defer resetCwd()
 
 	model, err = oscal.NewOscalModel(data)
 	if err != nil {
@@ -43,8 +44,6 @@ func ComposeFromPath(inputFile string) (model *oscalTypes_1_1_2.OscalCompleteSch
 		return nil, err
 	}
 
-	// Reset Cwd to original before outputting
-	resetCwd()
 	return model, nil
 }
 

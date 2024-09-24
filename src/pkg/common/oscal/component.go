@@ -530,39 +530,6 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	return controlMap
 }
 
-// Need to get components + frameworks + control implementations -> new struct?
-type ComponentFrameworks struct {
-	Component  oscalTypes_1_1_2.DefinedComponent
-	Frameworks map[string][]oscalTypes_1_1_2.ControlImplementationSet
-}
-
-func NewComponentFrameworks(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]ComponentFrameworks {
-	componentTargets := make(map[string]ComponentFrameworks)
-
-	if componentDefinition.Components != nil {
-		// Build a map[source/framework][]control-implementations
-		for _, component := range *componentDefinition.Components {
-			controlImplementationsMap := make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
-			if component.ControlImplementations != nil {
-				for _, controlImplementation := range *component.ControlImplementations {
-					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
-					controlImplementationsMap[controlImplementation.Source] = append(controlImplementationsMap[controlImplementation.Source], controlImplementation)
-					status, value := GetProp("framework", LULA_NAMESPACE, controlImplementation.Props)
-					if status {
-						controlImplementationsMap[value] = append(controlImplementationsMap[value], controlImplementation)
-					}
-				}
-			}
-			componentTargets[component.UUID] = ComponentFrameworks{
-				Component:  component,
-				Frameworks: controlImplementationsMap,
-			}
-		}
-	}
-
-	return componentTargets
-}
-
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
 	// sort components by title
 
@@ -661,10 +628,12 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 			}
 
 			var tabs string
-			for range level {
+			// Indents based on labels
+			for i := 0; i < level; i++ {
 				tabs += "\t"
 			}
-			prose := part.Prose
+			// Trims the whitespace
+			prose := strings.TrimSpace(part.Prose)
 			if prose == "" {
 				result += fmt.Sprintf("%s%s\n", tabs, label)
 			} else if strings.Contains(prose, "{{ insert: param,") {

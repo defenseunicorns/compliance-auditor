@@ -169,6 +169,27 @@ func RefactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (ma
 	return observationPairMap, controlObservationMap, noObservations
 }
 
+// GetMachineFriendlyObservations returns a machine-readable output of diagnosable observations (e.g., SATISFIED_TO_NOT_SATISFIED)
+func GetMachineFriendlyObservations(resultComparisonMap ResultComparisonMap) map[StateChange]interface{} {
+	observations := make(map[StateChange]interface{})
+
+	for _, resultComparison := range resultComparisonMap {
+		if resultComparison.ObservationPairs != nil {
+			for _, op := range resultComparison.ObservationPairs {
+				if _, ok := observations[op.StateChange]; !ok {
+					observations[op.StateChange] = make([]any, 0)
+				}
+				observations[op.StateChange] = append(observations[op.StateChange].([]any), map[string]string{
+					"new_observation":      op.ObservationUuid,
+					"original_observation": op.ComparedObservationUuid,
+				})
+			}
+		}
+	}
+
+	return observations
+}
+
 // newResultComparison create new result comparison from two findings
 func newResultComparison(finding *oscalTypes_1_1_2.Finding, comparedFinding *oscalTypes_1_1_2.Finding, relatedObservations []*oscalTypes_1_1_2.Observation, comparedRelatedObservations []*oscalTypes_1_1_2.Observation) ResultComparison {
 	var state StateChange

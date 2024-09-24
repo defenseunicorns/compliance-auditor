@@ -106,6 +106,46 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 
 }
 
+// OverwriteOscalModel takes a path and writes content to a file - does not check for existing content
+// supports both json and yaml
+func OverwriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
+
+	// if no path or directory add default filename
+	if filepath.Ext(filePath) == "" {
+		filePath = filepath.Join(filePath, fmt.Sprintf("%s.yaml", "oscal"))
+	} else {
+		if err := files.IsJsonOrYaml(filePath); err != nil {
+			return err
+		}
+	}
+
+	// Make deterministic
+	if model.ComponentDefinition != nil {
+		MakeComponentDeterminstic(model.ComponentDefinition)
+	}
+	if model.AssessmentResults != nil {
+		MakeAssessmentResultsDeterministic(model.AssessmentResults)
+	}
+	var b bytes.Buffer
+
+	if filepath.Ext(filePath) == ".json" {
+		jsonEncoder := json.NewEncoder(&b)
+		jsonEncoder.SetIndent("", "  ")
+		jsonEncoder.Encode(model)
+	} else {
+		yamlEncoder := yamlV3.NewEncoder(&b)
+		yamlEncoder.SetIndent(2)
+		yamlEncoder.Encode(model)
+	}
+
+	if err := files.WriteOutput(b.Bytes(), filePath); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *oscalTypes_1_1_2.OscalModels, modelType string) (*oscalTypes_1_1_2.OscalModels, error) {
 	var err error
 	// Now to check each model type - currently only component definition and assessment-results apply

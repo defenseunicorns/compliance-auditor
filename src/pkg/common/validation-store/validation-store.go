@@ -2,7 +2,10 @@ package validationstore
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -50,7 +53,7 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 		validation.Metadata.UUID = uuid.NewUUID()
 	}
 
-	v.validationMap[validation.Metadata.UUID], err = validation.ToLulaValidation()
+	v.validationMap[validation.Metadata.UUID], err = validation.ToLulaValidation(validation.Metadata.UUID)
 
 	if err != nil {
 		return "", err
@@ -74,7 +77,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	}
 
 	if validationString, ok := v.backMatterMap[trimmedId]; ok {
-		lulaValidation, err := common.ValidationFromString(validationString)
+		lulaValidation, err := common.ValidationFromString(validationString, trimmedId)
 		if err != nil {
 			return &lulaValidation, err
 		}
@@ -102,8 +105,9 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1_2.Observation {
+func (v *ValidationStore) RunValidations(confirmExecution, saveResources bool, resourcesDir string) []oscalTypes_1_1_2.Observation {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
+
 	for k, val := range v.validationMap {
 		completedText := "evaluated"
 		spinnerMessage := fmt.Sprintf("Running validation %s", k)
@@ -135,6 +139,25 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 			}
 		}
 
+		// Save Resources if specified
+		var resourceHref string
+		if saveResources {
+			resourceUuid := uuid.NewUUID()
+			// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
+			filename := fmt.Sprintf("%s.json", resourceUuid)
+			resourceFile := filepath.Join(resourcesDir, "resources", filename)
+			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm)
+			if err != nil {
+				message.Debugf("Error creating directory for remote resource: %v", err)
+			}
+			jsonData := val.GetDomainResourcesAsJSON()
+			err = files.WriteOutput(jsonData, resourceFile)
+			if err != nil {
+				message.Debugf("Error writing remote resource file: %v", err)
+			}
+			resourceHref = fmt.Sprintf("file://./resources/%s", filename)
+		}
+
 		// Create an observation
 		relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
 			{
@@ -142,9 +165,10 @@ func (v *ValidationStore) RunValidations(confirmExecution bool) []oscalTypes_1_1
 				Remarks:     remarks,
 			},
 		}
-		observation := oscal.CreateObservation("TEST", relevantEvidence, "[TEST]: %s - %s\n", k, val.Name)
+		observation := oscal.CreateObservation("TEST", relevantEvidence, &val, resourceHref, "[TEST]: %s - %s\n", k, val.Name)
 		v.observationMap[k] = &observation
 		observations = append(observations, observation)
+
 		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
 	}
 	return observations

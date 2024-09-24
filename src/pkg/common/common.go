@@ -167,7 +167,7 @@ func GetProvider(provider *Provider, ctx context.Context) (types.Provider, error
 }
 
 // Converts a raw string to a Validation object (string -> common.Validation -> types.Validation)
-func ValidationFromString(raw string) (validation types.LulaValidation, err error) {
+func ValidationFromString(raw, uuid string) (validation types.LulaValidation, err error) {
 	if raw == "" {
 		return validation, fmt.Errorf("validation string is empty")
 	}
@@ -178,7 +178,7 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 		return validation, err
 	}
 
-	validation, err = validationData.ToLulaValidation()
+	validation, err = validationData.ToLulaValidation(uuid)
 	if err != nil {
 		return validation, err
 	}

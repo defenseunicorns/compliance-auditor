@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -24,6 +25,9 @@ const (
 type LulaValidation struct {
 	// Name of the Validation
 	Name string
+
+	// UUID of the validation - tied to the component-definition.backmatter
+	UUID string
 
 	// Provider is the provider that is evaluating the validation
 	Provider *Provider
@@ -174,6 +178,19 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 // Check if the validation requires confirmation before possible execution code is run
 func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
 	return !(*val.Domain).IsExecutable()
+}
+
+// Return domain resources as a json []byte
+func (val *LulaValidation) GetDomainResourcesAsJSON() []byte {
+	if val.DomainResources == nil {
+		return []byte("{}")
+	}
+	jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
+	if err != nil {
+		message.Debugf("Error marshalling domain resources to JSON: %v", err)
+		jsonData = []byte(`{"Error": "Error marshalling to JSON"}`)
+	}
+	return jsonData
 }
 
 type DomainResources map[string]interface{}

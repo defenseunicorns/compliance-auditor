@@ -309,6 +309,11 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error merging assessment results: %v", err)
 		}
 
+		// Backmatter should be nil
+		if assessment.BackMatter != nil {
+			t.Fatalf("Expected backmatter to be nil")
+		}
+
 		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
 			"valid.yaml": assessment,
 		}

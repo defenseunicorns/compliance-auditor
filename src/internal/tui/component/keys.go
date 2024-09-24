@@ -9,76 +9,68 @@ type keys struct {
 	Edit          key.Binding
 	Generate      key.Binding
 	Confirm       key.Binding
+	Select        key.Binding
+	Save          key.Binding
 	Cancel        key.Binding
 	Navigation    key.Binding
 	NavigateLeft  key.Binding
 	NavigateRight key.Binding
 	SwitchModels  key.Binding
-	Up            key.Binding
-	Down          key.Binding
 	Help          key.Binding
 	Quit          key.Binding
 }
 
 var componentKeys = keys{
-	Quit: common.CommonHotkeys.Quit,
-	Help: common.CommonHotkeys.Help,
-	Edit: key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "edit"),
-	),
-	Confirm: common.PickerHotkeys.Confirm,
-	Cancel:  common.PickerHotkeys.Cancel,
-	Navigation: key.NewBinding(
-		key.WithKeys("left", "h", "right", "l"),
-		key.WithHelp("←/h, →/l", "navigation"),
-	),
-	NavigateLeft: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("←/h", "navigate left"),
-	),
-	NavigateRight: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("→/l", "navigate right"),
-	),
-	SwitchModels: key.NewBinding(
-		key.WithKeys("tab", "shift+tab"),
-		key.WithHelp("tab/shift+tab", "switch models"),
-	),
-	Up:   common.PickerHotkeys.Up,
-	Down: common.PickerHotkeys.Down,
+	Quit:          common.CommonKeys.Quit,
+	Help:          common.CommonKeys.Help,
+	Edit:          common.CommonKeys.Edit,
+	Save:          common.CommonKeys.Save,
+	Select:        common.CommonKeys.Select,
+	Confirm:       common.CommonKeys.Confirm,
+	Cancel:        common.CommonKeys.Cancel,
+	Navigation:    common.CommonKeys.Navigation,
+	NavigateLeft:  common.CommonKeys.NavigateLeft,
+	NavigateRight: common.CommonKeys.NavigateRight,
+	SwitchModels:  common.CommonKeys.NavigateModels,
 }
 
-func (k keys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Navigation, k.Help}
+var componentEditKeys = keys{
+	Confirm: common.PickerKeys.Select,
+	Cancel:  common.PickerKeys.Cancel,
 }
 
-func (k keys) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
+// Focus key help
+var (
+	// No focus
+	shortHelpNoFocus = []key.Binding{
+		componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
 	}
-}
-
-func (m *Model) updateKeyBindings() {
-	m.controls.KeyMap = common.UnfocusedListKeyMap()
-	// m.controls.SetDelegate(common.NewUnfocusedDelegate())
-	m.validations.KeyMap = common.UnfocusedListKeyMap()
-	m.validations.SetDelegate(common.NewUnfocusedDelegate())
-
-	m.remarks.KeyMap = common.UnfocusedPanelKeyMap()
-	m.description.KeyMap = common.UnfocusedPanelKeyMap()
-
-	switch m.focus {
-	case focusComponentSelection:
-	case focusValidations:
-		m.validations.KeyMap = common.FocusedListKeyMap()
-		m.validations.SetDelegate(common.NewFocusedDelegate())
-	case focusControls:
-		m.controls.KeyMap = common.FocusedListKeyMap()
-		m.controls.SetDelegate(common.NewFocusedDelegate())
-	case focusRemarks:
-		m.remarks.KeyMap = common.FocusedPanelKeyMap()
-	case focusDescription:
-		m.description.KeyMap = common.FocusedPanelKeyMap()
+	fullHelpNoFocusOneLine = []key.Binding{
+		componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
 	}
-}
+	fullHelpNoFocus = [][]key.Binding{
+		{componentKeys.Navigation}, {componentKeys.SwitchModels}, {componentKeys.Help},
+	}
+
+	// focus dialog box
+	shortHelpDialogBox = []key.Binding{
+		componentKeys.Select, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+	}
+	fullHelpDialogBoxOneLine = []key.Binding{
+		componentKeys.Select, componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+	}
+	fullHelpDialogBox = [][]key.Binding{
+		{componentKeys.Select}, {componentKeys.Save}, {componentKeys.Navigation}, {componentKeys.SwitchModels}, {componentKeys.Help},
+	}
+
+	// focus editable dialog box
+	shortHelpEditableDialogBox = []key.Binding{
+		componentKeys.Edit, componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+	}
+	fullHelpEditableDialogBoxOneLine = []key.Binding{
+		componentKeys.Edit, componentKeys.Save, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+	}
+	fullHelpEditableDialogBox = [][]key.Binding{
+		{componentKeys.Edit}, {componentKeys.Save}, {componentKeys.Navigation}, {componentKeys.SwitchModels}, {componentKeys.Help},
+	}
+)

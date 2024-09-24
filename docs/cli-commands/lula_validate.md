@@ -40,6 +40,7 @@ To run validations non-interactively (no execution)
   -f, --input-file string    the path to the target OSCAL component definition
       --non-interactive      run the command non-interactively
   -o, --output-file string   the path to write assessment results. Creates a new file or appends to existing files
+      --save-resources       saves the resources to 'resources' directory at assessment-results level
   -t, --target string        the specific control implementations or framework to validate against
 ```
 

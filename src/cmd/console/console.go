@@ -46,15 +46,16 @@ var consoleCmd = &cobra.Command{
 
 		// Add debugging
 		// TODO: need to integrate with the log file handled by messages
+		var dumpFile *os.File
 		if message.GetLogLevel() == message.DebugLevel {
-			f, err := tea.LogToFile("debug.log", "debug")
+			dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 			if err != nil {
 				message.Fatalf(err, err.Error())
 			}
-			defer f.Close()
+			defer dumpFile.Close()
 		}
 
-		p := tea.NewProgram(tui.NewOSCALModel(oscalModel), tea.WithAltScreen(), tea.WithMouseCellMotion())
+		p := tea.NewProgram(tui.NewOSCALModel(oscalModel, opts.InputFile, dumpFile), tea.WithAltScreen(), tea.WithMouseCellMotion())
 
 		if _, err := p.Run(); err != nil {
 			message.Fatalf(err, err.Error())
