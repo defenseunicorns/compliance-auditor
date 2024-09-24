@@ -50,7 +50,7 @@ func (r *TemplateRenderer) Render(t RenderType) ([]byte, error) {
 	case ALL:
 		return r.ExecuteFullTemplate()
 	default:
-		return r.ExecuteMaskedTemplate()
+		return []byte{}, fmt.Errorf("invalid render type: %s", t)
 	}
 }
 

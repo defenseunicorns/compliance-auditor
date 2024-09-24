@@ -45,9 +45,6 @@ func TemplateCommand() *cobra.Command {
 		Args:    cobra.NoArgs,
 		Example: templateHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get current viper pointer
-			v := common.GetViper()
-
 			// Read file
 			data, err := pkgCommon.ReadFileToBytes(inputFile)
 			if err != nil {
@@ -55,27 +52,19 @@ func TemplateCommand() *cobra.Command {
 			}
 
 			// Validate render type
-			renderType, err := getRenderType(renderTypeString)
+			renderType, err := parseRenderType(renderTypeString)
 			if err != nil {
-				message.Warn("invalid render type, defaulting to masked")
+				message.Warnf("invalid render type, defaulting to masked: %v", err)
 			}
 
 			// Get constants and variables for templating from viper config
-			var constants map[string]interface{}
-			var variables []template.VariableConfig
-
-			err = v.UnmarshalKey(common.VConstants, &constants)
+			constants, variables, err := common.GetTemplateConfig()
 			if err != nil {
-				return fmt.Errorf("unable to unmarshal constants into map: %v", err)
-			}
-
-			err = v.UnmarshalKey(common.VVariables, &variables)
-			if err != nil {
-				return fmt.Errorf("unable to unmarshal variables into slice: %v", err)
+				return fmt.Errorf("error getting template config: %v", err)
 			}
 
 			// Get overrides from --set flag
-			overrides := getOverrides(setOpts)
+			overrides := common.ParseTemplateOverrides(setOpts)
 
 			// Handles merging viper config file data + environment variables
 			// Throws an error if config keys are invalid for templating
@@ -123,7 +112,7 @@ func init() {
 	toolsCmd.AddCommand(TemplateCommand())
 }
 
-func getRenderType(item string) (template.RenderType, error) {
+func parseRenderType(item string) (template.RenderType, error) {
 	switch strings.ToLower(item) {
 	case "masked":
 		return template.MASKED, nil
@@ -135,22 +124,4 @@ func getRenderType(item string) (template.RenderType, error) {
 		return template.ALL, nil
 	}
 	return template.MASKED, fmt.Errorf("invalid render type: %s", item)
-}
-
-func getOverrides(setFlags []string) map[string]string {
-	overrides := make(map[string]string)
-	for _, flag := range setFlags {
-		parts := strings.SplitN(flag, "=", 2)
-		if len(parts) != 2 {
-			message.Fatalf(fmt.Errorf("invalid --set flag format, should be .root.key=value"), "invalid --set flag format, should be .root.key=value")
-		}
-
-		if !strings.HasPrefix(parts[0], "."+template.CONST+".") && !strings.HasPrefix(parts[0], "."+template.VAR+".") {
-			message.Fatalf(fmt.Errorf("invalid --set flag format, path should start with .const or .var"), "invalid --set flag format, path should start with .const or .var")
-		}
-
-		path, value := parts[0], parts[1]
-		overrides[path] = value
-	}
-	return overrides
 }

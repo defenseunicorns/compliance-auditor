@@ -2,9 +2,11 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
+	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/viper"
 )
@@ -70,6 +72,24 @@ func InitViper() *viper.Viper {
 // GetViper returns the viper singleton
 func GetViper() *viper.Viper {
 	return v
+}
+
+// GetTemplateConfig loads the constants and variables from the viper config
+func GetTemplateConfig() (map[string]interface{}, []template.VariableConfig, error) {
+	var constants map[string]interface{}
+	var variables []template.VariableConfig
+
+	err := v.UnmarshalKey(VConstants, &constants)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to unmarshal constants into map: %v", err)
+	}
+
+	err = v.UnmarshalKey(VVariables, &variables)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to unmarshal variables into slice: %v", err)
+	}
+
+	return constants, variables, nil
 }
 
 func isVersionCmd() bool {
