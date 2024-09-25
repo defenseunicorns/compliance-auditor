@@ -10,10 +10,17 @@ import (
 	"github.com/defenseunicorns/lula/src/internal/template"
 )
 
+<<<<<<< HEAD
 func testRender(t *testing.T, templateRenderer *template.TemplateRenderer, renderType template.RenderType, expected string) error {
 	t.Helper()
 
 	got, err := templateRenderer.Render(renderType)
+=======
+func testRender(t *testing.T, templateRenderer *template.TemplateRenderer, templateString string, renderType template.RenderType, expected string) error {
+	t.Helper()
+
+	got, err := templateRenderer.Render(templateString, renderType)
+>>>>>>> 5d1f23257ba7f11508a90c883b152349bcc2d7fd
 	if err != nil {
 		return fmt.Errorf("error templating data: %v\n", err.Error())
 	}
@@ -50,8 +57,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		secret template: my-secret
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -66,8 +73,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		secret template: {{ .var.some_lula_secret }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, "")
 		if err == nil {
 			t.Fatalf("Expected an error, but got nil")
 		}
@@ -81,8 +88,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		constant template: {{ .constant.testVar }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, "")
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
@@ -105,8 +112,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		constant template: {{ .const.test-var }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, "")
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
@@ -120,8 +127,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		variable template: {{ .var.nokey.sub }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, "")
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
@@ -133,8 +140,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		templateString := `
 		constant template: {{ constant.testVar }}
 		`
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, "")
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
@@ -153,8 +160,8 @@ func TestExecuteFullTemplate(t *testing.T) {
 		expected := `
 		constant template: "one", "two", "three"
 		`
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.ALL, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.ALL, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -188,8 +195,8 @@ func TestExecuteConstTemplate(t *testing.T) {
 		secret template: {{ .var.some_lula_secret }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.CONSTANTS, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.CONSTANTS, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -211,8 +218,8 @@ func TestExecuteConstTemplate(t *testing.T) {
 		variable template: {{ .var.some_env_var }}
 		secret template: {{ .var.some_lula_secret }}
 		`
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.CONSTANTS, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.CONSTANTS, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -240,8 +247,8 @@ func TestExecuteConstTemplate(t *testing.T) {
 		variable template: {{ .var.some_env_var }}
 		secret template: {{ .var.some_lula_secret }}
 		`
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.CONSTANTS, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.CONSTANTS, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -263,8 +270,8 @@ func TestExecuteConstTemplate(t *testing.T) {
 		secret template: {{ .var.some_lula_secret }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.CONSTANTS, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.CONSTANTS, "")
 		if err == nil {
 			t.Fatalf("Expected an error, but got nil")
 		}
@@ -302,8 +309,8 @@ func TestExecuteNonSensitiveTemplate(t *testing.T) {
 		secret template2: {{ .var.some_lula_secret }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.NONSENSITIVE, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.NONSENSITIVE, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -332,8 +339,8 @@ func TestExecuteNonSensitiveTemplate(t *testing.T) {
 		secret template: {{.var.some_lula_secret   }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.NONSENSITIVE, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.NONSENSITIVE, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -355,8 +362,8 @@ func TestExecuteNonSensitiveTemplate(t *testing.T) {
 		secret template: {{ .var.some_lula_secret }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.NONSENSITIVE, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.NONSENSITIVE, "")
 		if err == nil {
 			t.Fatalf("Expected an error, but got nil")
 		}
@@ -394,8 +401,8 @@ func TestExecuteMaskedTemplate(t *testing.T) {
 		secret template2: ********
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.MASKED, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.MASKED, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -424,8 +431,8 @@ func TestExecuteMaskedTemplate(t *testing.T) {
 		secret template: ********
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.MASKED, expected)
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.MASKED, expected)
 		if err != nil {
 			t.Fatalf("Expected no error, but got %v", err)
 		}
@@ -447,8 +454,8 @@ func TestExecuteMaskedTemplate(t *testing.T) {
 		secret template: {{ .var.some_lula_secret }}
 		`
 
-		tr := template.NewTemplateRenderer(templateString, templateData)
-		err := testRender(t, tr, template.MASKED, "")
+		tr := template.NewTemplateRenderer(templateData)
+		err := testRender(t, tr, templateString, template.MASKED, "")
 		if err == nil {
 			t.Fatalf("Expected an error, but got nil")
 		}

@@ -21,7 +21,7 @@ To indicate a specific output file:
 	lula tools template -f ./oscal-component.yaml -o templated-oscal-component.yaml
 
 To perform overrides on the template data:
-	lula tools template -f ./oscal-component.yaml --set var.key1=value1 --set const.key2=value2
+	lula tools template -f ./oscal-component.yaml --set .var.key1=value1 --set .const.key2=value2
 
 To perform the full template operation, including sensitive data:
 	lula tools template -f ./oscal-component.yaml --render all
@@ -64,7 +64,10 @@ func TemplateCommand() *cobra.Command {
 			}
 
 			// Get overrides from --set flag
-			overrides := common.ParseTemplateOverrides(setOpts)
+			overrides, err := common.ParseTemplateOverrides(setOpts)
+			if err != nil {
+				return fmt.Errorf("error parsing template overrides: %v", err)
+			}
 
 			// Handles merging viper config file data + environment variables
 			// Throws an error if config keys are invalid for templating
@@ -73,8 +76,8 @@ func TemplateCommand() *cobra.Command {
 				return fmt.Errorf("error collecting templating data: %v", err)
 			}
 
-			templateRenderer := template.NewTemplateRenderer(string(data), templateData)
-			output, err := templateRenderer.Render(renderType)
+			templateRenderer := template.NewTemplateRenderer(templateData)
+			output, err := templateRenderer.Render(string(data), renderType)
 			if err != nil {
 				return fmt.Errorf("error rendering template: %v", err)
 			}
@@ -108,6 +111,7 @@ func TemplateCommand() *cobra.Command {
 }
 
 func init() {
+	common.InitViper()
 	toolsCmd.AddCommand(TemplateCommand())
 }
 
