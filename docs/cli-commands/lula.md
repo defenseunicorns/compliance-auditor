@@ -25,6 +25,7 @@ Real Time Risk Transparency through automated validation
 * [lula dev](./lula_dev.md)	 - Collection of dev commands to make dev life easier
 * [lula evaluate](./lula_evaluate.md)	 - evaluate two results of a Security Assessment Results
 * [lula generate](./lula_generate.md)	 - Generate a specified compliance artifact template
+* [lula report](./lula_report.md)	 - Build a compliance report
 * [lula tools](./lula_tools.md)	 - Collection of additional commands to make OSCAL easier
 * [lula validate](./lula_validate.md)	 - validate an OSCAL component definition
 * [lula version](./lula_version.md)	 - Shows the current version of the Lula binary
