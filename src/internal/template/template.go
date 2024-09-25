@@ -26,29 +26,27 @@ const (
 )
 
 type TemplateRenderer struct {
-	tpl            *template.Template
-	templateString string
-	templateData   *TemplateData
+	tpl          *template.Template
+	templateData *TemplateData
 }
 
-func NewTemplateRenderer(templateString string, templateData *TemplateData) *TemplateRenderer {
+func NewTemplateRenderer(templateData *TemplateData) *TemplateRenderer {
 	return &TemplateRenderer{
-		tpl:            createTemplate(),
-		templateString: templateString,
-		templateData:   templateData,
+		tpl:          createTemplate(),
+		templateData: templateData,
 	}
 }
 
-func (r *TemplateRenderer) Render(t RenderType) ([]byte, error) {
+func (r *TemplateRenderer) Render(templateString string, t RenderType) ([]byte, error) {
 	switch t {
 	case MASKED:
-		return r.ExecuteMaskedTemplate()
+		return r.ExecuteMaskedTemplate(templateString)
 	case CONSTANTS:
-		return r.ExecuteConstTemplate()
+		return r.ExecuteConstTemplate(templateString)
 	case NONSENSITIVE:
-		return r.ExecuteNonSensitiveTemplate()
+		return r.ExecuteNonSensitiveTemplate(templateString)
 	case ALL:
-		return r.ExecuteFullTemplate()
+		return r.ExecuteFullTemplate(templateString)
 	default:
 		return []byte{}, fmt.Errorf("invalid render type: %s", t)
 	}
@@ -75,8 +73,8 @@ type VariableConfig struct {
 }
 
 // ExecuteFullTemplate templates everything
-func (r *TemplateRenderer) ExecuteFullTemplate() ([]byte, error) {
-	tpl, err := r.tpl.Parse(r.templateString)
+func (r *TemplateRenderer) ExecuteFullTemplate(templateString string) ([]byte, error) {
+	tpl, err := r.tpl.Parse(templateString)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -95,12 +93,12 @@ func (r *TemplateRenderer) ExecuteFullTemplate() ([]byte, error) {
 
 // ExecuteConstTemplate templates only constants
 // this templates only values in the constants map
-func (r *TemplateRenderer) ExecuteConstTemplate() ([]byte, error) {
+func (r *TemplateRenderer) ExecuteConstTemplate(templateString string) ([]byte, error) {
 	// Find anything {{ var.KEY }} and replace with {{ "{{ var.KEY }}" }}
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
-	templateStringReplaced := re.ReplaceAllString(r.templateString, "{{ \"{{ ."+VAR+".$1 }}\" }}")
+	templateString = re.ReplaceAllString(templateString, "{{ \"{{ ."+VAR+".$1 }}\" }}")
 
-	tpl, err := r.tpl.Parse(templateStringReplaced)
+	tpl, err := r.tpl.Parse(templateString)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -117,9 +115,8 @@ func (r *TemplateRenderer) ExecuteConstTemplate() ([]byte, error) {
 
 // ExecuteNonSensitiveTemplate templates only constants and non-sensitive variables
 // used for compose operations
-func (r *TemplateRenderer) ExecuteNonSensitiveTemplate() ([]byte, error) {
+func (r *TemplateRenderer) ExecuteNonSensitiveTemplate(templateString string) ([]byte, error) {
 	// Find any sensitive keys {{ var.KEY }}, where KEY is in templateData.SensitiveVariables and replace with {{ "{{ var.KEY }}" }}
-	templateString := r.templateString
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
 	varMatches := re.FindAllStringSubmatch(templateString, -1)
 	uniqueMatches := returnUniqueMatches(varMatches, 1)
@@ -147,9 +144,8 @@ func (r *TemplateRenderer) ExecuteNonSensitiveTemplate() ([]byte, error) {
 
 // ExecuteMaskedTemplate templates all values, but masks the sensitive ones
 // for display/printing only
-func (r *TemplateRenderer) ExecuteMaskedTemplate() ([]byte, error) {
+func (r *TemplateRenderer) ExecuteMaskedTemplate(templateString string) ([]byte, error) {
 	// Find any sensitive keys {{ var.KEY }}, where KEY is in templateData.SensitiveVariables and replace with {{ var.KEY | mask }}
-	templateString := r.templateString
 	re := regexp.MustCompile(`{{\s*\.` + VAR + `\.([a-zA-Z0-9_]+)\s*}}`)
 	varMatches := re.FindAllStringSubmatch(templateString, -1)
 	uniqueMatches := returnUniqueMatches(varMatches, 1)

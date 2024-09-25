@@ -12,7 +12,7 @@ To indicate a specific output file:
 	lula tools template -f ./oscal-component.yaml -o templated-oscal-component.yaml
 
 To perform overrides on the template data:
-	lula tools template -f ./oscal-component.yaml --set var.key1=value1 --set const.key2=value2
+	lula tools template -f ./oscal-component.yaml --set .var.key1=value1 --set .const.key2=value2
 
 To perform the full template operation, including sensitive data:
 	lula tools template -f ./oscal-component.yaml --render all
