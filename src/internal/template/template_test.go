@@ -10,17 +10,10 @@ import (
 	"github.com/defenseunicorns/lula/src/internal/template"
 )
 
-<<<<<<< HEAD
-func testRender(t *testing.T, templateRenderer *template.TemplateRenderer, renderType template.RenderType, expected string) error {
-	t.Helper()
-
-	got, err := templateRenderer.Render(renderType)
-=======
 func testRender(t *testing.T, templateRenderer *template.TemplateRenderer, templateString string, renderType template.RenderType, expected string) error {
 	t.Helper()
 
 	got, err := templateRenderer.Render(templateString, renderType)
->>>>>>> 5d1f23257ba7f11508a90c883b152349bcc2d7fd
 	if err != nil {
 		return fmt.Errorf("error templating data: %v\n", err.Error())
 	}
