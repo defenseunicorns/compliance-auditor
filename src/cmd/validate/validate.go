@@ -1,16 +1,20 @@
 package validate
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
+	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -41,56 +45,121 @@ To run validations non-interactively (no execution)
 	lula dev validate -f ./oscal-component.yaml --non-interactive
 `
 
-var validateCmd = &cobra.Command{
-	Use:     "validate",
-	Short:   "validate an OSCAL component definition",
-	Long:    "Lula Validation of an OSCAL component definition",
-	Example: validateHelp,
-	Run: func(cmd *cobra.Command, componentDefinitionPath []string) {
-		outputFile := opts.OutputFile
-		if outputFile == "" {
-			outputFile = getDefaultOutputFile(opts.InputFile)
-		}
-
-		if SaveResources {
-			ResourcesDir = filepath.Join(filepath.Dir(outputFile))
-		}
-
-		if err := files.IsJsonOrYaml(opts.InputFile); err != nil {
-			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
-		}
-
-		assessment, err := ValidateOnPath(opts.InputFile, opts.Target)
-		if err != nil {
-			message.Fatalf(err, "Validation error: %s", err)
-		}
-
-		var model = oscalTypes_1_1_2.OscalModels{
-			AssessmentResults: assessment,
-		}
-
-		// Write the assessment results to file
-		err = oscal.WriteOscalModel(outputFile, &model)
-		if err != nil {
-			message.Fatalf(err, "error writing component to file")
-		}
-	},
-}
-
-func init() {
-	v := common.InitViper()
-
-	validateCmd.Flags().StringVarP(&opts.OutputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
-	validateCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	validateCmd.MarkFlagRequired("input-file")
-	validateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
-	validateCmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
-	validateCmd.Flags().BoolVar(&RunNonInteractively, "non-interactive", false, "run the command non-interactively")
-	validateCmd.Flags().BoolVar(&SaveResources, "save-resources", false, "saves the resources to 'resources' directory at assessment-results level")
-}
-
 func ValidateCommand() *cobra.Command {
-	return validateCmd
+	v := common.GetViper()
+
+	var (
+		outputFile          string
+		inputFile           string
+		target              string
+		outputComponent     string
+		renderTemplate      bool
+		setOpts             []string
+		confirmExecution    bool
+		runNonInteractively bool
+		saveResources       bool
+		resourcesDir        string
+	)
+
+	cmd := &cobra.Command{
+		Use:     "validate",
+		Short:   "validate an OSCAL component definition",
+		Long:    "Lula Validation of an OSCAL component definition",
+		Example: validateHelp,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: check if remote or local?
+			_, err := os.Stat(inputFile)
+			if os.IsNotExist(err) {
+				return fmt.Errorf("input-file: %v does not exist - unable to digest document", inputFile)
+			}
+			// Update path if relative
+			path := inputFile
+			if filepath.IsLocal(inputFile) {
+				path = filepath.Join(filepath.Dir(inputFile), filepath.Base(inputFile))
+			}
+
+			// If no output file is specified, get the default output file
+			if outputFile == "" {
+				outputFile = getDefaultOutputFile(inputFile)
+			}
+
+			// Set values if save-resources is desired
+			if saveResources {
+				resourcesDir = filepath.Join(filepath.Dir(outputFile))
+			}
+
+			// check if setOpts without rendertemplate
+			if len(setOpts) > 0 && !renderTemplate {
+				message.Warnf("set-opts are only valid when render-template is true")
+			}
+
+			// Check if output-component is set
+			rt := template.MASKED
+			if outputComponent != "" {
+				if strings.ToLower(outputComponent) == "full" {
+					rt = template.ALL
+				}
+			}
+
+			opts := []validation.Option{
+				validation.WithComponentDefinitionFromPath(path),
+				validation.WithTemplateRenderer(renderTemplate, setOpts),
+				validation.WithAllowExecution(confirmExecution, runNonInteractively),
+				validation.WithResourcesDir(saveResources, resourcesDir),
+			}
+
+			// Currently not using context, but could/should be used for logging things, etc.
+			validationCtx, err := validation.New(context.Background(), opts...)
+			if err != nil {
+				return fmt.Errorf("error creating validation context: %v", err)
+			}
+
+			// Get component definition data, update validation context with rendered component definition
+			componentOut, err := validationCtx.RenderComponentDefinition(filepath.Ext(inputFile), rt)
+			if err != nil {
+				return fmt.Errorf("error rendering template: %v", err)
+			}
+
+			assessment, err := validationCtx.ExecuteOSCALValidation(target) //ValidateOnPath(inputFile, target)
+			if err != nil {
+				message.Fatalf(err, "OSCAL Validation error: %s", err)
+			}
+
+			var model = oscalTypes_1_1_2.OscalModels{
+				AssessmentResults: assessment,
+			}
+
+			// Write the rendered/output component-definition to file
+			if outputComponent != "" {
+				outputComponentFile := filepath.Join(filepath.Dir(outputFile), "component-rendered"+filepath.Ext(inputFile))
+				err := os.WriteFile(outputComponentFile, componentOut, 0644)
+				if err != nil {
+					return err
+				}
+			}
+
+			// Write the assessment results to file
+			err = oscal.WriteOscalModel(outputFile, &model)
+			if err != nil {
+				return fmt.Errorf("error writing component to file: %v", err)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
+	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
+	cmd.MarkFlagRequired("input-file")
+	cmd.Flags().StringVarP(&target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
+	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
+	cmd.Flags().BoolVar(&runNonInteractively, "non-interactive", false, "run the command non-interactively")
+	cmd.Flags().BoolVar(&saveResources, "save-resources", false, "saves the resources to 'resources' directory at assessment-results level")
+	cmd.Flags().BoolVar(&renderTemplate, "render-template", false, "render any templated data from the input file")
+	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
+	cmd.Flags().StringVar(&outputComponent, "output-component", "", "specify the desired output component string. Options are 'masked', 'full'")
+
+	return cmd
 }
 
 /*
@@ -119,7 +188,6 @@ func ValidateCommand() *cobra.Command {
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
 func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
-
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)

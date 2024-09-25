@@ -64,7 +64,10 @@ func TemplateCommand() *cobra.Command {
 			}
 
 			// Get overrides from --set flag
-			overrides := common.ParseTemplateOverrides(setOpts)
+			overrides, err := common.ParseTemplateOverrides(setOpts)
+			if err != nil {
+				return fmt.Errorf("error parsing template overrides: %v", err)
+			}
 
 			// Handles merging viper config file data + environment variables
 			// Throws an error if config keys are invalid for templating
