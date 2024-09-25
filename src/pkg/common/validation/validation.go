@@ -65,10 +65,8 @@ func (ctx *ValidationContext) RenderComponentDefinition(fileExt string, renderTy
 	}
 
 	if ctx.renderTemplate {
-		ctx.templateRenderer.UpdateTemplateString(string(modelData))
-
 		// Execute the template render
-		modelData, err = ctx.templateRenderer.Render(renderType)
+		modelData, err = ctx.templateRenderer.Render(string(modelData), renderType)
 		if err != nil {
 			return nil, fmt.Errorf("error rendering template: %v", err)
 		}

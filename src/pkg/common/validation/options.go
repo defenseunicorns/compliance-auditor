@@ -58,7 +58,7 @@ func WithTemplateRenderer(renderTemplate bool, setOpts []string) Option {
 			}
 
 			// need to update the template with the templateString...
-			tr = template.NewTemplateRenderer("", templateData)
+			tr = template.NewTemplateRenderer(templateData)
 		}
 
 		ctx.renderTemplate = renderTemplate
