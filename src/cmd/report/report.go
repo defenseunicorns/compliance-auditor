@@ -1,17 +1,17 @@
 package report
 
 import (
-	"errors"
-	"os"
 	"encoding/json"
+	"fmt"
+	"os"
 	"strings"
-    "fmt"
 
-	"github.com/spf13/cobra"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
 
@@ -68,23 +68,17 @@ func GenerateReport(inputFile string, fileFormat string) error {
 	spinner.Success()
 
 	spinner = message.NewProgressSpinner("Reading OSCAL model from file")
-	oscalModels, err := readOSCALModel(getOSCALModelsFile)
+	oscalModel, err := oscal.NewOscalModel(getOSCALModelsFile)
 	if err != nil {
 		spinner.Fatalf(fmt.Errorf("failed to read OSCAL Model data: %v", err), "failed to read OSCAL Model")
 	}
 	spinner.Success()
 
-	spinner = message.NewProgressSpinner("Determining OSCAL model type")
-	modelType, err := determineOSCALModel(oscalModels)
-	if err != nil {
-		spinner.Fatalf(fmt.Errorf("unable to determine OSCAL model type: %v", err), "unable to determine OSCAL model type")
-	}
-	spinner.Success()
-
-	err = handleOSCALModel(oscalModels, modelType, fileFormat)
+	err = handleOSCALModel(oscalModel, fileFormat)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -121,57 +115,33 @@ func fetchOrReadFile(source string) ([]byte, error) {
 	return data, nil
 }
 
-// Reads OSCAL file in either YAML or JSON
-func readOSCALModel(data []byte) (oscalTypes_1_1_2.OscalModels, error) {
-	var oscalModels oscalTypes_1_1_2.OscalModels
-	err := yaml.Unmarshal(data, &oscalModels)
-	if err == nil {
-		return oscalModels, nil
-	}
-	err = json.Unmarshal(data, &oscalModels)
-	if err == nil {
-		return oscalModels, nil
-	}
-	return oscalModels, errors.New("data is neither valid YAML nor JSON")
-}
-
-// Checks the OSCAL file to determine what model the file is
-func determineOSCALModel(oscalModels oscalTypes_1_1_2.OscalModels) (string, error) {
-	switch {
-	case oscalModels.AssessmentPlan != nil:
-		return "assessment-plan", nil
-	case oscalModels.AssessmentResults != nil:
-		return "assessment-results", nil
-	case oscalModels.Catalog != nil:
-		return "catalog", nil
-	case oscalModels.ComponentDefinition != nil:
-		return "component-definition", nil
-	case oscalModels.PlanOfActionAndMilestones != nil:
-		return "plan-of-action-and-milestones", nil
-	case oscalModels.Profile != nil:
-		return "profile", nil
-	case oscalModels.SystemSecurityPlan != nil:
-		return "system-security-plan", nil
-	default:
-		return "", fmt.Errorf("unable to determine OSCAL model type")
-	}
-}
-
 // Processes an OSCAL Model based on the model type
-func handleOSCALModel(oscalModels oscalTypes_1_1_2.OscalModels, modelType string, format string) error {
+func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) error {
     // Start a new spinner for the report generation process
-    spinner := message.NewProgressSpinner("Processing OSCAL model type: %s", modelType)
-    defer spinner.Stop() // Ensure the spinner stops even if an error occurs
+    spinner := message.NewProgressSpinner("Determining OSCAL model type")
+	modelType, err := oscal.GetOscalModel(oscalModel)
+	if err != nil {
+		spinner.Fatalf(fmt.Errorf("unable to determine OSCAL model type: %v", err), "unable to determine OSCAL model type")
+		return err
+	}
 
     switch modelType {
-    case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "plan-of-action-and-milestones":
+    case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "poam":
         // If the model type is not supported, stop the spinner with a warning
         spinner.Warnf("reporting does not create reports for %s at this time", modelType)
         return fmt.Errorf("reporting does not create reports for %s at this time", modelType)
 
-    case "component-definition":
+    case "component":
+		spinner.Updatef("Composing Component Definition")
+		err := composition.ComposeComponentDefinitions(oscalModel.ComponentDefinition)
+		if err != nil {
+			spinner.Fatalf(fmt.Errorf("failed to compose component definitions: %v", err), "failed to compose component definitions")
+			return err
+		}
+
+		spinner.Updatef("Processing Component Definition")
         // Process the component-definition model
-        err := handleComponentDefinition(oscalModels.ComponentDefinition, format)
+        err = handleComponentDefinition(oscalModel.ComponentDefinition, format)
         if err != nil {
             // If an error occurs, stop the spinner and display the error
             spinner.Fatalf(err, "failed to process component-definition model")
@@ -184,7 +154,7 @@ func handleOSCALModel(oscalModels oscalTypes_1_1_2.OscalModels, modelType string
         return fmt.Errorf("unknown OSCAL model type: %s", modelType)
     }
 
-    spinner.Success()
+	spinner.Success()
     message.Info(fmt.Sprintf("Successfully processed OSCAL model: %s", modelType))
     return nil
 }

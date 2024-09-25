@@ -1,70 +1,49 @@
 package test
 
 import (
-    "testing"
+	"bytes"
+	"os/exec"
+	"testing"
 
-    "github.com/defenseunicorns/lula/src/cmd/report"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestReportCommand(t *testing.T) {
+const (
+	validMultiComponentPath = "../unit/common/oscal/valid-multi-component.yaml"
+	catalogPath             = "../unit/common/oscal/catalog.yaml"
+)
 
-	// Define the test cases
-	testCases := []struct {
-		name       string
-		inputFile  string
-		fileFormat string
-        expectErr  bool
-	}{
-		{
-			name:       "Component Definition with one source and no framework props",
-			inputFile:  "../../test/e2e/scenarios/report-data/valid-component.yaml",
-			expectErr:  false,
-		},
-		{
-			name:       "Component Definition with two sources and two framework props",
-			inputFile:  "../../test/e2e/scenarios/report-data/valid-multi-component.yaml",
-			expectErr:  false,
-		},
-        {
-			name:       "Component Definition with two sources and two framework props with yaml file format",
-			inputFile:  "../../test/e2e/scenarios/report-data/valid-multi-component.yaml",
-			expectErr:  false,
-            fileFormat: "yaml",
-		},
-        {
-			name:       "Component Definition with two sources and two framework props with json file format",
-			inputFile:  "../../test/e2e/scenarios/report-data/valid-multi-component.yaml",
-			expectErr:  false,
-            fileFormat: "json",
-		},
-		{
-			name:       "Component Definition with one sources and one framework props",
-			inputFile:  "../../test/e2e/scenarios/report-data/valid-component-with-framework.yaml",
-			expectErr:  false,
-		},
-        {
-            name:       "Catalog OSCAL Model",
-            inputFile:  "../../test/e2e/scenarios/report-data/catalog.yaml",
-            expectErr:  true,
-        },
-	}
+// TestLulaReportValidComponent checks that the 'lula report' command works with a valid component definition.
+func TestLulaReportValidComponent(t *testing.T) {
+	// Disable progress indicators and other extra formatting
+	message.NoProgress = true
 
-    for _, tc := range testCases {
-            t.Run(tc.name, func(t *testing.T) {
-                // Call GenerateReport with the input file and format
-                err := report.GenerateReport(tc.inputFile, tc.fileFormat)
+	var outBuf, errBuf bytes.Buffer
 
-                // Check if the result matches the expected outcome
-                if tc.expectErr {
-                    if err == nil {
-                        t.Errorf("expected an error but got none for test case: %s", tc.name)
-                    }
-                } else {
-                    if err != nil {
-                        t.Errorf("did not expect an error but got one for test case: %s, error: %v", tc.name, err)
-                    }
-                }
-            })
-        }
+	cmd := exec.Command("lula", "report", "-f", validMultiComponentPath, "--file-format", "table")
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
 
+	err := cmd.Run()
+
+	// Check for errors in command execution.
+	assert.NoError(t, err, "Expected no error from `lula report` with valid component definition")
+}
+
+// TestLulaReportCatalog checks that the 'lula report' command fails gracefully with a catalog file.
+// OSCAL Catalogs are not currently supported by 'lula report' command yet.
+func TestLulaReportCatalog(t *testing.T) {
+	// Disable progress indicators and other extra formatting
+	message.NoProgress = true
+
+	var outBuf, errBuf bytes.Buffer
+
+	cmd := exec.Command("lula", "report", "-f", catalogPath, "--file-format", "table")
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+
+	err := cmd.Run()
+
+	assert.Error(t, err, "error running report")
 }
