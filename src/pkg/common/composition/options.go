@@ -23,20 +23,20 @@ func WithModelFromPath(path string) Option {
 	}
 }
 
-func WithTemplateRenderer(renderTypeString string, renderRemote bool, setOpts []string) Option {
+func WithTemplateRenderer(renderTypeString string, renderValidations bool, setOpts []string) Option {
 	return func(ctx *CompositionContext) error {
 		if renderTypeString == "" {
 			if len(setOpts) > 0 {
 				message.Warn("`render` not specified, the --set options will be ignored")
 			}
-			if renderRemote {
-				message.Warn("`render` not specified, `render-remote` will be ignored")
+			if renderValidations {
+				message.Warn("`render` not specified, `render-validations` will be ignored")
 			}
 			return nil
 		}
 
 		ctx.renderTemplate = true
-		ctx.renderRemote = renderRemote
+		ctx.renderValidations = renderValidations
 
 		// Get the template render type
 		renderType, err := template.ParseRenderType(renderTypeString)

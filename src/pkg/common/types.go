@@ -49,8 +49,21 @@ func (v *Validation) MarshalYaml() ([]byte, error) {
 // ToResource converts a Validation object to a Resource object
 func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err error) {
 	resourceUuid := uuid.NewUUID()
-	if v.Metadata.UUID != "" {
-		resourceUuid = v.Metadata.UUID
+	title := "Lula Validation"
+	if v.Metadata != nil {
+		if v.Metadata.UUID != "" {
+			resourceUuid = v.Metadata.UUID
+		}
+		if v.Metadata.Name != "" {
+			title = v.Metadata.Name
+		}
+	}
+
+	if v.Provider != nil {
+		if v.Provider.OpaSpec != nil {
+			// Clean multiline string in rego
+			CleanMultilineString(v.Provider.OpaSpec.Rego)
+		}
 	}
 
 	validationBytes, err := v.MarshalYaml()
@@ -58,15 +71,10 @@ func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err erro
 		return nil, err
 	}
 
-	if v.Provider != nil && v.Provider.OpaSpec != nil {
-		// Clean multiline string in rego
-		CleanMultilineString(v.Provider.OpaSpec.Rego)
-	}
-
 	return &oscalTypes_1_1_2.Resource{
-		Title:       v.Metadata.Name,
+		Title:       title,
 		UUID:        resourceUuid,
-		Description: CleanMultilineString(string(validationBytes)),
+		Description: string(validationBytes),
 	}, nil
 }
 

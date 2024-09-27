@@ -21,13 +21,13 @@ import (
 type RenderedContent string
 
 type CompositionContext struct {
-	bctx             context.Context
-	model            *oscalTypes_1_1_2.OscalCompleteSchema
-	modelDir         string
-	templateRenderer *template.TemplateRenderer
-	renderTemplate   bool
-	renderRemote     bool
-	renderType       template.RenderType
+	bctx              context.Context
+	model             *oscalTypes_1_1_2.OscalCompleteSchema
+	modelDir          string
+	templateRenderer  *template.TemplateRenderer
+	renderTemplate    bool
+	renderValidations bool
+	renderType        template.RenderType
 }
 
 func New(ctx context.Context, opts ...Option) (*CompositionContext, error) {
@@ -105,8 +105,8 @@ func (ctx *CompositionContext) ComposeComponentDefinitions(compDef *oscalTypes_1
 				return err
 			}
 
-			// template here if remote is specified
-			if ctx.renderRemote {
+			// template here if renderTemplate is true
+			if ctx.renderTemplate {
 				response, err = ctx.templateRenderer.Render(string(response), ctx.renderType)
 				if err != nil {
 					return err

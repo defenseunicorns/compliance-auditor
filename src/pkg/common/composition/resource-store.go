@@ -129,7 +129,8 @@ func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link, baseDir
 		return nil, fmt.Errorf("error fetching remote resource: %v", err)
 	}
 
-	if s.cctx.renderRemote {
+	// template here if renderValidations is true
+	if s.cctx.renderValidations {
 		validationBytes, err = s.cctx.templateRenderer.Render(string(validationBytes), s.cctx.renderType)
 		if err != nil {
 			return nil, err
