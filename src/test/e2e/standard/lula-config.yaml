@@ -1,8 +1,20 @@
-resources:
-  jsoncm: configmaps
-  yamlcm: configmaps
-  secret: secrets
-  pod: pods
+constants:
+  type: software
+  title: lula
 
-type: software
-title: lula
+  resources:
+    name: test-pod-label
+    namespace: validation-test
+    exemptions:
+      - one
+      - two
+      - three
+
+variables:
+  - key: some_lula_secret
+    sensitive: true 
+  - key: some_env_var
+    default: this-should-be-overridden
+
+log_level: info
+target: il5

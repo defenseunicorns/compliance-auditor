@@ -1,0 +1,30 @@
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podvt
+        resource-rule:
+          name: {{ .const.resources.name }}
+          version: v1
+          resource: pods
+          namespaces: [{{ .const.resources.namespace }}]
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+      import rego.v1
+
+      # Default values
+      default validate := false
+      default msg := "Not evaluated"
+
+      # Validation result
+      validate if {
+        { "one", "two", "three" } == { {{ .const.resources.exemptions | concatToRegoList }} }
+        "{{ .var.some_env_var }}" == "my-env-var"
+        "{{ .var.some_lula_secret }}" == "********"
+      }
+      msg = validate.msg
+
+      value_of_my_secret := {{ .var.some_lula_secret }}
