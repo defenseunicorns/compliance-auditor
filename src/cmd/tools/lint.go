@@ -25,8 +25,8 @@ To lint existing OSCAL files:
 `
 
 var lintCmd = &cobra.Command{
-	Use:   "lint",
-	Short: "Validate OSCAL against schema",
+	Use:     "lint",
+	Short:   "Validate OSCAL against schema",
 	Long:    "Validate OSCAL documents are properly configured against the OSCAL schema",
 	Example: lintHelp,
 	Run: func(cmd *cobra.Command, args []string) {
