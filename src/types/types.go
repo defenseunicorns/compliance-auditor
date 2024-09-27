@@ -197,6 +197,10 @@ type DomainResources map[string]interface{}
 
 type Domain interface {
 	GetResources() (DomainResources, error)
+
+	// IsExecutable returns true if the Domain's validation writes resources. It
+	// is used to prompt the user form confirmation before runing validations
+	// which may write resources.
 	IsExecutable() bool
 }
 
