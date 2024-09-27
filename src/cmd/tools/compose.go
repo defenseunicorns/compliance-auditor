@@ -47,7 +47,13 @@ var composeCmd = &cobra.Command{
 			outputFile = GetDefaultOutputFile(composeOpts.InputFile)
 		}
 
-		err := Compose(composeOpts.InputFile, outputFile)
+		// Check if output file contains a valid OSCAL model
+		_, err := oscal.ValidOSCALModelAtPath(outputFile)
+		if err != nil {
+			message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
+		}
+
+		err = Compose(composeOpts.InputFile, outputFile)
 		if err != nil {
 			message.Fatalf(err, "Composition error: %s", err)
 		}
