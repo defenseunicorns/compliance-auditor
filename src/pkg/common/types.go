@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -51,18 +52,23 @@ func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err erro
 	resourceUuid := uuid.NewUUID()
 	title := "Lula Validation"
 	if v.Metadata != nil {
-		if v.Metadata.UUID != "" {
+		if v.Metadata.UUID != "" && checkValidUuid(v.Metadata.UUID) {
 			resourceUuid = v.Metadata.UUID
 		}
 		if v.Metadata.Name != "" {
 			title = v.Metadata.Name
 		}
+	} else {
+		v.Metadata = &Metadata{}
 	}
+	// Update the metadata for the validation
+	v.Metadata.UUID = resourceUuid
+	v.Metadata.Name = title
 
 	if v.Provider != nil {
 		if v.Provider.OpaSpec != nil {
 			// Clean multiline string in rego
-			CleanMultilineString(v.Provider.OpaSpec.Rego)
+			v.Provider.OpaSpec.Rego = CleanMultilineString(v.Provider.OpaSpec.Rego)
 		}
 	}
 
@@ -166,4 +172,9 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	}
 
 	return lulaValidation, nil
+}
+
+func checkValidUuid(uuid string) bool {
+	re := regexp.MustCompile(`^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[45][0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$`)
+	return re.MatchString(uuid)
 }

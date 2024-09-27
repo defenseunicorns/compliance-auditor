@@ -22,7 +22,7 @@ const (
 	compDefMultiImport = "../../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
 	// TODO: add tests for templating
-	compDefNestedImport = "../../../test/unit/common/composition/component-definition-import-nested-compdef"
+	compDefNestedImport = "../../../test/unit/common/composition/component-definition-import-nested-compdef.yaml"
 	compDefMultiTmpl    = "../../../test/unit/common/composition/component-definition-local-and-remote-template.yaml"
 
 	// Also, add cmd tests...? compare golden composed file?
@@ -31,19 +31,20 @@ const (
 func TestComposeFromPath(t *testing.T) {
 	test := func(t *testing.T, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
 		t.Helper()
+		ctx := context.Background()
 
-		options := append([]composition.Option{composition.WithModelFromPath(path)}, opts...)
-		ctx, err := composition.New(context.Background(), options...)
+		options := append([]composition.Option{composition.WithModelFromLocalPath(path)}, opts...)
+		cc, err := composition.New(options...)
 		if err != nil {
 			return nil, err
 		}
 
-		err = ctx.ComposeFromPath(path)
+		model, err := cc.ComposeFromPath(ctx, path)
 		if err != nil {
 			return nil, err
 		}
 
-		return ctx.GetModel(), nil
+		return model, nil
 	}
 
 	t.Run("No imports, local validations", func(t *testing.T) {
@@ -117,21 +118,24 @@ func TestComposeFromPath(t *testing.T) {
 func TestComposeComponentDefinitions(t *testing.T) {
 	test := func(t *testing.T, compDef *oscalTypes_1_1_2.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
 		t.Helper()
+		ctx := context.Background()
 
-		options := append([]composition.Option{composition.WithModelFromPath(path)}, opts...)
-		ctx, err := composition.New(context.Background(), options...)
+		options := append([]composition.Option{composition.WithModelFromLocalPath(path)}, opts...)
+		cc, err := composition.New(options...)
 		if err != nil {
 			return nil, err
 		}
 
 		baseDir := filepath.Dir(path)
 
-		err = ctx.ComposeComponentDefinitions(compDef, baseDir)
+		err = cc.ComposeComponentDefinitions(ctx, compDef, baseDir)
 		if err != nil {
 			return nil, err
 		}
 
-		return ctx.GetModel(), nil
+		return &oscalTypes_1_1_2.OscalCompleteSchema{
+			ComponentDefinition: compDef,
+		}, nil
 	}
 
 	t.Run("No imports, local validations", func(t *testing.T) {
@@ -228,21 +232,24 @@ func TestComposeComponentDefinitions(t *testing.T) {
 func TestCompileComponentValidations(t *testing.T) {
 	test := func(t *testing.T, compDef *oscalTypes_1_1_2.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
 		t.Helper()
+		ctx := context.Background()
 
-		options := append([]composition.Option{composition.WithModelFromPath(path)}, opts...)
-		ctx, err := composition.New(context.Background(), options...)
+		options := append([]composition.Option{composition.WithModelFromLocalPath(path)}, opts...)
+		cc, err := composition.New(options...)
 		if err != nil {
 			return nil, err
 		}
 
 		baseDir := filepath.Dir(path)
 
-		err = ctx.ComposeComponentValidations(compDef, baseDir)
+		err = cc.ComposeComponentValidations(ctx, compDef, baseDir)
 		if err != nil {
 			return nil, err
 		}
 
-		return ctx.GetModel(), nil
+		return &oscalTypes_1_1_2.OscalCompleteSchema{
+			ComponentDefinition: compDef,
+		}, nil
 	}
 
 	t.Run("all local", func(t *testing.T) {

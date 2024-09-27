@@ -2,73 +2,50 @@ package cmd_test
 
 import (
 	"testing"
+
+	"github.com/defenseunicorns/lula/src/cmd/tools"
 )
 
 func TestToolsComposeCommand(t *testing.T) {
 
 	test := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
-		t.Helper()
+		rootCmd := tools.ComposeCommand()
 
-		cmdArgs := []string{"tools", "compose"}
-		cmdArgs = append(cmdArgs, args...)
-
-		return runCmdTest(t, "tools/compose/"+goldenFileName, expectError, cmdArgs...)
+		return runCmdTest(t, "tools/compose/"+goldenFileName, expectError, rootCmd, args...)
 	}
 
-	testVsOutput := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
-		t.Helper()
+	testAgainstOutputFile := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
+		rootCmd := tools.ComposeCommand()
 
-		cmdArgs := []string{"tools", "compose"}
-		cmdArgs = append(cmdArgs, args...)
-
-		return runCmdTestWithOutputFile(t, "tools/compose/"+goldenFileName, "yaml", expectError, cmdArgs...)
+		return runCmdTestWithOutputFile(t, "tools/compose/"+goldenFileName, "yaml", expectError, rootCmd, args...)
 	}
 
 	t.Run("Compose Validation", func(t *testing.T) {
-		err := testVsOutput(t, "composed-file", false, "-f", "../../unit/common/composition/component-definition-all-local.yaml")
+		err := testAgainstOutputFile(t, "composed-file", false, "-f", "../../unit/common/composition/component-definition-all-local.yaml")
 		if err != nil {
 			t.Fatal(err)
 		}
 	})
 
-	// t.Run("Template Validation with env vars", func(t *testing.T) {
-	// 	os.Setenv("LULA_VAR_SOME_ENV_VAR", "my-env-var")
-	// 	defer os.Unsetenv("LULA_VAR_SOME_ENV_VAR")
-	// 	err := test(t, "validation_with_env_vars", false, "-f", "../../unit/common/validation/validation.tmpl.yaml")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
+	t.Run("Compose Validation with templating", func(t *testing.T) {
+		err := testAgainstOutputFile(t, "composed-file-templated", false, "-f", "../../unit/common/composition/component-definition-template.yaml", "-r", "all", "--render-validations")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 
-	// t.Run("Template Validation with set", func(t *testing.T) {
-	// 	err := test(t, "validation_with_set", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--set", ".const.resources.name=foo")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
-
-	// t.Run("Template Validation for all", func(t *testing.T) {
-	// 	os.Setenv("LULA_VAR_SOME_LULA_SECRET", "env-secret")
-	// 	defer os.Unsetenv("LULA_VAR_SOME_LULA_SECRET")
-	// 	err := test(t, "validation_all", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--render", "all")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
-
-	// t.Run("Template Validation for non-sensitive", func(t *testing.T) {
-	// 	err := test(t, "validation_non_sensitive", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--render", "non-sensitive")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
-
-	// t.Run("Template Validation for constants", func(t *testing.T) {
-	// 	err := test(t, "validation_constants", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--render", "constants")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
+	t.Run("Compose Validation with no templating on validations", func(t *testing.T) {
+		err := testAgainstOutputFile(t, "composed-file-no-validation-templated-missing-validation", false, "-f", "../../unit/common/composition/component-definition-template.yaml", "-r", "all")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("Compose Validation with no templating on validations for valid validation template", func(t *testing.T) {
+		err := testAgainstOutputFile(t, "composed-file-templated-no-validation-templated-valid", false, "-f", "../../unit/common/composition/component-definition-template-valid-validation-tmpl.yaml", "-r", "all")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 
 	t.Run("Test help", func(t *testing.T) {
 		err := test(t, "help", false, "--help")
@@ -77,17 +54,17 @@ func TestToolsComposeCommand(t *testing.T) {
 		}
 	})
 
-	// t.Run("Template Validation - invalid file error", func(t *testing.T) {
-	// 	err := test(t, "empty", true, "-f", "not-a-file.yaml")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
+	t.Run("Test Compose - invalid file error", func(t *testing.T) {
+		err := test(t, "empty", true, "-f", "not-a-file.yaml")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 
-	// t.Run("Template Validation - invalid file schema error", func(t *testing.T) {
-	// 	err := test(t, "empty", true, "-f", "../../unit/common/validation/validation.bad.tmpl.yaml")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
+	t.Run("Test Compose - invalid file schema error", func(t *testing.T) {
+		err := test(t, "empty", true, "-f", "../../unit/common/composition/component-definition-template.yaml")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }

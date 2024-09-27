@@ -224,6 +224,27 @@ func GetOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err e
 
 }
 
+// ValidOSCALModelAtPath takes a path and returns a bool indicating if the model exists/is valid
+// bool = T/F that oscal model exists, error = if not nil OSCAL model is invalid
+func ValidOSCALModelAtPath(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		return false, nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return true, err
+	}
+
+	_, err = NewOscalModel(data)
+	if err != nil {
+		return true, err
+	}
+
+	return true, nil
+}
+
 // InjectIntoOSCALModel takes a model target and a map[string]interface{} of values to inject into the model
 func InjectIntoOSCALModel(target *oscalTypes_1_1_2.OscalModels, values map[string]interface{}, path string) (*oscalTypes_1_1_2.OscalModels, error) {
 	// If the target is nil, return an error

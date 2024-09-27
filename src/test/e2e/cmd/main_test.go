@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/cmd"
 	"github.com/defenseunicorns/lula/src/test/util"
+	"github.com/spf13/cobra"
 )
 
 var updateGolden = flag.Bool("update", false, "update golden files")
@@ -20,11 +20,7 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func runCmdTest(t *testing.T, goldenFileName string, expectError bool, cmdArgs ...string) error {
-	t.Helper()
-
-	rootCmd := cmd.RootCommand()
-
+func runCmdTest(t *testing.T, goldenFileName string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
 	_, output, err := util.ExecuteCommand(rootCmd, cmdArgs...)
 	if err != nil {
 		if !expectError {
@@ -41,13 +37,9 @@ func runCmdTest(t *testing.T, goldenFileName string, expectError bool, cmdArgs .
 	return nil
 }
 
-func runCmdTestWithOutputFile(t *testing.T, goldenFileName string, outExt string, expectError bool, cmdArgs ...string) error {
-	t.Helper()
-
-	tempFileName := fmt.Sprintf("output-%s.%s", goldenFileName, outExt)
+func runCmdTestWithOutputFile(t *testing.T, goldenFileName string, outExt string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
+	tempFileName := fmt.Sprintf("output.%s", outExt)
 	defer os.Remove(tempFileName)
-
-	rootCmd := cmd.RootCommand()
 
 	cmdArgs = append(cmdArgs, "-o", tempFileName)
 	_, _, err := util.ExecuteCommand(rootCmd, cmdArgs...)

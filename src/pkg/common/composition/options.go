@@ -2,9 +2,9 @@ package composition
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -13,28 +13,29 @@ import (
 type Option func(*CompositionContext) error
 
 // TODO: add remote option?
-func WithModelFromPath(path string) Option {
+func WithModelFromLocalPath(path string) Option {
 	return func(ctx *CompositionContext) error {
-		if err := files.IsJsonOrYaml(path); err != nil {
-			return fmt.Errorf("invalid file extension: %s, requires .json or .yaml", path)
+		_, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			return fmt.Errorf("input-file: %v does not exist - unable to digest document", path)
 		}
+
 		ctx.modelDir = filepath.Dir(path)
+
 		return nil
 	}
 }
 
-func WithTemplateRenderer(renderTypeString string, renderValidations bool, setOpts []string) Option {
+func WithRenderSettings(renderTypeString string, renderValidations bool) Option {
 	return func(ctx *CompositionContext) error {
 		if renderTypeString == "" {
-			if len(setOpts) > 0 {
-				message.Warn("`render` not specified, the --set options will be ignored")
-			}
+			ctx.renderTemplate = false
+			ctx.renderValidations = false
 			if renderValidations {
 				message.Warn("`render` not specified, `render-validations` will be ignored")
 			}
 			return nil
 		}
-
 		ctx.renderTemplate = true
 		ctx.renderValidations = renderValidations
 
@@ -46,10 +47,18 @@ func WithTemplateRenderer(renderTypeString string, renderValidations bool, setOp
 		}
 		ctx.renderType = renderType
 
-		// Get constants and variables for templating from viper config
-		constants, variables, err := common.GetTemplateConfig()
-		if err != nil {
-			return fmt.Errorf("error getting template config: %v", err)
+		return nil
+	}
+}
+
+func WithTemplateRenderer(renderTypeString string, constants map[string]interface{}, variables []template.VariableConfig, setOpts []string) Option {
+	return func(ctx *CompositionContext) error {
+		if renderTypeString == "" {
+			ctx.renderTemplate = false
+			if len(setOpts) > 0 {
+				message.Warn("`render` not specified, the --set options will be ignored")
+			}
+			return nil
 		}
 
 		// Get overrides from setOpts flag

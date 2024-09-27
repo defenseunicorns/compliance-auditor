@@ -21,8 +21,6 @@ import (
 type RenderedContent string
 
 type CompositionContext struct {
-	bctx              context.Context
-	model             *oscalTypes_1_1_2.OscalCompleteSchema
 	modelDir          string
 	templateRenderer  *template.TemplateRenderer
 	renderTemplate    bool
@@ -30,7 +28,7 @@ type CompositionContext struct {
 	renderType        template.RenderType
 }
 
-func New(ctx context.Context, opts ...Option) (*CompositionContext, error) {
+func New(opts ...Option) (*CompositionContext, error) {
 	var compositionCtx CompositionContext
 
 	for _, opt := range opts {
@@ -42,46 +40,42 @@ func New(ctx context.Context, opts ...Option) (*CompositionContext, error) {
 	return &compositionCtx, nil
 }
 
-func (ctx *CompositionContext) GetModel() *oscalTypes_1_1_2.OscalCompleteSchema {
-	return ctx.model
-}
-
 // ComposeFromPath composes an OSCAL model from a file path
-func (ctx *CompositionContext) ComposeFromPath(path string) (err error) {
+func (cc *CompositionContext) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Template if renderTemplate is true -> Only renders the local data (e.g., what is in the file)
-	if ctx.renderTemplate {
-		data, err = ctx.templateRenderer.Render(string(data), ctx.renderType)
+	if cc.renderTemplate {
+		data, err = cc.templateRenderer.Render(string(data), cc.renderType)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	ctx.model, err = oscal.NewOscalModel(data)
+	model, err = oscal.NewOscalModel(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = ctx.ComposeComponentDefinitions(ctx.model.ComponentDefinition, ctx.modelDir)
+	err = cc.ComposeComponentDefinitions(ctx, model.ComponentDefinition, cc.modelDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return model, nil
 }
 
 // ComposeComponentDefinitions composes an OSCAL component definition by adding the remote resources to the back matter and updating with back matter links.
-func (ctx *CompositionContext) ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
+func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
 
 	// Compose the component validations
-	err := ctx.ComposeComponentValidations(compDef, baseDir)
+	err := cc.ComposeComponentValidations(ctx, compDef, baseDir)
 	if err != nil {
 		return err
 	}
@@ -106,8 +100,8 @@ func (ctx *CompositionContext) ComposeComponentDefinitions(compDef *oscalTypes_1
 			}
 
 			// template here if renderTemplate is true
-			if ctx.renderTemplate {
-				response, err = ctx.templateRenderer.Render(string(response), ctx.renderType)
+			if cc.renderTemplate {
+				response, err = cc.templateRenderer.Render(string(response), cc.renderType)
 				if err != nil {
 					return err
 				}
@@ -122,7 +116,7 @@ func (ctx *CompositionContext) ComposeComponentDefinitions(compDef *oscalTypes_1
 			for _, importDef := range componentDefs {
 				// Reconcile the base directory from the import component definition href
 				baseDir = network.GetLocalFileDir(importComponentDef.Href, baseDir)
-				err = ctx.ComposeComponentDefinitions(importDef, baseDir)
+				err = cc.ComposeComponentDefinitions(ctx, importDef, baseDir)
 				if err != nil {
 					return err
 				}
@@ -143,13 +137,13 @@ func (ctx *CompositionContext) ComposeComponentDefinitions(compDef *oscalTypes_1
 }
 
 // ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
-func (ctx *CompositionContext) ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
+func (cc *CompositionContext) ComposeComponentValidations(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
 
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
 
-	resourceMap := NewResourceStoreFromBackMatter(ctx, compDef.BackMatter)
+	resourceMap := NewResourceStoreFromBackMatter(cc, compDef.BackMatter)
 
 	// If there are no components, there is nothing to do
 	if compDef.Components == nil {

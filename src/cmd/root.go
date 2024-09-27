@@ -15,28 +15,15 @@ import (
 
 var LogLevelCLI string
 
-var rootCmd = &cobra.Command{
-	Use: "lula",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		common.SetupClI(LogLevelCLI)
-	},
-	Short: "Risk Management as Code",
-	Long:  `Real Time Risk Transparency through automated validation`,
-}
-
-func RootCommand() *cobra.Command {
-
-	cmd := rootCmd
-
-	return cmd
-}
-
-func Execute() {
-
-	cobra.CheckErr(rootCmd.Execute())
-}
-
-func init() {
+func newRootCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "lula",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			common.SetupClI(LogLevelCLI)
+		},
+		Short: "Risk Management as Code",
+		Long:  `Real Time Risk Transparency through automated validation`,
+	}
 
 	v := common.InitViper()
 
@@ -47,10 +34,21 @@ func init() {
 		console.ConsoleCommand(),
 	}
 
-	rootCmd.AddCommand(commands...)
-	tools.Include(rootCmd)
-	version.Include(rootCmd)
-	dev.Include(rootCmd)
+	cmd.AddCommand(commands...)
+	tools.Include(cmd)
+	version.Include(cmd)
+	dev.Include(cmd)
+	cmd.AddCommand(internalCmd)
 
-	rootCmd.PersistentFlags().StringVarP(&LogLevelCLI, "log-level", "l", v.GetString(common.VLogLevel), "Log level when running Lula. Valid options are: warn, info, debug, trace")
+	cmd.PersistentFlags().StringVarP(&LogLevelCLI, "log-level", "l", v.GetString(common.VLogLevel), "Log level when running Lula. Valid options are: warn, info, debug, trace")
+
+	return cmd
+}
+
+func RootCommand() *cobra.Command {
+	return newRootCmd()
+}
+
+func Execute() {
+	cobra.CheckErr(newRootCmd().Execute())
 }

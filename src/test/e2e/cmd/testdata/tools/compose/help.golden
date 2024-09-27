@@ -7,7 +7,7 @@ Supports templating of the composed component definition with the following conf
 - To perform any manual overrides to the template data, specify '--set, -s' with the format '.const.key=value' or '.var.key=value'
 
 Usage:
-  lula tools compose [flags]
+  compose [flags]
 
 Examples:
 
@@ -25,6 +25,3 @@ Flags:
   -r, --render string           values to render the template with, options are: masked, constants, non-sensitive, all
       --render-validations      extend render to remote Lula Validations
   -s, --set strings             set value overrides for templated data
-
-Global Flags:
-  -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")

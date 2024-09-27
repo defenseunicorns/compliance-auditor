@@ -35,44 +35,6 @@ component-definition:
               create-resources: null
               resources:
               - description: ""
-                name: podvt
-                resource-rule:
-                  group: ""
-                  name: test-pod-label
-                  namespaces:
-                  - validation-test
-                  resource: pods
-                  version: v1
-            type: kubernetes
-          lula-version: ""
-          provider:
-            opa-spec:
-              rego: |
-                package validate
-                import rego.v1
-
-                # Default values
-                default validate := false
-                default msg := "Not evaluated"
-
-                # Validation result
-                validate if {
-                  { "one", "two", "three" } == { "one", "two", "three" }
-                  "this-should-be-overridden" == "my-env-var"
-                  "{{ .var.some_lula_secret }}" == "********"
-                }
-                msg = validate.msg
-
-                value_of_my_secret := {{ .var.some_lula_secret }}
-            type: opa
-        title: Lula Validation
-        uuid: 0f284e29-8348-47ba-abe3-909cc97d893e
-      - description: |
-          domain:
-            kubernetes-spec:
-              create-resources: null
-              resources:
-              - description: ""
                 name: podsvt
                 resource-rule:
                   group: ""
@@ -85,15 +47,23 @@ component-definition:
           lula-version: '>=v0.2.0'
           metadata:
             name: Validate pods with label foo=bar
-            uuid: 123e4567-e89b-12d3-a456-426655440000
+            uuid: 7a4b7514-f83c-4131-b16c-82537676b098
           provider:
             opa-spec:
-              rego: "package validate \n\nimport future.keywords.every\n\nvalidate {\n  every
-                pod in input.podsvt {\n    podLabel := pod.metadata.labels.foo\n    podLabel
-                == \"bar\"\n  }\n}\n"
+              rego: |
+                package validate
+
+                import future.keywords.every
+
+                validate {
+                  every pod in input.podsvt {
+                    podLabel := pod.metadata.labels.foo
+                    podLabel == "bar"
+                  }
+                }
             type: opa
         title: Validate pods with label foo=bar
-        uuid: 123e4567-e89b-12d3-a456-426655440000
+        uuid: 7a4b7514-f83c-4131-b16c-82537676b098
   components:
     - control-implementations:
         - description: Validate generic security requirements
@@ -104,10 +74,13 @@ component-definition:
                 - href: '#a7377430-2328-4dc4-a9e2-b3f31dc1dff9'
                   rel: lula
                   text: local template validation
-                - href: '#123e4567-e89b-12d3-a456-426655440000'
+                - href: '#dcd13325-6070-43b4-bb4f-94a684f68369'
+                  rel: lula
+                  text: local path template validation
+                - href: '#7a4b7514-f83c-4131-b16c-82537676b098'
                   rel: lula
                   text: validation with spaces that need to be cleaned
-                - href: '#0f284e29-8348-47ba-abe3-909cc97d893e'
+                - href: '#ee10395d-44eb-4407-9ac2-cd78c3bb470e'
                   rel: lula
                   text: validation with template from remote
               uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
@@ -124,7 +97,7 @@ component-definition:
       type: software
       uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
   metadata:
-    last-modified: 2024-09-26T21:05:22.599443-04:00
+    last-modified: XXX
     oscal-version: 1.1.2
     parties:
       - links:

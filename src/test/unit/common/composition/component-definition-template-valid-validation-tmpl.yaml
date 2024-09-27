@@ -37,6 +37,9 @@ component-definition:
                 - href: "#a7377430-2328-4dc4-a9e2-b3f31dc1dff9"
                   text: local template validation
                   rel: lula
+                - href: "../validation/valid-validation.tmpl.yaml"
+                  text: local path template validation
+                  rel: lula
                 - href: "../validation/validation.trailing-spaces.yaml"
                   text: validation with spaces that need to be cleaned
                   rel: lula
