@@ -28,13 +28,25 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 	// removed.
 	defer os.RemoveAll(dst)
 
+	// make a map of rel filepaths to the user-supplied name, so we can re-key the DomainResources later on.
+	filenames := make(map[string]string, len(d.Spec.Filepaths))
+
 	// Copy files to a temporary location
 	for _, path := range d.Spec.Filepaths {
 		bytes, err := network.Fetch(path.Path)
 		if err != nil {
 			return nil, fmt.Errorf("error getting source files: %w", err)
 		}
-		os.WriteFile(filepath.Join(dst, path.Name), bytes, 0666)
+
+		// We'll just use the filename when writing the file so it's easier to reference later
+		relname := filepath.Base(path.Path)
+
+		err = os.WriteFile(filepath.Join(dst, relname), bytes, 0666)
+		if err != nil {
+			return nil, fmt.Errorf("error writing local files: %w", err)
+		}
+		// and save this info for later
+		filenames[relname] = path.Name
 	}
 
 	// get a list of all the files we just downloaded in the temporary directory
@@ -56,14 +68,15 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 		return nil, err
 	}
 
-	// clean up the resources so it's just using the filename
+	// clean up the resources so it's using the filepath.Name as the map key,
+	// istead of the file path.src/pkg/domains/files/files.go
 	drs := make(types.DomainResources, len(config))
 	for k, v := range config {
 		rel, err := filepath.Rel(dst, k)
 		if err != nil {
 			return nil, fmt.Errorf("error determining relative file path: %w", err)
 		}
-		drs[rel] = v
+		drs[filenames[rel]] = v
 	}
 	return drs, nil
 }
