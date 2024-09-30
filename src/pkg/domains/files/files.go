@@ -1,19 +1,18 @@
 package files
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/types"
-	getter "github.com/hashicorp/go-getter/v2"
 	"github.com/open-policy-agent/conftest/parser"
 )
 
 type Domain struct {
-	Spec *Spec
+	Spec *Spec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
 // GetResources gathers the input files to be tested.
@@ -24,28 +23,18 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 		return nil, err
 	}
 
-	// TODO? this might be a nice configurable option (for debugging) - or we go
-	// the terraform route (sorry) and download and store them into a local
-	// .lula directory
+	// TODO? this might be a nice configurable option (for debugging) - store
+	// the files into a local .lula directory that doesn't necessarily get
+	// removed.
 	defer os.RemoveAll(dst)
 
-	// Copy file to a temporarly location, using go-getter to pull any remote files
-	// TODO: use a real context, this isn't correct.
-	g := getter.DefaultClient
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("unable to determine current directory: %w", err)
-	}
-
-	for _, filepath := range d.Spec.Filepaths {
-		_, err := g.Get(context.Background(), &getter.Request{
-			Src: filepath,
-			Dst: dst,
-			Pwd: pwd,
-		})
+	// Copy files to a temporary location
+	for _, path := range d.Spec.Filepaths {
+		bytes, err := network.Fetch(path.Path)
 		if err != nil {
 			return nil, fmt.Errorf("error getting source files: %w", err)
 		}
+		os.WriteFile(filepath.Join(dst, path.Name), bytes, 0666)
 	}
 
 	// get a list of all the files we just downloaded in the temporary directory
@@ -67,7 +56,7 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 		return nil, err
 	}
 
-	//clean up the resources so it's just using the filename
+	// clean up the resources so it's just using the filename
 	drs := make(types.DomainResources, len(config))
 	for k, v := range config {
 		rel, err := filepath.Rel(dst, k)
@@ -81,9 +70,9 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 
 // IsExecutable returns false; the file domain is read-only.
 //
-// This is a tiny lie: the files domain will download remote files into a
-// temporary directory if the file paths are remote, but that is temporary and
-// it is not mutating existing resources so we're calling it non-executable.
+// The files domain will download remote files into a temporary directory if the
+// file paths are remote, but that is temporary and it is not mutating existing
+// resources.
 func (d Domain) IsExecutable() bool { return false }
 
 func CreateDomain(spec *Spec) (types.Domain, error) {
