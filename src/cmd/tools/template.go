@@ -8,7 +8,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/internal/template"
-	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -46,7 +46,7 @@ func TemplateCommand() *cobra.Command {
 		Example: templateHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Read file
-			data, err := pkgCommon.ReadFileToBytes(inputFile)
+			data, err := network.Fetch(inputFile)
 			if err != nil {
 				return fmt.Errorf("error reading file: %v", err)
 			}

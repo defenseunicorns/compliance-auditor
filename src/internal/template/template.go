@@ -254,6 +254,8 @@ func createTemplate() *template.Template {
 		"concatToRegoList": func(a []any) string {
 			return concatToRegoList(a)
 		},
+		"uuid":      newUUID,
+		"timestamp": timestamp,
 		// Add more custom functions as needed
 	}
 
