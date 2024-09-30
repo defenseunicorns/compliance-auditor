@@ -124,9 +124,12 @@ func ExecuteCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, outp
 	cmd.SetErr(buf)
 	cmd.SetArgs(args)
 
-	cmd.Execute()
+	execErr := cmd.Execute()
 
-	out, err := io.ReadAll(buf)
+	out, readErr := io.ReadAll(buf)
+	if readErr != nil {
+		return cmd, "", readErr
+	}
 
-	return cmd, string(out), err
+	return cmd, string(out), execErr
 }

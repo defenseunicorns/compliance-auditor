@@ -14,7 +14,7 @@ import (
 	"github.com/muesli/termenv"
 )
 
-const timeout = time.Second * 10
+const timeout = time.Second * 20
 
 func init() {
 	lipgloss.SetColorProfile(termenv.Ascii)
