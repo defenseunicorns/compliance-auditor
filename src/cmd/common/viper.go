@@ -2,17 +2,21 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
+	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/viper"
 )
 
 const (
-	VLogLevel = "log_level"
-	VTarget   = "target"
-	VSummary  = "summary"
+	VLogLevel  = "log_level"
+	VTarget    = "target"
+	VSummary   = "summary"
+	VConstants = "constants"
+	VVariables = "variables"
 )
 
 var (
@@ -70,6 +74,24 @@ func GetViper() *viper.Viper {
 	return v
 }
 
+// GetTemplateConfig loads the constants and variables from the viper config
+func GetTemplateConfig() (map[string]interface{}, []template.VariableConfig, error) {
+	var constants map[string]interface{}
+	var variables []template.VariableConfig
+
+	err := v.UnmarshalKey(VConstants, &constants)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to unmarshal constants into map: %v", err)
+	}
+
+	err = v.UnmarshalKey(VVariables, &variables)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to unmarshal variables into slice: %v", err)
+	}
+
+	return constants, variables, nil
+}
+
 func isVersionCmd() bool {
 	args := os.Args
 	return len(args) > 1 && (args[1] == "version" || args[1] == "v")
@@ -78,6 +100,8 @@ func isVersionCmd() bool {
 func setDefaults() {
 	v.SetDefault(VLogLevel, "info")
 	v.SetDefault(VSummary, false)
+	v.SetDefault(VConstants, make(map[string]interface{}))
+	v.SetDefault(VVariables, make([]interface{}, 0))
 }
 
 func printViperConfigUsed() {

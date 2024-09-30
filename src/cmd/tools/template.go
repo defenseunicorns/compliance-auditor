@@ -1,89 +1,130 @@
 package tools
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/internal/template"
-	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
 
-type templateFlags struct {
-	InputFile  string // -f --input-file
-	OutputFile string // -o --output-file
-}
-
-var templateOpts = &templateFlags{}
-
 var templateHelp = `
-To template an OSCAL Model:
+To template an OSCAL Model, defaults to masking sensitive variables:
 	lula tools template -f ./oscal-component.yaml
 
 To indicate a specific output file:
 	lula tools template -f ./oscal-component.yaml -o templated-oscal-component.yaml
 
-Data for the templating should be stored under the 'variables' configuration item in a lula-config.yaml file
+To perform overrides on the template data:
+	lula tools template -f ./oscal-component.yaml --set .var.key1=value1 --set .const.key2=value2
+
+To perform the full template operation, including sensitive data:
+	lula tools template -f ./oscal-component.yaml --render all
+
+Data for templating should be stored under 'constants' or 'variables' configuration items in a lula-config.yaml file
+See documentation for more detail on configuration schema
 `
-var templateCmd = &cobra.Command{
-	Use:     "template",
-	Short:   "Template an artifact",
-	Long:    "Resolving templated artifacts with configuration data",
-	Args:    cobra.NoArgs,
-	Example: templateHelp,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Read file
-		data, err := pkgCommon.ReadFileToBytes(templateOpts.InputFile)
-		if err != nil {
-			message.Fatal(err, err.Error())
-		}
-
-		// Get current viper pointer
-		v := common.GetViper()
-		// Get all viper settings
-		// This will only return config file items and resolved environment variables
-		// that have an associated key in the config file
-		viperData := v.AllSettings()
-
-		// Handles merging viper config file data + environment variables
-		mergedMap := template.CollectTemplatingData(viperData)
-
-		templatedData, err := template.ExecuteTemplate(mergedMap, string(data))
-		if err != nil {
-			message.Fatalf(err, "error templating validation: %v", err)
-		}
-
-		if templateOpts.OutputFile == "" {
-			_, err := os.Stdout.Write(templatedData)
-			if err != nil {
-				message.Fatalf(err, "failed to write to stdout: %v", err)
-			}
-		} else {
-			err = files.CreateFileDirs(templateOpts.OutputFile)
-			if err != nil {
-				message.Fatalf(err, "failed to create output file path: %s\n", err)
-			}
-			err = os.WriteFile(templateOpts.OutputFile, templatedData, 0644)
-			if err != nil {
-				message.Fatal(err, err.Error())
-			}
-		}
-
-	},
-}
 
 func TemplateCommand() *cobra.Command {
-	return templateCmd
+	var (
+		inputFile        string
+		outputFile       string
+		setOpts          []string
+		renderTypeString string
+	)
+
+	cmd := &cobra.Command{
+		Use:     "template",
+		Short:   "Template an artifact",
+		Long:    "Resolving templated artifacts with configuration data",
+		Args:    cobra.NoArgs,
+		Example: templateHelp,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Read file
+			data, err := network.Fetch(inputFile)
+			if err != nil {
+				return fmt.Errorf("error reading file: %v", err)
+			}
+
+			// Validate render type
+			renderType, err := parseRenderType(renderTypeString)
+			if err != nil {
+				message.Warnf("invalid render type, defaulting to masked: %v", err)
+			}
+
+			// Get constants and variables for templating from viper config
+			constants, variables, err := common.GetTemplateConfig()
+			if err != nil {
+				return fmt.Errorf("error getting template config: %v", err)
+			}
+
+			// Get overrides from --set flag
+			overrides, err := common.ParseTemplateOverrides(setOpts)
+			if err != nil {
+				return fmt.Errorf("error parsing template overrides: %v", err)
+			}
+
+			// Handles merging viper config file data + environment variables
+			// Throws an error if config keys are invalid for templating
+			templateData, err := template.CollectTemplatingData(constants, variables, overrides)
+			if err != nil {
+				return fmt.Errorf("error collecting templating data: %v", err)
+			}
+
+			templateRenderer := template.NewTemplateRenderer(templateData)
+			output, err := templateRenderer.Render(string(data), renderType)
+			if err != nil {
+				return fmt.Errorf("error rendering template: %v", err)
+			}
+
+			if outputFile == "" {
+				_, err := cmd.OutOrStdout().Write(output)
+				if err != nil {
+					return fmt.Errorf("failed to write to stdout: %v", err)
+				}
+			} else {
+				err = files.CreateFileDirs(outputFile)
+				if err != nil {
+					return fmt.Errorf("failed to create output file path: %v", err)
+				}
+				err = os.WriteFile(outputFile, output, 0644)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target artifact")
+	cmd.MarkFlagRequired("input-file")
+	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
+	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
+	cmd.Flags().StringVarP(&renderTypeString, "render", "r", "masked", "values to render the template with, options are: masked, constants, non-sensitive, all")
+
+	return cmd
 }
 
 func init() {
 	common.InitViper()
+	toolsCmd.AddCommand(TemplateCommand())
+}
 
-	toolsCmd.AddCommand(templateCmd)
-
-	templateCmd.Flags().StringVarP(&templateOpts.InputFile, "input-file", "f", "", "the path to the target artifact")
-	templateCmd.MarkFlagRequired("input-file")
-	templateCmd.Flags().StringVarP(&templateOpts.OutputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
+func parseRenderType(item string) (template.RenderType, error) {
+	switch strings.ToLower(item) {
+	case "masked":
+		return template.MASKED, nil
+	case "constants":
+		return template.CONSTANTS, nil
+	case "non-sensitive":
+		return template.NONSENSITIVE, nil
+	case "all":
+		return template.ALL, nil
+	}
+	return template.MASKED, fmt.Errorf("invalid render type: %s", item)
 }

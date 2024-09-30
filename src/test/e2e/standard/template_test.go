@@ -1,19 +1,21 @@
 package test
 
 import (
-	"bytes"
+	"flag"
 	"os"
+	"path/filepath"
 
-	"strings"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/cmd"
 	"github.com/defenseunicorns/lula/src/test/util"
 )
 
+var updateGolden = flag.Bool("update", false, "update golden files")
+
 func TestTemplateCommand(t *testing.T) {
 
-	test := func(t *testing.T, expectError bool, args ...string) (string, error) {
+	test := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
 		t.Helper()
 
 		cmdArgs := []string{"tools", "template"}
@@ -22,54 +24,101 @@ func TestTemplateCommand(t *testing.T) {
 		cmd := cmd.RootCommand()
 
 		_, output, err := util.ExecuteCommand(cmd, cmdArgs...)
-		if err != nil && !expectError {
-			t.Fatal(err)
+		if err != nil {
+			if !expectError {
+				return err
+			} else {
+				return nil
+			}
 		}
 
-		return output, err
+		if !expectError {
+			goldenFile := filepath.Join("testdata", goldenFileName+".golden")
+
+			if *updateGolden && !expectError {
+				err = os.WriteFile(goldenFile, []byte(output), 0644)
+				if err != nil {
+					return err
+				}
+			}
+
+			expected, err := os.ReadFile(goldenFile)
+			if err != nil {
+				return err
+			}
+
+			if output != string(expected) {
+				t.Fatalf("Expected:\n%s\n - Got \n%s\n", expected, output)
+			}
+		}
+
+		return nil
 	}
 
-	t.Run("Template Valid File", func(t *testing.T) {
-
-		_, err := test(t, false, "-f", "../../unit/common/oscal/valid-component-template.yaml", "-o", "valid.yaml")
-		defer os.Remove("valid.yaml")
+	t.Run("Template Validation", func(t *testing.T) {
+		err := test(t, "validation", false, "-f", "../../unit/common/validation/validation.tmpl.yaml")
 		if err != nil {
 			t.Fatal(err)
 		}
+	})
 
-		// this comparison using golden files would make more sense
-		templated, err := os.ReadFile("valid.yaml")
+	t.Run("Template Validation with env vars", func(t *testing.T) {
+		os.Setenv("LULA_VAR_SOME_ENV_VAR", "my-env-var")
+		defer os.Unsetenv("LULA_VAR_SOME_ENV_VAR")
+		err := test(t, "validation_with_env_vars", false, "-f", "../../unit/common/validation/validation.tmpl.yaml")
 		if err != nil {
 			t.Fatal(err)
 		}
+	})
 
-		valid, err := os.ReadFile("../../unit/common/oscal/valid-component.yaml")
+	t.Run("Template Validation with set", func(t *testing.T) {
+		err := test(t, "validation_with_set", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--set", ".const.resources.name=foo")
 		if err != nil {
 			t.Fatal(err)
 		}
+	})
 
-		if !bytes.Equal(templated, valid) {
-			t.Fatalf("Expected: \n%s\n - Got \n%s\n", valid, templated)
+	t.Run("Template Validation for all", func(t *testing.T) {
+		os.Setenv("LULA_VAR_SOME_LULA_SECRET", "env-secret")
+		defer os.Unsetenv("LULA_VAR_SOME_LULA_SECRET")
+		err := test(t, "validation_all", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--render", "all")
+		if err != nil {
+			t.Fatal(err)
 		}
+	})
 
+	t.Run("Template Validation for non-sensitive", func(t *testing.T) {
+		err := test(t, "validation_non_sensitive", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--render", "non-sensitive")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("Template Validation for constants", func(t *testing.T) {
+		err := test(t, "validation_constants", false, "-f", "../../unit/common/validation/validation.tmpl.yaml", "--render", "constants")
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 
 	t.Run("Test help", func(t *testing.T) {
-		out, _ := test(t, false, "--help")
-
-		if !strings.Contains(out, "Resolving templated artifacts with configuration data") {
-			t.Fatalf("Expected help string")
+		err := test(t, "help", false, "--help")
+		if err != nil {
+			t.Fatal(err)
 		}
 	})
 
-	// Tests that execute unhappy-paths will hit a fatal message which exits the runtime
-	// TODO: review RunE command execution and ensure we don't prematurely exit where errors would still be valuable
-	// t.Run("Test non-existent file", func(t *testing.T) {
-	// 	out, _ := test(t, true, "-f", "non-existent.yaml")
+	t.Run("Template Validation - invalid file error", func(t *testing.T) {
+		err := test(t, "empty", true, "-f", "not-a-file.yaml")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 
-	// 	if !strings.Contains(out, "Path: non-existent.yaml does not exist - unable to digest document") {
-	// 		t.Fatalf("Expected error with unable to digest document error")
-	// 	}
-	// })
-
+	t.Run("Template Validation - invalid file schema error", func(t *testing.T) {
+		err := test(t, "empty", true, "-f", "../../unit/common/validation/validation.bad.tmpl.yaml")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
