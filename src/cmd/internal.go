@@ -22,8 +22,6 @@ var genCLIDocs = &cobra.Command{
 	Use:   "gen-cli-docs",
 	Short: "Generate CLI command documentation",
 	RunE: func(_ *cobra.Command, _ []string) error {
-		rootCmd := newRootCmd() // Create a new root command instance
-
 		// Don't include the datestamp in the output
 		rootCmd.DisableAutoGenTag = true
 
@@ -74,5 +72,7 @@ type: docs
 }
 
 func init() {
+	rootCmd.AddCommand(internalCmd)
+
 	internalCmd.AddCommand(genCLIDocs)
 }

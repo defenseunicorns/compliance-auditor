@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/test/util"
+	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +21,7 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func runCmdTest(t *testing.T, goldenFileName string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
+func runCmdTest(t *testing.T, goldenFilePath, goldenFileName string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
 	_, output, err := util.ExecuteCommand(rootCmd, cmdArgs...)
 	if err != nil {
 		if !expectError {
@@ -31,14 +32,14 @@ func runCmdTest(t *testing.T, goldenFileName string, expectError bool, rootCmd *
 	}
 
 	if !expectError {
-		testGolden(t, goldenFileName, output)
+		testGolden(t, goldenFilePath, goldenFileName, output)
 	}
 
 	return nil
 }
 
-func runCmdTestWithOutputFile(t *testing.T, goldenFileName string, outExt string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
-	tempFileName := fmt.Sprintf("output.%s", outExt)
+func runCmdTestWithOutputFile(t *testing.T, goldenFilePath, goldenFileName string, outExt string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
+	tempFileName := fmt.Sprintf("output-%s.%s", goldenFileName, outExt)
 	defer os.Remove(tempFileName)
 
 	cmdArgs = append(cmdArgs, "-o", tempFileName)
@@ -61,13 +62,13 @@ func runCmdTestWithOutputFile(t *testing.T, goldenFileName string, outExt string
 	data = scrubTimestamps(data)
 
 	if !expectError {
-		testGolden(t, goldenFileName, string(data))
+		testGolden(t, goldenFilePath, goldenFileName, string(data))
 	}
 
 	return nil
 }
 
-func testGolden(t *testing.T, filename, got string) {
+func testGolden(t *testing.T, filePath, filename, got string) {
 	t.Helper()
 
 	got = strings.ReplaceAll(got, "\r\n", "\n")
@@ -76,7 +77,7 @@ func testGolden(t *testing.T, filename, got string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	goldenPath := filepath.Join(wd, "testdata", filename+".golden")
+	goldenPath := filepath.Join(wd, "testdata", filePath, filename+".golden")
 
 	if *updateGolden {
 		if err := os.MkdirAll(filepath.Dir(goldenPath), 0o755); err != nil {
@@ -88,11 +89,11 @@ func testGolden(t *testing.T, filename, got string) {
 	}
 
 	wantBytes, _ := os.ReadFile(goldenPath)
-
 	want := string(wantBytes)
+	diff := cmp.Diff(want, got)
 
-	if got != want {
-		t.Fatalf("`%s` does not match.\n\nWant:\n\n%s\n\nGot:\n\n%s", goldenPath, want, got)
+	if diff != "" {
+		t.Fatalf("`%s` does not match.\n\nDiff:\n%s", goldenPath, diff)
 	}
 }
 

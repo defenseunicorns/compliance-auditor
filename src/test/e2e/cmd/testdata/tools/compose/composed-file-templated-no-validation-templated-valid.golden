@@ -1,34 +1,6 @@
 component-definition:
   back-matter:
     resources:
-      - description: |-
-          domain:
-            type: kubernetes
-            kubernetes-spec:
-              resources:
-              - name: podsvt
-                resource-rule:
-                  group:
-                  version: v1
-                  resource: test-pod-label
-                  namespaces: [validation-test]
-          provider:
-            type: opa
-            opa-spec:
-              rego: |
-                package validate
-
-                import future.keywords.every
-
-                validate {
-                  every pod in input.podsvt {
-                    podLabel := pod.metadata.labels.foo
-                    podLabel == "bar"
-                  }
-                }
-        rlinks:
-          - href: lula.dev
-        uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
       - description: |
           domain:
             kubernetes-spec:
@@ -47,7 +19,7 @@ component-definition:
           lula-version: ""
           metadata:
             name: Lula Validation
-            uuid: 8f0fe0ce-14dc-468c-986a-145a3238ed10
+            uuid: 307fd191-e6c4-4f7c-b7b8-b79c9c87a450
           provider:
             opa-spec:
               rego: |
@@ -69,42 +41,7 @@ component-definition:
                 value_of_my_secret := {{ .var.some_lula_secret }}
             type: opa
         title: Lula Validation
-        uuid: 8f0fe0ce-14dc-468c-986a-145a3238ed10
-      - description: |
-          domain:
-            kubernetes-spec:
-              create-resources: null
-              resources:
-              - description: ""
-                name: podsvt
-                resource-rule:
-                  group: ""
-                  name: ""
-                  namespaces:
-                  - validation-test
-                  resource: pods
-                  version: v1
-            type: kubernetes
-          lula-version: '>=v0.2.0'
-          metadata:
-            name: Validate pods with label foo=bar
-            uuid: 969402b8-7a90-411a-806b-f200c36d60da
-          provider:
-            opa-spec:
-              rego: |
-                package validate
-
-                import future.keywords.every
-
-                validate {
-                  every pod in input.podsvt {
-                    podLabel := pod.metadata.labels.foo
-                    podLabel == "bar"
-                  }
-                }
-            type: opa
-        title: Validate pods with label foo=bar
-        uuid: 969402b8-7a90-411a-806b-f200c36d60da
+        uuid: 307fd191-e6c4-4f7c-b7b8-b79c9c87a450
   components:
     - control-implementations:
         - description: Validate generic security requirements
@@ -112,18 +49,9 @@ component-definition:
             - control-id: ID-1
               description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
-                - href: '#a7377430-2328-4dc4-a9e2-b3f31dc1dff9'
-                  rel: lula
-                  text: local template validation
-                - href: '#8f0fe0ce-14dc-468c-986a-145a3238ed10'
+                - href: '#307fd191-e6c4-4f7c-b7b8-b79c9c87a450'
                   rel: lula
                   text: local path template validation
-                - href: '#969402b8-7a90-411a-806b-f200c36d60da'
-                  rel: lula
-                  text: validation with spaces that need to be cleaned
-                - href: '#db9a9007-dd7d-486a-9f03-18e5b30c80c3'
-                  rel: lula
-                  text: validation with template from remote
               uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
           source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
           uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A

@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
@@ -124,10 +126,14 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	// oscalModel, err := composition.ComposeFromPath(path)
-	oscalModel := &oscalTypes_1_1_2.OscalCompleteSchema{}
+	compositionCtx, err := composition.New()
 	if err != nil {
-		return assessmentResult, err
+		return nil, fmt.Errorf("error creating composition context: %v", err)
+	}
+
+	oscalModel, err := compositionCtx.ComposeFromPath(context.Background(), path)
+	if err != nil {
+		return nil, fmt.Errorf("error composing model: %v", err)
 	}
 
 	if oscalModel.ComponentDefinition == nil {

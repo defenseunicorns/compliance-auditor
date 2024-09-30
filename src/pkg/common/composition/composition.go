@@ -115,8 +115,8 @@ func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, c
 			// Unmarshal the component definition
 			for _, importDef := range componentDefs {
 				// Reconcile the base directory from the import component definition href
-				baseDir = network.GetLocalFileDir(importComponentDef.Href, baseDir)
-				err = cc.ComposeComponentDefinitions(ctx, importDef, baseDir)
+				importDir := network.GetLocalFileDir(importComponentDef.Href, baseDir)
+				err = cc.ComposeComponentDefinitions(ctx, importDef, importDir)
 				if err != nil {
 					return err
 				}

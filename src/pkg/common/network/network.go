@@ -161,8 +161,9 @@ func GetLocalFileDir(inputURL, baseDir string) string {
 	requestUri := url.RequestURI()
 
 	if url.Scheme == "file" {
-		if _, err := os.Stat(requestUri); err != nil {
-			return filepath.Dir(filepath.Join(baseDir, url.Host, requestUri))
+		fullPath := filepath.Join(baseDir, url.Host, requestUri)
+		if _, err := os.Stat(fullPath); err == nil {
+			return filepath.Dir(fullPath)
 		}
 	}
 	return ""

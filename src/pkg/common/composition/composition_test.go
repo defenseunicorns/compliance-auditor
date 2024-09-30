@@ -23,7 +23,8 @@ const (
 
 	// TODO: add tests for templating
 	compDefNestedImport = "../../../test/unit/common/composition/component-definition-import-nested-compdef.yaml"
-	compDefMultiTmpl    = "../../../test/unit/common/composition/component-definition-local-and-remote-template.yaml"
+	compDefNestedTmpl   = "../../../test/unit/common/composition/component-definition-import-nested-compdef-template.yaml"
+	compDefTmpl         = "../../../test/unit/common/composition/component-definition-template.yaml"
 
 	// Also, add cmd tests...? compare golden composed file?
 )

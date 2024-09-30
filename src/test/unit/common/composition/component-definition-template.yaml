@@ -34,45 +34,6 @@ component-definition:
               description: >-
                 This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
-                - href: "#a7377430-2328-4dc4-a9e2-b3f31dc1dff9"
-                  text: local template validation
-                  rel: lula
                 - href: "../validation/validation.tmpl.yaml"
                   text: local path template validation
                   rel: lula
-                - href: "../validation/validation.trailing-spaces.yaml"
-                  text: validation with spaces that need to be cleaned
-                  rel: lula
-                - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/unit/common/validation/validation.tmpl.yaml
-                  text: validation with template from remote
-                  rel: lula
-  back-matter:
-    resources:
-      - uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
-        rlinks:
-          - href: lula.dev
-        description: >-
-          domain:
-            type: kubernetes
-            kubernetes-spec:
-              resources:
-              - name: podsvt
-                resource-rule:
-                  group:
-                  version: v1
-                  resource: {{ .const.resources.name }}
-                  namespaces: [{{ .const.resources.namespace }}]
-          provider:
-            type: opa
-            opa-spec:
-              rego: |
-                package validate
-
-                import future.keywords.every
-
-                validate {
-                  every pod in input.podsvt {
-                    podLabel := pod.metadata.labels.foo
-                    podLabel == "bar"
-                  }
-                }

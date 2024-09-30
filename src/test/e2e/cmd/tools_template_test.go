@@ -15,7 +15,7 @@ func TestToolsTemplateCommand(t *testing.T) {
 	test := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
 		rootCmd := tools.TemplateCommand()
 
-		return runCmdTest(t, "tools/template/"+goldenFileName, expectError, rootCmd, args...)
+		return runCmdTest(t, "tools/template/", goldenFileName, expectError, rootCmd, args...)
 	}
 
 	t.Run("Template Validation", func(t *testing.T) {

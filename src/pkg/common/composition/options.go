@@ -20,7 +20,11 @@ func WithModelFromLocalPath(path string) Option {
 			return fmt.Errorf("input-file: %v does not exist - unable to digest document", path)
 		}
 
-		ctx.modelDir = filepath.Dir(path)
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("error getting absolute path: %v", err)
+		}
+		ctx.modelDir = filepath.Dir(absPath)
 
 		return nil
 	}

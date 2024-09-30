@@ -39,7 +39,7 @@ func ComposeCommand() *cobra.Command {
 		renderValidations bool     // --render-validations
 	)
 
-	var cmd = &cobra.Command{
+	var composeCmd = &cobra.Command{
 		Use:     "compose",
 		Short:   "compose an OSCAL component definition",
 		Long:    composeLong,
@@ -65,16 +65,10 @@ func ComposeCommand() *cobra.Command {
 				message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
 			}
 
-			// Compose the OSCAL model
-			constants, variables, err := common.GetTemplateConfig()
-			if err != nil {
-				return fmt.Errorf("error getting template config: %v", err)
-			}
-
 			opts := []composition.Option{
 				composition.WithModelFromLocalPath(inputFile),
 				composition.WithRenderSettings(renderTypeString, renderValidations),
-				composition.WithTemplateRenderer(renderTypeString, constants, variables, setOpts),
+				composition.WithTemplateRenderer(renderTypeString, common.TemplateConstants, common.TemplateVariables, setOpts),
 			}
 
 			err = Compose(cmd.Context(), inputFile, outputFile, opts...)
@@ -88,14 +82,14 @@ func ComposeCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	cmd.MarkFlagRequired("input-file")
-	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-composed` appended")
-	cmd.Flags().StringVarP(&renderTypeString, "render", "r", "", "values to render the template with, options are: masked, constants, non-sensitive, all")
-	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set value overrides for templated data")
-	cmd.Flags().BoolVar(&renderValidations, "render-validations", false, "extend render to remote Lula Validations")
+	composeCmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
+	composeCmd.MarkFlagRequired("input-file")
+	composeCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-composed` appended")
+	composeCmd.Flags().StringVarP(&renderTypeString, "render", "r", "", "values to render the template with, options are: masked, constants, non-sensitive, all")
+	composeCmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set value overrides for templated data")
+	composeCmd.Flags().BoolVar(&renderValidations, "render-validations", false, "extend render to remote Lula Validations")
 
-	return cmd
+	return composeCmd
 }
 
 func init() {

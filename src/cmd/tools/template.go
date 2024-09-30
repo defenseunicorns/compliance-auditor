@@ -58,10 +58,10 @@ func TemplateCommand() *cobra.Command {
 			}
 
 			// Get constants and variables for templating from viper config
-			constants, variables, err := common.GetTemplateConfig()
-			if err != nil {
-				return fmt.Errorf("error getting template config: %v", err)
-			}
+			// constants, variables, err := common.GetTemplateConfig()
+			// if err != nil {
+			// 	return fmt.Errorf("error getting template config: %v", err)
+			// }
 
 			// Get overrides from --set flag
 			overrides, err := common.ParseTemplateOverrides(setOpts)
@@ -71,7 +71,7 @@ func TemplateCommand() *cobra.Command {
 
 			// Handles merging viper config file data + environment variables
 			// Throws an error if config keys are invalid for templating
-			templateData, err := template.CollectTemplatingData(constants, variables, overrides)
+			templateData, err := template.CollectTemplatingData(common.TemplateConstants, common.TemplateVariables, overrides)
 			if err != nil {
 				return fmt.Errorf("error collecting templating data: %v", err)
 			}
