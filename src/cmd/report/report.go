@@ -161,16 +161,26 @@ func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) e
 
 // Handler for Component Definition OSCAL files to create the report
 func handleComponentDefinition(componentDefinition *oscalTypes_1_1_2.ComponentDefinition, format string) error {
-	controlMap := oscal.FilterControlImplementations(componentDefinition)
-	extractedData := ExtractControlIDs(controlMap)
-	extractedData.Title = componentDefinition.Metadata.Title
+    spinner := message.NewProgressSpinner("composing component definitions")
 
-	report := ReportData{
-		ComponentDefinition: extractedData,
-	}
+    err := composition.ComposeComponentDefinitions(componentDefinition)
+    if err != nil {
+        spinner.Fatalf(fmt.Errorf("failed to compose component definitions: %v", err), "failed to compose component definitions")
+        return err
+    }
 
-	message.Info("Generating report...")
-	return PrintReport(report, format)
+    spinner.Success() // Mark the spinner as successful before moving forward
+
+    controlMap := oscal.FilterControlImplementations(componentDefinition)
+    extractedData := ExtractControlIDs(controlMap)
+    extractedData.Title = componentDefinition.Metadata.Title
+
+    report := ReportData{
+        ComponentDefinition: extractedData,
+    }
+
+    message.Info("Generating report...")
+    return PrintReport(report, format)
 }
 
 // Gets the unique Control IDs from each source and framework in the OSCAL Component Definition
