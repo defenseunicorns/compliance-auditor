@@ -16,7 +16,7 @@ func TestLulaReportValidComponent(t *testing.T) {
 
 	// Setup the root command and buffers for capturing output
 	rootCmd := cmd.RootCommand()
-	rootCmd.SetArgs([]string{"report", "-f", "../unit/common/oscal/valid-multi-component-validations.yaml ", "--file-format", "table"})
+	rootCmd.SetArgs([]string{"report", "-f", "../unit/common/oscal/valid-multi-component-validations.yaml", "--file-format", "table"})
 
 	var outBuf, errBuf bytes.Buffer
 	rootCmd.SetOut(&outBuf)
