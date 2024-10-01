@@ -27,39 +27,42 @@ func (p Profile) GetCompleteModel() *oscalTypes.OscalModels {
 
 func (p Profile) MakeDeterministic() {
 
-	// sort the import items by source string
-	importItems := p.Model.Imports
+	// Default behavior of a nil model - do nothing
+	if p.Model != nil {
+		// sort the import items by source string
+		importItems := p.Model.Imports
 
-	sort.Slice(importItems, func(i, j int) bool {
-		return importItems[i].Href < importItems[j].Href
-	})
+		sort.Slice(importItems, func(i, j int) bool {
+			return importItems[i].Href < importItems[j].Href
+		})
 
-	// Does not handle pattern matching
-	for _, item := range importItems {
+		// Does not handle pattern matching
+		for _, item := range importItems {
 
-		// Shouldn't be both but we can still handle the scenario
-		if item.IncludeControls != nil {
-			includeControls := *item.IncludeControls
-			for _, includeControl := range includeControls {
-				includes := *includeControl.WithIds
-				sort.Slice(includes, func(i, j int) bool {
-					return includes[i] < includes[j]
-				})
-				includeControl.WithIds = &includes
+			// Shouldn't be both but we can still handle the scenario
+			if item.IncludeControls != nil {
+				includeControls := *item.IncludeControls
+				for _, includeControl := range includeControls {
+					includes := *includeControl.WithIds
+					sort.Slice(includes, func(i, j int) bool {
+						return includes[i] < includes[j]
+					})
+					includeControl.WithIds = &includes
+				}
 			}
-		}
 
-		if item.ExcludeControls != nil {
-			excludeControls := *item.ExcludeControls
-			for _, excludeControl := range excludeControls {
-				exclude := *excludeControl.WithIds
-				sort.Slice(exclude, func(i, j int) bool {
-					return exclude[i] < exclude[j]
-				})
-				excludeControl.WithIds = &exclude
+			if item.ExcludeControls != nil {
+				excludeControls := *item.ExcludeControls
+				for _, excludeControl := range excludeControls {
+					exclude := *excludeControl.WithIds
+					sort.Slice(exclude, func(i, j int) bool {
+						return exclude[i] < exclude[j]
+					})
+					excludeControl.WithIds = &exclude
+				}
 			}
-		}
 
+		}
 	}
 
 	return
@@ -100,6 +103,7 @@ func (p Profile) New(data []byte) (OSCALModel, error) {
 
 func GenerateProfile(source string, include []string, exclude []string) (profile Profile, err error) {
 
+	// Create the OSCAL profile type model for use and later assignment to the oscal.Profile implementation
 	var model oscalTypes.Profile
 
 	// Single time used for all time related fields
