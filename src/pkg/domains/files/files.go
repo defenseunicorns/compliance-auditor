@@ -69,7 +69,7 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 	}
 
 	// clean up the resources so it's using the filepath.Name as the map key,
-	// istead of the file path.src/pkg/domains/files/files.go
+	// instead of the file path.
 	drs := make(types.DomainResources, len(config))
 	for k, v := range config {
 		rel, err := filepath.Rel(dst, k)
