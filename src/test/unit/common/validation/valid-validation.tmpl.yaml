@@ -1,3 +1,6 @@
+metadata:
+  name: Test validation with templating
+  uuid: 458d2d84-b7f2-4679-8964-6f9a9dfe51eb
 domain:
   type: kubernetes
   kubernetes-spec:

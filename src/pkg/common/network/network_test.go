@@ -48,13 +48,13 @@ func TestParseUrl(t *testing.T) {
 		},
 		{
 			name:         "File url",
-			input:        "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml",
+			input:        "file://../../../test/e2e/scenarios/remote-validations/validation.opa.yaml",
 			wantErr:      false,
 			wantChecksum: false,
 		},
 		{
 			name:         "With Checksum",
-			input:        "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@394f5efa7aa5c3163a631d0f2640efe836af07c77fa7b27749f00819dd869058",
+			input:        "file://../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@394f5efa7aa5c3163a631d0f2640efe836af07c77fa7b27749f00819dd869058",
 			wantErr:      false,
 			wantChecksum: true,
 		},
@@ -94,12 +94,12 @@ func TestFetch(t *testing.T) {
 		},
 		{
 			name:    "File",
-			url:     "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml",
+			url:     "file://../../../test/e2e/scenarios/remote-validations/validation.opa.yaml",
 			wantErr: false,
 		},
 		{
 			name:    "File with checksum SHA-256",
-			url:     "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@394f5efa7aa5c3163a631d0f2640efe836af07c77fa7b27749f00819dd869058",
+			url:     "file://../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@394f5efa7aa5c3163a631d0f2640efe836af07c77fa7b27749f00819dd869058",
 			wantErr: false,
 		},
 		{
@@ -109,7 +109,7 @@ func TestFetch(t *testing.T) {
 		},
 		{
 			name:    "Invalid Sha",
-			url:     "file://../../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@2d4c18916f2fd70f9488b76690c2eed06789d5fd12e06152a01a8ef7600c41ef",
+			url:     "file://../../../test/e2e/scenarios/remote-validations/validation.opa.yaml@2d4c18916f2fd70f9488b76690c2eed06789d5fd12e06152a01a8ef7600c41ef",
 			wantErr: true,
 		},
 	}
