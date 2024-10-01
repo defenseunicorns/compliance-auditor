@@ -12,8 +12,7 @@ import (
 )
 
 type Profile struct {
-	Model     *oscalTypes.Profile
-	ModelType string
+	Model *oscalTypes.Profile
 }
 
 func (p Profile) GetType() string {
@@ -78,8 +77,8 @@ func (p Profile) HandleExisting(filepath string) error {
 	}
 }
 
-// NewAssessmentResults creates a new assessment results object from the given data.
-func NewProfile(data []byte) (Profile, error) {
+// Create a new
+func (p Profile) New(data []byte) (OSCALModel, error) {
 	var profile Profile
 
 	var oscalModels oscalTypes.OscalModels
@@ -95,7 +94,6 @@ func NewProfile(data []byte) (Profile, error) {
 	}
 
 	profile.Model = oscalModels.Profile
-	profile.ModelType = "profile"
 
 	return profile, nil
 }
@@ -159,7 +157,6 @@ func GenerateProfile(source string, include []string, exclude []string) (profile
 	}
 
 	profile.Model = &model
-	profile.ModelType = "profile"
 
 	return profile, nil
 
