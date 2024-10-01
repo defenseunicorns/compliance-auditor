@@ -98,6 +98,6 @@ func testGolden(t *testing.T, filePath, filename, got string) {
 }
 
 func scrubTimestamps(data []byte) []byte {
-	re := regexp.MustCompile(`(?i)(last-modified:\s*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+[-+]\d{2}:\d{2})`)
+	re := regexp.MustCompile(`(?i)(last-modified:\s*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[-+]\d{2}:\d{2}|Z)?)`)
 	return []byte(re.ReplaceAllString(string(data), "${1}XXX"))
 }
