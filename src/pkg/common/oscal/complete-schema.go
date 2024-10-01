@@ -8,15 +8,22 @@ import (
 	"path/filepath"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/inject"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	yamlV3 "gopkg.in/yaml.v3"
 	"sigs.k8s.io/yaml"
 )
 
-func NewOscalModel(data []byte) (*oscalTypes_1_1_2.OscalModels, error) {
-	oscalModel := oscalTypes_1_1_2.OscalModels{}
+type OSCALModel interface {
+	GetType() string
+	GetCompleteModel() *oscalTypes.OscalModels
+	MakeDeterministic()
+	HandleExisting(string) error
+}
+
+func NewOscalModel(data []byte) (*oscalTypes.OscalModels, error) {
+	oscalModel := oscalTypes.OscalModels{}
 
 	err := multiModelValidate(data)
 	if err != nil {
@@ -30,9 +37,41 @@ func NewOscalModel(data []byte) (*oscalTypes_1_1_2.OscalModels, error) {
 	return &oscalModel, nil
 }
 
+func WriteOscalModelNew(filePath string, model OSCALModel) error {
+	// Ensure model is deterministic
+	model.MakeDeterministic()
+
+	err := model.HandleExisting(filePath)
+	if err != nil {
+		return err
+	}
+
+	// write to file
+	var b bytes.Buffer
+
+	if filepath.Ext(filePath) == ".json" {
+		jsonEncoder := json.NewEncoder(&b)
+		jsonEncoder.SetIndent("", "  ")
+		jsonEncoder.Encode(model.GetCompleteModel())
+	} else {
+		yamlEncoder := yamlV3.NewEncoder(&b)
+		yamlEncoder.SetIndent(2)
+		yamlEncoder.Encode(model.GetCompleteModel())
+	}
+
+	err = files.WriteOutput(b.Bytes(), filePath)
+	if err != nil {
+		return err
+	}
+
+	message.Infof("OSCAL artifact written to: %s", filePath)
+
+	return nil
+}
+
 // WriteOscalModel takes a path and writes content to a file while performing checks for existing content
 // supports both json and yaml
-func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
+func WriteOscalModel(filePath string, model *oscalTypes.OscalModels) error {
 
 	modelType, err := GetOscalModel(model)
 	if err != nil {
@@ -76,12 +115,13 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 	}
 	// If the deterministic update is applied here - Lula will fix OSCAL that was previously written
 	// or generated outside of Lula workflows
-	switch modelType {
-	case "component":
-		MakeComponentDeterminstic(model.ComponentDefinition)
-	case "assessment-results":
-		MakeAssessmentResultsDeterministic(model.AssessmentResults)
-	}
+	// TODO: maybe implement an interface for common commands?
+	// switch modelType {
+	// case "component":
+	// 	MakeComponentDeterminstic(model.ComponentDefinition)
+	// case "assessment-results":
+	// 	MakeAssessmentResultsDeterministic(model.AssessmentResults)
+	// }
 
 	var b bytes.Buffer
 
@@ -108,7 +148,7 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 
 // OverwriteOscalModel takes a path and writes content to a file - does not check for existing content
 // supports both json and yaml
-func OverwriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error {
+func OverwriteOscalModel(filePath string, model *oscalTypes.OscalModels) error {
 
 	// if no path or directory add default filename
 	if filepath.Ext(filePath) == "" {
@@ -123,9 +163,9 @@ func OverwriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) e
 	if model.ComponentDefinition != nil {
 		MakeComponentDeterminstic(model.ComponentDefinition)
 	}
-	if model.AssessmentResults != nil {
-		MakeAssessmentResultsDeterministic(model.AssessmentResults)
-	}
+	// if model.AssessmentResults != nil {
+	// 	MakeAssessmentResultsDeterministic(model.AssessmentResults)
+	// }
 	var b bytes.Buffer
 
 	if filepath.Ext(filePath) == ".json" {
@@ -146,7 +186,7 @@ func OverwriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) e
 
 }
 
-func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *oscalTypes_1_1_2.OscalModels, modelType string) (*oscalTypes_1_1_2.OscalModels, error) {
+func MergeOscalModels(existingModel *oscalTypes.OscalModels, newModel *oscalTypes.OscalModels, modelType string) (*oscalTypes.OscalModels, error) {
 	var err error
 	// Now to check each model type - currently only component definition and assessment-results apply
 
@@ -183,7 +223,7 @@ func MergeOscalModels(existingModel *oscalTypes_1_1_2.OscalModels, newModel *osc
 	return existingModel, err
 }
 
-func GetOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err error) {
+func GetOscalModel(model *oscalTypes.OscalModels) (modelType string, err error) {
 
 	// Check if one model present and all other nil - is there a better way to do this?
 	models := make([]string, 0)
@@ -225,7 +265,7 @@ func GetOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err e
 }
 
 // InjectIntoOSCALModel takes a model target and a map[string]interface{} of values to inject into the model
-func InjectIntoOSCALModel(target *oscalTypes_1_1_2.OscalModels, values map[string]interface{}, path string) (*oscalTypes_1_1_2.OscalModels, error) {
+func InjectIntoOSCALModel(target *oscalTypes.OscalModels, values map[string]interface{}, path string) (*oscalTypes.OscalModels, error) {
 	// If the target is nil, return an error
 	if target == nil {
 		return nil, fmt.Errorf("target model is nil")
@@ -253,7 +293,7 @@ func InjectIntoOSCALModel(target *oscalTypes_1_1_2.OscalModels, values map[strin
 }
 
 // convertOscalModelToMap converts an OSCAL model to a map[string]interface{}
-func convertOscalModelToMap(model oscalTypes_1_1_2.OscalModels) (map[string]interface{}, error) {
+func convertOscalModelToMap(model oscalTypes.OscalModels) (map[string]interface{}, error) {
 	var modelMap map[string]interface{}
 	modelBytes, err := json.Marshal(model)
 	if err != nil {
@@ -269,8 +309,8 @@ func convertOscalModelToMap(model oscalTypes_1_1_2.OscalModels) (map[string]inte
 }
 
 // convertMapToOscalModel converts a map[string]interface{} to an OSCAL model
-func convertMapToOscalModel(modelMap map[string]interface{}) (*oscalTypes_1_1_2.OscalModels, error) {
-	var model oscalTypes_1_1_2.OscalModels
+func convertMapToOscalModel(modelMap map[string]interface{}) (*oscalTypes.OscalModels, error) {
+	var model oscalTypes.OscalModels
 	modelBytes, err := json.Marshal(modelMap)
 	if err != nil {
 		return nil, err
