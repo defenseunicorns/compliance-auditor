@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.8.0](https://github.com/defenseunicorns/lula/compare/v0.7.0...v0.8.0) (2024-09-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* **template:** introducing variables and sensitive configuration ([#672](https://github.com/defenseunicorns/lula/issues/672))
+
+### Features
+
+* **console:** editing a component definition ([#648](https://github.com/defenseunicorns/lula/issues/648)) ([ae06e27](https://github.com/defenseunicorns/lula/commit/ae06e27869043270647670693df342710e3d4390))
+* **template:** enable remote file templating ([#680](https://github.com/defenseunicorns/lula/issues/680)) ([f16bcf6](https://github.com/defenseunicorns/lula/commit/f16bcf64134ab3eda904b40d26e72c19cd96be9b))
+* **template:** introducing variables and sensitive configuration ([#672](https://github.com/defenseunicorns/lula/issues/672)) ([5d1f232](https://github.com/defenseunicorns/lula/commit/5d1f23257ba7f11508a90c883b152349bcc2d7fd))
+* **validate:** save validation resources ([#612](https://github.com/defenseunicorns/lula/issues/612)) ([7b9a771](https://github.com/defenseunicorns/lula/commit/7b9a771852349903025d5d733f0d71fab5133daa))
+
+
+### Bug Fixes
+
+* cleaned whitespace+newline in rego ([#671](https://github.com/defenseunicorns/lula/issues/671)) ([ac7039d](https://github.com/defenseunicorns/lula/commit/ac7039d2222177869e4cf4db544b90a762aa1a0c))
+* trim whitespace bug ([#677](https://github.com/defenseunicorns/lula/issues/677)) ([e30a824](https://github.com/defenseunicorns/lula/commit/e30a8247123ea4bbdf0a582964dfe4ff81aac9f1))
+
+
+### Miscellaneous
+
+* **codeowners:** update codeowners to reflect current team ([#663](https://github.com/defenseunicorns/lula/issues/663)) ([7fceaf6](https://github.com/defenseunicorns/lula/commit/7fceaf67145c38933e2f8b61177e31ff7c8a84e2))
+* **deps:** update actions/checkout action to v4.2.0 ([#681](https://github.com/defenseunicorns/lula/issues/681)) ([187b8a2](https://github.com/defenseunicorns/lula/commit/187b8a2da0545fc78ba56f051bfd6bd19583f3ce))
+* **deps:** update actions/github-script digest to 660ec11 ([#669](https://github.com/defenseunicorns/lula/issues/669)) ([ea40e70](https://github.com/defenseunicorns/lula/commit/ea40e70cd84d3cfd1889c9b0d2e27b49d171ce44))
+* **deps:** update actions/setup-node action to v4.0.4 ([#674](https://github.com/defenseunicorns/lula/issues/674)) ([643d502](https://github.com/defenseunicorns/lula/commit/643d502278a187a90c643bb76c50373f2c7d6117))
+* **deps:** update github.com/charmbracelet/x/exp/teatest digest to 227168d ([#666](https://github.com/defenseunicorns/lula/issues/666)) ([6bc23e3](https://github.com/defenseunicorns/lula/commit/6bc23e3109d6e415668209ca3dfc59064fd019f1))
+* **deps:** update github/codeql-action action to v3.26.8 ([#673](https://github.com/defenseunicorns/lula/issues/673)) ([0ca43a1](https://github.com/defenseunicorns/lula/commit/0ca43a1570867b2d8d49429d92cc18b30bbfc26c))
+* **deps:** update github/codeql-action action to v3.26.9 ([#679](https://github.com/defenseunicorns/lula/issues/679)) ([20bdbcd](https://github.com/defenseunicorns/lula/commit/20bdbcd80ad877bac149d249c4e931eb1fc43e33))
+
 ## [0.7.0](https://github.com/defenseunicorns/lula/compare/v0.6.0...v0.7.0) (2024-09-13)
 
 
