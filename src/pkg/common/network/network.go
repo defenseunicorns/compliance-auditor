@@ -21,8 +21,8 @@ var HttpClient = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
-// parseUrl parses a URL string into a url.URL object.
-func parseUrl(inputURL string) (*url.URL, error) {
+// ParseUrl parses a URL string into a url.URL object.
+func ParseUrl(inputURL string) (*url.URL, error) {
 	if inputURL == "" {
 		return nil, errors.New("empty URL")
 	}
@@ -31,7 +31,7 @@ func parseUrl(inputURL string) (*url.URL, error) {
 		return nil, err
 	}
 	if parsedUrl.Scheme == "" {
-		return parseUrl(fmt.Sprintf("file:%s", inputURL))
+		return ParseUrl(fmt.Sprintf("file:%s", inputURL))
 	}
 	if parsedUrl.Scheme != "file" && parsedUrl.Host == "" {
 		return nil, errors.New("invalid URL, must be a file path, http(s) URL, or a valid URL with a host")
@@ -45,7 +45,7 @@ func ParseChecksum(src string) (*url.URL, string, error) {
 	atSymbolCount := strings.Count(src, "@")
 	var checksum string
 	if atSymbolCount > 0 {
-		parsed, err := parseUrl(src)
+		parsed, err := ParseUrl(src)
 		if err != nil {
 			return parsed, checksum, fmt.Errorf("unable to parse the URL: %s", src)
 		}
@@ -58,7 +58,7 @@ func ParseChecksum(src string) (*url.URL, string, error) {
 		src = src[:index]
 	}
 
-	url, err := parseUrl(src)
+	url, err := ParseUrl(src)
 	if err != nil {
 		return url, checksum, err
 	}
