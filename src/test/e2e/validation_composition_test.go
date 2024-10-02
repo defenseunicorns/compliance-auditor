@@ -71,7 +71,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		t.Error(err)
 	}
 
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 	// Create a validation store from the back-matter if it exists
 	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-	findingMap, observations, err := validate.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
+	findingMap, observations, err := validate.ValidateOnControlImplementations(ctx, components[0].ControlImplementations, validationStore, "")
 	if err != nil {
 		t.Fatalf("Error with validateOnControlImplementations: %v", err)
 	}

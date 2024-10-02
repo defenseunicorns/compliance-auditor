@@ -1,6 +1,7 @@
 package files
 
 import (
+	"context"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/types"
@@ -13,12 +14,12 @@ var _ types.Domain = (*Domain)(nil)
 func TestGetResource(t *testing.T) {
 	t.Run("local files", func(t *testing.T) {
 		d := Domain{Spec: &Spec{Filepaths: []FileInfo{
-			{Name: "foo.yaml", Path: "testdata/foo.yaml"},
-			{Name: "bar.json", Path: "testdata/bar.json"},
-			{Name: "arbitraryname", Path: "testdata/nested-directory/baz.hcl2"},
+			{Name: "foo.yaml", Path: "foo.yaml"},
+			{Name: "bar.json", Path: "bar.json"},
+			{Name: "arbitraryname", Path: "nested-directory/baz.hcl2"},
 		}}}
 
-		resources, err := d.GetResources()
+		resources, err := d.GetResources(context.WithValue(context.Background(), types.LulaValidationWorkDir, "testdata"))
 		require.NoError(t, err)
 		if diff := cmp.Diff(resources, types.DomainResources{
 			"bar.json": map[string]interface{}{"cat": "Cheetarah"},

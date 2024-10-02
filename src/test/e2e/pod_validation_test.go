@@ -228,7 +228,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -321,7 +321,7 @@ func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.F
 	validate.RunNonInteractively = true
 	validate.SaveResources = false
 
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -367,7 +367,7 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 	validate.ResourcesDir = tempDir
 
 	// Validate on path
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

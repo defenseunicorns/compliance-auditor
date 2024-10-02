@@ -1,16 +1,18 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/types"
 )
 
 func TestFileValidation(t *testing.T) {
 	t.Run("basic success - opa", func(t *testing.T) {
 		oscalPath := "./scenarios/file-validations/component-definition.yaml"
-
-		assessment, err := validate.ValidateOnPath(oscalPath, "")
+		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, "./scenarios/file-validations/")
+		assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
 		if err != nil {
 			t.Fatal(err)
 		}

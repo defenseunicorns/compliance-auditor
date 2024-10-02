@@ -87,7 +87,7 @@ func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Do
 	}, nil
 }
 
-func (k KubernetesDomain) GetResources() (resources types.DomainResources, err error) {
+func (k KubernetesDomain) GetResources(_ context.Context) (resources types.DomainResources, err error) {
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
 		err := EvaluateWait(*k.Spec.Wait)

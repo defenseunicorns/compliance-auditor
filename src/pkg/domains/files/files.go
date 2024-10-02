@@ -1,6 +1,7 @@
 package files
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -16,7 +17,14 @@ type Domain struct {
 }
 
 // GetResources gathers the input files to be tested.
-func (d Domain) GetResources() (types.DomainResources, error) {
+func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error) {
+	var workDir string
+	var ok bool
+	if workDir, ok = ctx.Value(types.LulaValidationWorkDir).(string); !ok {
+		// if unset, assume lula is working in the same directory the inputFile is in
+		workDir = "."
+	}
+
 	// see TODO below: maybe this is a REAL directory?
 	dst, err := os.MkdirTemp("", "lula-files")
 	if err != nil {
@@ -33,7 +41,8 @@ func (d Domain) GetResources() (types.DomainResources, error) {
 
 	// Copy files to a temporary location
 	for _, path := range d.Spec.Filepaths {
-		bytes, err := network.Fetch(path.Path)
+		file := filepath.Join(workDir, path.Path)
+		bytes, err := network.Fetch(file)
 		if err != nil {
 			return nil, fmt.Errorf("error getting source files: %w", err)
 		}

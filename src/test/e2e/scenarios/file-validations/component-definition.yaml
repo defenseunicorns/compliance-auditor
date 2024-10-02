@@ -66,8 +66,9 @@ component-definition:
                 }
                 msg = check_server_protocol.msg
                 
-                 config := input["config"]
-                 protocol := config.server.protocol
+                config := input["config"]
+                protocol := config.server.protocol
+                
                 check_server_protocol = {"result": true, "msg": msg} if {
                   protocol == "https"
                   msg := "Server protocol is set to https"
