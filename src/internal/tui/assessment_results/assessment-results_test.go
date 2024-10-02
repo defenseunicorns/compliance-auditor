@@ -1,14 +1,13 @@
-package tui_test
+package assessmentresults_test
 
 import (
-	"os"
 	"testing"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
-	"github.com/defenseunicorns/lula/src/internal/tui"
+	assessmentresults "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/muesli/termenv"
 )
@@ -18,19 +17,19 @@ const (
 	maxRetries = 3
 	height     = common.DefaultHeight
 	width      = common.DefaultWidth
+
+	validAssessmentResults = "../../../test/unit/common/oscal/valid-assessment-results.yaml"
 )
 
 func init() {
 	lipgloss.SetColorProfile(termenv.Ascii)
 }
 
-// TestNewOSCALModel tests that the NewOSCALModel creates the expected model from component definition file
-func TestNewOSCALModel(t *testing.T) {
-	tempLog := testhelpers.CreateTempFile(t, "log")
-	defer os.Remove(tempLog.Name())
-
-	oscalModel := testhelpers.OscalFromPath(t, "../../test/unit/common/oscal/valid-component.yaml")
-	model := tui.NewOSCALModel(oscalModel, "", tempLog)
+// TestAssessmentResultsBasicView tests that the model is created correctly from an assessment results model
+func TestAssessmentResultsBasicView(t *testing.T) {
+	oscalModel := testhelpers.OscalFromPath(t, validAssessmentResults)
+	model := assessmentresults.NewAssessmentResultsModel(oscalModel.AssessmentResults)
+	model.Open(height, width)
 
 	msgs := []tea.Msg{}
 
