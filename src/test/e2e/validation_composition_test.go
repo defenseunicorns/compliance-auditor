@@ -8,10 +8,10 @@ import (
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
+	"github.com/defenseunicorns/lula/src/pkg/common/workdir"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -98,7 +98,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 	if err != nil {
 		t.Error(err)
 	}
-	reset, err := common.SetCwdToFileDir(oscalPath)
+	reset, err := workdir.SetCwdToFileDir(oscalPath)
 	if err != nil {
 		t.Fatalf("Error setting cwd to file dir: %v", err)
 	}

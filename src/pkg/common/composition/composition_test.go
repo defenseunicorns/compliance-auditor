@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/workdir"
 	"gopkg.in/yaml.v3"
 )
 
@@ -84,7 +84,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("No imports, local validations", func(t *testing.T) {
 		og := getComponentDef(allLocal, t)
 		compDef := getComponentDef(allLocal, t)
-		reset, err := common.SetCwdToFileDir(allLocal)
+		reset, err := workdir.SetCwdToFileDir(allLocal)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
@@ -103,7 +103,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("No imports, remote validations", func(t *testing.T) {
 		og := getComponentDef(allRemote, t)
 		compDef := getComponentDef(allRemote, t)
-		reset, err := common.SetCwdToFileDir(allRemote)
+		reset, err := workdir.SetCwdToFileDir(allRemote)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
@@ -121,7 +121,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("Imports, no components", func(t *testing.T) {
 		og := getComponentDef(subComponentDef, t)
 		compDef := getComponentDef(subComponentDef, t)
-		reset, err := common.SetCwdToFileDir(subComponentDef)
+		reset, err := workdir.SetCwdToFileDir(subComponentDef)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
@@ -143,7 +143,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 	t.Run("imports, no components, multiple component definitions from import", func(t *testing.T) {
 		og := getComponentDef(compDefMultiImport, t)
 		compDef := getComponentDef(compDefMultiImport, t)
-		reset, err := common.SetCwdToFileDir(compDefMultiImport)
+		reset, err := workdir.SetCwdToFileDir(compDefMultiImport)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
@@ -172,7 +172,7 @@ func TestCompileComponentValidations(t *testing.T) {
 	t.Run("all local", func(t *testing.T) {
 		og := getComponentDef(allLocal, t)
 		compDef := getComponentDef(allLocal, t)
-		reset, err := common.SetCwdToFileDir(allLocal)
+		reset, err := workdir.SetCwdToFileDir(allLocal)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
@@ -191,7 +191,7 @@ func TestCompileComponentValidations(t *testing.T) {
 	t.Run("all remote", func(t *testing.T) {
 		og := getComponentDef(allRemote, t)
 		compDef := getComponentDef(allRemote, t)
-		reset, err := common.SetCwdToFileDir(allRemote)
+		reset, err := workdir.SetCwdToFileDir(allRemote)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)
@@ -216,7 +216,7 @@ func TestCompileComponentValidations(t *testing.T) {
 	t.Run("local and remote", func(t *testing.T) {
 		og := getComponentDef(localAndRemote, t)
 		compDef := getComponentDef(localAndRemote, t)
-		reset, err := common.SetCwdToFileDir(localAndRemote)
+		reset, err := workdir.SetCwdToFileDir(localAndRemote)
 		defer reset()
 		if err != nil {
 			t.Fatalf("Error setting cwd to file dir: %v", err)

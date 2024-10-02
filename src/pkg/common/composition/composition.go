@@ -13,6 +13,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/workdir"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -28,7 +29,7 @@ func ComposeFromPath(inputFile string) (model *oscalTypes_1_1_2.OscalCompleteSch
 	// This is needed to resolve relative paths in the remote validations
 	dirPath := filepath.Dir(inputFile)
 	message.Infof("changing cwd to %s", dirPath)
-	resetCwd, err := common.SetCwdToFileDir(dirPath)
+	resetCwd, err := workdir.SetCwdToFileDir(dirPath)
 	if err != nil {
 		return nil, err
 	}
