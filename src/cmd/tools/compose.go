@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -55,7 +54,7 @@ func ComposeCommand() *cobra.Command {
 			// Check if output file contains a valid OSCAL model
 			_, err = oscal.ValidOSCALModelAtPath(outputFile)
 			if err != nil {
-				message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
+				return fmt.Errorf("invalid OSCAL model at output file: %v", err)
 			}
 
 			opts := []composition.Option{
@@ -64,9 +63,21 @@ func ComposeCommand() *cobra.Command {
 				composition.WithTemplateRenderer(renderTypeString, common.TemplateConstants, common.TemplateVariables, setOpts),
 			}
 
-			err = Compose(cmd.Context(), inputFile, outputFile, opts...)
+			// Compose the OSCAL model
+			compositionCtx, err := composition.New(opts...)
 			if err != nil {
-				return fmt.Errorf("error composing model: %v", err)
+				return fmt.Errorf("error creating composition context: %v", err)
+			}
+
+			model, err := compositionCtx.ComposeFromPath(cmd.Context(), inputFile)
+			if err != nil {
+				return fmt.Errorf("error composing model from path: %v", err)
+			}
+
+			// Write the composed OSCAL model to a file
+			err = oscal.WriteOscalModel(outputFile, model)
+			if err != nil {
+				return fmt.Errorf("error writing composed model: %v", err)
 			}
 
 			message.Infof("Composed OSCAL Component Definition to: %s", outputFile)
@@ -88,28 +99,6 @@ func ComposeCommand() *cobra.Command {
 func init() {
 	common.InitViper()
 	toolsCmd.AddCommand(ComposeCommand())
-}
-
-// Compose composes an OSCAL model from a file path
-func Compose(ctx context.Context, inputFile, outputFile string, opts ...composition.Option) error {
-	// Compose the OSCAL model
-	compositionCtx, err := composition.New(opts...)
-	if err != nil {
-		return fmt.Errorf("error creating composition context: %v", err)
-	}
-
-	model, err := compositionCtx.ComposeFromPath(ctx, inputFile)
-	if err != nil {
-		return err
-	}
-
-	// Write the composed OSCAL model to a file
-	err = oscal.WriteOscalModel(outputFile, model)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // GetDefaultOutputFile returns the default output file name

@@ -57,12 +57,6 @@ func TemplateCommand() *cobra.Command {
 				renderType = template.MASKED
 			}
 
-			// Get constants and variables for templating from viper config
-			// constants, variables, err := common.GetTemplateConfig()
-			// if err != nil {
-			// 	return fmt.Errorf("error getting template config: %v", err)
-			// }
-
 			// Get overrides from --set flag
 			overrides, err := common.ParseTemplateOverrides(setOpts)
 			if err != nil {

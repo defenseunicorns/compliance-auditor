@@ -21,35 +21,34 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func runCmdTest(t *testing.T, goldenFilePath, goldenFileName string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
-	_, output, err := util.ExecuteCommand(rootCmd, cmdArgs...)
+func runCmdTest(t *testing.T, rootCmd *cobra.Command, cmdArgs ...string) error {
+	_, _, err := util.ExecuteCommand(rootCmd, cmdArgs...)
 	if err != nil {
-		if !expectError {
-			return err
-		} else {
-			return nil
-		}
-	}
-
-	if !expectError {
-		testGolden(t, goldenFilePath, goldenFileName, output)
+		return err
 	}
 
 	return nil
 }
 
-func runCmdTestWithOutputFile(t *testing.T, goldenFilePath, goldenFileName string, outExt string, expectError bool, rootCmd *cobra.Command, cmdArgs ...string) error {
+func runCmdTestWithGolden(t *testing.T, goldenFilePath, goldenFileName string, rootCmd *cobra.Command, cmdArgs ...string) error {
+	_, output, err := util.ExecuteCommand(rootCmd, cmdArgs...)
+	if err != nil {
+		return err
+	}
+
+	testGolden(t, goldenFilePath, goldenFileName, output)
+
+	return nil
+}
+
+func runCmdTestWithOutputFile(t *testing.T, goldenFilePath, goldenFileName, outExt string, rootCmd *cobra.Command, cmdArgs ...string) error {
 	tempFileName := fmt.Sprintf("output-%s.%s", goldenFileName, outExt)
 	defer os.Remove(tempFileName)
 
 	cmdArgs = append(cmdArgs, "-o", tempFileName)
 	_, _, err := util.ExecuteCommand(rootCmd, cmdArgs...)
 	if err != nil {
-		if !expectError {
-			return err
-		} else {
-			return nil
-		}
+		return err
 	}
 
 	// Read the output file
@@ -61,9 +60,7 @@ func runCmdTestWithOutputFile(t *testing.T, goldenFilePath, goldenFileName strin
 	// Scrub timestamps
 	data = scrubTimestamps(data)
 
-	if !expectError {
-		testGolden(t, goldenFilePath, goldenFileName, string(data))
-	}
+	testGolden(t, goldenFilePath, goldenFileName, string(data))
 
 	return nil
 }
