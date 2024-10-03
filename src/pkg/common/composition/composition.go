@@ -2,14 +2,15 @@ package composition
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -17,29 +18,49 @@ import (
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
+type RenderedContent string
+
+type CompositionContext struct {
+	modelDir          string
+	templateRenderer  *template.TemplateRenderer
+	renderTemplate    bool
+	renderValidations bool
+	renderType        template.RenderType
+}
+
+func New(opts ...Option) (*CompositionContext, error) {
+	var compositionCtx CompositionContext
+
+	for _, opt := range opts {
+		if err := opt(&compositionCtx); err != nil {
+			return nil, err
+		}
+	}
+
+	return &compositionCtx, nil
+}
+
 // ComposeFromPath composes an OSCAL model from a file path
-func ComposeFromPath(inputFile string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
-	data, err := os.ReadFile(inputFile)
+func (cc *CompositionContext) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	// Change Cwd to the directory of the component definition
-	// This is needed to resolve relative paths in the remote validations
-	dirPath := filepath.Dir(inputFile)
-	message.Infof("changing cwd to %s", dirPath)
-	resetCwd, err := common.SetCwdToFileDir(dirPath)
-	if err != nil {
-		return nil, err
+	// Template if renderTemplate is true -> Only renders the local data (e.g., what is in the file)
+	if cc.renderTemplate {
+		data, err = cc.templateRenderer.Render(string(data), cc.renderType)
+		if err != nil {
+			return nil, err
+		}
 	}
-	defer resetCwd()
 
 	model, err = oscal.NewOscalModel(data)
 	if err != nil {
 		return nil, err
 	}
 
-	err = ComposeComponentDefinitions(model.ComponentDefinition)
+	err = cc.ComposeComponentDefinitions(ctx, model.ComponentDefinition, cc.modelDir)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +69,13 @@ func ComposeFromPath(inputFile string) (model *oscalTypes_1_1_2.OscalCompleteSch
 }
 
 // ComposeComponentDefinitions composes an OSCAL component definition by adding the remote resources to the back matter and updating with back matter links.
-func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
+func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
 
 	// Compose the component validations
-	err := ComposeComponentValidations(compDef)
+	err := cc.ComposeComponentValidations(ctx, compDef, baseDir)
 	if err != nil {
 		return err
 	}
@@ -73,10 +94,17 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 
 	if compDef.ImportComponentDefinitions != nil {
 		for _, importComponentDef := range *compDef.ImportComponentDefinitions {
-			// Fetch the response
-			response, err := network.Fetch(importComponentDef.Href)
+			response, err := network.Fetch(importComponentDef.Href, network.WithBaseDir(baseDir))
 			if err != nil {
 				return err
+			}
+
+			// template here if renderTemplate is true
+			if cc.renderTemplate {
+				response, err = cc.templateRenderer.Render(string(response), cc.renderType)
+				if err != nil {
+					return err
+				}
 			}
 
 			// Handle multi-docs
@@ -86,7 +114,9 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 			}
 			// Unmarshal the component definition
 			for _, importDef := range componentDefs {
-				err = ComposeComponentDefinitions(importDef)
+				// Reconcile the base directory from the import component definition href
+				importDir := network.GetLocalFileDir(importComponentDef.Href, baseDir)
+				err = cc.ComposeComponentDefinitions(ctx, importDef, importDir)
 				if err != nil {
 					return err
 				}
@@ -107,13 +137,13 @@ func ComposeComponentDefinitions(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 }
 
 // ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
-func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) error {
+func (cc *CompositionContext) ComposeComponentValidations(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
 
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
 
-	resourceMap := NewResourceStoreFromBackMatter(compDef.BackMatter)
+	resourceMap := NewResourceStoreFromBackMatter(cc, compDef.BackMatter)
 
 	// If there are no components, there is nothing to do
 	if compDef.Components == nil {
@@ -133,7 +163,7 @@ func ComposeComponentValidations(compDef *oscalTypes_1_1_2.ComponentDefinition) 
 
 					for _, link := range *implementedRequirement.Links {
 						if common.IsLulaLink(link) {
-							ids, err := resourceMap.AddFromLink(&link)
+							ids, err := resourceMap.AddFromLink(&link, baseDir)
 							if err != nil {
 								// return err
 								newId := uuid.NewUUID()

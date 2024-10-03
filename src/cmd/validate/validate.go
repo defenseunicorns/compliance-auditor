@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
-	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -72,9 +70,11 @@ func ValidateCommand() *cobra.Command {
 				return fmt.Errorf("input-file: %v does not exist - unable to digest document", inputFile)
 			}
 			// Update path if relative
-			path := inputFile
 			if filepath.IsLocal(inputFile) {
-				path = filepath.Join(filepath.Dir(inputFile), filepath.Base(inputFile))
+				inputFile, err = filepath.Abs(inputFile)
+				if err != nil {
+					return fmt.Errorf("error getting absolute path: %v", err)
+				}
 			}
 
 			// If no output file is specified, get the default output file
@@ -82,46 +82,23 @@ func ValidateCommand() *cobra.Command {
 				outputFile = getDefaultOutputFile(inputFile)
 			}
 
-			// Set values if save-resources is desired
-			if saveResources {
-				resourcesDir = filepath.Join(filepath.Dir(outputFile))
-			}
-
-			// check if setOpts without rendertemplate
-			if len(setOpts) > 0 && !renderTemplate {
-				message.Warnf("set-opts are only valid when render-template is true")
-			}
-
-			// Check if output-component is set
-			rt := template.MASKED
-			if outputComponent != "" {
-				if strings.ToLower(outputComponent) == "full" {
-					rt = template.ALL
-				}
-			}
-
-			opts := []validation.Option{
-				validation.WithComponentDefinitionFromPath(path),
-				validation.WithTemplateRenderer(renderTemplate, setOpts),
-				validation.WithAllowExecution(confirmExecution, runNonInteractively),
-				validation.WithResourcesDir(saveResources, resourcesDir),
-			}
-
-			// Currently not using context, but could/should be used for logging things, etc.
-			validationCtx, err := validation.New(context.Background(), opts...)
+			// Check if output file contains a valid OSCAL model
+			_, err = oscal.ValidOSCALModelAtPath(outputFile)
 			if err != nil {
-				return fmt.Errorf("error creating validation context: %v", err)
+				message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
 			}
 
-			// Get component definition data, update validation context with rendered component definition
-			componentOut, err := validationCtx.RenderComponentDefinition(filepath.Ext(inputFile), rt)
-			if err != nil {
-				return fmt.Errorf("error rendering template: %v", err)
+			if SaveResources {
+				ResourcesDir = filepath.Join(filepath.Dir(outputFile))
 			}
 
-			assessment, err := validationCtx.ExecuteOSCALValidation(target) //ValidateOnPath(inputFile, target)
+			if err := files.IsJsonOrYaml(opts.InputFile); err != nil {
+				message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
+			}
+
+			assessment, err := ValidateOnPath(opts.InputFile, opts.Target)
 			if err != nil {
-				message.Fatalf(err, "OSCAL Validation error: %s", err)
+				message.Fatalf(err, "Validation error: %s", err)
 			}
 
 			var model = oscalTypes_1_1_2.OscalModels{
@@ -186,15 +163,21 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
+func ValidateOnPath(ctx context.Context, path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
+
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	oscalModel, err := composition.ComposeFromPath(path)
+	compositionCtx, err := composition.New(composition.WithModelFromLocalPath(path))
 	if err != nil {
-		return assessmentResult, err
+		return nil, fmt.Errorf("error creating composition context: %v", err)
+	}
+
+	oscalModel, err := compositionCtx.ComposeFromPath(ctx, path)
+	if err != nil {
+		return nil, fmt.Errorf("error composing model: %v", err)
 	}
 
 	if oscalModel.ComponentDefinition == nil {
@@ -328,7 +311,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 	return findings, observations, nil
 }
 
-// GetDefaultOutputFile returns the default output file name
+// getDefaultOutputFile returns the default output file name and checks if the file already exists
 func getDefaultOutputFile(inputFile string) string {
 	dirPath := filepath.Dir(inputFile)
 	filename := "assessment-results" + filepath.Ext(inputFile)

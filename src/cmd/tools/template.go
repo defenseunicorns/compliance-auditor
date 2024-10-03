@@ -3,12 +3,11 @@ package tools
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/internal/template"
-	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
@@ -46,22 +45,23 @@ func TemplateCommand() *cobra.Command {
 		Example: templateHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Read file
-			data, err := pkgCommon.ReadFileToBytes(inputFile)
+			data, err := network.Fetch(inputFile)
 			if err != nil {
 				return fmt.Errorf("error reading file: %v", err)
 			}
 
 			// Validate render type
-			renderType, err := parseRenderType(renderTypeString)
+			renderType, err := template.ParseRenderType(renderTypeString)
 			if err != nil {
 				message.Warnf("invalid render type, defaulting to masked: %v", err)
+				renderType = template.MASKED
 			}
 
 			// Get constants and variables for templating from viper config
-			constants, variables, err := common.GetTemplateConfig()
-			if err != nil {
-				return fmt.Errorf("error getting template config: %v", err)
-			}
+			// constants, variables, err := common.GetTemplateConfig()
+			// if err != nil {
+			// 	return fmt.Errorf("error getting template config: %v", err)
+			// }
 
 			// Get overrides from --set flag
 			overrides, err := common.ParseTemplateOverrides(setOpts)
@@ -71,7 +71,7 @@ func TemplateCommand() *cobra.Command {
 
 			// Handles merging viper config file data + environment variables
 			// Throws an error if config keys are invalid for templating
-			templateData, err := template.CollectTemplatingData(constants, variables, overrides)
+			templateData, err := template.CollectTemplatingData(common.TemplateConstants, common.TemplateVariables, overrides)
 			if err != nil {
 				return fmt.Errorf("error collecting templating data: %v", err)
 			}
@@ -113,18 +113,4 @@ func TemplateCommand() *cobra.Command {
 func init() {
 	common.InitViper()
 	toolsCmd.AddCommand(TemplateCommand())
-}
-
-func parseRenderType(item string) (template.RenderType, error) {
-	switch strings.ToLower(item) {
-	case "masked":
-		return template.MASKED, nil
-	case "constants":
-		return template.CONSTANTS, nil
-	case "non-sensitive":
-		return template.NONSENSITIVE, nil
-	case "all":
-		return template.ALL, nil
-	}
-	return template.MASKED, fmt.Errorf("invalid render type: %s", item)
 }

@@ -4,17 +4,18 @@ import (
 	"os"
 
 	"testing"
+
+	"github.com/defenseunicorns/lula/src/cmd/tools"
 )
+
+// var updateGolden = flag.Bool("update", false, "update golden files")
 
 func TestToolsTemplateCommand(t *testing.T) {
 
 	test := func(t *testing.T, goldenFileName string, expectError bool, args ...string) error {
-		t.Helper()
+		rootCmd := tools.TemplateCommand()
 
-		cmdArgs := []string{"tools", "template"}
-		cmdArgs = append(cmdArgs, args...)
-
-		return runCmdTest(t, "tools/template/"+goldenFileName, expectError, cmdArgs...)
+		return runCmdTest(t, "tools/template/", goldenFileName, expectError, rootCmd, args...)
 	}
 
 	t.Run("Template Validation", func(t *testing.T) {

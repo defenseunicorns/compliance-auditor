@@ -1,7 +1,7 @@
 Resolving templated artifacts with configuration data
 
 Usage:
-  lula tools template [flags]
+  template [flags]
 
 Examples:
 
@@ -12,7 +12,7 @@ To indicate a specific output file:
 	lula tools template -f ./oscal-component.yaml -o templated-oscal-component.yaml
 
 To perform overrides on the template data:
-	lula tools template -f ./oscal-component.yaml --set var.key1=value1 --set const.key2=value2
+	lula tools template -f ./oscal-component.yaml --set .var.key1=value1 --set .const.key2=value2
 
 To perform the full template operation, including sensitive data:
 	lula tools template -f ./oscal-component.yaml --render all
@@ -27,6 +27,3 @@ Flags:
   -o, --output-file string   the path to the output file. If not specified, the output file will be directed to stdout
   -r, --render string        values to render the template with, options are: masked, constants, non-sensitive, all (default "masked")
   -s, --set strings          set a value in the template data
-
-Global Flags:
-  -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")

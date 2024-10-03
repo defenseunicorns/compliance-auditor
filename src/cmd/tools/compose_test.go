@@ -1,11 +1,13 @@
 package tools_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/cmd/tools"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
@@ -18,9 +20,10 @@ func TestComposeComponentDefinition(t *testing.T) {
 	t.Parallel()
 	tempDir := t.TempDir()
 	outputFile := filepath.Join(tempDir, "output.yaml")
+	ctx := context.Background()
 
 	t.Run("composes valid component definition", func(t *testing.T) {
-		err := tools.Compose(validInputFile, outputFile)
+		err := tools.Compose(ctx, validInputFile, outputFile, composition.WithModelFromLocalPath(validInputFile))
 		if err != nil {
 			t.Fatalf("error composing component definition: %s", err)
 		}
@@ -44,7 +47,7 @@ func TestComposeComponentDefinition(t *testing.T) {
 	})
 
 	t.Run("invalid component definition throws error", func(t *testing.T) {
-		err := tools.Compose(invalidInputFile, outputFile)
+		err := tools.Compose(ctx, invalidInputFile, outputFile, composition.WithModelFromLocalPath(invalidInputFile))
 		if err == nil {
 			t.Fatal("expected error composing invalid component definition")
 		}
