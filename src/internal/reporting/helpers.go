@@ -3,16 +3,15 @@ package reporting
 import (
 	"os"
 
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-
 )
 
 // Helper to determine if the controlMap source is a URL
 func isURL(str string) bool {
 	_, err := network.ParseUrl(str)
-    return err == nil
+	return err == nil
 }
 
 func fetchOrReadFile(source string) ([]byte, error) {

@@ -1,10 +1,10 @@
 package report
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/defenseunicorns/lula/src/internal/reporting"
-    "github.com/spf13/cobra"
+	"github.com/defenseunicorns/lula/src/internal/reporting"
+	"github.com/spf13/cobra"
 )
 
 var reportHelp = `
@@ -19,27 +19,27 @@ lula report -f oscal-component-definition.yaml --file-format yaml
 `
 
 func ReportCommand() *cobra.Command {
-    var (
-        inputFile  string
-        fileFormat string
-    )
+	var (
+		inputFile  string
+		fileFormat string
+	)
 
-    cmd := &cobra.Command{
-        Use:     "report",
-        Short:   "Build a compliance report",
-        Example: reportHelp,  // reuse your existing help text
-        RunE: func(cmd *cobra.Command, args []string) error {
-            err := reporting.GenerateReport(inputFile, fileFormat)
-            if err != nil {
-                return fmt.Errorf("error running report: %w", err)
-            }
-            return nil
-        },
-    }
+	cmd := &cobra.Command{
+		Use:     "report",
+		Short:   "Build a compliance report",
+		Example: reportHelp, // reuse your existing help text
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := reporting.GenerateReport(inputFile, fileFormat)
+			if err != nil {
+				return fmt.Errorf("error running report: %w", err)
+			}
+			return nil
+		},
+	}
 
-    cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "Path to an OSCAL file")
-    cmd.Flags().StringVar(&fileFormat, "file-format", "table", "File format of the report")
-    cmd.MarkFlagRequired("input-file")
+	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "Path to an OSCAL file")
+	cmd.Flags().StringVar(&fileFormat, "file-format", "table", "File format of the report")
+	cmd.MarkFlagRequired("input-file")
 
-    return cmd
+	return cmd
 }

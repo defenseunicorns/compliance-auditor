@@ -17,9 +17,9 @@ type ReportData struct {
 }
 
 type ComponentDefinitionReportData struct {
-	Title                string            `json:"title" yaml:"title"`
-	ControlIDBySource    map[string]int    `json:"control ID mapped" yaml:"control ID mapped"`
-	ControlIDByFramework map[string]int    `json:"controlIDFramework" yaml:"controlIDFramework"`
+	Title                string         `json:"title" yaml:"title"`
+	ControlIDBySource    map[string]int `json:"control ID mapped" yaml:"control ID mapped"`
+	ControlIDByFramework map[string]int `json:"controlIDFramework" yaml:"controlIDFramework"`
 }
 
 // Runs the logic of report generation
@@ -48,21 +48,21 @@ func GenerateReport(inputFile string, fileFormat string) error {
 
 // Processes an OSCAL Model based on the model type
 func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) error {
-    // Start a new spinner for the report generation process
-    spinner := message.NewProgressSpinner("Determining OSCAL model type")
+	// Start a new spinner for the report generation process
+	spinner := message.NewProgressSpinner("Determining OSCAL model type")
 	modelType, err := oscal.GetOscalModel(oscalModel)
 	if err != nil {
 		spinner.Fatalf(fmt.Errorf("unable to determine OSCAL model type: %v", err), "unable to determine OSCAL model type")
 		return err
 	}
 
-    switch modelType {
-    case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "poam":
-        // If the model type is not supported, stop the spinner with a warning
-        spinner.Warnf("reporting does not create reports for %s at this time", modelType)
-        return fmt.Errorf("reporting does not create reports for %s at this time", modelType)
+	switch modelType {
+	case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "poam":
+		// If the model type is not supported, stop the spinner with a warning
+		spinner.Warnf("reporting does not create reports for %s at this time", modelType)
+		return fmt.Errorf("reporting does not create reports for %s at this time", modelType)
 
-    case "component":
+	case "component":
 		spinner.Updatef("Composing Component Definition")
 		err := composition.ComposeComponentDefinitions(oscalModel.ComponentDefinition)
 		if err != nil {
@@ -71,47 +71,47 @@ func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) e
 		}
 
 		spinner.Updatef("Processing Component Definition")
-        // Process the component-definition model
-        err = handleComponentDefinition(oscalModel.ComponentDefinition, format)
-        if err != nil {
-            // If an error occurs, stop the spinner and display the error
-            spinner.Fatalf(err, "failed to process component-definition model")
-            return err
-        }
+		// Process the component-definition model
+		err = handleComponentDefinition(oscalModel.ComponentDefinition, format)
+		if err != nil {
+			// If an error occurs, stop the spinner and display the error
+			spinner.Fatalf(err, "failed to process component-definition model")
+			return err
+		}
 
-    default:
-        // For unknown model types, stop the spinner with a failure
-        spinner.Fatalf(fmt.Errorf("unknown OSCAL model type: %s", modelType), "failed to process OSCAL file")
-        return fmt.Errorf("unknown OSCAL model type: %s", modelType)
-    }
+	default:
+		// For unknown model types, stop the spinner with a failure
+		spinner.Fatalf(fmt.Errorf("unknown OSCAL model type: %s", modelType), "failed to process OSCAL file")
+		return fmt.Errorf("unknown OSCAL model type: %s", modelType)
+	}
 
 	spinner.Success()
-    message.Info(fmt.Sprintf("Successfully processed OSCAL model: %s", modelType))
-    return nil
+	message.Info(fmt.Sprintf("Successfully processed OSCAL model: %s", modelType))
+	return nil
 }
 
 // Handler for Component Definition OSCAL files to create the report
 func handleComponentDefinition(componentDefinition *oscalTypes_1_1_2.ComponentDefinition, format string) error {
-    spinner := message.NewProgressSpinner("composing component definitions")
+	spinner := message.NewProgressSpinner("composing component definitions")
 
-    err := composition.ComposeComponentDefinitions(componentDefinition)
-    if err != nil {
-        spinner.Fatalf(fmt.Errorf("failed to compose component definitions: %v", err), "failed to compose component definitions")
-        return err
-    }
+	err := composition.ComposeComponentDefinitions(componentDefinition)
+	if err != nil {
+		spinner.Fatalf(fmt.Errorf("failed to compose component definitions: %v", err), "failed to compose component definitions")
+		return err
+	}
 
-    spinner.Success() // Mark the spinner as successful before moving forward
+	spinner.Success() // Mark the spinner as successful before moving forward
 
-    controlMap := oscal.FilterControlImplementations(componentDefinition)
-    extractedData := ExtractControlIDs(controlMap)
-    extractedData.Title = componentDefinition.Metadata.Title
+	controlMap := oscal.FilterControlImplementations(componentDefinition)
+	extractedData := ExtractControlIDs(controlMap)
+	extractedData.Title = componentDefinition.Metadata.Title
 
-    report := ReportData{
-        ComponentDefinition: extractedData,
-    }
+	report := ReportData{
+		ComponentDefinition: extractedData,
+	}
 
-    message.Info("Generating report...")
-    return PrintReport(report, format)
+	message.Info("Generating report...")
+	return PrintReport(report, format)
 }
 
 // Gets the unique Control IDs from each source and framework in the OSCAL Component Definition
@@ -143,46 +143,46 @@ func ExtractControlIDs(controlMap map[string][]oscalTypes_1_1_2.ControlImplement
 }
 
 func PrintReport(data ReportData, format string) error {
-    if format == "table" {
-        // Use the message package for printing table data
-        message.Infof("Title: %s", data.ComponentDefinition.Title)
+	if format == "table" {
+		// Use the message package for printing table data
+		message.Infof("Title: %s", data.ComponentDefinition.Title)
 
-        // Print the Control ID By Source as a table
-        message.Info("\nControl Source            | Number of Controls")
-        message.Info(strings.Repeat("-", 60))
+		// Print the Control ID By Source as a table
+		message.Info("\nControl Source            | Number of Controls")
+		message.Info(strings.Repeat("-", 60))
 
-        for source, count := range data.ComponentDefinition.ControlIDBySource {
-            message.Infof("%-40s | %-15d", source, count)
-        }
+		for source, count := range data.ComponentDefinition.ControlIDBySource {
+			message.Infof("%-40s | %-15d", source, count)
+		}
 
-        // Print the Control ID By Framework as a table
-        message.Info("\nFramework                | Number of Controls")
-        message.Info(strings.Repeat("-", 40))
+		// Print the Control ID By Framework as a table
+		message.Info("\nFramework                | Number of Controls")
+		message.Info(strings.Repeat("-", 40))
 
-        for framework, count := range data.ComponentDefinition.ControlIDByFramework {
-            message.Infof("%-20s | %-15d", framework, count)
-        }
+		for framework, count := range data.ComponentDefinition.ControlIDByFramework {
+			message.Infof("%-20s | %-15d", framework, count)
+		}
 
-    } else {
-        var err error
-        var fileData []byte
+	} else {
+		var err error
+		var fileData []byte
 
-        if format == "yaml" {
-            message.Info("Generating report in YAML format...")
-            fileData, err = yaml.Marshal(data)
-            if err != nil {
-                message.Fatal(err, "Failed to marshal data to YAML")
-            }
-        } else {
-            message.Info("Generating report in JSON format...")
-            fileData, err = json.MarshalIndent(data, "", "  ")
-            if err != nil {
-                message.Fatal(err, "Failed to marshal data to JSON")
-            }
-        }
+		if format == "yaml" {
+			message.Info("Generating report in YAML format...")
+			fileData, err = yaml.Marshal(data)
+			if err != nil {
+				message.Fatal(err, "Failed to marshal data to YAML")
+			}
+		} else {
+			message.Info("Generating report in JSON format...")
+			fileData, err = json.MarshalIndent(data, "", "  ")
+			if err != nil {
+				message.Fatal(err, "Failed to marshal data to JSON")
+			}
+		}
 
-        message.Info(string(fileData))
-    }
+		message.Info(string(fileData))
+	}
 
-    return nil
+	return nil
 }

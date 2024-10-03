@@ -26,4 +26,5 @@ func TestLulaReportValidComponent(t *testing.T) {
 	err := rootCmd.Execute()
 
 	// Check for errors in command execution.
-	assert.NoError(t, err, "Expected no error from `lula report` with valid component definition")}
+	assert.NoError(t, err, "Expected no error from `lula report` with valid component definition")
+}
