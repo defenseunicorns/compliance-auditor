@@ -44,23 +44,29 @@ func ComposeCommand() *cobra.Command {
 		Short:   "compose an OSCAL component definition",
 		Long:    composeLong,
 		Example: composeHelp,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			composeSpinner := message.NewProgressSpinner("Composing %s", inputFile)
 			defer composeSpinner.Stop()
 
 			// Update input/output paths
 			if filepath.IsLocal(inputFile) {
-				inputFile = filepath.Join(filepath.Dir(inputFile), filepath.Base(inputFile))
+				inputFile, err = filepath.Abs(inputFile)
+				if err != nil {
+					return fmt.Errorf("error getting absolute path: %v", err)
+				}
 			}
 
 			if outputFile == "" {
 				outputFile = GetDefaultOutputFile(inputFile)
 			} else if filepath.IsLocal(outputFile) {
-				outputFile = filepath.Join(filepath.Dir(outputFile), filepath.Base(outputFile))
+				outputFile, err = filepath.Abs(outputFile)
+				if err != nil {
+					return fmt.Errorf("error getting absolute path: %v", err)
+				}
 			}
 
 			// Check if output file contains a valid OSCAL model
-			_, err := oscal.ValidOSCALModelAtPath(outputFile)
+			_, err = oscal.ValidOSCALModelAtPath(outputFile)
 			if err != nil {
 				message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
 			}
