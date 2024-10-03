@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -35,12 +35,15 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			oscalPath := "./scenarios/create-resources/oscal-component.yaml"
 			message.NoProgress = true
 
-			// TODO: fix this nonsense
-			validate.ConfirmExecution = true
-			validate.RunNonInteractively = true
-			validate.SaveResources = false
+			validationCtx, err := validation.New(
+				validation.WithCompositionContext(nil, oscalPath),
+				validation.WithAllowExecution(true, true),
+			)
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
 
-			assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
+			assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -111,10 +114,15 @@ func TestDeniedCreateResources(t *testing.T) {
 			oscalPath := "./scenarios/create-resources/oscal-component-denied.yaml"
 			message.NoProgress = true
 
-			// Check that validation fails
-			validate.ConfirmExecution = false
-			validate.RunNonInteractively = true
-			assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
+			validationCtx, err := validation.New(
+				validation.WithCompositionContext(nil, oscalPath),
+				validation.WithAllowExecution(false, true),
+			)
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

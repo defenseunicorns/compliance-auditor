@@ -3,9 +3,9 @@ package validation
 import (
 	"context"
 	"fmt"
+	"os"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -14,17 +14,13 @@ import (
 )
 
 type ValidationContext struct {
-	bctx                         context.Context
-	componentDefinition          *oscalTypes_1_1_2.ComponentDefinition
-	componentPath                string
-	templateRenderer             *template.TemplateRenderer
-	renderTemplate               bool
+	cctx                         *composition.CompositionContext
 	requestExecutionConfirmation bool
 	runExecutableValidations     bool
 	resourcesDir                 string
 }
 
-func New(ctx context.Context, opts ...Option) (*ValidationContext, error) {
+func New(opts ...Option) (*ValidationContext, error) {
 	var validationCtx ValidationContext
 
 	for _, opt := range opts {
@@ -33,86 +29,71 @@ func New(ctx context.Context, opts ...Option) (*ValidationContext, error) {
 		}
 	}
 
-	validationCtx.bctx = ctx
-
-	// If from path, run a compose + template/render
-	oscalModel, err := composition.ComposeFromPath(validationCtx.componentPath)
-	if err != nil {
-		return nil, fmt.Errorf("error composing from path: %v", err)
-	}
-
-	if oscalModel.ComponentDefinition == nil {
-		return nil, fmt.Errorf("component definition is nil")
-	}
-
-	validationCtx.componentDefinition = oscalModel.ComponentDefinition
-
 	return &validationCtx, nil
 }
 
-func (ctx *ValidationContext) RenderComponentDefinition(fileExt string, renderType template.RenderType) ([]byte, error) {
-	if ctx.componentDefinition == nil {
-		return nil, fmt.Errorf("cannot render a component definition that is nil")
+func (vctx *ValidationContext) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
+	var oscalModel *oscalTypes_1_1_2.OscalCompleteSchema
+	if vctx.cctx == nil {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("error getting path: %v", err)
+		}
+		oscalModel, err = oscal.NewOscalModel(data)
+		if err != nil {
+			return nil, fmt.Errorf("error creating oscal model from path: %v", err)
+		}
+	} else {
+		oscalModel, err = vctx.cctx.ComposeFromPath(ctx, path)
+		if err != nil {
+			return nil, fmt.Errorf("error composing model: %v", err)
+		}
 	}
 
-	fullModel := &oscalTypes_1_1_2.OscalModels{
-		ComponentDefinition: ctx.componentDefinition,
+	if oscalModel.ComponentDefinition == nil {
+		return assessmentResult, fmt.Errorf("component definition is nil")
 	}
 
-	modelData, err := oscal.ConvertOSCALToBytes(fullModel, fileExt)
+	results, err := vctx.ValidateOnCompDef(oscalModel.ComponentDefinition, target)
 	if err != nil {
-		return nil, fmt.Errorf("error converting component definition to bytes: %v", err)
+		return assessmentResult, err
 	}
 
-	if ctx.renderTemplate {
-		// Execute the template render
-		modelData, err = ctx.templateRenderer.Render(string(modelData), renderType)
-		if err != nil {
-			return nil, fmt.Errorf("error rendering template: %v", err)
-		}
-
-		// Convert modelData back to the component definition
-		newModel, err := oscal.NewOscalModel(modelData)
-		if err != nil {
-			return nil, fmt.Errorf("error creating new oscal model from rendered data: %v", err)
-		}
-
-		if newModel.ComponentDefinition == nil {
-			return nil, fmt.Errorf("error creating new oscal model from rendered data: component definition is nil")
-		}
-
-		ctx.componentDefinition = newModel.ComponentDefinition
+	assessmentResult, err = oscal.GenerateAssessmentResults(results)
+	if err != nil {
+		return assessmentResult, err
 	}
-	return modelData, nil
+
+	return assessmentResult, nil
 }
 
-func (ctx *ValidationContext) ExecuteOSCALValidation(target string) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func (vctx *ValidationContext) ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
 	// TODO: Should we execute the validation even if there are no comp-def/components, e.g., create an empty assessment-results object?
 
-	if ctx.componentDefinition == nil {
+	if compDef == nil {
 		return nil, fmt.Errorf("cannot validate a component definition that is nil")
 	}
 
-	if *ctx.componentDefinition.Components == nil {
+	if *compDef.Components == nil {
 		return nil, fmt.Errorf("no components found in component definition")
 	}
 
 	// Create a validation store from the back-matter if it exists
-	validationStore := validationstore.NewValidationStoreFromBackMatter(*ctx.componentDefinition.BackMatter)
+	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
 	// Create a map of control implementations from the component definition
 	// This combines all same source/framework control implementations into an []Control-Implementation
-	controlImplementations := oscal.FilterControlImplementations(ctx.componentDefinition)
+	controlImplementations := oscal.FilterControlImplementations(compDef)
 
 	if len(controlImplementations) == 0 {
 		return nil, fmt.Errorf("no control implementations found in component definition")
 	}
 
 	// Get results of validation execution
-	results := make([]oscalTypes_1_1_2.Result, 0)
+	results = make([]oscalTypes_1_1_2.Result, 0)
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
-			findings, observations, err := ctx.ValidateOnControlImplementations(&controlImplementation, validationStore, target)
+			findings, observations, err := vctx.ValidateOnControlImplementations(&controlImplementation, validationStore, target)
 			if err != nil {
 				return nil, err
 			}
@@ -131,7 +112,7 @@ func (ctx *ValidationContext) ExecuteOSCALValidation(target string) (*oscalTypes
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
-			findings, observations, err := ctx.ValidateOnControlImplementations(&controlImplementation, validationStore, source)
+			findings, observations, err := vctx.ValidateOnControlImplementations(&controlImplementation, validationStore, source)
 			if err != nil {
 				return nil, err
 			}
@@ -145,10 +126,10 @@ func (ctx *ValidationContext) ExecuteOSCALValidation(target string) (*oscalTypes
 		}
 	}
 
-	return oscal.GenerateAssessmentResults(results)
+	return results, nil
 }
 
-func (ctx *ValidationContext) ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+func (vctx *ValidationContext) ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
 	message.Title("\n🔍 Collecting Requirements and Validations for Target: ", target)
@@ -159,25 +140,25 @@ func (ctx *ValidationContext) ValidateOnControlImplementations(controlImplementa
 
 	// Check if validations perform execution actions
 	if reqtStats.ExecutableValidations {
-		if !ctx.runExecutableValidations && ctx.requestExecutionConfirmation {
+		if !vctx.runExecutableValidations && vctx.requestExecutionConfirmation {
 			confirmExecution := message.PromptForConfirmation(nil)
 			if !confirmExecution {
 				message.Infof("Validations requiring execution will NOT be run")
 			} else {
-				ctx.runExecutableValidations = true
+				vctx.runExecutableValidations = true
 			}
 		}
 	}
 
 	// Set values for saving resources
 	saveResources := false
-	if ctx.resourcesDir != "" {
+	if vctx.resourcesDir != "" {
 		saveResources = true
 	}
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(ctx.runExecutableValidations, saveResources, ctx.resourcesDir)
+	observations := validationStore.RunValidations(vctx.runExecutableValidations, saveResources, vctx.resourcesDir)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -41,8 +41,12 @@ func TestComponentDefinitionComposition(t *testing.T) {
 		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
-			// Validate results using ValidateOnPath
-			assessment, err := validate.ValidateOnPath(ctx, compDefPath, "")
+			validationCtx, err := validation.New(validation.WithCompositionContext(nil, compDefPath))
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validationCtx.ValidateOnPath(ctx, compDefPath, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
@@ -101,7 +105,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("component definition is nil")
 			}
 
-			composeResults, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
+			composeResults, err := validationCtx.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}

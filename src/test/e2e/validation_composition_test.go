@@ -8,9 +8,9 @@ import (
 	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
@@ -71,7 +71,12 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		t.Error(err)
 	}
 
-	assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
+	validationCtx, err := validation.New(validation.WithCompositionContext(nil, oscalPath))
+	if err != nil {
+		t.Errorf("error creating validation context: %v", err)
+	}
+
+	assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +122,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 	// Create a validation store from the back-matter if it exists
 	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-	findingMap, observations, err := validate.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
+	findingMap, observations, err := validationCtx.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
 	if err != nil {
 		t.Fatalf("Error with validateOnControlImplementations: %v", err)
 	}
