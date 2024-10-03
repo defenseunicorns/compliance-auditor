@@ -48,21 +48,8 @@ func ComposeCommand() *cobra.Command {
 			composeSpinner := message.NewProgressSpinner("Composing %s", inputFile)
 			defer composeSpinner.Stop()
 
-			// Update input/output paths
-			if filepath.IsLocal(inputFile) {
-				inputFile, err = filepath.Abs(inputFile)
-				if err != nil {
-					return fmt.Errorf("error getting absolute path: %v", err)
-				}
-			}
-
 			if outputFile == "" {
 				outputFile = GetDefaultOutputFile(inputFile)
-			} else if filepath.IsLocal(outputFile) {
-				outputFile, err = filepath.Abs(outputFile)
-				if err != nil {
-					return fmt.Errorf("error getting absolute path: %v", err)
-				}
 			}
 
 			// Check if output file contains a valid OSCAL model
