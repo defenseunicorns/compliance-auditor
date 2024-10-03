@@ -1,7 +1,11 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/cmd/console"
@@ -11,6 +15,7 @@ import (
 	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/cmd/version"
+	"github.com/spf13/cobra"
 )
 
 var LogLevelCLI string
@@ -32,8 +37,22 @@ func RootCommand() *cobra.Command {
 }
 
 func Execute() {
+	ctx, cancel := context.WithCancel(context.Background())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGTERM)
 
-	cobra.CheckErr(rootCmd.Execute())
+	go func() {
+		select {
+		case <-c:
+			fmt.Println("Got signal, shutting down...")
+			cancel()
+			os.Exit(2)
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	cobra.CheckErr(rootCmd.ExecuteContext(ctx))
 }
 
 func init() {

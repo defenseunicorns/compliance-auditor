@@ -37,14 +37,14 @@ func CreateTempFile(t *testing.T, ext string) *os.File {
 }
 
 // RunTestModelView runs a test model view with a given model and messages, impelements a retry loop if final model is nil
-func RunTestModelView(t *testing.T, m tea.Model, msgs []tea.Msg, timeout time.Duration, maxRetries, height, width int) error {
+func RunTestModelView(t *testing.T, m tea.Model, reset func() tea.Model, msgs []tea.Msg, timeout time.Duration, maxRetries, height, width int) error {
 
-	testModelView := func(t *testing.T) (bool, error) {
+	testModelView := func(t *testing.T, try int) (bool, error) {
 		tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(width, height))
 
 		for _, msg := range msgs {
 			tm.Send(msg)
-			time.Sleep(time.Millisecond * 50)
+			time.Sleep(time.Millisecond * time.Duration(50*try))
 		}
 
 		if err := tm.Quit(); err != nil {
@@ -63,8 +63,11 @@ func RunTestModelView(t *testing.T, m tea.Model, msgs []tea.Msg, timeout time.Du
 	}
 
 	for i := 0; i < maxRetries; i++ {
-		retry, err := testModelView(t)
+		retry, err := testModelView(t, i+1)
 		if retry {
+			if reset != nil {
+				m = reset()
+			}
 			continue
 		}
 		if err != nil {
