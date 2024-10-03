@@ -42,7 +42,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
 			// Validate results using ValidateOnPath
-			assessment, err := validate.ValidateOnPath(ctx, compDefPath, "")
+			assessment, err := validate.ValidateOnPath(context.Background(), compDefPath, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
@@ -101,7 +101,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("component definition is nil")
 			}
 
-			composeResults, err := validate.ValidateOnCompDef(oscalModel.ComponentDefinition, "")
+			composeResults, err := validate.ValidateOnCompDef(context.Background(), oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}

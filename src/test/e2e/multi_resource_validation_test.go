@@ -103,7 +103,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			oscalPath := "./scenarios/multi-resource/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
+			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

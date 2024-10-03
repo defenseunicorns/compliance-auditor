@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -95,7 +96,7 @@ func RunSingleValidation(validationBytes []byte, opts ...types.LulaValidationOpt
 		return lulaValidation, err
 	}
 
-	err = lulaValidation.Validate(opts...)
+	err = lulaValidation.Validate(context.Background(), opts...)
 	if err != nil {
 		return lulaValidation, err
 	}
