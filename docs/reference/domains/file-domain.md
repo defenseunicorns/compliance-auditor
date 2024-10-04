@@ -115,7 +115,7 @@ provider:
         msg := "Server protocol is set to https"
       } else = {"result": false, "msg": msg} if {
         protocol == "http"
-        msg := "Grafana protcol is insecure"
+        msg := "Grafana protocol is insecure"
       }
 
     output:
