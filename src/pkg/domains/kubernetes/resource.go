@@ -32,13 +32,20 @@ func QueryCluster(ctx context.Context, resources []Resource) (map[string]interfa
 			return nil, err
 		}
 
-		if len(collection) > 0 {
-			// Append to collections if not empty collection
-			// convert to object if named resource
-			if resource.ResourceRule.Name != "" {
+		if resource.ResourceRule.Name != "" {
+			if len(collection) > 0 {
 				collections[resource.Name] = collection[0]
 			} else {
+				// This request returned no resources
+				collections[resource.Name] = map[string]interface{}{}
+			}
+
+		} else {
+			if len(collection) > 0 {
 				collections[resource.Name] = collection
+			} else {
+				// This request returned no resources
+				collections[resource.Name] = []map[string]interface{}{}
 			}
 		}
 	}
