@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -77,15 +76,33 @@ func ValidateCommand() *cobra.Command {
 			}
 
 			// Set up the validation context
-			opts := []validation.Option{
+			validationCtx, err := validation.New(
 				validation.WithCompositionContext(compositionCtx, inputFile),
 				validation.WithResourcesDir(saveResources, filepath.Dir(outputFile)),
 				validation.WithAllowExecution(confirmExecution, runNonInteractively),
+			)
+			if err != nil {
+				return fmt.Errorf("error creating validation context: %v", err)
 			}
 
-			err = Validate(cmd.Context(), inputFile, outputFile, target, opts...)
+			// Execute the validation
+			assessmentResults, err := validationCtx.ValidateOnPath(cmd.Context(), inputFile, target)
 			if err != nil {
-				return fmt.Errorf("error validating: %v", err)
+				return fmt.Errorf("error validating on path: %v", err)
+			}
+
+			if assessmentResults == nil {
+				return fmt.Errorf("assessment results are nil")
+			}
+
+			var model = oscalTypes_1_1_2.OscalModels{
+				AssessmentResults: assessmentResults,
+			}
+
+			// Write the assessment results to file
+			err = oscal.WriteOscalModel(outputFile, &model)
+			if err != nil {
+				return fmt.Errorf("error writing component to file: %v", err)
 			}
 
 			return nil
@@ -102,35 +119,6 @@ func ValidateCommand() *cobra.Command {
 	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
 
 	return cmd
-}
-
-// Validate performs a validation on a single OSCAL component-definition file
-func Validate(ctx context.Context, inputFile, outputFile, target string, opts ...validation.Option) error {
-	validationCtx, err := validation.New(opts...)
-	if err != nil {
-		return fmt.Errorf("error creating validation context: %v", err)
-	}
-
-	assessmentResults, err := validationCtx.ValidateOnPath(ctx, inputFile, target)
-	if err != nil {
-		return fmt.Errorf("error validating on path: %v", err)
-	}
-
-	if assessmentResults == nil {
-		return fmt.Errorf("assessment results are nil")
-	}
-
-	var model = oscalTypes_1_1_2.OscalModels{
-		AssessmentResults: assessmentResults,
-	}
-
-	// Write the assessment results to file
-	err = oscal.WriteOscalModel(outputFile, &model)
-	if err != nil {
-		return fmt.Errorf("error writing component to file: %v", err)
-	}
-
-	return nil
 }
 
 // getDefaultOutputFile returns the default output file name
