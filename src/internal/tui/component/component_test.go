@@ -39,7 +39,7 @@ func TestComponentDefinitionBasicView(t *testing.T) {
 
 	msgs := []tea.Msg{}
 
-	err := testhelpers.RunTestModelView(t, model, msgs, timeout, maxRetries, height, width)
+	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func TestComponentDefinitionComponentSwitch(t *testing.T) {
 		tea.KeyMsg{Type: tea.KeyEnter}, // Open control
 	}
 
-	err := testhelpers.RunTestModelView(t, model, msgs, timeout, maxRetries, height, width)
+	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestComponentControlSelect(t *testing.T) {
 		tea.KeyMsg{Type: tea.KeyEnter}, // Open control
 	}
 
-	err := testhelpers.RunTestModelView(t, model, msgs, timeout, maxRetries, height, width)
+	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,14 @@ func TestEditViewComponentDefinitionModel(t *testing.T) {
 		tea.KeyMsg{Type: tea.KeyEnter},                                    // Confirm edit
 	}
 
-	err := testhelpers.RunTestModelView(t, model, msgs, timeout, maxRetries, height, width)
+	reset := func() tea.Model {
+		resetOscalModel := testhelpers.OscalFromPath(t, validCompDefValidations)
+		resetModel := component.NewComponentDefinitionModel(resetOscalModel.ComponentDefinition)
+		resetModel.Open(height, width)
+		return resetModel
+	}
+
+	err := testhelpers.RunTestModelView(t, model, reset, msgs, timeout, maxRetries, height, width)
 	if err != nil {
 		t.Fatal(err)
 	}

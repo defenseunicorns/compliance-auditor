@@ -34,7 +34,7 @@ func TestNewOSCALModel(t *testing.T) {
 
 	msgs := []tea.Msg{}
 
-	err := testhelpers.RunTestModelView(t, model, msgs, timeout, maxRetries, height, width)
+	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -106,7 +106,7 @@ func TestComposeFromPath(t *testing.T) {
 	})
 
 	// Test the templating of the component definition where the validation is not rendered -> empty resources in backmatter
-	t.Run("Templated component definition with nested imports, validations rendered", func(t *testing.T) {
+	t.Run("Templated component definition with nested imports, validations not rendered - no resources", func(t *testing.T) {
 		tmplOpts := []composition.Option{
 			composition.WithRenderSettings("constants", true),
 			composition.WithTemplateRenderer("constants", map[string]interface{}{
@@ -181,7 +181,7 @@ func TestComposeFromPath(t *testing.T) {
 		}
 
 		if compDefComposed.BackMatter.Resources == nil {
-			t.Error("expected the component definition to have back matter resources")
+			t.Fatalf("expected the component definition to have back matter resources")
 		}
 
 		if len(*compDefComposed.BackMatter.Resources) != 1 {
