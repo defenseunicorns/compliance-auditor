@@ -18,9 +18,9 @@ import (
 type OSCALModel interface {
 	GetType() string
 	GetCompleteModel() *oscalTypes.OscalModels
-	MakeDeterministic()
+	MakeDeterministic() error
 	HandleExisting(string) error
-	New([]byte) error
+	NewModel([]byte) error
 }
 
 func NewOscalModel(data []byte) (*oscalTypes.OscalModels, error) {

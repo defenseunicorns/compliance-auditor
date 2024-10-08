@@ -38,10 +38,10 @@ func TestGenerateProfileCommand(t *testing.T) {
 			t.Errorf("error reading generated profile: %v\n", err)
 		}
 
-		var profile oscal.Profile
+		profile := oscal.NewProfile()
 
 		// Create the new profile object
-		err = profile.New(compiledBytes)
+		err = profile.NewModel(compiledBytes)
 		if err != nil {
 			t.Errorf("error creating oscal model from profile artifact: %v\n", err)
 		}

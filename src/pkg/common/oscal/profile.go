@@ -15,6 +15,12 @@ type Profile struct {
 	Model *oscalTypes.Profile
 }
 
+func NewProfile() *Profile {
+	var profile Profile
+	profile.Model = nil
+	return &profile
+}
+
 func (p *Profile) GetType() string {
 	return "profile"
 }
@@ -25,10 +31,10 @@ func (p *Profile) GetCompleteModel() *oscalTypes.OscalModels {
 	}
 }
 
-func (p *Profile) MakeDeterministic() {
-
-	// Default behavior of a nil model - do nothing
-	if p.Model != nil {
+func (p *Profile) MakeDeterministic() error {
+	if p.Model == nil {
+		return fmt.Errorf("cannot make nil model deterministic")
+	} else {
 		// sort the import items by source string
 		importItems := p.Model.Imports
 
@@ -65,7 +71,7 @@ func (p *Profile) MakeDeterministic() {
 		}
 	}
 
-	return
+	return nil
 }
 
 func (p *Profile) HandleExisting(filepath string) error {
@@ -81,7 +87,7 @@ func (p *Profile) HandleExisting(filepath string) error {
 }
 
 // Create a new profile model
-func (p *Profile) New(data []byte) error {
+func (p *Profile) NewModel(data []byte) error {
 
 	var oscalModels oscalTypes.OscalModels
 

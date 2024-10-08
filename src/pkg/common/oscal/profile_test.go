@@ -131,7 +131,7 @@ func TestMakeDeterministic(t *testing.T) {
 	})
 
 	t.Run("Profile with empty model", func(t *testing.T) {
-		var profile *oscal.Profile
+		profile := oscal.NewProfile()
 
 		test(t, profile, []string{}, []string{}, true)
 	})
