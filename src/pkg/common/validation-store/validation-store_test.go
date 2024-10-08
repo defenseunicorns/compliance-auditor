@@ -1,6 +1,7 @@
 package validationstore_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -128,6 +129,7 @@ func TestDryRun(t *testing.T) {
 
 func TestRunValidations(t *testing.T) {
 	message.NoProgress = true
+	ctx := context.Background()
 	validation := types.CreatePassingLulaValidation("sample-validation")
 
 	tests := []struct {
@@ -164,7 +166,7 @@ func TestRunValidations(t *testing.T) {
 				v.AddLulaValidation(validation, uuid.NewUUID())
 			}
 
-			observations := v.RunValidations(true, false, "")
+			observations := v.RunValidations(ctx, true, false, "")
 			if len(observations) != tt.expectedObservations {
 				t.Errorf("Expected %d observations, but got %d", tt.expectedObservations, len(observations))
 			}
@@ -174,13 +176,14 @@ func TestRunValidations(t *testing.T) {
 
 func TestGetRelatedObservation(t *testing.T) {
 	message.NoProgress = true
+	ctx := context.Background()
 	validationPass := types.CreatePassingLulaValidation("passing-validation")
 	validationFail := types.CreateFailingLulaValidation("failing-validation")
 	v := validationstore.NewValidationStore()
 	v.AddLulaValidation(validationPass, "1")
 	v.AddLulaValidation(validationFail, "2")
 
-	v.RunValidations(true, false, "")
+	v.RunValidations(ctx, true, false, "")
 
 	tests := []struct {
 		name               string

@@ -87,7 +87,15 @@ func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Do
 	}, nil
 }
 
-func (k KubernetesDomain) GetResources() (resources types.DomainResources, err error) {
+// GetResources returns the resources from the Kubernetes domain
+// Evaluates the `create-resources` first, `wait` second, and finally `resources` last
+func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.DomainResources, err error) {
+	if cluster == nil {
+		return nil, fmt.Errorf("no active cluster to evaluate")
+	}
+
+	// Evaluate `create-resources`
+
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
 		err := EvaluateWait(*k.Spec.Wait)

@@ -13,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
@@ -218,20 +216,4 @@ func cleanResources(resources *[]map[string]interface{}) {
 			delete(metadata, "managedFields")
 		}
 	}
-}
-
-// Use the K8s "client-go" library to get the currently active kube context, in the same way that
-// "kubectl" gets it if no extra config flags like "--kubeconfig" are passed.
-func connect() (config *rest.Config, err error) {
-	// Build the config from the currently active kube context in the default way that the k8s client-go gets it, which
-	// is to look at the KUBECONFIG env var
-	config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{}).ClientConfig()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
 }
