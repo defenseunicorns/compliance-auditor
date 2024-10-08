@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/common"
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
 
@@ -62,37 +62,20 @@ func ValidateCommand() *cobra.Command {
 			// Check if output file contains a valid OSCAL model
 			_, err := oscal.ValidOSCALModelAtPath(outputFile)
 			if err != nil {
-				return fmt.Errorf("invalid OSCAL model at output: %v", err)
+				message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
 			}
 
-			// Set up the composition context
-			compositionCtx, err := composition.New(
-				composition.WithModelFromLocalPath(inputFile),
-				composition.WithRenderSettings("all", true),
-				composition.WithTemplateRenderer("all", common.TemplateConstants, common.TemplateVariables, setOpts),
-			)
+			if SaveResources {
+				ResourcesDir = filepath.Join(filepath.Dir(outputFile))
+			}
+
+			if err := files.IsJsonOrYaml(opts.InputFile); err != nil {
+				message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
+			}
+
+			assessment, err := ValidateOnPath(opts.InputFile, opts.Target)
 			if err != nil {
-				return fmt.Errorf("error creating composition context: %v", err)
-			}
-
-			// Set up the validation context
-			validationCtx, err := validation.New(
-				validation.WithCompositionContext(compositionCtx, inputFile),
-				validation.WithResourcesDir(saveResources, filepath.Dir(outputFile)),
-				validation.WithAllowExecution(confirmExecution, runNonInteractively),
-			)
-			if err != nil {
-				return fmt.Errorf("error creating validation context: %v", err)
-			}
-
-			// Execute the validation
-			assessmentResults, err := validationCtx.ValidateOnPath(cmd.Context(), inputFile, target)
-			if err != nil {
-				return fmt.Errorf("error validating on path: %v", err)
-			}
-
-			if assessmentResults == nil {
-				return fmt.Errorf("assessment results are nil")
+				message.Fatalf(err, "Validation error: %s", err)
 			}
 
 			var model = oscalTypes_1_1_2.OscalModels{
