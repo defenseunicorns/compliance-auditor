@@ -1,0 +1,22 @@
+Real Time Risk Transparency through automated validation
+
+Usage:
+  lula [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  console     Console terminal user interface for OSCAL models
+  dev         Collection of dev commands to make dev life easier
+  evaluate    evaluate two results of a Security Assessment Results
+  generate    Generate a specified compliance artifact template
+  help        Help about any command
+  report      Build a compliance report
+  tools       Collection of additional commands to make OSCAL easier
+  validate    validate an OSCAL component definition
+  version     Shows the current version of the Lula binary
+
+Flags:
+  -h, --help               help for lula
+  -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")
+
+Use "lula [command] --help" for more information about a command.
