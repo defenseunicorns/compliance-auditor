@@ -113,9 +113,9 @@ func GetNamespace(name string) (*v1.Namespace, error) {
 	}, nil
 }
 
-func ExecuteCommand(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
-	_, output, err = ExecuteCommandC(root, args...)
-	return root, output, err
+func ExecuteCommand(cmd *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
+	_, output, err = ExecuteCommandC(cmd, args...)
+	return cmd, output, err
 }
 
 func ExecuteCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {

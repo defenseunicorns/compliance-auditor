@@ -36,6 +36,7 @@ component-definition:
               links:
                 - href: "#a7377430-2328-4dc4-a9e2-b3f31dc1dff9"
                   rel: lula
+                  resource-fragment: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
   back-matter:
     resources:
       - uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9

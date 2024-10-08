@@ -6,6 +6,9 @@ component-definition:
             - control-id: ID-1
               description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
+                # validation from local, change directory
+                - href: file://../../../unit/common/validation/validation.opa.yaml
+                  rel: lula
                 # remote opa validation
                 - href: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/dev-validate/validation.yaml
                   rel: lula

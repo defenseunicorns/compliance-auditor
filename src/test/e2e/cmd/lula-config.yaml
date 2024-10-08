@@ -1,6 +1,7 @@
 constants:
   type: software
   title: lula
+  templated_comp_def: component-definition-template.yaml
 
   resources:
     name: test-pod-label

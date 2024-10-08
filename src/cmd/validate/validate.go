@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -52,6 +53,12 @@ var validateCmd = &cobra.Command{
 			outputFile = getDefaultOutputFile(opts.InputFile)
 		}
 
+		// Check if output file contains a valid OSCAL model
+		_, err := oscal.ValidOSCALModelAtPath(outputFile)
+		if err != nil {
+			message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
+		}
+
 		if SaveResources {
 			ResourcesDir = filepath.Join(filepath.Dir(outputFile))
 		}
@@ -60,7 +67,7 @@ var validateCmd = &cobra.Command{
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
 
-		assessment, err := ValidateOnPath(opts.InputFile, opts.Target)
+		assessment, err := ValidateOnPath(cmd.Context(), opts.InputFile, opts.Target)
 		if err != nil {
 			message.Fatalf(err, "Validation error: %s", err)
 		}
@@ -118,16 +125,21 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
+func ValidateOnPath(ctx context.Context, path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	oscalModel, err := composition.ComposeFromPath(path)
+	compositionCtx, err := composition.New(composition.WithModelFromLocalPath(path))
 	if err != nil {
-		return assessmentResult, err
+		return nil, fmt.Errorf("error creating composition context: %v", err)
+	}
+
+	oscalModel, err := compositionCtx.ComposeFromPath(ctx, path)
+	if err != nil {
+		return nil, fmt.Errorf("error composing model: %v", err)
 	}
 
 	if oscalModel.ComponentDefinition == nil {
@@ -261,7 +273,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 	return findings, observations, nil
 }
 
-// GetDefaultOutputFile returns the default output file name
+// getDefaultOutputFile returns the default output file name and checks if the file already exists
 func getDefaultOutputFile(inputFile string) string {
 	dirPath := filepath.Dir(inputFile)
 	filename := "assessment-results" + filepath.Ext(inputFile)
