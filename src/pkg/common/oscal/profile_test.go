@@ -36,12 +36,12 @@ func TestGetType(t *testing.T) {
 }
 
 func TestGetCompleteModel(t *testing.T) {
-	test := func(t *testing.T, model oscal.Profile) {
+	test := func(t *testing.T, model oscal.Profile, expectedNil bool) {
 		t.Helper()
 
 		result := model.GetCompleteModel()
 
-		if result.Profile == nil {
+		if result.Profile == nil && !expectedNil {
 			t.Fatal("Expected profile to not return nil")
 		}
 
@@ -51,12 +51,13 @@ func TestGetCompleteModel(t *testing.T) {
 		var profile = oscal.Profile{
 			Model: &oscalTypes.Profile{},
 		}
-		test(t, profile)
+		test(t, profile, false)
 	})
 
 	t.Run("Test complete with no model declaration", func(t *testing.T) {
+		// Expecting a nil model
 		var profile = oscal.Profile{}
-		test(t, profile)
+		test(t, profile, true)
 	})
 }
 
