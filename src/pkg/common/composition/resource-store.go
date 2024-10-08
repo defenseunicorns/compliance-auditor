@@ -3,11 +3,9 @@ package composition
 import (
 	"fmt"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 // ResourceStore is a store of resources.
@@ -158,19 +156,4 @@ func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link, baseDir
 	s.SetHrefIds(link.Href, ids)
 
 	return ids, err
-}
-
-func createTemplateResource(data []byte) *oscalTypes_1_1_2.Resource {
-	return &oscalTypes_1_1_2.Resource{
-		Title:       "Validation Template",
-		UUID:        uuid.NewUUID(),
-		Description: common.CleanMultilineString(string(data)),
-		Props: &[]oscalTypes_1_1_2.Property{
-			{
-				Name:  "resource-type",
-				Value: "validation-template",
-				Ns:    oscal.LULA_NAMESPACE,
-			},
-		},
-	}
 }
