@@ -1,8 +1,8 @@
 # File Domain
-The File domain allows for validation of arbitrary file contents. The file domain can evaluate local files and network files. Files are copied to a temporary directory for evaluation and deleted afterwards.
+The File domain allows for validation of arbitrary file contents from a list of supported file types. The file domain can evaluate local files and network files. Files are copied to a temporary directory for evaluation and deleted afterwards.
 
 ## Specification
-The File domain specification accepts a descriptive name for the file as well as its path. The names must be unique.
+The File domain specification accepts a descriptive name for the file as well as its path. The filenames and descriptive names must be unique.
 
 ```yaml
 domain:
@@ -14,7 +14,7 @@ domain:
 ```
 
 ## Supported File Types
-The file domain uses OPA's [conftest](https://conftest.dev) to parse files into a json-compatible format for validations. ∑Both OPA and kyverno (using [kyverno-json](https://kyverno.github.io/kyverno-json/latest/)) can validate files parsed by the file domain.
+The file domain uses OPA's [conftest](https://conftest.dev) to parse files into a json-compatible format for validations. ∑Both OPA and Kyverno (using [kyverno-json](https://kyverno.github.io/kyverno-json/latest/)) can validate files parsed by the file domain.
 
 The file domain supports the following file formats for validation:
 * CUE
@@ -37,7 +37,7 @@ The file domain supports the following file formats for validation:
 * YAML
 
 ## Validations
-When writing validations against files, the filepath Name must be included as
+When writing validations against files, the filepath `Name` must be included as
 the top-level key in the validation. The placement varies between providers.
 
 Given the following ini file:
@@ -48,7 +48,7 @@ Given the following ini file:
 protocol = http
 ```
 
-The below Kyverno policy validates the protocol is https by including Grafana as the top-level key under "check":
+The below Kyverno policy validates the protocol is https by including Grafana as the top-level key under `check`:
 
 ```yaml
 metadata:
@@ -79,7 +79,7 @@ provider:
                     protocol: https
 ```
 
-While in an OPA policy, the filepath Name is the input key to access the config:
+While in an OPA policy, the filepath `Name` is the input key to access the config:
 
 ```yaml
 metadata:
@@ -123,3 +123,6 @@ provider:
       observations:
         - validate.msg
 ```
+
+## Note on Compose
+While the file domain is capable of referencing relative file paths in the `file-spec`, Lula does not de-reference those paths during composition. If you are composing multiple files together, you must either use absolute filepaths (including network filepaths), or ensure that all referenced filepaths are relative to the output directory of the compose command. 
