@@ -15,17 +15,17 @@ type Profile struct {
 	Model *oscalTypes.Profile
 }
 
-func (p Profile) GetType() string {
+func (p *Profile) GetType() string {
 	return "profile"
 }
 
-func (p Profile) GetCompleteModel() *oscalTypes.OscalModels {
+func (p *Profile) GetCompleteModel() *oscalTypes.OscalModels {
 	return &oscalTypes.OscalModels{
 		Profile: p.Model,
 	}
 }
 
-func (p Profile) MakeDeterministic() {
+func (p *Profile) MakeDeterministic() {
 
 	// Default behavior of a nil model - do nothing
 	if p.Model != nil {
@@ -68,7 +68,7 @@ func (p Profile) MakeDeterministic() {
 	return
 }
 
-func (p Profile) HandleExisting(filepath string) error {
+func (p *Profile) HandleExisting(filepath string) error {
 	exists, err := common.CheckFileExists(filepath)
 	if err != nil {
 		return err
@@ -80,28 +80,27 @@ func (p Profile) HandleExisting(filepath string) error {
 	}
 }
 
-// Create a new
-func (p Profile) New(data []byte) (OSCALModel, error) {
-	var profile Profile
+// Create a new profile model
+func (p *Profile) New(data []byte) error {
 
 	var oscalModels oscalTypes.OscalModels
 
 	err := multiModelValidate(data)
 	if err != nil {
-		return profile, err
+		return err
 	}
 
 	err = yaml.Unmarshal(data, &oscalModels)
 	if err != nil {
-		return profile, err
+		return err
 	}
 
-	profile.Model = oscalModels.Profile
+	p.Model = oscalModels.Profile
 
-	return profile, nil
+	return nil
 }
 
-func GenerateProfile(source string, include []string, exclude []string) (profile Profile, err error) {
+func GenerateProfile(source string, include []string, exclude []string) (*Profile, error) {
 
 	// Create the OSCAL profile type model for use and later assignment to the oscal.Profile implementation
 	var model oscalTypes.Profile
@@ -160,8 +159,10 @@ func GenerateProfile(source string, include []string, exclude []string) (profile
 		AsIs: true,
 	}
 
+	var profile Profile
+
 	profile.Model = &model
 
-	return profile, nil
+	return &profile, nil
 
 }

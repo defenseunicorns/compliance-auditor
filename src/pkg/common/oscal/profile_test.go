@@ -62,7 +62,7 @@ func TestGetCompleteModel(t *testing.T) {
 }
 
 func TestMakeDeterministic(t *testing.T) {
-	test := func(t *testing.T, model oscal.Profile, expectedImports []string, expectedControls []string, expectNil bool) {
+	test := func(t *testing.T, model *oscal.Profile, expectedImports []string, expectedControls []string, expectNil bool) {
 		t.Helper()
 
 		// Make deterministic
@@ -131,7 +131,7 @@ func TestMakeDeterministic(t *testing.T) {
 	})
 
 	t.Run("Profile with empty model", func(t *testing.T) {
-		var profile oscal.Profile
+		var profile *oscal.Profile
 
 		test(t, profile, []string{}, []string{}, true)
 	})

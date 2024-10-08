@@ -20,7 +20,7 @@ type OSCALModel interface {
 	GetCompleteModel() *oscalTypes.OscalModels
 	MakeDeterministic()
 	HandleExisting(string) error
-	New([]byte) (OSCALModel, error)
+	New([]byte) error
 }
 
 func NewOscalModel(data []byte) (*oscalTypes.OscalModels, error) {
