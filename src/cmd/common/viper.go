@@ -25,6 +25,12 @@ var (
 
 	// Viper configuration error
 	vConfigError error
+
+	// Template config values
+	TemplateConstants map[string]interface{}
+
+	// Template config values
+	TemplateVariables []template.VariableConfig
 )
 
 // InitViper initializes the viper singleton for the CLI
@@ -66,6 +72,14 @@ func InitViper() *viper.Viper {
 	// Set default values for viper
 	setDefaults()
 
+	// Load template config
+	constants, variables, err := GetTemplateConfig()
+	if err != nil {
+		panic(err)
+	}
+	TemplateConstants = constants
+	TemplateVariables = variables
+
 	return v
 }
 
@@ -76,8 +90,8 @@ func GetViper() *viper.Viper {
 
 // GetTemplateConfig loads the constants and variables from the viper config
 func GetTemplateConfig() (map[string]interface{}, []template.VariableConfig, error) {
-	var constants map[string]interface{}
-	var variables []template.VariableConfig
+	constants := make(map[string]interface{})
+	variables := make([]template.VariableConfig, 0)
 
 	err := v.UnmarshalKey(VConstants, &constants)
 	if err != nil {

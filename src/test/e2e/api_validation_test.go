@@ -55,7 +55,7 @@ func TestApiValidation(t *testing.T) {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -139,7 +139,7 @@ func TestApiValidation(t *testing.T) {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

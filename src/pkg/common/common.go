@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -197,4 +198,11 @@ func CheckFileExists(filepath string) (bool, error) {
 	} else {
 		return false, err
 	}
+}
+
+// CleanMultilineString removes leading and trailing whitespace from a multiline string
+func CleanMultilineString(str string) string {
+	re := regexp.MustCompile(`[ \t]+\r?\n`)
+	formatted := re.ReplaceAllString(str, "\n")
+	return formatted
 }

@@ -3,12 +3,12 @@ package test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
@@ -71,7 +71,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		t.Error(err)
 	}
 
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,15 +98,16 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 	if err != nil {
 		t.Error(err)
 	}
-	reset, err := common.SetCwdToFileDir(oscalPath)
-	if err != nil {
-		t.Fatalf("Error setting cwd to file dir: %v", err)
-	}
-	defer reset()
 
 	compDef := oscalModel.ComponentDefinition
 
-	err = composition.ComposeComponentValidations(compDef)
+	compositionCtx, err := composition.New(composition.WithModelFromLocalPath(oscalPath))
+	if err != nil {
+		t.Errorf("error creating composition context: %v", err)
+	}
+
+	baseDir := filepath.Dir(oscalPath)
+	err = compositionCtx.ComposeComponentValidations(ctx, compDef, baseDir)
 	if err != nil {
 		t.Error(err)
 	}

@@ -1,13 +1,16 @@
+metadata:
+  name: Test validation with templating
+  uuid: 458d2d84-b7f2-4679-8964-6f9a9dfe51eb
 domain:
   type: kubernetes
   kubernetes-spec:
     resources:
       - name: podvt
         resource-rule:
-          name: foo
+          name: "{{ .const.resources.name }}"
           version: v1
           resource: pods
-          namespaces: [validation-test]
+          namespaces: ["{{ .const.resources.namespace }}"]
 provider:
   type: opa
   opa-spec:
@@ -21,8 +24,8 @@ provider:
 
       # Validation result
       validate if {
-        { "one", "two", "three" } == { "one", "two", "three" }
-        "this-should-be-overridden" == "my-env-var"
+        { "one", "two", "three" } == { {{ .const.resources.exemptions | concatToRegoList }} }
+        "{{ .var.some_env_var }}" == "my-env-var"
         "{{ .var.some_lula_secret }}" == "********"
       }
       msg = validate.msg

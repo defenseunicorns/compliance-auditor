@@ -15,8 +15,8 @@ component-definition:
             rel: website
   components:
     - uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
-      type: software
-      title: lula
+      type: {{ .const.type }}
+      title: {{ .const.title }}
       description: |
         Lula - the Compliance Validator
       purpose: Validate compliance controls
@@ -34,36 +34,6 @@ component-definition:
               description: >-
                 This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
               links:
-                - href: "#a7377430-2328-4dc4-a9e2-b3f31dc1dff9"
+                - href: "../validation/validation.tmpl.yaml"
+                  text: local path template validation
                   rel: lula
-                  resource-fragment: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
-  back-matter:
-    resources:
-      - uuid: a7377430-2328-4dc4-a9e2-b3f31dc1dff9
-        rlinks:
-          - href: lula.dev
-        description: >-
-          domain:
-            type: kubernetes
-            kubernetes-spec:
-              resources:
-              - name: podsvt
-                resource-rule:
-                  group:
-                  version: v1
-                  resource: pods
-                  namespaces: [validation-test]
-          provider:
-            type: opa
-            opa-spec:
-              rego: |
-                package validate
-
-                import future.keywords.every
-
-                validate {
-                  every pod in input.podsvt {
-                    podLabel := pod.metadata.labels.foo
-                    podLabel == "bar"
-                  }
-                }

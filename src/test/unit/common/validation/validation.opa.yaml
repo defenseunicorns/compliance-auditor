@@ -1,7 +1,7 @@
 lula-version: ">=v0.2.0"
 metadata:
   name: Validate pods with label foo=bar
-  uuid: 123e4567-e89b-12d3-a456-426655440000
+  uuid: 6c00ae8d-7187-42ab-8d89-f383447a0824
 domain:
   type: kubernetes
   kubernetes-spec:
