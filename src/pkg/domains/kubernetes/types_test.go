@@ -1,7 +1,6 @@
 package kube_test
 
 import (
-	"context"
 	"testing"
 
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
@@ -235,19 +234,17 @@ metadata:
 			name: "valid wait",
 			spec: &kube.KubernetesSpec{
 				Wait: &kube.Wait{
-					Condition: "Ready",
-					Kind:      "namespace/test",
+					GroupKind: "namespace",
+					Name:      "test",
 				},
 			},
 			expectedErr: false,
 		},
 		{
-			name: "invalid wait, both condition and jsonpath specified",
+			name: "invalid wait, no GroupKind or Name specified",
 			spec: &kube.KubernetesSpec{
 				Wait: &kube.Wait{
-					Condition: "Ready",
-					Jsonpath:  "test",
-					Kind:      "namespace/test",
+					Namespace: "test",
 				},
 			},
 			expectedErr: true,
@@ -256,7 +253,7 @@ metadata:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := kube.CreateKubernetesDomain(context.Background(), tt.spec)
+			_, err := kube.CreateKubernetesDomain(tt.spec)
 			if (err != nil) != tt.expectedErr {
 				t.Errorf("CreateKubernetesDomain() error = %v, wantErr %v", err, tt.expectedErr)
 			}

@@ -116,11 +116,9 @@ func TestGetDomain(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := common.GetDomain(&tt.domain, ctx)
+			result, err := common.GetDomain(&tt.domain)
 			if (err != nil) != tt.expectedErr {
 				t.Fatalf("expected error: %v, got: %v", tt.expectedErr, err)
 			}

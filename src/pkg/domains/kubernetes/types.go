@@ -9,14 +9,11 @@ import (
 )
 
 type KubernetesDomain struct {
-	// Context is the context that Kubernetes resources are being evaluated in
-	Context context.Context `json:"context" yaml:"context"`
-
 	// Spec is the specification of the Kubernetes resources
 	Spec *KubernetesSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
-func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Domain, error) {
+func CreateKubernetesDomain(spec *KubernetesSpec) (types.Domain, error) {
 	// Check validity of spec
 	if spec == nil {
 		return nil, fmt.Errorf("spec is nil")
@@ -59,11 +56,11 @@ func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Do
 	}
 
 	if spec.Wait != nil {
-		if spec.Wait.Kind == "" {
-			return nil, fmt.Errorf("wait kind cannot be empty")
+		if spec.Wait.GroupKind == "" {
+			return nil, fmt.Errorf("wait group-kind cannot be empty")
 		}
-		if spec.Wait.Condition != "" && spec.Wait.Jsonpath != "" {
-			return nil, fmt.Errorf("only one of wait.condition or wait.jsonpath can be specified")
+		if spec.Wait.Name != "" {
+			return nil, fmt.Errorf("wait name cannot be empty")
 		}
 	}
 
@@ -82,8 +79,7 @@ func CreateKubernetesDomain(ctx context.Context, spec *KubernetesSpec) (types.Do
 	}
 
 	return KubernetesDomain{
-		Context: ctx,
-		Spec:    spec,
+		Spec: spec,
 	}, nil
 }
 
@@ -98,7 +94,7 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.Dom
 
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
-		err := EvaluateWait(*k.Spec.Wait)
+		err := EvaluateWait(ctx, *k.Spec.Wait)
 		if err != nil {
 			return nil, err
 		}
@@ -106,12 +102,12 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.Dom
 
 	// TODO: Return both?
 	if k.Spec.Resources != nil {
-		resources, err = QueryCluster(k.Context, k.Spec.Resources)
+		resources, err = QueryCluster(ctx, k.Spec.Resources)
 		if err != nil {
 			return nil, err
 		}
 	} else if k.Spec.CreateResources != nil {
-		resources, err = CreateE2E(k.Context, k.Spec.CreateResources)
+		resources, err = CreateE2E(ctx, k.Spec.CreateResources)
 		if err != nil {
 			return nil, err
 		}
@@ -171,10 +167,9 @@ func (f Field) Validate() error {
 }
 
 type Wait struct {
-	Condition string `json:"condition" yaml:"condition"`
-	Jsonpath  string `json:"jsonpath" yaml:"jsonpath"`
-	Kind      string `json:"kind" yaml:"kind"`
+	GroupKind string `json:"group-kind" yaml:"group-kind"`
 	Namespace string `json:"namespace" yaml:"namespace"`
+	Name      string `json:"name" yaml:"name"`
 	Timeout   string `json:"timeout" yaml:"timeout"`
 }
 

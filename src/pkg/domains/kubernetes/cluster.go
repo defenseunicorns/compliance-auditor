@@ -3,8 +3,10 @@ package kube
 import (
 	"fmt"
 
+	pkgkubernetes "github.com/defenseunicorns/pkg/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/cli-utils/pkg/kstatus/watcher"
 	"sigs.k8s.io/e2e-framework/klient"
 )
 
@@ -13,6 +15,7 @@ var cluster *Cluster
 type Cluster struct {
 	config  *rest.Config
 	kclient klient.Client
+	watcher watcher.StatusWatcher
 }
 
 func InitCluster() error {
@@ -32,6 +35,12 @@ func New() (*Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
 	}
+
+	watcher, err := pkgkubernetes.WatcherForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get watcher: %w", err)
+	}
+
 	kclient, err := klient.New(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create e2e client: %w", err)
@@ -40,6 +49,7 @@ func New() (*Cluster, error) {
 	return &Cluster{
 		kclient: kclient,
 		config:  config,
+		watcher: watcher,
 	}, nil
 }
 
