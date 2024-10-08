@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	pkgkubernetes "github.com/defenseunicorns/pkg/kubernetes"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/watcher"
@@ -13,9 +14,9 @@ import (
 var cluster *Cluster
 
 type Cluster struct {
-	config  *rest.Config
-	kclient klient.Client
-	watcher watcher.StatusWatcher
+	kclient       klient.Client
+	watcher       watcher.StatusWatcher
+	dynamicClient *dynamic.DynamicClient
 }
 
 func InitCluster() error {
@@ -46,10 +47,12 @@ func New() (*Cluster, error) {
 		return nil, fmt.Errorf("failed to create e2e client: %w", err)
 	}
 
+	dynamicClient := dynamic.NewForConfigOrDie(config)
+
 	return &Cluster{
-		kclient: kclient,
-		config:  config,
-		watcher: watcher,
+		kclient:       kclient,
+		watcher:       watcher,
+		dynamicClient: dynamicClient,
 	}, nil
 }
 

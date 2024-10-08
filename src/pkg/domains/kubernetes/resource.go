@@ -11,8 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
 )
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
@@ -51,11 +49,9 @@ func GetResourcesDynamically(ctx context.Context,
 	if resource == nil {
 		return nil, fmt.Errorf("resource rule is nil")
 	}
-	config, err := connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
+	if cluster == nil {
+		return nil, fmt.Errorf("no active cluster to evaluate")
 	}
-	dynamic := dynamic.NewForConfigOrDie(config)
 
 	resourceId := schema.GroupVersionResource{
 		Group:    resource.Group,
@@ -75,7 +71,7 @@ func GetResourcesDynamically(ctx context.Context,
 	} else if resource.Name != "" {
 		// Extracting named resources can only occur here
 		var itemObj *unstructured.Unstructured
-		itemObj, err := dynamic.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+		itemObj, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +88,7 @@ func GetResourcesDynamically(ctx context.Context,
 		collection = append(collection, item)
 	} else {
 		for _, namespace := range namespaces {
-			list, err := dynamic.Resource(resourceId).Namespace(namespace).
+			list, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespace).
 				List(ctx, metav1.ListOptions{})
 			if err != nil {
 				return nil, err
@@ -107,39 +103,6 @@ func GetResourcesDynamically(ctx context.Context,
 	cleanResources(&collection)
 
 	return collection, nil
-}
-
-func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
-	config, err := connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
-	}
-	name := strings.Split(kind, "/")[0]
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
-	_, resourceList, _, err := discoveryClient.GroupsAndMaybeResources()
-	if err != nil {
-
-		return nil, err
-	}
-
-	for gv, list := range resourceList {
-		for _, item := range list.APIResources {
-			if item.SingularName == name {
-				return &schema.GroupVersionResource{
-					Group:    gv.Group,
-					Version:  gv.Version,
-					Resource: item.Name,
-				}, nil
-			}
-		}
-	}
-
-	return nil, fmt.Errorf("kind %s not found", kind)
 }
 
 // getFieldValue() looks up the field from a resource and returns a map[string]interface{} representation of the data

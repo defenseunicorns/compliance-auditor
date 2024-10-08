@@ -23,10 +23,8 @@ func EvaluateWait(ctx context.Context, waitPayload Wait) error {
 	}
 
 	// Set timeout
-	var timeoutString string
-	if waitPayload.Timeout != "" {
-		timeoutString = fmt.Sprintf("%s", waitPayload.Timeout)
-	} else {
+	timeoutString := waitPayload.Timeout
+	if timeoutString == "" {
 		timeoutString = "30s"
 	}
 
