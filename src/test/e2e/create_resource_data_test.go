@@ -40,7 +40,7 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			validate.RunNonInteractively = true
 			validate.SaveResources = false
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -114,7 +114,7 @@ func TestDeniedCreateResources(t *testing.T) {
 			// Check that validation fails
 			validate.ConfirmExecution = false
 			validate.RunNonInteractively = true
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

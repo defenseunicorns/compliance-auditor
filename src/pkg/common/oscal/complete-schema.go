@@ -52,16 +52,16 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		// If the file exists - read the data into the model
 		existingFileBytes, err := os.ReadFile(filePath)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading file: %v", err)
 		}
 		existingModel, err := NewOscalModel(existingFileBytes)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting existing model: %v", err)
 		}
 
 		existingModelType, err := GetOscalModel(existingModel)
 		if err != nil {
-			return nil
+			return fmt.Errorf("error getting existing model type: %v", err)
 		}
 
 		if existingModelType != modelType {
@@ -222,6 +222,27 @@ func GetOscalModel(model *oscalTypes_1_1_2.OscalModels) (modelType string, err e
 		return models[0], nil
 	}
 
+}
+
+// ValidOSCALModelAtPath takes a path and returns a bool indicating if the model exists/is valid
+// bool = T/F that oscal model exists, error = if not nil OSCAL model is invalid
+func ValidOSCALModelAtPath(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		return false, nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return true, err
+	}
+
+	_, err = NewOscalModel(data)
+	if err != nil {
+		return true, err
+	}
+
+	return true, nil
 }
 
 // InjectIntoOSCALModel takes a model target and a map[string]interface{} of values to inject into the model

@@ -44,7 +44,8 @@
                     "type": "string",
                     "enum": [
                         "kubernetes",
-                        "api"
+                        "api",
+                        "file"
                     ],
                     "description": "The type of domain (Required)"
                 },
@@ -86,6 +87,20 @@
                     "then": {
                         "required": [
                             "api-spec"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "file"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "file-spec"
                         ]
                     }
                 }
@@ -338,6 +353,25 @@
                             "url": {
                                 "type": "string",
                                 "format": "uri"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "file-spec": {
+            "type": "object",
+            "properties": {
+                "filepaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "path": {
+                                "type": "string"
                             }
                         }
                     }

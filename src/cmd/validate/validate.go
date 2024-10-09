@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 )
 
@@ -52,6 +54,12 @@ var validateCmd = &cobra.Command{
 			outputFile = getDefaultOutputFile(opts.InputFile)
 		}
 
+		// Check if output file contains a valid OSCAL model
+		_, err := oscal.ValidOSCALModelAtPath(outputFile)
+		if err != nil {
+			message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", outputFile, err)
+		}
+
 		if SaveResources {
 			ResourcesDir = filepath.Join(filepath.Dir(outputFile))
 		}
@@ -60,7 +68,8 @@ var validateCmd = &cobra.Command{
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
 
-		assessment, err := ValidateOnPath(opts.InputFile, opts.Target)
+		ctx := context.WithValue(cmd.Context(), types.LulaValidationWorkDir, filepath.Dir(opts.InputFile))
+		assessment, err := ValidateOnPath(ctx, opts.InputFile, opts.Target)
 		if err != nil {
 			message.Fatalf(err, "Validation error: %s", err)
 		}
@@ -118,23 +127,28 @@ func ValidateCommand() *cobra.Command {
 
 // ValidateOnPath takes 1 -> N paths to OSCAL component-definition files
 // It will then read those files to perform validation and return an ResultObject
-func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
+func ValidateOnPath(ctx context.Context, path string, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	oscalModel, err := composition.ComposeFromPath(path)
+	compositionCtx, err := composition.New(composition.WithModelFromLocalPath(path))
 	if err != nil {
-		return assessmentResult, err
+		return nil, fmt.Errorf("error creating composition context: %v", err)
+	}
+
+	oscalModel, err := compositionCtx.ComposeFromPath(ctx, path)
+	if err != nil {
+		return nil, fmt.Errorf("error composing model: %v", err)
 	}
 
 	if oscalModel.ComponentDefinition == nil {
 		return assessmentResult, fmt.Errorf("component definition is nil")
 	}
 
-	results, err := ValidateOnCompDef(oscalModel.ComponentDefinition, target)
+	results, err := ValidateOnCompDef(ctx, oscalModel.ComponentDefinition, target)
 	if err != nil {
 		return assessmentResult, err
 	}
@@ -150,7 +164,7 @@ func ValidateOnPath(path string, target string) (assessmentResult *oscalTypes_1_
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and return a slice of results that can be written to an assessment-results object
-func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
+func ValidateOnCompDef(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
 	if compDef == nil {
 		return results, fmt.Errorf("cannot validate a component definition that is nil")
 	}
@@ -175,7 +189,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	// this will only produce a single result
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
+			findings, observations, err := ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, target)
 			if err != nil {
 				return results, err
 			}
@@ -194,7 +208,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
+			findings, observations, err := ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, source)
 			if err != nil {
 				return results, err
 			}
@@ -212,7 +226,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 
 }
 
-func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+func ValidateOnControlImplementations(ctx context.Context, controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
@@ -239,7 +253,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(ConfirmExecution, SaveResources, ResourcesDir)
+	observations := validationStore.RunValidations(ctx, ConfirmExecution, SaveResources, ResourcesDir)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 
@@ -261,7 +275,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 	return findings, observations, nil
 }
 
-// GetDefaultOutputFile returns the default output file name
+// getDefaultOutputFile returns the default output file name and checks if the file already exists
 func getDefaultOutputFile(inputFile string) string {
 	dirPath := filepath.Dir(inputFile)
 	filename := "assessment-results" + filepath.Ext(inputFile)

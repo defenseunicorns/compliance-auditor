@@ -67,6 +67,12 @@ var generateComponentCmd = &cobra.Command{
 		var remarks []string
 		var title = "Component Title"
 
+		// Check if output file contains a valid OSCAL model
+		_, err := oscal.ValidOSCALModelAtPath(opts.OutputFile)
+		if err != nil {
+			message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", opts.OutputFile, err)
+		}
+
 		// check for Catalog Source - this field is required
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")

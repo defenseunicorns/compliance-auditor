@@ -92,12 +92,12 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			validatePodLabelFail(t, oscalPath)
+			validatePodLabelFail(ctx, t, oscalPath)
 			return ctx
 		}).
 		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
-			validatePodLabelFail(t, oscalPath)
+			validatePodLabelFail(ctx, t, oscalPath)
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -130,7 +130,7 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("All not-satisfied", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-all-bad.yaml"
-			findings, observations := validatePodLabelFail(t, oscalPath)
+			findings, observations := validatePodLabelFail(ctx, t, oscalPath)
 			observationRemarksMap := generateObservationRemarksMap(*observations)
 
 			for _, f := range *findings {
@@ -228,7 +228,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -315,13 +315,13 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	return ctx
 }
 
-func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
+func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
 	message.NoProgress = true
 	validate.ConfirmExecution = false
 	validate.RunNonInteractively = true
 	validate.SaveResources = false
 
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -367,7 +367,7 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 	validate.ResourcesDir = tempDir
 
 	// Validate on path
-	assessment, err := validate.ValidateOnPath(oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

@@ -347,7 +347,7 @@ func TestValidationToResource(t *testing.T) {
 		t.Parallel()
 		validation := &common.Validation{
 			Metadata: &common.Metadata{
-				UUID: "1234",
+				UUID: "1f639c6b-4e86-4c66-88b2-22dbf6d7ac02",
 				Name: "Test Validation",
 			},
 			Provider: &common.Provider{
@@ -395,8 +395,8 @@ func TestValidationToResource(t *testing.T) {
 			t.Errorf("ToResource() error = %v", err)
 		}
 
-		if resource.UUID == validation.Metadata.UUID {
-			t.Errorf("ToResource() description = \"\", want a valid UUID")
+		if resource.UUID != validation.Metadata.UUID {
+			t.Errorf("ToResource() resource UUID %s should match created validation UUID %s", resource.UUID, validation.Metadata.UUID)
 		}
 	})
 

@@ -36,7 +36,7 @@ func TestRemoteValidation(t *testing.T) {
 		Assess("Validate local validation file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/remote-validations/component-definition.yaml"
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

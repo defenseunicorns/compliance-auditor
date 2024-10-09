@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/defenseunicorns/lula/src/types"
@@ -35,7 +36,7 @@ func CreateApiDomain(spec *ApiSpec) (types.Domain, error) {
 	}, nil
 }
 
-func (a ApiDomain) GetResources() (types.DomainResources, error) {
+func (a ApiDomain) GetResources(_ context.Context) (types.DomainResources, error) {
 	return MakeRequests(a.Spec.Requests)
 }
 
