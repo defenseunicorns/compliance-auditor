@@ -177,7 +177,7 @@ func GenerateProfileCommand() *cobra.Command {
 			}
 
 			if exists {
-				return fmt.Errorf("Output File %s currently exist - cannot merge artifacts\n", outputFile)
+				return fmt.Errorf("output File %s currently exist - cannot merge artifacts", outputFile)
 			}
 
 			command := fmt.Sprintf("%s --source %s", cmd.CommandPath(), source)

@@ -38,6 +38,7 @@ func NewOscalModel(data []byte) (*oscalTypes.OscalModels, error) {
 	return &oscalModel, nil
 }
 
+// This will replace WriteOscalModel() if/when all models are implemented
 func WriteOscalModelNew(filePath string, model OSCALModel) error {
 	// Ensure model is deterministic
 	model.MakeDeterministic()
