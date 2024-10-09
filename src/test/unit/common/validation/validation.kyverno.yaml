@@ -1,7 +1,7 @@
 lula-version: ">= v0.1.0"
 metadata:
   name: Kyverno validate pods with label foo=bar
-  uuid: 123e4567-e89b-12d3-a456-426614174000
+  uuid: 386aafd8-a80d-4ad7-8844-d7b14a432187
 domain:
   type: kubernetes
   kubernetes-spec:

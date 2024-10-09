@@ -1,7 +1,7 @@
 Resolving templated artifacts with configuration data
 
 Usage:
-  lula tools template [flags]
+  template [flags]
 
 Examples:
 
@@ -27,6 +27,3 @@ Flags:
   -o, --output-file string   the path to the output file. If not specified, the output file will be directed to stdout
   -r, --render string        values to render the template with, options are: masked, constants, non-sensitive, all (default "masked")
   -s, --set strings          set a value in the template data
-
-Global Flags:
-  -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")

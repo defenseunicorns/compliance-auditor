@@ -65,7 +65,7 @@ func TestListSchemas(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	t.Parallel() // Enable parallel execution of tests
-	validationPath := "../../../test/unit/common/validation/opa.validation.yaml"
+	validationPath := "../../../test/unit/common/validation/validation.opa.yaml"
 	validationData, err := os.ReadFile(validationPath)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)

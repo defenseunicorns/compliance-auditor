@@ -118,6 +118,9 @@ provider:
 
 The constant's keys should be in the format `.const.<key>` and should not contain any '-' or '.' characters, as this will not respect the go text/template format. 
 
+> [!IMPORTANT]
+> Due to viper limitations, all constants should be referenced in the template as lowercase values.
+
 #### Variables
 
 A sample `variables` section of a `lula-config.yaml` file is as follows:

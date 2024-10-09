@@ -87,7 +87,12 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			}
 
 			// Compare validation results to a composed component definition
-			oscalModel, err := composition.ComposeFromPath(compDefPath)
+			compositionCtx, err := composition.New(composition.WithModelFromLocalPath(compDefPath))
+			if err != nil {
+				t.Errorf("error creating composition context: %v", err)
+			}
+
+			oscalModel, err := compositionCtx.ComposeFromPath(ctx, compDefPath)
 			if err != nil {
 				t.Error(err)
 			}

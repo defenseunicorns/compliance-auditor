@@ -1,0 +1,80 @@
+component-definition:
+  back-matter:
+    resources:
+      - description: |
+          domain:
+            kubernetes-spec:
+              create-resources: null
+              resources:
+              - description: ""
+                name: podvt
+                resource-rule:
+                  group: ""
+                  name: foo
+                  namespaces:
+                  - validation-test
+                  resource: pods
+                  version: v1
+            type: kubernetes
+          lula-version: ""
+          metadata:
+            name: Test validation with templating
+            uuid: 99fc662c-109a-4e26-8398-75f3db67f862
+          provider:
+            opa-spec:
+              rego: |
+                package validate
+                import rego.v1
+
+                # Default values
+                default validate := false
+                default msg := "Not evaluated"
+
+                # Validation result
+                validate if {
+                  { "one", "two", "three" } == { "one", "two", "three" }
+                  "this-should-be-overridden" == "my-env-var"
+                  "my-secret" == "********"
+                }
+                msg = validate.msg
+
+                value_of_my_secret := my-secret
+            type: opa
+        title: Test validation with templating
+        uuid: 99fc662c-109a-4e26-8398-75f3db67f862
+  components:
+    - control-implementations:
+        - description: Validate generic security requirements
+          implemented-requirements:
+            - control-id: ID-1
+              description: This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+              links:
+                - href: '#99fc662c-109a-4e26-8398-75f3db67f862'
+                  rel: lula
+                  text: local path template validation
+              uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+          uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
+      description: |
+        Lula - the Compliance Validator
+      purpose: Validate compliance controls
+      responsible-roles:
+        - party-uuids:
+            - C18F4A9F-A402-415B-8D13-B51739D689FF
+          role-id: provider
+      title: lula
+      type: software
+      uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+  metadata:
+    last-modified: XXX
+    oscal-version: 1.1.2
+    parties:
+      - links:
+          - href: https://github.com/defenseunicorns/lula
+            rel: website
+        name: Lula Development
+        type: organization
+        uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+    title: Lula Demo
+    version: "20220913"
+  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F

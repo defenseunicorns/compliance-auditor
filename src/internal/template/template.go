@@ -182,7 +182,8 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 		return templateData, err
 	}
 
-	templateData.Constants = constants
+	templateData.Constants = deepCopyMap(constants)
+
 	for _, variable := range variables {
 		if variable.Sensitive {
 			templateData.SensitiveVariables[variable.Key] = variable.Default
@@ -245,6 +246,33 @@ func GetEnvVars(prefix string) map[string]string {
 	}
 
 	return envMap
+}
+
+// IsTemplate checks if the given string contains valid template syntax
+func IsTemplate(data string) bool {
+	// Check for basic template syntax markers
+	if !strings.Contains(data, "{{") || !strings.Contains(data, "}}") {
+		return false
+	}
+
+	// Attempt to parse the template
+	tpl := createTemplate()
+	_, err := tpl.Parse(data)
+	return err == nil
+}
+
+func ParseRenderType(item string) (RenderType, error) {
+	switch strings.ToLower(item) {
+	case "masked":
+		return MASKED, nil
+	case "constants":
+		return CONSTANTS, nil
+	case "non-sensitive":
+		return NONSENSITIVE, nil
+	case "all":
+		return ALL, nil
+	}
+	return "", fmt.Errorf("invalid render type: %s", item)
 }
 
 // createTemplate creates a new template object
@@ -394,4 +422,57 @@ func setNestedValue(m map[string]interface{}, path string, value interface{}) er
 	// Set the final value
 	m[lastKey] = value
 	return nil
+}
+
+func deepCopyMap(input map[string]interface{}) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new map to hold the copy
+	copy := make(map[string]interface{})
+
+	for key, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[key] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[key] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[key] = v
+		}
+	}
+
+	return copy
+}
+
+// Helper function to deep copy a slice of interface{}
+func deepCopySlice(input []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new slice to hold the copy
+	copy := make([]interface{}, len(input))
+
+	for i, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[i] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[i] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[i] = v
+		}
+	}
+
+	return copy
 }

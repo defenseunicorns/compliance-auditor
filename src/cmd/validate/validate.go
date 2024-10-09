@@ -132,9 +132,14 @@ func ValidateOnPath(ctx context.Context, path string, target string) (assessment
 		return assessmentResult, fmt.Errorf("path: %v does not exist - unable to digest document", path)
 	}
 
-	oscalModel, err := composition.ComposeFromPath(path)
+	compositionCtx, err := composition.New(composition.WithModelFromLocalPath(path))
 	if err != nil {
-		return assessmentResult, err
+		return nil, fmt.Errorf("error creating composition context: %v", err)
+	}
+
+	oscalModel, err := compositionCtx.ComposeFromPath(ctx, path)
+	if err != nil {
+		return nil, fmt.Errorf("error composing model: %v", err)
 	}
 
 	if oscalModel.ComponentDefinition == nil {
