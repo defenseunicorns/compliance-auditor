@@ -29,8 +29,7 @@ domain:
           base64:                       # Optional - Boolean whether field is base64 encoded
 ```
 
-> [!Tip]
-> Lula supports eventual-consistency through use of an optional `wait` field in the `kubernetes-spec`. 
+Lula supports eventual-consistency through use of an optional `wait` field in the `kubernetes-spec`. This parameter supports waiting for a specified resource to be `Ready` in the cluster. This may be particularly useful if evaluating the status of a selected resource or evaluating the children of a specified resource.
 
 ```yaml
 domain:
@@ -51,6 +50,9 @@ domain:
         resource: pods
         namespaces: [validation-test]
 ```
+
+> [!Tip]
+> Both `resources` and `wait` use the Group, Version, Resource constructs to identify the resource to be evaluated. To identify those using `kubectl`, executing `kubectl explain <resource/kind/short name>` will provide the Group and Version, the `resource` field is the API-recognized type and can be confirmed by consulting the list provided by `kubectl api-resources`.
 
 ### Resource Creation
 
