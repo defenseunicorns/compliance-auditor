@@ -181,17 +181,21 @@
                 "wait": {
                     "type": "object",
                     "properties": {
-                        "condition": {
+                        "name": {
                             "type": "string",
-                            "description": "Condition to wait for ie. 'Ready'"
+                            "description": "Name of the resource to wait for"
                         },
-                        "jsonpath": {
+                        "group": {
                             "type": "string",
-                            "description": "Jsonpath specifier of where to find the condition from the top level object"
+                            "description": "Empty or \"\" for core group"
                         },
-                        "kind": {
+                        "version": {
                             "type": "string",
-                            "description": "Kind of resource to wait for"
+                            "description": "Version of resource"
+                        },
+                        "resource": {
+                            "type": "string",
+                            "description": "Resource type (API-recognized type, not Kind)"
                         },
                         "namespace": {
                             "type": "string",
@@ -201,7 +205,12 @@
                             "type": "string",
                             "description": "Timeout for the wait"
                         }
-                    }
+                    },
+                    "required": [
+                        "name",
+                        "version",
+                        "resource"
+                    ]
                 }
             },
             "anyOf": [

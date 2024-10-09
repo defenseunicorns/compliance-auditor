@@ -101,7 +101,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("component definition is nil")
 			}
 
-			composeResults, err := validate.ValidateOnCompDef(context.Background(), oscalModel.ComponentDefinition, "")
+			composeResults, err := validate.ValidateOnCompDef(ctx, oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}

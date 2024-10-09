@@ -150,7 +150,7 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
 
-	domain, err := GetDomain(validation.Domain, ctx)
+	domain, err := GetDomain(validation.Domain)
 	if domain == nil {
 		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidDomain, validation.Domain.Type)
 	} else if err != nil {
