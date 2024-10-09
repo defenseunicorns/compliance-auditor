@@ -23,13 +23,13 @@ import (
 )
 
 // CreateE2E() creates the test resources, reads status, and destroys them
-func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]interface{}, error) {
+func CreateE2E(ctx context.Context, cluster *Cluster, resources []CreateResource) (map[string]interface{}, error) {
 	collections := make(map[string]interface{}, len(resources))
 	namespaces := make([]string, 0)
 	var errList []string
 
-	if globalCluster == nil {
-		return nil, fmt.Errorf("no active cluster to evaluate")
+	if cluster == nil {
+		return nil, fmt.Errorf("cluster is nil")
 	}
 
 	// Create the resources, collect the outcome
@@ -38,7 +38,7 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 		var err error
 		// Create namespace if specified
 		if resource.Namespace != "" {
-			new, err := createNamespace(ctx, globalCluster.kclient, resource.Namespace)
+			new, err := createNamespace(ctx, cluster.kclient, resource.Namespace)
 			if err != nil {
 				message.Debugf("error creating namespace %s: %v", resource.Namespace, err)
 				errList = append(errList, err.Error())
@@ -52,13 +52,13 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 		// TODO: Allow both Manifest and File to be specified?
 		// Want to catch any errors and proceed in case resources have already been created
 		if resource.Manifest != "" {
-			collection, err = CreateFromManifest(ctx, globalCluster.kclient, []byte(resource.Manifest))
+			collection, err = CreateFromManifest(ctx, cluster.kclient, []byte(resource.Manifest))
 			if err != nil {
 				message.Debugf("error creating resource from manifest: %v", err)
 				errList = append(errList, err.Error())
 			}
 		} else if resource.File != "" {
-			collection, err = CreateFromFile(ctx, globalCluster.kclient, resource.File)
+			collection, err = CreateFromFile(ctx, cluster.kclient, resource.File)
 			if err != nil {
 				message.Debugf("error creating resource from file: %v", err)
 				errList = append(errList, err.Error())
@@ -71,7 +71,7 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 	}
 
 	// Destroy the resources
-	if err := DestroyAllResources(ctx, globalCluster.kclient, collections, namespaces); err != nil {
+	if err := DestroyAllResources(ctx, cluster.kclient, collections, namespaces); err != nil {
 		// If a resource can't be destroyed, return the error (include retry logic??)
 		message.Debugf("error destroying all resources: %v", err)
 		errList = append(errList, err.Error())

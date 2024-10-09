@@ -15,14 +15,17 @@ import (
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
 // This function is used to query the cluster for all resources required for processing
-func QueryCluster(ctx context.Context, resources []Resource) (map[string]interface{}, error) {
+func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (map[string]interface{}, error) {
+	if cluster == nil {
+		return nil, fmt.Errorf("cluster is nil")
+	}
 
 	// We may need a new type here to hold groups of resources
 
 	collections := make(map[string]interface{}, 0)
 
 	for _, resource := range resources {
-		collection, err := GetResourcesDynamically(ctx, resource.ResourceRule)
+		collection, err := GetResourcesDynamically(ctx, cluster, resource.ResourceRule)
 		// log error but continue with other resources
 		if err != nil {
 			return nil, err
@@ -43,14 +46,9 @@ func QueryCluster(ctx context.Context, resources []Resource) (map[string]interfa
 
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}
 // This function is used to query the cluster for specific subset of resources required for processing
-func GetResourcesDynamically(ctx context.Context,
-	resource *ResourceRule) (
-	[]map[string]interface{}, error) {
+func GetResourcesDynamically(ctx context.Context, cluster *Cluster, resource *ResourceRule) ([]map[string]interface{}, error) {
 	if resource == nil {
 		return nil, fmt.Errorf("resource rule is nil")
-	}
-	if globalCluster == nil {
-		return nil, fmt.Errorf("no active cluster to evaluate")
 	}
 
 	resourceId := schema.GroupVersionResource{
@@ -71,7 +69,7 @@ func GetResourcesDynamically(ctx context.Context,
 	} else if resource.Name != "" {
 		// Extracting named resources can only occur here
 		var itemObj *unstructured.Unstructured
-		itemObj, err := globalCluster.dynamicClient.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+		itemObj, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +86,7 @@ func GetResourcesDynamically(ctx context.Context,
 		collection = append(collection, item)
 	} else {
 		for _, namespace := range namespaces {
-			list, err := globalCluster.dynamicClient.Resource(resourceId).Namespace(namespace).
+			list, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespace).
 				List(ctx, metav1.ListOptions{})
 			if err != nil {
 				return nil, err

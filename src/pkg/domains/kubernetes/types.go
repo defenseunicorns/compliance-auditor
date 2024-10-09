@@ -89,18 +89,14 @@ func CreateKubernetesDomain(spec *KubernetesSpec) (types.Domain, error) {
 // GetResources returns the resources from the Kubernetes domain
 // Evaluates the `create-resources` first, `wait` second, and finally `resources` last
 func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.DomainResources, err error) {
-	err = InitCluster()
+	cluster, err := GetCluster()
 	if err != nil {
 		return nil, err
 	}
 
-	if globalCluster == nil {
-		return nil, fmt.Errorf("no active cluster to evaluate")
-	}
-
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
-		err := EvaluateWait(ctx, *k.Spec.Wait)
+		err := EvaluateWait(ctx, cluster, *k.Spec.Wait)
 		if err != nil {
 			return nil, err
 		}
@@ -108,12 +104,12 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.Dom
 
 	// TODO: Return both?
 	if k.Spec.Resources != nil {
-		resources, err = QueryCluster(ctx, k.Spec.Resources)
+		resources, err = QueryCluster(ctx, cluster, k.Spec.Resources)
 		if err != nil {
 			return nil, err
 		}
 	} else if k.Spec.CreateResources != nil {
-		resources, err = CreateE2E(ctx, k.Spec.CreateResources)
+		resources, err = CreateE2E(ctx, cluster, k.Spec.CreateResources)
 		if err != nil {
 			return nil, err
 		}

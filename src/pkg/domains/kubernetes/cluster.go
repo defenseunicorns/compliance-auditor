@@ -3,6 +3,7 @@ package kube
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	pkgkubernetes "github.com/defenseunicorns/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +14,11 @@ import (
 	"sigs.k8s.io/e2e-framework/klient"
 )
 
-var globalCluster *Cluster
+var (
+	clusterConnectOnce  sync.Once
+	globalCluster       *Cluster
+	globalConnectionErr error
+)
 
 type Cluster struct {
 	clientset     kubernetes.Interface
@@ -22,16 +27,14 @@ type Cluster struct {
 	dynamicClient *dynamic.DynamicClient
 }
 
-func InitCluster() error {
-	if globalCluster != nil {
-		return nil
+func GetCluster() (*Cluster, error) {
+	clusterConnectOnce.Do(func() {
+		globalCluster, globalConnectionErr = New()
+	})
+	if globalConnectionErr != nil {
+		return nil, globalConnectionErr
 	}
-
-	c, err := New()
-	if err == nil {
-		globalCluster = c
-	}
-	return err
+	return globalCluster, globalConnectionErr
 }
 
 func New() (*Cluster, error) {
@@ -53,7 +56,7 @@ func New() (*Cluster, error) {
 
 	dynamicClient := dynamic.NewForConfigOrDie(config)
 
-	// Dogsled the version output. We just want to ensure no errors were returned to validate cluster connection.
+	// Ensure no errors were returned to validate cluster connection.
 	_, err = clientset.Discovery().ServerVersion()
 	if err != nil {
 		return nil, errors.Join(clusterErr, err)
@@ -90,19 +93,3 @@ func (c *Cluster) validateAndGetGVR(group, version, resource string) (*metav1.AP
 
 	return nil, fmt.Errorf("resource %s not found in group %s version %s", resource, group, version)
 }
-
-// Use the K8s "client-go" library to get the currently active kube context, in the same way that
-// "kubectl" gets it if no extra config flags like "--kubeconfig" are passed.
-// func connect() (config *rest.Config, err error) {
-// 	// Build the config from the currently active kube context in the default way that the k8s client-go gets it, which
-// 	// is to look at the KUBECONFIG env var
-// 	config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-// 		clientcmd.NewDefaultClientConfigLoadingRules(),
-// 		&clientcmd.ConfigOverrides{}).ClientConfig()
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return config, nil
-// }

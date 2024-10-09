@@ -10,9 +10,9 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
-func EvaluateWait(ctx context.Context, waitPayload Wait) error {
-	if globalCluster == nil {
-		return fmt.Errorf("no active cluster to evaluate")
+func EvaluateWait(ctx context.Context, cluster *Cluster, waitPayload Wait) error {
+	if cluster == nil {
+		return fmt.Errorf("cluster is nil")
 	}
 
 	// TODO: incorporate wait for multiple objects?
@@ -43,5 +43,5 @@ func EvaluateWait(ctx context.Context, waitPayload Wait) error {
 	waitCtx, waitCancel := context.WithTimeout(ctx, duration)
 	defer waitCancel()
 
-	return pkgkubernetes.WaitForReady(waitCtx, globalCluster.watcher, []object.ObjMetadata{objMeta})
+	return pkgkubernetes.WaitForReady(waitCtx, cluster.watcher, []object.ObjMetadata{objMeta})
 }
