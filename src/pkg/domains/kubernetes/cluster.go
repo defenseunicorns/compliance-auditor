@@ -31,9 +31,7 @@ func GetCluster() (*Cluster, error) {
 	clusterConnectOnce.Do(func() {
 		globalCluster, globalConnectionErr = New()
 	})
-	if globalConnectionErr != nil {
-		return nil, globalConnectionErr
-	}
+
 	return globalCluster, globalConnectionErr
 }
 
