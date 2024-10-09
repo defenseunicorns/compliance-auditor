@@ -49,7 +49,7 @@ func GetResourcesDynamically(ctx context.Context,
 	if resource == nil {
 		return nil, fmt.Errorf("resource rule is nil")
 	}
-	if cluster == nil {
+	if globalCluster == nil {
 		return nil, fmt.Errorf("no active cluster to evaluate")
 	}
 
@@ -71,7 +71,7 @@ func GetResourcesDynamically(ctx context.Context,
 	} else if resource.Name != "" {
 		// Extracting named resources can only occur here
 		var itemObj *unstructured.Unstructured
-		itemObj, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+		itemObj, err := globalCluster.dynamicClient.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func GetResourcesDynamically(ctx context.Context,
 		collection = append(collection, item)
 	} else {
 		for _, namespace := range namespaces {
-			list, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespace).
+			list, err := globalCluster.dynamicClient.Resource(resourceId).Namespace(namespace).
 				List(ctx, metav1.ListOptions{})
 			if err != nil {
 				return nil, err

@@ -234,16 +234,18 @@ metadata:
 			name: "valid wait",
 			spec: &kube.KubernetesSpec{
 				Wait: &kube.Wait{
-					GroupKind: "namespace",
-					Name:      "test",
+					Resource: "pods",
+					Version:  "v1",
+					Name:     "test",
 				},
 			},
 			expectedErr: false,
 		},
 		{
-			name: "invalid wait, no GroupKind or Name specified",
+			name: "invalid wait, no Resource or Name specified",
 			spec: &kube.KubernetesSpec{
 				Wait: &kube.Wait{
+					Version:   "v1",
 					Namespace: "test",
 				},
 			},

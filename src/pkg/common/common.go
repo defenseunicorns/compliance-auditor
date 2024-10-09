@@ -144,10 +144,6 @@ func GetDomain(domain *Domain) (types.Domain, error) {
 	}
 	switch domain.Type {
 	case "kubernetes":
-		err := kube.InitCluster()
-		if err != nil {
-			return nil, err
-		}
 		return kube.CreateKubernetesDomain(domain.KubernetesSpec)
 	case "api":
 		return api.CreateApiDomain(domain.ApiSpec)

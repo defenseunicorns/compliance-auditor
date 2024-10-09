@@ -37,10 +37,12 @@ domain:
   type: kubernetes
   kubernetes-spec:
     wait:                               # Optional - Group of resources to read from Kubernetes
-      condition: Ready                  # ...
-      kind: pod/test-pod-wait           # ...
-      namespace: validation-test        # ...
-      timeout: 30s                      # ...
+      group:                            # Optional - Empty or "" for core group
+      version: v1                       # Required - Version of resource
+      resource: pods                    # Required - Resource type (API-recognized type, not Kind)Required - Resource type (API-recognized type, not Kind)
+      name: test-pod-wait               # Required - Name of the resource to wait for
+      namespace: validation-test        # Optional - For namespaced resources
+      timeout: 30s                      # Optional - Defaults to 30s
     resources:
     - name: podsvt
       resource-rule:

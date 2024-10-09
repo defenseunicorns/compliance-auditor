@@ -56,10 +56,13 @@ func CreateKubernetesDomain(spec *KubernetesSpec) (types.Domain, error) {
 	}
 
 	if spec.Wait != nil {
-		if spec.Wait.GroupKind == "" {
-			return nil, fmt.Errorf("wait group-kind cannot be empty")
+		if spec.Wait.Resource == "" {
+			return nil, fmt.Errorf("wait resource cannot be empty")
 		}
-		if spec.Wait.Name != "" {
+		if spec.Wait.Version == "" {
+			return nil, fmt.Errorf("wait version cannot be empty")
+		}
+		if spec.Wait.Name == "" {
 			return nil, fmt.Errorf("wait name cannot be empty")
 		}
 	}
@@ -86,7 +89,12 @@ func CreateKubernetesDomain(spec *KubernetesSpec) (types.Domain, error) {
 // GetResources returns the resources from the Kubernetes domain
 // Evaluates the `create-resources` first, `wait` second, and finally `resources` last
 func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.DomainResources, err error) {
-	if cluster == nil {
+	err = InitCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	if globalCluster == nil {
 		return nil, fmt.Errorf("no active cluster to evaluate")
 	}
 
@@ -165,9 +173,11 @@ func (f Field) Validate() error {
 }
 
 type Wait struct {
-	GroupKind string `json:"group-kind" yaml:"group-kind"`
-	Namespace string `json:"namespace" yaml:"namespace"`
 	Name      string `json:"name" yaml:"name"`
+	Group     string `json:"group" yaml:"group"`
+	Version   string `json:"version" yaml:"version"`
+	Resource  string `json:"resource" yaml:"resource"`
+	Namespace string `json:"namespace" yaml:"namespace"`
 	Timeout   string `json:"timeout" yaml:"timeout"`
 }
 
