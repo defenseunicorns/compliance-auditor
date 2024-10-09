@@ -160,7 +160,7 @@ func GenerateProfileCommand() *cobra.Command {
 		Use:     "profile",
 		Aliases: []string{"p"},
 		Args:    cobra.MaximumNArgs(1),
-		Short:   "Generate an profile OSCAL template",
+		Short:   "Generate a profile OSCAL template",
 		Long:    profileLong,
 		Example: profileExample,
 		RunE: func(cmd *cobra.Command, args []string) error {

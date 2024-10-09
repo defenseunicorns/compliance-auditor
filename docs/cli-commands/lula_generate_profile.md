@@ -5,7 +5,7 @@ type: docs
 ---
 ## lula generate profile
 
-Generate an profile OSCAL template
+Generate a profile OSCAL template
 
 ### Synopsis
 
