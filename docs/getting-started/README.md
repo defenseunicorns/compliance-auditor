@@ -2,37 +2,9 @@
 
 ## Installation
 
-Currently, you can install Lula in a couple of different ways: using Homebrew or from source. Lula is compatible only with Linux and macOS distributions.
+Currently, you can install Lula from Repository Releases, Homebrew, or by building from source. Lula is compatible only with Linux and macOS distributions.
 
-### Homebrew
-
-1) [Homebrew](https://brew.sh/) is a package manager for macOS and Linux. You can install Lula with Homebrew by running the following:
-
-    ```shell
-    brew tap defenseunicorns/tap && brew install lula
-    ```
-
-### From Source
-
-1) Clone the repository to your local machine and change into the `lula` directory
-
-    ```shell
-    git clone https://github.com/defenseunicorns/lula.git && cd lula
-    ```
-
-2) While in the `lula` directory, compile the tool into an executable binary. This outputs the `lula` binary to the `bin` directory.
-
-    ```shell
-    make build
-    ```
-
-3) On most Linux distributions, install the binary onto your $PATH by moving the downloaded binary to the /usr/local/bin directory:
-
-    ```shell
-    sudo mv ./bin/lula /usr/local/bin/lula
-    ```
-
-### Download
+### Repository Release
 
 1. Navigate to the Latest Release Page:
    Open your web browser and go to the following URL to access the latest release of Lula:
@@ -64,6 +36,34 @@ Currently, you can install Lula in a couple of different ways: using Homebrew or
 
    ```shell
    sudo mv ./download/path/lula_<version>_Linux_amd64 /usr/local/bin/lula
+
+### Homebrew
+
+1) [Homebrew](https://brew.sh/) is a package manager for macOS and Linux. You can install Lula with Homebrew by running the following:
+
+    ```shell
+    brew tap defenseunicorns/tap && brew install lula
+    ```
+
+### From Source
+
+1) Clone the repository to your local machine and change into the `lula` directory
+
+    ```shell
+    git clone https://github.com/defenseunicorns/lula.git && cd lula
+    ```
+
+2) While in the `lula` directory, compile the tool into an executable binary. This outputs the `lula` binary to the `bin` directory.
+
+    ```shell
+    make build
+    ```
+
+3) On most Linux distributions, install the binary onto your $PATH by moving the downloaded binary to the /usr/local/bin directory:
+
+    ```shell
+    sudo mv ./bin/lula /usr/local/bin/lula
+    ```
 
 ## Quick Start
 
