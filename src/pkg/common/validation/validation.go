@@ -32,9 +32,9 @@ func New(opts ...Option) (*ValidationContext, error) {
 	return &validationCtx, nil
 }
 
-func (vctx *ValidationContext) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
+func (vc *ValidationContext) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
 	var oscalModel *oscalTypes_1_1_2.OscalCompleteSchema
-	if vctx.cctx == nil {
+	if vc.cctx == nil {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("error getting path: %v", err)
@@ -44,7 +44,7 @@ func (vctx *ValidationContext) ValidateOnPath(ctx context.Context, path, target 
 			return nil, fmt.Errorf("error creating oscal model from path: %v", err)
 		}
 	} else {
-		oscalModel, err = vctx.cctx.ComposeFromPath(ctx, path)
+		oscalModel, err = vc.cctx.ComposeFromPath(ctx, path)
 		if err != nil {
 			return nil, fmt.Errorf("error composing model: %v", err)
 		}
@@ -54,7 +54,7 @@ func (vctx *ValidationContext) ValidateOnPath(ctx context.Context, path, target 
 		return assessmentResult, fmt.Errorf("component definition is nil")
 	}
 
-	results, err := vctx.ValidateOnCompDef(oscalModel.ComponentDefinition, target)
+	results, err := vc.ValidateOnCompDef(ctx, oscalModel.ComponentDefinition, target)
 	if err != nil {
 		return assessmentResult, err
 	}
@@ -67,7 +67,7 @@ func (vctx *ValidationContext) ValidateOnPath(ctx context.Context, path, target 
 	return assessmentResult, nil
 }
 
-func (vctx *ValidationContext) ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
+func (vc *ValidationContext) ValidateOnCompDef(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
 	// TODO: Should we execute the validation even if there are no comp-def/components, e.g., create an empty assessment-results object?
 
 	if compDef == nil {
@@ -93,7 +93,7 @@ func (vctx *ValidationContext) ValidateOnCompDef(compDef *oscalTypes_1_1_2.Compo
 	results = make([]oscalTypes_1_1_2.Result, 0)
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
-			findings, observations, err := vctx.ValidateOnControlImplementations(&controlImplementation, validationStore, target)
+			findings, observations, err := vc.ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, target)
 			if err != nil {
 				return nil, err
 			}
@@ -112,7 +112,7 @@ func (vctx *ValidationContext) ValidateOnCompDef(compDef *oscalTypes_1_1_2.Compo
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
-			findings, observations, err := vctx.ValidateOnControlImplementations(&controlImplementation, validationStore, source)
+			findings, observations, err := vc.ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, source)
 			if err != nil {
 				return nil, err
 			}
@@ -129,7 +129,7 @@ func (vctx *ValidationContext) ValidateOnCompDef(compDef *oscalTypes_1_1_2.Compo
 	return results, nil
 }
 
-func (vctx *ValidationContext) ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+func (vc *ValidationContext) ValidateOnControlImplementations(ctx context.Context, controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
 	message.Title("\n🔍 Collecting Requirements and Validations for Target: ", target)
@@ -140,25 +140,25 @@ func (vctx *ValidationContext) ValidateOnControlImplementations(controlImplement
 
 	// Check if validations perform execution actions
 	if reqtStats.ExecutableValidations {
-		if !vctx.runExecutableValidations && vctx.requestExecutionConfirmation {
+		if !vc.runExecutableValidations && vc.requestExecutionConfirmation {
 			confirmExecution := message.PromptForConfirmation(nil)
 			if !confirmExecution {
 				message.Infof("Validations requiring execution will NOT be run")
 			} else {
-				vctx.runExecutableValidations = true
+				vc.runExecutableValidations = true
 			}
 		}
 	}
 
 	// Set values for saving resources
 	saveResources := false
-	if vctx.resourcesDir != "" {
+	if vc.resourcesDir != "" {
 		saveResources = true
 	}
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(vctx.runExecutableValidations, saveResources, vctx.resourcesDir)
+	observations := validationStore.RunValidations(ctx, vc.runExecutableValidations, saveResources, vc.resourcesDir)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 

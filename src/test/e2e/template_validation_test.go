@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -71,19 +72,79 @@ func TestTemplateValidation(t *testing.T) {
 				t.Errorf("error creating composition context: %v", err)
 			}
 
-			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithCompositionContext(compositionCtx, oscalPath))
+			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(compositionCtx, oscalPath))
 
 			return ctx
 		}).
 		Assess("Template to Pass with env vars", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/template-validation/component-definition.tmpl.yaml"
+
+			// Add env vars
+			os.Setenv("LULA_VAR_POD_LABEL", "bar")
+			os.Setenv("LULA_VAR_CONTAINER_NAME", "nginx")
+			defer os.Unsetenv("LULA_VAR_POD_LABEL")
+			defer os.Unsetenv("LULA_VAR_CONTAINER_NAME")
+
+			// Set up the composition context - no default variable values now
+			compositionCtx, err := composition.New(
+				composition.WithModelFromLocalPath(oscalPath),
+				composition.WithRenderSettings("all", true),
+				composition.WithTemplateRenderer("all", map[string]interface{}{
+					"type":  interface{}("software"),
+					"title": interface{}("lula"),
+					"resources": interface{}(map[string]interface{}{
+						"name":      interface{}("test-pod-label"),
+						"namespace": interface{}("validation-test"),
+					}),
+				}, []template.VariableConfig{
+					{
+						Key:       "pod_label",
+						Sensitive: false,
+					},
+					{
+						Key:       "container_name",
+						Sensitive: true,
+					},
+				}, []string{}),
+			)
+			if err != nil {
+				t.Errorf("error creating composition context: %v", err)
+			}
+
+			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(compositionCtx, oscalPath))
 
 			return ctx
 		}).
 		Assess("Template to Pass with overrides", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/template-validation/component-definition.tmpl.yaml"
+			// Set up the composition context - bad resource name and no pod_label var - in overrides
+			compositionCtx, err := composition.New(
+				composition.WithModelFromLocalPath(oscalPath),
+				composition.WithRenderSettings("all", true),
+				composition.WithTemplateRenderer("all", map[string]interface{}{
+					"type":  interface{}("software"),
+					"title": interface{}("lula"),
+					"resources": interface{}(map[string]interface{}{
+						"name":      interface{}("bad-pod-name"),
+						"namespace": interface{}("validation-test"),
+					}),
+				}, []template.VariableConfig{
+					{
+						Key:       "pod_label",
+						Sensitive: false,
+					},
+					{
+						Key:       "container_name",
+						Default:   "nginx",
+						Sensitive: true,
+					},
+				}, []string{".var.pod_label=bar", ".const.resources.name=test-pod-label"}),
+			)
+			if err != nil {
+				t.Errorf("error creating composition context: %v", err)
+			}
 
-			return ctx
-		}).
-		Assess("Template to Fail", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(compositionCtx, oscalPath))
 
 			return ctx
 		}).
@@ -106,7 +167,7 @@ func validateFindingsSatisfied(ctx context.Context, t *testing.T, oscalPath stri
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+	assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

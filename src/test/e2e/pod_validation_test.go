@@ -227,14 +227,14 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
-	validationCtx, err := validation.New(validation.WithCompositionContext(nil, oscalPath))
+	validationCtx, err := validation.New()
 	if err != nil {
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+	assessment, err := validationCtx.ValidateOnPath(context.Background(), revisionOptions.OutputFile, "")
 	if err != nil {
-		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
+		t.Fatalf("Failed to validate oscal file: %s", revisionOptions.OutputFile)
 	}
 
 	if len(assessment.Results) == 0 {
@@ -322,14 +322,12 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
 	message.NoProgress = true
 
-	validationCtx, err := validation.New(
-		validation.WithCompositionContext(nil, oscalPath),
-		validation.WithAllowExecution(false, true))
+	validationCtx, err := validation.New(validation.WithAllowExecution(false, true))
 	if err != nil {
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+	assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -372,14 +370,12 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 	message.NoProgress = true
 	tempDir := t.TempDir()
 
-	validationCtx, err := validation.New(
-		validation.WithCompositionContext(nil, oscalPath),
-		validation.WithResourcesDir(true, tempDir))
+	validationCtx, err := validation.New(validation.WithResourcesDir(true, tempDir))
 	if err != nil {
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+	assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

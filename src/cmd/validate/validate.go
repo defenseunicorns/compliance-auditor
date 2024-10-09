@@ -79,7 +79,7 @@ func ValidateCommand() *cobra.Command {
 
 			// Set up the validation context
 			validationCtx, err := validation.New(
-				validation.WithCompositionContext(compositionCtx, inputFile),
+				validation.WithComposition(compositionCtx, inputFile),
 				validation.WithResourcesDir(saveResources, filepath.Dir(outputFile)),
 				validation.WithAllowExecution(confirmExecution, runNonInteractively),
 			)

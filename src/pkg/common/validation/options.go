@@ -9,7 +9,7 @@ import (
 
 type Option func(*ValidationContext) error
 
-func WithCompositionContext(cctx *composition.CompositionContext, path string) Option {
+func WithComposition(cctx *composition.CompositionContext, path string) Option {
 	return func(ctx *ValidationContext) error {
 		var err error
 		if cctx == nil {

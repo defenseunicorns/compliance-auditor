@@ -36,14 +36,14 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			message.NoProgress = true
 
 			validationCtx, err := validation.New(
-				validation.WithCompositionContext(nil, oscalPath),
+				validation.WithComposition(nil, oscalPath),
 				validation.WithAllowExecution(true, true),
 			)
 			if err != nil {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+			assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -115,14 +115,14 @@ func TestDeniedCreateResources(t *testing.T) {
 			message.NoProgress = true
 
 			validationCtx, err := validation.New(
-				validation.WithCompositionContext(nil, oscalPath),
+				validation.WithComposition(nil, oscalPath),
 				validation.WithAllowExecution(false, true),
 			)
 			if err != nil {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+			assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

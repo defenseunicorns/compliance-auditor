@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/types"
 )
 
@@ -16,7 +16,11 @@ func TestFileValidation(t *testing.T) {
 
 	t.Run("success - opa", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
-		assessment, err := validate.ValidateOnPath(ctx, passDir+oscalFile, "")
+		validationCtx, err := validation.New()
+		if err != nil {
+			t.Errorf("error creating validation context: %v", err)
+		}
+		assessment, err := validationCtx.ValidateOnPath(ctx, passDir+oscalFile, "")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -39,7 +43,11 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("success - kyverno", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
-		assessment, err := validate.ValidateOnPath(ctx, passDir+kyvernoFile, "")
+		validationCtx, err := validation.New()
+		if err != nil {
+			t.Errorf("error creating validation context: %v", err)
+		}
+		assessment, err := validationCtx.ValidateOnPath(ctx, passDir+kyvernoFile, "")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +70,11 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("fail - opa", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, failDir)
-		assessment, err := validate.ValidateOnPath(ctx, failDir+oscalFile, "")
+		validationCtx, err := validation.New()
+		if err != nil {
+			t.Errorf("error creating validation context: %v", err)
+		}
+		assessment, err := validationCtx.ValidateOnPath(ctx, failDir+oscalFile, "")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -85,7 +97,11 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("fail - kyverno", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, failDir)
-		assessment, err := validate.ValidateOnPath(ctx, failDir+kyvernoFile, "")
+		validationCtx, err := validation.New()
+		if err != nil {
+			t.Errorf("error creating validation context: %v", err)
+		}
+		assessment, err := validationCtx.ValidateOnPath(ctx, failDir+kyvernoFile, "")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -109,7 +125,11 @@ func TestFileValidation(t *testing.T) {
 
 	t.Run("invalid input", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, "scenarios/file-validations/invalid")
-		_, err := validate.ValidateOnPath(ctx, "scenarios/file-validations/invalid/oscal-component.yaml", "")
+		validationCtx, err := validation.New()
+		if err != nil {
+			t.Errorf("error creating validation context: %v", err)
+		}
+		_, err = validationCtx.ValidateOnPath(ctx, "scenarios/file-validations/invalid/oscal-component.yaml", "")
 		if err == nil {
 			t.Fatal("expected error, got success")
 		}

@@ -57,12 +57,12 @@ func TestOutputs(t *testing.T) {
 			components := *compDef.Components
 			validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-			validationCtx, err := validation.New(validation.WithCompositionContext(nil, oscalPath))
+			validationCtx, err := validation.New()
 			if err != nil {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			findingMap, observations, err := validationCtx.ValidateOnControlImplementations(components[0].ControlImplementations, validationStore, "")
+			findingMap, observations, err := validationCtx.ValidateOnControlImplementations(context.Background(), components[0].ControlImplementations, validationStore, "")
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -55,12 +55,12 @@ func TestApiValidation(t *testing.T) {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			validationCtx, err := validation.New(validation.WithCompositionContext(nil, oscalPath))
+			validationCtx, err := validation.New()
 			if err != nil {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+			assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -144,12 +144,12 @@ func TestApiValidation(t *testing.T) {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			validationCtx, err := validation.New(validation.WithCompositionContext(nil, oscalPath))
+			validationCtx, err := validation.New()
 			if err != nil {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(ctx, oscalPath, "")
+			assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
