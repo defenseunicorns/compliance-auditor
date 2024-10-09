@@ -14,6 +14,7 @@ import (
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +68,8 @@ var validateCmd = &cobra.Command{
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
 
-		assessment, err := ValidateOnPath(cmd.Context(), opts.InputFile, opts.Target)
+		ctx := context.WithValue(cmd.Context(), types.LulaValidationWorkDir, filepath.Dir(opts.InputFile))
+		assessment, err := ValidateOnPath(ctx, opts.InputFile, opts.Target)
 		if err != nil {
 			message.Fatalf(err, "Validation error: %s", err)
 		}

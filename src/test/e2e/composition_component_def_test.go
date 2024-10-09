@@ -42,7 +42,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
 			// Validate results using ValidateOnPath
-			assessment, err := validate.ValidateOnPath(ctx, compDefPath, "")
+			assessment, err := validate.ValidateOnPath(context.Background(), compDefPath, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
