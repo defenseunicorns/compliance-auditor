@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 )
 
@@ -85,7 +87,8 @@ func ValidateCommand() *cobra.Command {
 				return fmt.Errorf("error creating validation context: %v", err)
 			}
 
-			assessmentResults, err := validationCtx.ValidateOnPath(cmd.Context(), inputFile, target)
+			ctx := context.WithValue(cmd.Context(), types.LulaValidationWorkDir, filepath.Dir(inputFile))
+			assessmentResults, err := validationCtx.ValidateOnPath(ctx, inputFile, target)
 			if err != nil {
 				return fmt.Errorf("error validating on path: %v", err)
 			}

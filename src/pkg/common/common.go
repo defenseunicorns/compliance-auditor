@@ -12,6 +12,7 @@ import (
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
+	"github.com/defenseunicorns/lula/src/pkg/domains/files"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
@@ -148,6 +149,8 @@ func GetDomain(domain *Domain, ctx context.Context) (types.Domain, error) {
 		return kube.CreateKubernetesDomain(ctx, domain.KubernetesSpec)
 	case "api":
 		return api.CreateApiDomain(domain.ApiSpec)
+	case "file":
+		return files.CreateDomain(domain.FileSpec)
 	default:
 		return nil, fmt.Errorf("domain is unsupported")
 	}
