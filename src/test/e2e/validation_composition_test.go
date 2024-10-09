@@ -71,7 +71,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		t.Error(err)
 	}
 
-	assessment, err := validate.ValidateOnPath(ctx, oscalPath, "")
+	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
