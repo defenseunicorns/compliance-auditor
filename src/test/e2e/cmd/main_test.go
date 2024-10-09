@@ -57,8 +57,8 @@ func runCmdTestWithOutputFile(t *testing.T, goldenFilePath, goldenFileName, outE
 		return err
 	}
 
-	// Scrub timestamps
-	data = scrubTimestamps(data)
+	// Scrub uniquely generated data
+	data = scrubData(data)
 
 	testGolden(t, goldenFilePath, goldenFileName, string(data))
 
@@ -94,7 +94,11 @@ func testGolden(t *testing.T, filePath, filename, got string) {
 	}
 }
 
-func scrubTimestamps(data []byte) []byte {
-	re := regexp.MustCompile(`(?i)(last-modified:\s*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[-+]\d{2}:\d{2}|Z)?)`)
-	return []byte(re.ReplaceAllString(string(data), "${1}XXX"))
+func scrubData(data []byte) []byte {
+	timestamps := regexp.MustCompile(`(?i)(last-modified|published:\s)*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[-+]\d{2}:\d{2}|Z)?)`)
+	uuids := regexp.MustCompile(`(?i)(uuid:\s*)([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)
+
+	output := timestamps.ReplaceAllString(string(data), "${1}XXX")
+	output = uuids.ReplaceAllString(string(output), "${1}XXX")
+	return []byte(output)
 }

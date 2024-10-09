@@ -135,6 +135,19 @@ var generateComponentCmd = &cobra.Command{
 	},
 }
 
+var profileExample = `
+To generate a profile with included controls:
+	lula generate profile -s <catalog/profile source> -i ac-1,ac-2,ac-3
+
+To specify the name and filetype of the generated artifact:
+	lula generate profile -s <catalog/profile source> -i ac-1,ac-2,ac-3 -o my_profile.yaml
+
+To generate a profile that includes all controls except a list specified controls:
+	lula generate profile -s <catalog/profile source> -e ac-1,ac-2,ac-3
+`
+
+var profileLong = `Generation of a Profile OSCAL artifact with controls included or excluded from a source catalog/profile.`
+
 func GenerateProfileCommand() *cobra.Command {
 	var (
 		source     string
@@ -143,12 +156,14 @@ func GenerateProfileCommand() *cobra.Command {
 		exclude    []string
 	)
 
-	cmd := &cobra.Command{
+	profilecmd := &cobra.Command{
 		Use:     "profile",
 		Aliases: []string{"p"},
 		Args:    cobra.MaximumNArgs(1),
 		Short:   "Generate an profile OSCAL template",
-		RunE: func(_ *cobra.Command, args []string) error {
+		Long:    profileLong,
+		Example: profileExample,
+		RunE: func(cmd *cobra.Command, args []string) error {
 			message.Info("generate profile executed")
 
 			if outputFile == "" {
@@ -165,7 +180,17 @@ func GenerateProfileCommand() *cobra.Command {
 				return fmt.Errorf("Output File %s currently exist - cannot merge artifacts\n", outputFile)
 			}
 
-			profile, err := oscal.GenerateProfile(source, include, exclude)
+			command := fmt.Sprintf("%s --source %s", cmd.CommandPath(), source)
+
+			if len(include) > 0 {
+				command += fmt.Sprintf(" --include %s", strings.Join(include, ","))
+			}
+
+			if len(exclude) > 0 {
+				command += fmt.Sprintf(" --exclude %s", strings.Join(exclude, ","))
+			}
+
+			profile, err := oscal.GenerateProfile(command, source, include, exclude)
 			if err != nil {
 				return err
 			}
@@ -180,13 +205,13 @@ func GenerateProfileCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&source, "source", "s", "", "the path to the source catalog/profile")
-	cmd.MarkFlagRequired("source")
-	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
-	cmd.Flags().StringSliceVarP(&include, "include", "i", []string{}, "comma delimited list of controls to include from the source catalog/profile")
-	cmd.Flags().StringSliceVarP(&exclude, "exclude", "e", []string{}, "comma delimited list of controls to exclude from the source catalog/profile")
+	profilecmd.Flags().StringVarP(&source, "source", "s", "", "the path to the source catalog/profile")
+	profilecmd.MarkFlagRequired("source")
+	profilecmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
+	profilecmd.Flags().StringSliceVarP(&include, "include", "i", []string{}, "comma delimited list of controls to include from the source catalog/profile")
+	profilecmd.Flags().StringSliceVarP(&exclude, "exclude", "e", []string{}, "comma delimited list of controls to exclude from the source catalog/profile")
 
-	return cmd
+	return profilecmd
 }
 
 // var generateAssessmentPlanCmd = &cobra.Command{

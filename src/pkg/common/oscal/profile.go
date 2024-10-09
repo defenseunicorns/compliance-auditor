@@ -106,7 +106,7 @@ func (p *Profile) NewModel(data []byte) error {
 	return nil
 }
 
-func GenerateProfile(source string, include []string, exclude []string) (*Profile, error) {
+func GenerateProfile(command string, source string, include []string, exclude []string) (*Profile, error) {
 
 	// Create the OSCAL profile type model for use and later assignment to the oscal.Profile implementation
 	var model oscalTypes.Profile
@@ -117,8 +117,17 @@ func GenerateProfile(source string, include []string, exclude []string) (*Profil
 	// Always create a new UUID for the assessment results (for now)
 	model.UUID = uuid.NewUUID()
 
+	// Creation of the generation prop
+	props := []oscalTypes.Property{
+		{
+			Name:  "generation",
+			Ns:    LULA_NAMESPACE,
+			Value: command,
+		},
+	}
+
 	// Create metadata object with requires fields and a few extras
-	// Where do we establish what `version` should be?
+	// Adding props to metadata as it is less available within the model
 	model.Metadata = oscalTypes.Metadata{
 		Title:        "Profile",
 		Version:      "0.0.1",
@@ -126,6 +135,7 @@ func GenerateProfile(source string, include []string, exclude []string) (*Profil
 		Remarks:      "Profile generated from Lula",
 		Published:    &rfc3339Time,
 		LastModified: rfc3339Time,
+		Props:        &props,
 	}
 
 	// Include would include the specified controls and exclude the rest

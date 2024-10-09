@@ -3,6 +3,8 @@ package cmd_test
 import (
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/cmd/generate"
@@ -18,13 +20,25 @@ func TestGenerateProfileCommand(t *testing.T) {
 		return runCmdTest(t, rootCmd, args...)
 	}
 
+	testAgainstGolden := func(t *testing.T, goldenFileName string, args ...string) error {
+		rootCmd := generate.GenerateProfileCommand()
+
+		return runCmdTestWithGolden(t, "generate/", goldenFileName, rootCmd, args...)
+	}
+
+	testAgainstOutputFile := func(t *testing.T, goldenFileName string, args ...string) error {
+		rootCmd := generate.GenerateProfileCommand()
+
+		return runCmdTestWithOutputFile(t, "generate/", goldenFileName, "yaml", rootCmd, args...)
+	}
+
 	t.Run("Generate Profile", func(t *testing.T) {
 		tempDir := t.TempDir()
 		outputFile := filepath.Join(tempDir, "output.yaml")
 
 		args := []string{
-			"--source", "../unit/common/oscal/catalog.yaml",
-			"--include", "ac-1,ac-2,ac-3",
+			"--source", "../../unit/common/oscal/catalog.yaml",
+			"--include", "ac-1,ac-3,ac-2",
 			"-o", outputFile,
 		}
 		err := test(t, args...)
@@ -51,6 +65,58 @@ func TestGenerateProfileCommand(t *testing.T) {
 			t.Error("expected the profile model to be non-nil")
 		}
 
+		profileModel := complete.Profile
+
+		if len(profileModel.Imports) == 0 {
+			t.Error("expected length of imports to be greater than 0")
+		}
+
+		// Target import item should be the only item in the list
+		include := profileModel.Imports[0].IncludeControls
+		controls := *include
+
+		if len(controls) != 1 {
+			t.Error("expected length of controls to be 1")
+		}
+		expected := []string{"ac-1", "ac-2", "ac-3"}
+		ids := controls[0].WithIds
+		if !reflect.DeepEqual(expected, *ids) {
+			t.Errorf("expected control id slice to contain %+q, got %+q", expected, *ids)
+		}
+	})
+
+	t.Run("Generate a profile with included controls", func(t *testing.T) {
+		args := []string{
+			"--source", "../../unit/common/oscal/catalog.yaml",
+			"--include", "ac-1,ac-3,ac-2",
+		}
+
+		err := testAgainstOutputFile(t, "generate-profile", args...)
+		if err != nil {
+			t.Errorf("error executing: generate profile %v", strings.Join(args, " "))
+		}
+	})
+
+	t.Run("Test help", func(t *testing.T) {
+		err := testAgainstGolden(t, "help", "--help")
+		if err != nil {
+			t.Errorf("Expected help message but received an error %v", err)
+		}
+	})
+
+	t.Run("Test generate - invalid merge error", func(t *testing.T) {
+		args := []string{
+			"--source", "../../unit/common/oscal/catalog.yaml",
+			"--include", "ac-1,ac-3,ac-2",
+			"-o", "../../unit/common/oscal/valid-profile.yaml",
+		}
+		err := test(t, args...)
+		if err == nil {
+			t.Error("Expected an error indicating merging profiles is not supported")
+		}
+		if !strings.Contains(err.Error(), "cannot merge artifacts") {
+			t.Errorf("Expected error for merging artifacts - received %v", err.Error())
+		}
 	})
 
 }

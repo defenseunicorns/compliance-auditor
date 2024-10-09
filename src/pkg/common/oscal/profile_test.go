@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetType(t *testing.T) {
-	test := func(t *testing.T, model oscal.Profile, expected string) {
+	test := func(t *testing.T, model *oscal.Profile, expected string) {
 		t.Helper()
 
 		got := model.GetType()
@@ -20,23 +20,22 @@ func TestGetType(t *testing.T) {
 
 	t.Run("Test populated model", func(t *testing.T) {
 
-		var profile = oscal.Profile{
-			Model: &oscalTypes.Profile{},
-		}
+		profile := oscal.NewProfile()
+		profile.Model = &oscalTypes.Profile{}
 
 		test(t, profile, "profile")
 	})
 
 	t.Run("Test unpopulated model", func(t *testing.T) {
 
-		var profile = oscal.Profile{}
+		profile := oscal.NewProfile()
 
 		test(t, profile, "profile")
 	})
 }
 
 func TestGetCompleteModel(t *testing.T) {
-	test := func(t *testing.T, model oscal.Profile, expectedNil bool) {
+	test := func(t *testing.T, model *oscal.Profile, expectedNil bool) {
 		t.Helper()
 
 		result := model.GetCompleteModel()
@@ -48,15 +47,14 @@ func TestGetCompleteModel(t *testing.T) {
 	}
 
 	t.Run("Test complete with non-nil model", func(t *testing.T) {
-		var profile = oscal.Profile{
-			Model: &oscalTypes.Profile{},
-		}
+		profile := oscal.NewProfile()
+		profile.Model = &oscalTypes.Profile{}
 		test(t, profile, false)
 	})
 
 	t.Run("Test complete with no model declaration", func(t *testing.T) {
 		// Expecting a nil model
-		var profile = oscal.Profile{}
+		profile := oscal.NewProfile()
 		test(t, profile, true)
 	})
 }
@@ -113,7 +111,7 @@ func TestMakeDeterministic(t *testing.T) {
 	}
 
 	t.Run("Profile with included controls", func(t *testing.T) {
-		profile, err := oscal.GenerateProfile("#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"}, []string{})
+		profile, err := oscal.GenerateProfile("", "#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"}, []string{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -122,7 +120,7 @@ func TestMakeDeterministic(t *testing.T) {
 	})
 
 	t.Run("Profile with exclude controls", func(t *testing.T) {
-		profile, err := oscal.GenerateProfile("#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{}, []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"})
+		profile, err := oscal.GenerateProfile("", "#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{}, []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"})
 		if err != nil {
 			t.Fatal(err)
 		}
