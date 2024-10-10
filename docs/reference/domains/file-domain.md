@@ -11,33 +11,41 @@ domain:
     filepaths:
     - name: config
       path: grafana.ini
+      parser: ini         # optionally specify which parser to use for the file type
 ```
 
 ## Supported File Types
-The file domain uses OPA's [conftest](https://conftest.dev) to parse files into a json-compatible format for validations. ∑Both OPA and Kyverno (using [kyverno-json](https://kyverno.github.io/kyverno-json/latest/)) can validate files parsed by the file domain.
+The file domain uses OPA's [conftest](https://conftest.dev) to parse files into a json-compatible format for validations. Both OPA and Kyverno (using [kyverno-json](https://kyverno.github.io/kyverno-json/latest/)) can validate files parsed by the file domain.
 
-The file domain supports the following file formats for validation:
-* CUE
-* CycloneDX
-* Dockerfile
-* EDN
-* Environment files (.env)
-* HCL and HCL2
-* HOCON
-* Ignore files (.gitignore, .dockerignore)
-* INI
-* JSON
-* Jsonnet
-* Property files (.properties)
-* SPDX
-* TextProto (Protocol Buffers)
-* TOML
-* VCL
-* XML
-* YAML
+The file domain includes the following file parsers:
+* cue
+* cyclonedx
+* dockerfile
+* edn
+* hcl1
+* hcl2
+* hocon
+* ignore
+* ini
+* json
+* jsonc
+* jsonnet
+* properties
+* spdx
+* textproto
+* toml
+* vcl
+* xml
+* yaml
+* dotenv
+* string
+
+The file domain can also parse arbitrary file types as strings. The entire file contents will be represented as a single string.
+
+The file parser can usually be inferred from the file extension. However, if the file extension does not match the filetype you are parsing (for example, if you have a json file that does not have a `.json` extension), or if you wish to parse an arbitrary file type as a string, use the `parser` field in the FileSpec to specify which parser to use.
 
 ## Validations
-When writing validations against files, the filepath `Name` must be included as
+When writing validations against files, the filepath `name` must be included as
 the top-level key in the validation. The placement varies between providers.
 
 Given the following ini file:

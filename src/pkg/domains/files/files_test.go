@@ -17,6 +17,7 @@ func TestGetResource(t *testing.T) {
 			{Name: "foo.yaml", Path: "foo.yaml"},
 			{Name: "bar.json", Path: "bar.json"},
 			{Name: "arbitraryname", Path: "nested-directory/baz.hcl2"},
+			{Name: "stringtheory", Path: "arbitrary.file", Parser: "string"},
 		}}}
 
 		resources, err := d.GetResources(context.WithValue(context.Background(), types.LulaValidationWorkDir, "testdata"))
@@ -27,6 +28,7 @@ func TestGetResource(t *testing.T) {
 			"arbitraryname": map[string]any{
 				"resource": map[string]any{"catname": map[string]any{"blackcat": map[string]any{"name": "robin"}}},
 			},
+			"stringtheory": "hello there!",
 		}); diff != "" {
 			t.Fatalf("wrong result:\n%s\n", diff)
 		}

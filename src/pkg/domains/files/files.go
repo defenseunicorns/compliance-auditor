@@ -37,23 +37,23 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	defer os.RemoveAll(dst)
 
 	// make a map of rel filepaths to the user-supplied name, so we can re-key the DomainResources later on.
-	filenames := make(map[string]string, len(d.Spec.Filepaths))
+	filenames := make(map[string]string, 0)
+
+	// unstructuredFiles is used to store a list of files that Lula needs to parse.
+	unstructuredFiles := make([]FileInfo, 0)
 
 	// Copy files to a temporary location
 	for _, path := range d.Spec.Filepaths {
-		file := filepath.Join(workDir, path.Path)
-		bytes, err := network.Fetch(file)
-		if err != nil {
-			return nil, fmt.Errorf("error getting source files: %w", err)
+		if path.Parser != "" && path.Parser == "string" {
+			unstructuredFiles = append(unstructuredFiles, path)
+			continue
 		}
-
-		// We'll just use the filename when writing the file so it's easier to reference later
-		relname := filepath.Base(path.Path)
-
-		err = os.WriteFile(filepath.Join(dst, relname), bytes, 0666)
+		file := filepath.Join(workDir, path.Path)
+		relname, err := copyFile(dst, file)
 		if err != nil {
 			return nil, fmt.Errorf("error writing local files: %w", err)
 		}
+
 		// and save this info for later
 		filenames[relname] = path.Name
 	}
@@ -79,7 +79,7 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 
 	// clean up the resources so it's using the filepath.Name as the map key,
 	// instead of the file path.
-	drs := make(types.DomainResources, len(config))
+	drs := make(types.DomainResources, len(config)+len(unstructuredFiles))
 	for k, v := range config {
 		rel, err := filepath.Rel(dst, k)
 		if err != nil {
@@ -87,6 +87,18 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		}
 		drs[filenames[rel]] = v
 	}
+
+	// add the string form of the unstructured files
+	for _, f := range unstructuredFiles {
+		// we don't need to copy these files, we'll just slurp the contents into
+		// a string and append that as one big DomainResource
+		b, err := os.ReadFile(filepath.Join(workDir, f.Path))
+		if err != nil {
+			return nil, fmt.Errorf("error reading source files: %w", err)
+		}
+		drs[f.Name] = string(b)
+	}
+
 	return drs, nil
 }
 
@@ -102,4 +114,17 @@ func CreateDomain(spec *Spec) (types.Domain, error) {
 		return nil, fmt.Errorf("file-spec must not be empty")
 	}
 	return Domain{spec}, nil
+}
+
+// copyFile is a helper function that copies a file from source to dst, and returns the relative file path between the two.
+func copyFile(dst string, src string) (string, error) {
+	bytes, err := network.Fetch(src)
+	if err != nil {
+		return "", fmt.Errorf("error getting source files: %w", err)
+	}
+
+	// We'll use the filename when writing the file so it's easier to reference later
+	relname := filepath.Base(src)
+
+	return relname, os.WriteFile(filepath.Join(dst, relname), bytes, 0666)
 }
