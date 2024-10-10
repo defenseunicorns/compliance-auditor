@@ -14,6 +14,7 @@ import (
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +68,8 @@ var validateCmd = &cobra.Command{
 			message.Fatalf(err, "Invalid file extension: %s, requires .json or .yaml", opts.InputFile)
 		}
 
-		assessment, err := ValidateOnPath(cmd.Context(), opts.InputFile, opts.Target)
+		ctx := context.WithValue(cmd.Context(), types.LulaValidationWorkDir, filepath.Dir(opts.InputFile))
+		assessment, err := ValidateOnPath(ctx, opts.InputFile, opts.Target)
 		if err != nil {
 			message.Fatalf(err, "Validation error: %s", err)
 		}
@@ -146,7 +148,7 @@ func ValidateOnPath(ctx context.Context, path string, target string) (assessment
 		return assessmentResult, fmt.Errorf("component definition is nil")
 	}
 
-	results, err := ValidateOnCompDef(oscalModel.ComponentDefinition, target)
+	results, err := ValidateOnCompDef(ctx, oscalModel.ComponentDefinition, target)
 	if err != nil {
 		return assessmentResult, err
 	}
@@ -162,7 +164,7 @@ func ValidateOnPath(ctx context.Context, path string, target string) (assessment
 
 // ValidateOnCompDef takes a single ComponentDefinition object
 // It will perform a validation and return a slice of results that can be written to an assessment-results object
-func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
+func ValidateOnCompDef(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
 	if compDef == nil {
 		return results, fmt.Errorf("cannot validate a component definition that is nil")
 	}
@@ -187,7 +189,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 	// this will only produce a single result
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, target)
+			findings, observations, err := ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, target)
 			if err != nil {
 				return results, err
 			}
@@ -206,7 +208,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 		// loop over the controlImplementations map & validate
 		// we lose context of source if not contained within the loop
 		for source, controlImplementation := range controlImplementations {
-			findings, observations, err := ValidateOnControlImplementations(&controlImplementation, validationStore, source)
+			findings, observations, err := ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, source)
 			if err != nil {
 				return results, err
 			}
@@ -224,7 +226,7 @@ func ValidateOnCompDef(compDef *oscalTypes_1_1_2.ComponentDefinition, target str
 
 }
 
-func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+func ValidateOnControlImplementations(ctx context.Context, controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
 
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
@@ -251,7 +253,7 @@ func ValidateOnControlImplementations(controlImplementations *[]oscalTypes_1_1_2
 
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(ConfirmExecution, SaveResources, ResourcesDir)
+	observations := validationStore.RunValidations(ctx, ConfirmExecution, SaveResources, ResourcesDir)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 

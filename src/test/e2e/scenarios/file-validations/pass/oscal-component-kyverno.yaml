@@ -1,4 +1,3 @@
-# add the descriptions inline
 component-definition:
   uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
   metadata:
@@ -39,36 +38,32 @@ component-definition:
               links:
                 - href: "#88AB3470-B96B-4D7C-BC36-02BF9563C46C"
                   rel: lula
-  back-matter:
-    resources:
+  back-matter: 
+      resources:
       - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
-        description: >-
-          domain: 
-            type: kubernetes
-            kubernetes-spec:
-              resources:
-              - name: podsvt
-                resource-rule:
-                  version: v1
-                  resource: pods
-                  namespaces: [validation-test]
-              wait:
-                version: v1
-                resource: pods
-                name: test-pod-wait
-                namespace: validation-test
-                timeout: 30s
-          provider: 
-            type: opa
-            opa-spec:
-              rego: |
-                package validate
-
-                import future.keywords.every
-
-                validate {
-                  every pod in input.podsvt {
-                    podLabel := pod.metadata.labels.foo
-                    podLabel == "bar"
-                  }
-                }
+        rlinks:
+          - href: lula
+        description: |
+          domain:
+            type: file
+            file-spec:
+              filepaths:
+              - name: config
+                path: config.json
+          provider:
+            type: kyverno
+            kyverno-spec:
+              policy:
+                apiVersion: json.kyverno.io/v1alpha1
+                kind: ValidatingPolicy
+                metadata:
+                  name: grafana-config
+                spec:
+                  rules:
+                  - name: protocol-is-https
+                    assert:
+                      all:
+                      - check:
+                          config:
+                            server:
+                              protocol: https
