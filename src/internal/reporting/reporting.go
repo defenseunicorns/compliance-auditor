@@ -1,6 +1,7 @@
 package reporting
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -38,7 +39,13 @@ func GenerateReport(inputFile string, fileFormat string) error {
 	}
 	spinner.Success()
 
-	err = handleOSCALModel(oscalModel, fileFormat)
+	// Initialize CompositionContext
+	compCtx, err := composition.New()
+	if err != nil {
+		return fmt.Errorf("failed to create composition context: %v", err)
+	}
+
+	err = handleOSCALModel(oscalModel, fileFormat, compCtx)
 	if err != nil {
 		return err
 	}
@@ -47,7 +54,7 @@ func GenerateReport(inputFile string, fileFormat string) error {
 }
 
 // Processes an OSCAL Model based on the model type
-func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) error {
+func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string, compCtx *composition.CompositionContext) error {
 	// Start a new spinner for the report generation process
 	spinner := message.NewProgressSpinner("Determining OSCAL model type")
 	modelType, err := oscal.GetOscalModel(oscalModel)
@@ -64,7 +71,7 @@ func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) e
 
 	case "component":
 		spinner.Updatef("Composing Component Definition")
-		err := composition.ComposeComponentDefinitions(oscalModel.ComponentDefinition)
+		err := compCtx.ComposeComponentDefinitions(context.Background(), oscalModel.ComponentDefinition, "")
 		if err != nil {
 			spinner.Fatalf(fmt.Errorf("failed to compose component definitions: %v", err), "failed to compose component definitions")
 			return err
@@ -72,7 +79,7 @@ func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) e
 
 		spinner.Updatef("Processing Component Definition")
 		// Process the component-definition model
-		err = handleComponentDefinition(oscalModel.ComponentDefinition, format)
+		err = handleComponentDefinition(oscalModel.ComponentDefinition, format, compCtx)
 		if err != nil {
 			// If an error occurs, stop the spinner and display the error
 			spinner.Fatalf(err, "failed to process component-definition model")
@@ -91,10 +98,10 @@ func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string) e
 }
 
 // Handler for Component Definition OSCAL files to create the report
-func handleComponentDefinition(componentDefinition *oscalTypes_1_1_2.ComponentDefinition, format string) error {
+func handleComponentDefinition(componentDefinition *oscalTypes_1_1_2.ComponentDefinition, format string, compCtx *composition.CompositionContext) error {
 	spinner := message.NewProgressSpinner("composing component definitions")
 
-	err := composition.ComposeComponentDefinitions(componentDefinition)
+	err := compCtx.ComposeComponentDefinitions(context.Background(), componentDefinition, "")
 	if err != nil {
 		spinner.Fatalf(fmt.Errorf("failed to compose component definitions: %v", err), "failed to compose component definitions")
 		return err

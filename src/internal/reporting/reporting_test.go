@@ -5,6 +5,7 @@ import (
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 )
 
 // Mock functions for each OSCAL model
@@ -206,10 +207,16 @@ func TestHandleOSCALModel(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		// Run tests sequentially to avoid race conditions due to spinner
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			err := handleOSCALModel(tc.oscalModel, tc.fileFormat)
+			// Initialize CompositionContext
+			compCtx, err := composition.New()
+			if err != nil {
+				t.Fatalf("failed to create composition context: %v", err)
+			}
+
+			// Call handleOSCALModel with compCtx
+			err = handleOSCALModel(tc.oscalModel, tc.fileFormat, compCtx)
 			if tc.expectErr {
 				if err == nil {
 					t.Errorf("expected an error but got none for test case: %s", tc.name)
