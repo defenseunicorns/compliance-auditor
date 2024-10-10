@@ -88,8 +88,9 @@ func CreateKubernetesDomain(spec *KubernetesSpec) (types.Domain, error) {
 
 // GetResources returns the resources from the Kubernetes domain
 // Evaluates the `create-resources` first, `wait` second, and finally `resources` last
-func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.DomainResources, err error) {
-	var createdResources types.DomainResources
+func (k KubernetesDomain) GetResources(ctx context.Context) (types.DomainResources, error) {
+	createdResources := make(types.DomainResources)
+	resources := make(types.DomainResources)
 	var namespaces []string
 
 	cluster, err := GetCluster()
@@ -131,11 +132,15 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.Dom
 
 	// Join the resources and createdResources
 	// Note - resource keys must be unique
-	for k, v := range createdResources {
-		resources[k] = v
+	if len(resources) == 0 {
+		return createdResources, nil
+	} else {
+		for k, v := range createdResources {
+			resources[k] = v
+		}
 	}
 
-	return resources, err
+	return resources, nil
 }
 
 func (k KubernetesDomain) IsExecutable() bool {
