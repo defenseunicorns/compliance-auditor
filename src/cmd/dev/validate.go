@@ -132,7 +132,7 @@ func DevValidate(ctx context.Context, validationBytes []byte, resourcesBytes []b
 		}
 	}
 
-	lulaValidation, err = RunSingleValidation(
+	lulaValidation, err = RunSingleValidation(ctx,
 		validationBytes,
 		types.WithStaticResources(resources),
 		types.ExecutionAllowed(validateOpts.ConfirmExecution),

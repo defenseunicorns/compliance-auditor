@@ -140,13 +140,13 @@ func SetCwdToFileDir(dirPath string) (resetFunc func(), err error) {
 }
 
 // Get the domain and providers
-func GetDomain(domain *Domain, ctx context.Context) (types.Domain, error) {
+func GetDomain(domain *Domain) (types.Domain, error) {
 	if domain == nil {
 		return nil, fmt.Errorf("domain is nil")
 	}
 	switch domain.Type {
 	case "kubernetes":
-		return kube.CreateKubernetesDomain(ctx, domain.KubernetesSpec)
+		return kube.CreateKubernetesDomain(domain.KubernetesSpec)
 	case "api":
 		return api.CreateApiDomain(domain.ApiSpec)
 	case "file":

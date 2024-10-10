@@ -83,7 +83,7 @@ func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, t
 }
 
 // RunSingleValidation runs a single validation
-func RunSingleValidation(validationBytes []byte, opts ...types.LulaValidationOption) (lulaValidation types.LulaValidation, err error) {
+func RunSingleValidation(ctx context.Context, validationBytes []byte, opts ...types.LulaValidationOption) (lulaValidation types.LulaValidation, err error) {
 	var validation common.Validation
 
 	err = yaml.Unmarshal(validationBytes, &validation)
@@ -96,7 +96,7 @@ func RunSingleValidation(validationBytes []byte, opts ...types.LulaValidationOpt
 		return lulaValidation, err
 	}
 
-	err = lulaValidation.Validate(context.Background(), opts...)
+	err = lulaValidation.Validate(ctx, opts...)
 	if err != nil {
 		return lulaValidation, err
 	}

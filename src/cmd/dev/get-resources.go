@@ -72,7 +72,7 @@ func init() {
 }
 
 func DevGetResources(ctx context.Context, validationBytes []byte, spinner *message.Spinner) (types.DomainResources, error) {
-	lulaValidation, err := RunSingleValidation(
+	lulaValidation, err := RunSingleValidation(ctx,
 		validationBytes,
 		types.ExecutionAllowed(getResourcesOpts.ConfirmExecution),
 		types.Interactive(RunInteractively),
