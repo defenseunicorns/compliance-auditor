@@ -120,8 +120,9 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			}
 
 			// Check that resources in the cluster were destroyed
-			err = config.Client().Resources().WithNamespace("validation-test").List(ctx, &corev1.PodList{})
-			if err == nil {
+			podList := &corev1.PodList{}
+			err = config.Client().Resources().WithNamespace("validation-test").List(ctx, podList)
+			if len(podList.Items) != 0 || err != nil {
 				t.Fatal("pods should not exist in validation-test namespace")
 			}
 			if err := config.Client().Resources().Get(ctx, "test-deployment", "validation-test", &appsv1.Deployment{}); err == nil {
