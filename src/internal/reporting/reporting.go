@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
@@ -150,46 +149,48 @@ func ExtractControlIDs(controlMap map[string][]oscalTypes_1_1_2.ControlImplement
 }
 
 func PrintReport(data ReportData, format string) error {
-	if format == "table" {
-		// Use the message package for printing table data
-		message.Infof("Title: %s", data.ComponentDefinition.Title)
+    if format == "table" {
+        // Use the Table function to print a formatted table
+        message.Infof("Title: %s", data.ComponentDefinition.Title)
 
-		// Print the Control ID By Source as a table
-		message.Info("\nControl Source            | Number of Controls")
-		message.Info(strings.Repeat("-", 60))
+        // Prepare headers and data for Control ID By Source table
+        sourceHeaders := []string{"Control Source", "Number of Controls"}
+        sourceData := make([][]string, 0, len(data.ComponentDefinition.ControlIDBySource))
+        for source, count := range data.ComponentDefinition.ControlIDBySource {
+            sourceData = append(sourceData, []string{source, fmt.Sprintf("%d", count)})
+        }
+        // Print Control ID By Source using the Table function
+        message.Table(sourceHeaders, sourceData, []int{70, 30})
 
-		for source, count := range data.ComponentDefinition.ControlIDBySource {
-			message.Infof("%-40s | %-15d", source, count)
-		}
+        // Prepare headers and data for Control ID By Framework table
+        frameworkHeaders := []string{"Framework", "Number of Controls"}
+        frameworkData := make([][]string, 0, len(data.ComponentDefinition.ControlIDByFramework))
+        for framework, count := range data.ComponentDefinition.ControlIDByFramework {
+            frameworkData = append(frameworkData, []string{framework, fmt.Sprintf("%d", count)})
+        }
+        // Print Control ID By Framework using the Table function
+        message.Table(frameworkHeaders, frameworkData, []int{70, 30})
 
-		// Print the Control ID By Framework as a table
-		message.Info("\nFramework                | Number of Controls")
-		message.Info(strings.Repeat("-", 40))
+    } else {
+        var err error
+        var fileData []byte
 
-		for framework, count := range data.ComponentDefinition.ControlIDByFramework {
-			message.Infof("%-20s | %-15d", framework, count)
-		}
+        if format == "yaml" {
+            message.Info("Generating report in YAML format...")
+            fileData, err = yaml.Marshal(data)
+            if err != nil {
+                message.Fatal(err, "Failed to marshal data to YAML")
+            }
+        } else {
+            message.Info("Generating report in JSON format...")
+            fileData, err = json.MarshalIndent(data, "", "  ")
+            if err != nil {
+                message.Fatal(err, "Failed to marshal data to JSON")
+            }
+        }
 
-	} else {
-		var err error
-		var fileData []byte
+        message.Info(string(fileData))
+    }
 
-		if format == "yaml" {
-			message.Info("Generating report in YAML format...")
-			fileData, err = yaml.Marshal(data)
-			if err != nil {
-				message.Fatal(err, "Failed to marshal data to YAML")
-			}
-		} else {
-			message.Info("Generating report in JSON format...")
-			fileData, err = json.MarshalIndent(data, "", "  ")
-			if err != nil {
-				message.Fatal(err, "Failed to marshal data to JSON")
-			}
-		}
-
-		message.Info(string(fileData))
-	}
-
-	return nil
+    return nil
 }
