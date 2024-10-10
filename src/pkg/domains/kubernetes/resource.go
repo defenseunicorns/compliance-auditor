@@ -11,22 +11,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // QueryCluster() requires context and a Payload as input and returns []unstructured.Unstructured
 // This function is used to query the cluster for all resources required for processing
-func QueryCluster(ctx context.Context, resources []Resource) (map[string]interface{}, error) {
+func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (map[string]interface{}, error) {
+	if cluster == nil {
+		return nil, fmt.Errorf("cluster is nil")
+	}
 
 	// We may need a new type here to hold groups of resources
 
 	collections := make(map[string]interface{}, 0)
 
 	for _, resource := range resources {
-		collection, err := GetResourcesDynamically(ctx, resource.ResourceRule)
+		collection, err := GetResourcesDynamically(ctx, cluster, resource.ResourceRule)
 		// log error but continue with other resources
 		if err != nil {
 			return nil, err
@@ -47,17 +46,10 @@ func QueryCluster(ctx context.Context, resources []Resource) (map[string]interfa
 
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}
 // This function is used to query the cluster for specific subset of resources required for processing
-func GetResourcesDynamically(ctx context.Context,
-	resource *ResourceRule) (
-	[]map[string]interface{}, error) {
+func GetResourcesDynamically(ctx context.Context, cluster *Cluster, resource *ResourceRule) ([]map[string]interface{}, error) {
 	if resource == nil {
 		return nil, fmt.Errorf("resource rule is nil")
 	}
-	config, err := connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
-	}
-	dynamic := dynamic.NewForConfigOrDie(config)
 
 	resourceId := schema.GroupVersionResource{
 		Group:    resource.Group,
@@ -77,7 +69,7 @@ func GetResourcesDynamically(ctx context.Context,
 	} else if resource.Name != "" {
 		// Extracting named resources can only occur here
 		var itemObj *unstructured.Unstructured
-		itemObj, err := dynamic.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
+		itemObj, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespaces[0]).Get(ctx, resource.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +86,7 @@ func GetResourcesDynamically(ctx context.Context,
 		collection = append(collection, item)
 	} else {
 		for _, namespace := range namespaces {
-			list, err := dynamic.Resource(resourceId).Namespace(namespace).
+			list, err := cluster.dynamicClient.Resource(resourceId).Namespace(namespace).
 				List(ctx, metav1.ListOptions{})
 			if err != nil {
 				return nil, err
@@ -109,39 +101,6 @@ func GetResourcesDynamically(ctx context.Context,
 	cleanResources(&collection)
 
 	return collection, nil
-}
-
-func getGroupVersionResource(kind string) (gvr *schema.GroupVersionResource, err error) {
-	config, err := connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
-	}
-	name := strings.Split(kind, "/")[0]
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
-	_, resourceList, _, err := discoveryClient.GroupsAndMaybeResources()
-	if err != nil {
-
-		return nil, err
-	}
-
-	for gv, list := range resourceList {
-		for _, item := range list.APIResources {
-			if item.SingularName == name {
-				return &schema.GroupVersionResource{
-					Group:    gv.Group,
-					Version:  gv.Version,
-					Resource: item.Name,
-				}, nil
-			}
-		}
-	}
-
-	return nil, fmt.Errorf("kind %s not found", kind)
 }
 
 // getFieldValue() looks up the field from a resource and returns a map[string]interface{} representation of the data
@@ -218,20 +177,4 @@ func cleanResources(resources *[]map[string]interface{}) {
 			delete(metadata, "managedFields")
 		}
 	}
-}
-
-// Use the K8s "client-go" library to get the currently active kube context, in the same way that
-// "kubectl" gets it if no extra config flags like "--kubeconfig" are passed.
-func connect() (config *rest.Config, err error) {
-	// Build the config from the currently active kube context in the default way that the k8s client-go gets it, which
-	// is to look at the KUBECONFIG env var
-	config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{}).ClientConfig()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
 }
