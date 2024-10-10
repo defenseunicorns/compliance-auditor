@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -344,4 +345,19 @@ func convertMapToOscalModel(modelMap map[string]interface{}) (*oscalTypes.OscalM
 	}
 
 	return &model, nil
+}
+
+func sortBackMatter(backmatter *oscalTypes.BackMatter) {
+	if backmatter.Resources != nil {
+		resources := *backmatter.Resources
+		if len(resources) == 0 {
+			backmatter.Resources = nil
+		} else {
+			sort.Slice(resources, func(i, j int) bool {
+				return resources[i].Title < resources[j].Title
+			})
+			backmatter.Resources = &resources
+		}
+	}
+	return
 }

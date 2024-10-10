@@ -590,20 +590,9 @@ func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) 
 	// sort backmatter
 	if component.BackMatter != nil {
 		backmatter := *component.BackMatter
-		if backmatter.Resources != nil {
-			resources := *backmatter.Resources
-			if len(resources) == 0 {
-				backmatter.Resources = nil
-			} else {
-				sort.Slice(resources, func(i, j int) bool {
-					return resources[i].Title < resources[j].Title
-				})
-				backmatter.Resources = &resources
-			}
-		}
+		sortBackMatter(&backmatter)
 		component.BackMatter = &backmatter
 	}
-
 }
 
 func contains(s []string, e string) bool {

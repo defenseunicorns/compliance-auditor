@@ -2,6 +2,7 @@ package oscal
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"time"
 
@@ -45,13 +46,13 @@ func (p *Profile) MakeDeterministic() error {
 		// Does not handle pattern matching
 		for _, item := range importItems {
 
-			// Shouldn't be both but we can still handle the scenario
+			// Shouldn't be both but this functionality isn't the gate
 			if item.IncludeControls != nil {
 				includeControls := *item.IncludeControls
 				for _, includeControl := range includeControls {
 					includes := *includeControl.WithIds
-					sort.Slice(includes, func(i, j int) bool {
-						return includes[i] < includes[j]
+					slices.SortStableFunc(includes, func(a, b string) int {
+						return CompareControlsInt(a, b)
 					})
 					includeControl.WithIds = &includes
 				}
@@ -61,13 +62,20 @@ func (p *Profile) MakeDeterministic() error {
 				excludeControls := *item.ExcludeControls
 				for _, excludeControl := range excludeControls {
 					exclude := *excludeControl.WithIds
-					sort.Slice(exclude, func(i, j int) bool {
-						return exclude[i] < exclude[j]
+					slices.SortStableFunc(exclude, func(a, b string) int {
+						return CompareControlsInt(a, b)
 					})
 					excludeControl.WithIds = &exclude
 				}
 			}
 
+		}
+
+		// sort backmatter
+		if p.Model.BackMatter != nil {
+			backmatter := *p.Model.BackMatter
+			sortBackMatter(&backmatter)
+			p.Model.BackMatter = &backmatter
 		}
 	}
 
@@ -80,7 +88,7 @@ func (p *Profile) HandleExisting(filepath string) error {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("Output File %s currently exist - cannot merge artifacts\n", filepath)
+		return fmt.Errorf("output File %s currently exist - cannot merge artifacts", filepath)
 	} else {
 		return nil
 	}
@@ -142,13 +150,13 @@ func GenerateProfile(command string, source string, include []string, exclude []
 	// Exclude would exclude the specified controls and include the rest
 	// Both doesn't make sense - TODO: Need to validate what OSCAL supports here
 	includedControls := []oscalTypes.SelectControlById{
-		oscalTypes.SelectControlById{
+		{
 			WithIds: &include,
 		},
 	}
 
 	excludedControls := []oscalTypes.SelectControlById{
-		oscalTypes.SelectControlById{
+		{
 			WithIds: &exclude,
 		},
 	}

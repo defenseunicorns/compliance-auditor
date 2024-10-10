@@ -104,6 +104,16 @@ func TestGenerateProfileCommand(t *testing.T) {
 		}
 	})
 
+	t.Run("Test include/exclude mutually exclusive", func(t *testing.T) {
+		err := test(t, "--source", "catalog.yaml", "--include", "ac-1", "--exclude", "ac-2")
+		if err == nil {
+			t.Error("Expected error message for flags being mutually exclusive")
+		}
+		if !strings.Contains(err.Error(), "none of the others can be") {
+			t.Errorf("Expected error for mutually exclusive flags - received %v", err.Error())
+		}
+	})
+
 	t.Run("Test generate - invalid merge error", func(t *testing.T) {
 		args := []string{
 			"--source", "../../unit/common/oscal/catalog.yaml",

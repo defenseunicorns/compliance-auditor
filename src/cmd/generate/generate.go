@@ -210,6 +210,7 @@ func GenerateProfileCommand() *cobra.Command {
 	profilecmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
 	profilecmd.Flags().StringSliceVarP(&include, "include", "i", []string{}, "comma delimited list of controls to include from the source catalog/profile")
 	profilecmd.Flags().StringSliceVarP(&exclude, "exclude", "e", []string{}, "comma delimited list of controls to exclude from the source catalog/profile")
+	profilecmd.MarkFlagsMutuallyExclusive("include", "exclude")
 
 	return profilecmd
 }
