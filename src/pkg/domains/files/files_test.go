@@ -16,6 +16,7 @@ func TestGetResource(t *testing.T) {
 		d := Domain{Spec: &Spec{Filepaths: []FileInfo{
 			{Name: "foo.yaml", Path: "foo.yaml"},
 			{Name: "bar.json", Path: "bar.json"},
+			{Name: "baz", Path: "baz", Parser: "json"},
 			{Name: "arbitraryname", Path: "nested-directory/baz.hcl2"},
 			{Name: "stringtheory", Path: "arbitrary.file", Parser: "string"},
 		}}}
@@ -25,6 +26,7 @@ func TestGetResource(t *testing.T) {
 		if diff := cmp.Diff(resources, types.DomainResources{
 			"bar.json": map[string]interface{}{"cat": "Cheetarah"},
 			"foo.yaml": "cat = Li Shou",
+			"baz":      map[string]interface{}{"lizard": "Snakob"},
 			"arbitraryname": map[string]any{
 				"resource": map[string]any{"catname": map[string]any{"blackcat": map[string]any{"name": "robin"}}},
 			},
