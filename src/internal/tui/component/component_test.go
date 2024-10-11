@@ -1,170 +1,46 @@
 package component_test
 
 import (
-	"os"
 	"testing"
-	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
-	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/muesli/termenv"
 )
 
-const (
-	timeout    = time.Second * 20
-	maxRetries = 3
-	height     = common.DefaultHeight
-	width      = common.DefaultWidth
+func TestGetComponents(t *testing.T) {
+	oscalModel := testhelpers.OscalFromPath(t, validCompDefMultiValidations)
+	components := component.GetComponents(oscalModel.ComponentDefinition)
 
-	validCompDef                 = "../../../test/unit/common/oscal/valid-generated-component.yaml"
-	validCompDefValidations      = "../../../test/unit/common/oscal/valid-component.yaml"
-	validCompDefMulti            = "../../../test/unit/common/oscal/valid-multi-component.yaml"
-	validCompDefMultiValidations = "../../../test/unit/common/oscal/valid-multi-component-validations.yaml"
-)
-
-func init() {
-	lipgloss.SetColorProfile(termenv.Ascii)
-}
-
-// TestComponentDefinitionBasicView tests that the model is created correctly from a component definition with validations
-func TestComponentDefinitionBasicView(t *testing.T) {
-	oscalModel := testhelpers.OscalFromPath(t, validCompDef)
-	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
-	model.Open(height, width)
-
-	msgs := []tea.Msg{}
-
-	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-// TestComponentDefinitionComponentSwitch tests that the component picker executes correctly
-func TestComponentDefinitionComponentSwitch(t *testing.T) {
-	oscalModel := testhelpers.OscalFromPath(t, validCompDefMulti)
-	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
-	model.Open(height, width)
-
-	msgs := []tea.Msg{
-		tea.KeyMsg{Type: tea.KeyRight}, // Select component
-		tea.KeyMsg{Type: tea.KeyEnter}, // enter component selection overlay
-		tea.KeyMsg{Type: tea.KeyDown},  // navigate down
-		tea.KeyMsg{Type: tea.KeyEnter}, // select new component, exit overlay
-		tea.KeyMsg{Type: tea.KeyRight}, // Select framework
-		tea.KeyMsg{Type: tea.KeyRight}, // Select control
-		tea.KeyMsg{Type: tea.KeyEnter}, // Open control
+	// Count controls
+	if len(components) != 2 {
+		t.Errorf("Expected 2 components, got %d", len(components))
 	}
 
-	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-// TestComponentControlSelect tests that the user can navigate to a control, select it, and see expected
-// remarks, description, and validations
-func TestComponentControlSelect(t *testing.T) {
-	oscalModel := testhelpers.OscalFromPath(t, validCompDefMulti)
-	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
-	model.Open(height, width)
-
-	msgs := []tea.Msg{
-		tea.KeyMsg{Type: tea.KeyRight}, // Select component
-		tea.KeyMsg{Type: tea.KeyRight}, // Select framework
-		tea.KeyMsg{Type: tea.KeyRight}, // Select control
-		tea.KeyMsg{Type: tea.KeyEnter}, // Open control
+	// Components should be sorted deterministically
+	if components[0].Name != "Component A" {
+		t.Errorf("Expected component title to be Component A, got %s", components[0].Name)
 	}
 
-	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-// TestEditViewComponentDefinitionModel tests that the editing views of the component definition model are correct
-func TestEditViewComponentDefinitionModel(t *testing.T) {
-	oscalModel := testhelpers.OscalFromPath(t, validCompDefValidations)
-	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
-	model.Open(height, width)
-
-	msgs := []tea.Msg{
-		tea.KeyMsg{Type: tea.KeyRight},                                    // Select component
-		tea.KeyMsg{Type: tea.KeyRight},                                    // Select framework
-		tea.KeyMsg{Type: tea.KeyRight},                                    // Select control
-		tea.KeyMsg{Type: tea.KeyEnter},                                    // Open control
-		tea.KeyMsg{Type: tea.KeyRight},                                    // Navigate to remarks
-		tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}},                // Edit remarks
-		tea.KeyMsg{Type: tea.KeyCtrlE},                                    // Newline
-		tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'t', 'e', 's', 't'}}, // Add "test" to remarks
-		tea.KeyMsg{Type: tea.KeyEnter},                                    // Confirm edit
+	// Count frameworks - rev4, rev5, source rev4 url, source rev5 url
+	if len(components[0].Frameworks) != 4 {
+		t.Errorf("Expected 4 frameworks, got %d", len(components[0].Frameworks))
 	}
 
-	reset := func() tea.Model {
-		resetOscalModel := testhelpers.OscalFromPath(t, validCompDefValidations)
-		resetModel := component.NewComponentDefinitionModel(resetOscalModel.ComponentDefinition)
-		resetModel.Open(height, width)
-		return resetModel
+	// Frameworks should be sorted deterministically
+	if components[0].Frameworks[2].Name != "rev4" {
+		t.Errorf("Expected framework title to be rev4, got %s", components[0].Frameworks[0].Name)
 	}
 
-	err := testhelpers.RunTestModelView(t, model, reset, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-// TestEditComponentDefinitionModel tests that a component definition model can be modified, written, and re-read
-func TestEditComponentDefinitionModel(t *testing.T) {
-	tempOscalFile := testhelpers.CreateTempFile(t, "yaml")
-	defer os.Remove(tempOscalFile.Name())
-
-	oscalModel := testhelpers.OscalFromPath(t, validCompDef)
-	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
-
-	testControlId := "ac-1"
-	testRemarks := "test remarks"
-	testDescription := "test description"
-
-	model.TestSetSelectedControl(testControlId)
-	model.UpdateRemarks(testRemarks)
-	model.UpdateDescription(testDescription)
-
-	// Create OSCAL model
-	mdl := &oscalTypes_1_1_2.OscalCompleteSchema{
-		ComponentDefinition: model.GetComponentDefinition(),
+	// Check controls in framework
+	if len(components[0].Frameworks[2].Controls) != 3 {
+		t.Errorf("Expected 3 controls, got %d", len(components[0].Frameworks[2].Controls))
 	}
 
-	// Write the model to a temp file
-	err := oscal.OverwriteOscalModel(tempOscalFile.Name(), mdl)
-	if err != nil {
-		t.Errorf("error overwriting oscal model: %v", err)
-	}
-
-	// Read the model from the temp file
-	modifiedOscalModel := testhelpers.OscalFromPath(t, tempOscalFile.Name())
-	compDefn := modifiedOscalModel.ComponentDefinition
-	if compDefn == nil {
-		t.Errorf("component definition is nil")
-	}
-	for _, c := range *compDefn.Components {
-		if c.ControlImplementations == nil {
-			t.Errorf("control implementations are nil")
-		}
-		for _, f := range *c.ControlImplementations {
-			for _, r := range f.ImplementedRequirements {
-				if r.ControlId == testControlId {
-					if r.Remarks != testRemarks {
-						t.Errorf("Expected remarks to be %s, got %s", testRemarks, r.Remarks)
-					}
-					if r.Description != testDescription {
-						t.Errorf("Expected remarks to be %s, got %s", testDescription, r.Description)
-					}
-				}
+	// Check control ac-1 links to a validation
+	for _, c := range components[0].Frameworks[2].Controls {
+		if c.Name == "ac-1" {
+			if len(c.Validations) != 2 {
+				t.Errorf("Expected 2 validations in AC-1, got %d", len(c.Validations))
 			}
 		}
 	}

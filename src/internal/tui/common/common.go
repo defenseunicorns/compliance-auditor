@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/mattn/go-runewidth"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -121,4 +123,36 @@ func DumpToLog(msg ...any) {
 	if DumpFile != nil {
 		spew.Fdump(DumpFile, msg)
 	}
+}
+
+func ToYamlString(input interface{}) (string, error) {
+	result := make(map[string]interface{})
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return "", fmt.Errorf("input must be a struct")
+	}
+
+	t := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldType := t.Field(i)
+
+		// Skip unexported fields
+		if !field.CanInterface() {
+			continue
+		}
+
+		fieldName := fieldType.Name
+		result[fieldName] = field.Interface()
+	}
+
+	yamlData, err := yaml.Marshal(result)
+	if err != nil {
+		return "", err
+	}
+	return string(yamlData), nil
+
 }

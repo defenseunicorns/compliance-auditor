@@ -117,3 +117,7 @@ func (m PickerModel) View() string {
 	pickerContent := lipgloss.JoinVertical(lipgloss.Top, s.String(), m.help.View())
 	return overlayPickerStyle.Render(pickerContent)
 }
+
+func (m *PickerModel) UpdateItems(items []string) {
+	m.items = items
+}
