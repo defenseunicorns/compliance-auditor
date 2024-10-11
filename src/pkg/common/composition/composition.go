@@ -152,41 +152,41 @@ func (cc *CompositionContext) ComposeComponentValidations(ctx context.Context, c
 
 	for componentIndex, component := range *compDef.Components {
 		// If there are no control-implementations, skip to the next component
-		controlImplementations := *component.ControlImplementations
-		if controlImplementations == nil {
-			continue
-		}
-		for controlImplementationIndex, controlImplementation := range controlImplementations {
-			for implementedRequirementIndex, implementedRequirement := range controlImplementation.ImplementedRequirements {
-				if implementedRequirement.Links != nil {
-					compiledLinks := []oscalTypes_1_1_2.Link{}
+		if component.ControlImplementations != nil {
+			controlImplementations := *component.ControlImplementations
+			for controlImplementationIndex, controlImplementation := range controlImplementations {
+				for implementedRequirementIndex, implementedRequirement := range controlImplementation.ImplementedRequirements {
+					if implementedRequirement.Links != nil {
+						compiledLinks := []oscalTypes_1_1_2.Link{}
 
-					for _, link := range *implementedRequirement.Links {
-						if common.IsLulaLink(link) {
-							ids, err := resourceMap.AddFromLink(&link, baseDir)
-							if err != nil {
-								// return err
-								newId := uuid.NewUUID()
-								message.Debugf("Error adding validation %s from link %s: %v", newId, link.Href, err)
-								ids = []string{newId}
-							}
-							for _, id := range ids {
-								link := oscalTypes_1_1_2.Link{
-									Rel:  link.Rel,
-									Href: common.AddIdPrefix(id),
-									Text: link.Text,
+						for _, link := range *implementedRequirement.Links {
+							if common.IsLulaLink(link) {
+								ids, err := resourceMap.AddFromLink(&link, baseDir)
+								if err != nil {
+									// return err
+									newId := uuid.NewUUID()
+									message.Debugf("Error adding validation %s from link %s: %v", newId, link.Href, err)
+									ids = []string{newId}
 								}
+								for _, id := range ids {
+									link := oscalTypes_1_1_2.Link{
+										Rel:  link.Rel,
+										Href: common.AddIdPrefix(id),
+										Text: link.Text,
+									}
+									compiledLinks = append(compiledLinks, link)
+								}
+							} else {
 								compiledLinks = append(compiledLinks, link)
 							}
-						} else {
-							compiledLinks = append(compiledLinks, link)
 						}
+						(*component.ControlImplementations)[controlImplementationIndex].ImplementedRequirements[implementedRequirementIndex].Links = &compiledLinks
+						(*compDef.Components)[componentIndex] = component
 					}
-					(*component.ControlImplementations)[controlImplementationIndex].ImplementedRequirements[implementedRequirementIndex].Links = &compiledLinks
-					(*compDef.Components)[componentIndex] = component
 				}
 			}
 		}
+
 	}
 	allFetched := resourceMap.AllFetched()
 	if compDef.BackMatter != nil && compDef.BackMatter.Resources != nil {
