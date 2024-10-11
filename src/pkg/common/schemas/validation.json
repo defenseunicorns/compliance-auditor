@@ -381,6 +381,32 @@
                             },
                             "path": {
                                 "type": "string"
+                            },
+                            "parser": {
+                                "type": "string",
+                                "enum": [
+                                    "cue",
+                                    "cyclonedx",
+                                    "dockerfile",
+                                    "edn",
+                                    "hcl1",
+                                    "hcl2",
+                                    "hocon",
+                                    "ignore",
+                                    "ini",
+                                    "json",
+                                    "jsonc",
+                                    "jsonnet",
+                                    "properties",
+                                    "spdx",
+                                    "textproto",
+                                    "toml",
+                                    "vcl",
+                                    "xml",
+                                    "yaml",
+                                    "dotenv",
+                                    "string"
+                                ]
                             }
                         }
                     }

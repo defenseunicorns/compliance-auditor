@@ -5,6 +5,7 @@ type Spec struct {
 }
 
 type FileInfo struct {
-	Name string `json:"name" yaml:"name"`
-	Path string `json:"path" yaml:"path"`
+	Name   string `json:"name" yaml:"name"`
+	Path   string `json:"path" yaml:"path"`
+	Parser string `json:"parser,omitempty" yaml:"parser,omitempty"`
 }
