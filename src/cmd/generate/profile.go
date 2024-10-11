@@ -87,6 +87,7 @@ func GenerateProfileCommand() *cobra.Command {
 	profilecmd.Flags().StringSliceVarP(&exclude, "exclude", "e", []string{}, "comma delimited list of controls to exclude from the source catalog/profile")
 	profilecmd.Flags().BoolVarP(&all, "all", "a", false, "Include all controls from the source catalog/profile")
 	profilecmd.MarkFlagsMutuallyExclusive("include", "exclude", "all")
+	profilecmd.MarkFlagsOneRequired("include", "exclude", "all")
 
 	return profilecmd
 }
