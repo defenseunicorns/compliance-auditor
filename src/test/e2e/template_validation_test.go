@@ -45,7 +45,7 @@ func TestTemplateValidation(t *testing.T) {
 		Assess("Template to Pass", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/template-validation/component-definition.tmpl.yaml"
 			// Set up the composition context
-			compositionCtx, err := composition.New(
+			composer, err := composition.New(
 				composition.WithModelFromLocalPath(oscalPath),
 				composition.WithRenderSettings("all", true),
 				composition.WithTemplateRenderer("all", map[string]interface{}{
@@ -72,7 +72,7 @@ func TestTemplateValidation(t *testing.T) {
 				t.Errorf("error creating composition context: %v", err)
 			}
 
-			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(compositionCtx, oscalPath))
+			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(composer, oscalPath))
 
 			return ctx
 		}).
@@ -86,7 +86,7 @@ func TestTemplateValidation(t *testing.T) {
 			defer os.Unsetenv("LULA_VAR_CONTAINER_NAME")
 
 			// Set up the composition context - no default variable values now
-			compositionCtx, err := composition.New(
+			composer, err := composition.New(
 				composition.WithModelFromLocalPath(oscalPath),
 				composition.WithRenderSettings("all", true),
 				composition.WithTemplateRenderer("all", map[string]interface{}{
@@ -111,14 +111,14 @@ func TestTemplateValidation(t *testing.T) {
 				t.Errorf("error creating composition context: %v", err)
 			}
 
-			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(compositionCtx, oscalPath))
+			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(composer, oscalPath))
 
 			return ctx
 		}).
 		Assess("Template to Pass with overrides", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/template-validation/component-definition.tmpl.yaml"
 			// Set up the composition context - bad resource name and no pod_label var - in overrides
-			compositionCtx, err := composition.New(
+			composer, err := composition.New(
 				composition.WithModelFromLocalPath(oscalPath),
 				composition.WithRenderSettings("all", true),
 				composition.WithTemplateRenderer("all", map[string]interface{}{
@@ -144,7 +144,7 @@ func TestTemplateValidation(t *testing.T) {
 				t.Errorf("error creating composition context: %v", err)
 			}
 
-			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(compositionCtx, oscalPath))
+			ctx = validateFindingsSatisfied(ctx, t, oscalPath, validation.WithComposition(composer, oscalPath))
 
 			return ctx
 		}).
@@ -162,12 +162,12 @@ func TestTemplateValidation(t *testing.T) {
 func validateFindingsSatisfied(ctx context.Context, t *testing.T, oscalPath string, opts ...validation.Option) context.Context {
 	message.NoProgress = true
 
-	validationCtx, err := validation.New(opts...)
+	validator, err := validation.New(opts...)
 	if err != nil {
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
+	assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

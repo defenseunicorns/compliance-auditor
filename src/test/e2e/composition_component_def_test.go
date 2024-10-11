@@ -41,12 +41,12 @@ func TestComponentDefinitionComposition(t *testing.T) {
 		Assess("Validate local composition file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			compDefPath := "../../test/unit/common/composition/component-definition-import-multi-compdef.yaml"
 
-			validationCtx, err := validation.New(validation.WithComposition(nil, compDefPath))
+			validator, err := validation.New(validation.WithComposition(nil, compDefPath))
 			if err != nil {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(context.Background(), compDefPath, "")
+			assessment, err := validator.ValidateOnPath(context.Background(), compDefPath, "")
 			if err != nil {
 				t.Errorf("Error validating component definition: %v", err)
 			}
@@ -91,12 +91,12 @@ func TestComponentDefinitionComposition(t *testing.T) {
 			}
 
 			// Compare validation results to a composed component definition
-			compositionCtx, err := composition.New(composition.WithModelFromLocalPath(compDefPath))
+			composer, err := composition.New(composition.WithModelFromLocalPath(compDefPath))
 			if err != nil {
 				t.Errorf("error creating composition context: %v", err)
 			}
 
-			oscalModel, err := compositionCtx.ComposeFromPath(ctx, compDefPath)
+			oscalModel, err := composer.ComposeFromPath(ctx, compDefPath)
 			if err != nil {
 				t.Error(err)
 			}
@@ -105,7 +105,7 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("component definition is nil")
 			}
 
-			composeResults, err := validationCtx.ValidateOnCompDef(context.Background(), oscalModel.ComponentDefinition, "")
+			composeResults, err := validator.ValidateOnCompDef(context.Background(), oscalModel.ComponentDefinition, "")
 			if err != nil {
 				t.Error(err)
 			}

@@ -67,28 +67,28 @@ func ValidateCommand() *cobra.Command {
 				return fmt.Errorf("invalid OSCAL model at output: %v", err)
 			}
 
-			// Set up the composition context
-			compositionCtx, err := composition.New(
+			// Set up the composer
+			composer, err := composition.New(
 				composition.WithModelFromLocalPath(inputFile),
 				composition.WithRenderSettings("all", true),
 				composition.WithTemplateRenderer("all", common.TemplateConstants, common.TemplateVariables, setOpts),
 			)
 			if err != nil {
-				return fmt.Errorf("error creating composition context: %v", err)
+				return fmt.Errorf("error creating new composer: %v", err)
 			}
 
-			// Set up the validation context
-			validationCtx, err := validation.New(
-				validation.WithComposition(compositionCtx, inputFile),
+			// Set up the validator
+			validator, err := validation.New(
+				validation.WithComposition(composer, inputFile),
 				validation.WithResourcesDir(saveResources, filepath.Dir(outputFile)),
 				validation.WithAllowExecution(confirmExecution, runNonInteractively),
 			)
 			if err != nil {
-				return fmt.Errorf("error creating validation context: %v", err)
+				return fmt.Errorf("error creating new validator: %v", err)
 			}
 
 			ctx := context.WithValue(cmd.Context(), types.LulaValidationWorkDir, filepath.Dir(inputFile))
-			assessmentResults, err := validationCtx.ValidateOnPath(ctx, inputFile, target)
+			assessmentResults, err := validator.ValidateOnPath(ctx, inputFile, target)
 			if err != nil {
 				return fmt.Errorf("error validating on path: %v", err)
 			}

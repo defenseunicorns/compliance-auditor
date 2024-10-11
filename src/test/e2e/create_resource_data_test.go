@@ -35,7 +35,7 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			oscalPath := "./scenarios/create-resources/oscal-component.yaml"
 			message.NoProgress = true
 
-			validationCtx, err := validation.New(
+			validator, err := validation.New(
 				validation.WithComposition(nil, oscalPath),
 				validation.WithAllowExecution(true, true),
 			)
@@ -43,7 +43,7 @@ func TestCreateResourceDataValidation(t *testing.T) {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -114,7 +114,7 @@ func TestDeniedCreateResources(t *testing.T) {
 			oscalPath := "./scenarios/create-resources/oscal-component-denied.yaml"
 			message.NoProgress = true
 
-			validationCtx, err := validation.New(
+			validator, err := validation.New(
 				validation.WithComposition(nil, oscalPath),
 				validation.WithAllowExecution(false, true),
 			)
@@ -122,7 +122,7 @@ func TestDeniedCreateResources(t *testing.T) {
 				t.Errorf("error creating validation context: %v", err)
 			}
 
-			assessment, err := validationCtx.ValidateOnPath(context.Background(), oscalPath, "")
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
