@@ -34,7 +34,7 @@ func init() {
 // TestComponentDefinitionBasicView tests that the model is created correctly from a component definition with validations
 func TestComponentDefinitionBasicView(t *testing.T) {
 	oscalModel := testhelpers.OscalFromPath(t, validCompDef)
-	model := component.InitialModel(oscalModel.ComponentDefinition)
+	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 	model.Open(height, width)
 
 	msgs := []tea.Msg{}
@@ -48,7 +48,7 @@ func TestComponentDefinitionBasicView(t *testing.T) {
 // TestComponentDefinitionComponentSwitch tests that the component picker executes correctly
 func TestComponentDefinitionComponentSwitch(t *testing.T) {
 	oscalModel := testhelpers.OscalFromPath(t, validCompDefMulti)
-	model := component.InitialModel(oscalModel.ComponentDefinition)
+	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 	model.Open(height, width)
 
 	msgs := []tea.Msg{
@@ -71,7 +71,7 @@ func TestComponentDefinitionComponentSwitch(t *testing.T) {
 // remarks, description, and validations
 func TestComponentControlSelect(t *testing.T) {
 	oscalModel := testhelpers.OscalFromPath(t, validCompDefMulti)
-	model := component.InitialModel(oscalModel.ComponentDefinition)
+	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 	model.Open(height, width)
 
 	msgs := []tea.Msg{
@@ -90,7 +90,7 @@ func TestComponentControlSelect(t *testing.T) {
 // TestEditViewComponentDefinitionModel tests that the editing views of the component definition model are correct
 func TestEditViewComponentDefinitionModel(t *testing.T) {
 	oscalModel := testhelpers.OscalFromPath(t, validCompDefValidations)
-	model := component.InitialModel(oscalModel.ComponentDefinition)
+	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 	model.Open(height, width)
 
 	msgs := []tea.Msg{
@@ -107,7 +107,7 @@ func TestEditViewComponentDefinitionModel(t *testing.T) {
 
 	reset := func() tea.Model {
 		resetOscalModel := testhelpers.OscalFromPath(t, validCompDefValidations)
-		resetModel := component.InitialModel(resetOscalModel.ComponentDefinition)
+		resetModel := component.NewComponentDefinitionModel(resetOscalModel.ComponentDefinition)
 		resetModel.Open(height, width)
 		return resetModel
 	}
@@ -121,7 +121,7 @@ func TestEditViewComponentDefinitionModel(t *testing.T) {
 // TestEditViewComponentDefinitionModel tests that the editing views of the component definition model are correct
 func TestDetailValidationViewComponentDefinitionModel(t *testing.T) {
 	oscalModel := testhelpers.OscalFromPath(t, validCompDefValidations)
-	model := component.InitialModel(oscalModel.ComponentDefinition)
+	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 	model.Open(height, width)
 
 	msgs := []tea.Msg{
@@ -147,7 +147,7 @@ func TestEditComponentDefinitionModel(t *testing.T) {
 	defer os.Remove(tempOscalFile.Name())
 
 	oscalModel := testhelpers.OscalFromPath(t, validCompDef)
-	model := component.InitialModel(oscalModel.ComponentDefinition)
+	model := component.NewComponentDefinitionModel(oscalModel.ComponentDefinition)
 
 	testControlId := "ac-1"
 	testRemarks := "test remarks"

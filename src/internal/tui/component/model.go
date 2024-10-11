@@ -23,6 +23,7 @@ type Model struct {
 	help               common.HelpModel
 	keys               keys
 	focus              focus
+	validatePopup      common.PopupModel
 	componentModel     *oscalTypes_1_1_2.ComponentDefinition
 	components         []component
 	selectedComponent  component
@@ -50,7 +51,7 @@ const (
 	frameworkPickerKind common.PickerKind = "framework"
 )
 
-func InitialModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) Model {
+func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) Model {
 	var selectedComponent component
 	var selectedFramework framework
 	viewedControls := make([]blist.Item, 0)
@@ -162,6 +163,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.focus = (m.focus + 1) % (maxFocus + 1)
 					m.updateKeyBindings()
 				}
+
+			case common.ContainsKey(k, m.keys.Validate.Keys()):
+				//
 
 			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				switch m.focus {

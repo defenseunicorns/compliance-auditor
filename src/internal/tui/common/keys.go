@@ -23,7 +23,6 @@ type Keys struct {
 	Save           key.Binding
 	Newline        key.Binding
 	Detail         key.Binding
-	Detail         key.Binding
 }
 
 var CommonKeys = Keys{
