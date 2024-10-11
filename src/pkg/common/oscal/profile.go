@@ -126,7 +126,7 @@ func (p *Profile) NewModel(data []byte) error {
 	return nil
 }
 
-func GenerateProfile(command string, source string, include []string, exclude []string) (*Profile, error) {
+func GenerateProfile(command string, source string, include []string, exclude []string, all bool) (*Profile, error) {
 
 	// Create the OSCAL profile type model for use and later assignment to the oscal.Profile implementation
 	var model oscalTypes.Profile
@@ -184,6 +184,10 @@ func GenerateProfile(command string, source string, include []string, exclude []
 
 	if len(exclude) > 0 {
 		importItem.ExcludeControls = &excludedControls
+	}
+
+	if all {
+		importItem.IncludeAll = &map[string]interface{}{}
 	}
 
 	model.Imports = []oscalTypes.Import{

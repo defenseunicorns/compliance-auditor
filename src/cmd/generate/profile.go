@@ -28,6 +28,7 @@ func GenerateProfileCommand() *cobra.Command {
 		outputFile string
 		include    []string
 		exclude    []string
+		all        bool
 	)
 
 	profilecmd := &cobra.Command{
@@ -60,7 +61,11 @@ func GenerateProfileCommand() *cobra.Command {
 				command += fmt.Sprintf(" --exclude %s", strings.Join(exclude, ","))
 			}
 
-			profile, err := oscal.GenerateProfile(command, source, include, exclude)
+			if all {
+				command += " --all"
+			}
+
+			profile, err := oscal.GenerateProfile(command, source, include, exclude, all)
 			if err != nil {
 				return err
 			}
@@ -80,7 +85,8 @@ func GenerateProfileCommand() *cobra.Command {
 	profilecmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
 	profilecmd.Flags().StringSliceVarP(&include, "include", "i", []string{}, "comma delimited list of controls to include from the source catalog/profile")
 	profilecmd.Flags().StringSliceVarP(&exclude, "exclude", "e", []string{}, "comma delimited list of controls to exclude from the source catalog/profile")
-	profilecmd.MarkFlagsMutuallyExclusive("include", "exclude")
+	profilecmd.Flags().BoolVarP(&all, "all", "a", false, "Include all controls from the source catalog/profile")
+	profilecmd.MarkFlagsMutuallyExclusive("include", "exclude", "all")
 
 	return profilecmd
 }

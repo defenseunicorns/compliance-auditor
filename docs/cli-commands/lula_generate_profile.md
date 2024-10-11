@@ -33,6 +33,7 @@ To generate a profile that includes all controls except a list specified control
 ### Options
 
 ```
+  -a, --all                  Include all controls from the source catalog/profile
   -e, --exclude strings      comma delimited list of controls to exclude from the source catalog/profile
   -h, --help                 help for profile
   -i, --include strings      comma delimited list of controls to include from the source catalog/profile

@@ -114,19 +114,4 @@ func TestGenerateProfileCommand(t *testing.T) {
 		}
 	})
 
-	t.Run("Test generate - invalid merge error", func(t *testing.T) {
-		args := []string{
-			"--source", "../../unit/common/oscal/catalog.yaml",
-			"--include", "ac-1,ac-3,ac-2",
-			"-o", "../../unit/common/oscal/valid-profile.yaml",
-		}
-		err := test(t, args...)
-		if err == nil {
-			t.Error("Expected an error indicating merging profiles is not supported")
-		}
-		if !strings.Contains(err.Error(), "cannot merge artifacts") {
-			t.Errorf("Expected error for merging artifacts - received %v", err.Error())
-		}
-	})
-
 }

@@ -13,8 +13,6 @@ The primary structure for the Lula production and operations of the `profile` mo
 
 The `lula generate` commands are meant to be reproducible. The intent for this generation is to make it easy to update a given model with automation and only inject human intervention as needed. 
 
-
-
 For profiles, see the metadata props for the `generation` prop. It should look like the following:
 ```yaml
 props:

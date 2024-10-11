@@ -111,7 +111,7 @@ func TestMakeDeterministic(t *testing.T) {
 	}
 
 	t.Run("Profile with included controls", func(t *testing.T) {
-		profile, err := oscal.GenerateProfile("", "#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"}, []string{})
+		profile, err := oscal.GenerateProfile("", "#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"}, []string{}, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +120,7 @@ func TestMakeDeterministic(t *testing.T) {
 	})
 
 	t.Run("Profile with exclude controls", func(t *testing.T) {
-		profile, err := oscal.GenerateProfile("", "#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{}, []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"})
+		profile, err := oscal.GenerateProfile("", "#a3fb260d-0b89-4a12-b65c-a2737500febc", []string{}, []string{"ac-4", "ac-1", "ac-7", "ac-3", "ac-2"}, false)
 		if err != nil {
 			t.Fatal(err)
 		}
