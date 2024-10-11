@@ -68,6 +68,11 @@ func TestValidateCommand(t *testing.T) {
 		require.ErrorContains(t, err, "error validating on path")
 	})
 
+	t.Run("Validate with valid oscal containing no control implementations - error", func(t *testing.T) {
+		err := test(t, "-f", "../../unit/common/oscal/valid-component-no-implementations.yaml")
+		require.ErrorContains(t, err, "no control implementations found in component definition")
+	})
+
 	t.Run("Test help", func(t *testing.T) {
 		err := testAgainstGolden(t, "help", "--help")
 		require.NoError(t, err)
