@@ -95,12 +95,15 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			oscalPath := "./scenarios/create-resources/oscal-component-wait-read.yaml"
 			message.NoProgress = true
 
-			// TODO: fix this nonsense
-			validate.ConfirmExecution = true
-			validate.RunNonInteractively = true
-			validate.SaveResources = false
+			validator, err := validation.New(
+				validation.WithComposition(nil, oscalPath),
+				validation.WithAllowExecution(true, true),
+			)
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
 
-			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
