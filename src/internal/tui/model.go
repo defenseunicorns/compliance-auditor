@@ -12,7 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	ar "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
+	assessmentresults "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -22,11 +22,10 @@ type model struct {
 	keys                      common.Keys
 	tabs                      []string
 	activeTab                 int
-	oscalFilePath             string
-	oscalModel                *oscalTypes_1_1_2.OscalCompleteSchema
-	writtenOscalModel         *oscalTypes_1_1_2.OscalCompleteSchema
+	componentFilePath         string
+	writtenComponentModel     *oscalTypes_1_1_2.ComponentDefinition
 	componentModel            component.Model
-	assessmentResultsModel    ar.Model
+	assessmentResultsModel    assessmentresults.Model
 	catalogModel              common.TbdModal
 	planOfActionAndMilestones common.TbdModal
 	assessmentPlanModel       common.TbdModal
@@ -38,11 +37,7 @@ type model struct {
 	height                    int
 }
 
-func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema, oscalFilePath string, dumpFile *os.File) model {
-	if oscalModel == nil {
-		oscalModel = new(oscalTypes_1_1_2.OscalCompleteSchema)
-	}
-
+func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, filePathMap map[string]string, dumpFile *os.File) model {
 	tabs := []string{
 		"ComponentDefinition",
 		"AssessmentResults",
@@ -57,29 +52,41 @@ func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema, oscalFilePa
 		common.DumpFile = dumpFile
 	}
 
-	if oscalFilePath == "" {
-		oscalFilePath = "oscal.yaml"
-	}
+	// get the right model types assigned to their respective tea models
+	componentModel := component.NewComponentDefinitionModel(nil)
+	writtenComponentModel := new(oscalTypes_1_1_2.ComponentDefinition)
+	componentFilePath := "component.yaml"
+	assessmentResultsModel := assessmentresults.NewAssessmentResultsModel(nil)
 
-	writtenOscalModel := new(oscalTypes_1_1_2.OscalCompleteSchema)
-	err := DeepCopy(oscalModel, writtenOscalModel)
-	if err != nil {
-		common.PrintToLog("error creating deep copy of oscal model: %v", err)
+	for k, v := range modelMap {
+		// TODO: update these with the UpdateModel functions for the respective models
+		switch k {
+		case "component":
+			componentModel = component.NewComponentDefinitionModel(v.ComponentDefinition)
+			err := DeepCopy(v.ComponentDefinition, writtenComponentModel)
+			if err != nil {
+				common.PrintToLog("error creating deep copy of component model: %v", err)
+			}
+			if _, ok := filePathMap[k]; ok {
+				componentFilePath = filePathMap[k]
+			}
+		case "assessment-results":
+			assessmentResultsModel = assessmentresults.NewAssessmentResultsModel(v.AssessmentResults)
+		}
 	}
 
 	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
-	saveModel := common.NewSaveModel(oscalFilePath)
+	saveModel := common.NewSaveModel(componentFilePath)
 
 	return model{
 		keys:                      common.CommonKeys,
 		tabs:                      tabs,
-		oscalFilePath:             oscalFilePath,
-		oscalModel:                oscalModel,
-		writtenOscalModel:         writtenOscalModel,
+		componentFilePath:         componentFilePath,
+		writtenComponentModel:     writtenComponentModel,
 		closeModel:                closeModel,
 		saveModel:                 saveModel,
-		componentModel:            component.NewComponentDefinitionModel(oscalModel.ComponentDefinition),
-		assessmentResultsModel:    ar.NewAssessmentResultsModel(oscalModel.AssessmentResults),
+		componentModel:            componentModel,
+		assessmentResultsModel:    assessmentResultsModel,
 		systemSecurityPlanModel:   common.NewTbdModal("System Security Plan"),
 		catalogModel:              common.NewTbdModal("Catalog"),
 		profileModel:              common.NewTbdModal("Profile"),
@@ -90,39 +97,28 @@ func NewOSCALModel(oscalModel *oscalTypes_1_1_2.OscalCompleteSchema, oscalFilePa
 	}
 }
 
-// UpdateOscalModel runs on edit + confirm cmds(?)
-func (m *model) UpdateOscalModel() {
-	m.oscalModel = &oscalTypes_1_1_2.OscalCompleteSchema{
-		ComponentDefinition: m.componentModel.GetComponentDefinition(),
-	}
-}
-
 func (m *model) isModelSaved() bool {
-	m.oscalModel = &oscalTypes_1_1_2.OscalCompleteSchema{
-		ComponentDefinition: m.componentModel.GetComponentDefinition(),
-	}
-
-	return reflect.DeepEqual(m.writtenOscalModel, m.oscalModel)
+	return reflect.DeepEqual(m.writtenComponentModel, m.componentModel.GetComponentDefinition())
 }
 
 // WriteOscalModel runs on save cmds
 func (m *model) writeOscalModel() tea.Msg {
-	common.PrintToLog("oscalFilePath: %s", m.oscalFilePath)
+	common.PrintToLog("componentFilePath: %s", m.componentFilePath)
 
 	saveStart := time.Now()
-	err := oscal.OverwriteOscalModel(m.oscalFilePath, m.oscalModel)
+	err := oscal.OverwriteOscalModel(m.componentFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{ComponentDefinition: m.componentModel.GetComponentDefinition()})
 	saveDuration := time.Since(saveStart)
 	// just adding a minimum of 2 seconds to the "saving" popup
 	if saveDuration < time.Second*2 {
 		time.Sleep(time.Second*2 - saveDuration)
 	}
 	if err != nil {
-		common.PrintToLog("error writing oscal model: %v", err)
+		common.PrintToLog("error writing component model: %v", err)
 		return common.SaveFailMsg{Err: err}
 	}
 	common.PrintToLog("model saved")
 
-	DeepCopy(m.oscalModel, m.writtenOscalModel)
+	DeepCopy(m.componentModel.GetComponentDefinition(), m.writtenComponentModel)
 	return common.SaveSuccessMsg{}
 }
 
@@ -180,8 +176,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.saveModel.Content = fmt.Sprintf("Save changes to %s?", m.saveModel.FilePath)
 			// warning if file exists
-			if _, err := os.Stat(m.oscalFilePath); err == nil {
-				m.saveModel.Warning = fmt.Sprintf("%s will be overwritten", m.oscalFilePath)
+			if _, err := os.Stat(m.componentFilePath); err == nil {
+				m.saveModel.Warning = fmt.Sprintf("%s will be overwritten", m.componentFilePath)
 			}
 
 			return m, nil
@@ -233,7 +229,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ComponentDefinition":
 			m.componentModel = tabModel.(component.Model)
 		case "AssessmentResults":
-			m.assessmentResultsModel = tabModel.(ar.Model)
+			m.assessmentResultsModel = tabModel.(assessmentresults.Model)
 		}
 		cmds = append(cmds, cmd)
 	}
