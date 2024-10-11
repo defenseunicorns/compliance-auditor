@@ -111,7 +111,7 @@ func TestToolsComposeCommand(t *testing.T) {
 
 	t.Run("Test Compose - invalid file error", func(t *testing.T) {
 		err := test(t, "-f", "not-a-file.yaml")
-		require.ErrorContains(t, err, "error creating composition context")
+		require.ErrorContains(t, err, "error creating new composer")
 	})
 
 	t.Run("Test Compose - invalid file schema error", func(t *testing.T) {

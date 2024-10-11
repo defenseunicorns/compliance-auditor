@@ -55,7 +55,7 @@ func TestValidateCommand(t *testing.T) {
 
 	t.Run("Validate with invalid input file - error", func(t *testing.T) {
 		err := test(t, "-f", "invalid-file.yaml")
-		require.ErrorContains(t, err, "error creating composition context")
+		require.ErrorContains(t, err, "error creating new composer")
 	})
 
 	t.Run("Validate with invalid output file - error", func(t *testing.T) {
