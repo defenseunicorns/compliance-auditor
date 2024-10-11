@@ -6,6 +6,7 @@ import (
 
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,6 +84,49 @@ func TestCreateResourceDataValidation(t *testing.T) {
 			}
 			if err := config.Client().Resources().Get(ctx, "another-ns", "", &corev1.Namespace{}); err == nil {
 				t.Fatal("namespace another-ns should not exist")
+			}
+
+			return ctx
+		}).
+		Assess("Validate Create Resource With Wait and Read", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			oscalPath := "./scenarios/create-resources/oscal-component-wait-read.yaml"
+			message.NoProgress = true
+
+			// TODO: fix this nonsense
+			validate.ConfirmExecution = true
+			validate.RunNonInteractively = true
+			validate.SaveResources = false
+
+			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(assessment.Results) == 0 {
+				t.Fatal("Expected greater than zero results")
+			}
+
+			result := assessment.Results[0]
+
+			if result.Findings == nil {
+				t.Fatal("Expected findings to be not nil")
+			}
+
+			for _, finding := range *result.Findings {
+				state := finding.Target.Status.State
+				if state != "satisfied" {
+					t.Fatal("State should be satisfied, but got :", state)
+				}
+			}
+
+			// Check that resources in the cluster were destroyed
+			podList := &corev1.PodList{}
+			err = config.Client().Resources().WithNamespace("validation-test").List(ctx, podList)
+			if len(podList.Items) != 0 || err != nil {
+				t.Fatal("pods should not exist in validation-test namespace")
+			}
+			if err := config.Client().Resources().Get(ctx, "test-deployment", "validation-test", &appsv1.Deployment{}); err == nil {
+				t.Fatal("deployment test-deployment should not exist")
 			}
 
 			return ctx
