@@ -1,0 +1,25 @@
+metadata:
+  name: Test validation with templating
+  uuid: a3a9d2cd-f15a-442f-83c1-a33ce3f56122
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podvt 
+        resource-rule: 
+          name: {{ .const.resources.name }}
+          version: v1
+          resource: pods
+          namespaces: [{{ .const.resources.namespace }}]
+provider: 
+  type: opa
+  opa-spec: 
+    rego: |
+      package validate
+      
+      default validate := false
+
+      validate {
+        input.podvt.metadata.labels.foo == "{{ .var.pod_label }}"
+        input.podvt.spec.containers[_].name == "{{ .var.container_name }}"
+      }

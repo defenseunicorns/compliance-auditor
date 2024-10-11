@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +19,10 @@ func TestFileValidation(t *testing.T) {
 
 	t.Run("success - opa", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
-		assessment, err := validate.ValidateOnPath(ctx, passDir+oscalFile, "")
+		validator, err := validation.New()
+		require.NoError(t, err)
+
+		assessment, err := validator.ValidateOnPath(ctx, passDir+oscalFile, "")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -40,7 +43,10 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("success - kyverno", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
-		assessment, err := validate.ValidateOnPath(ctx, passDir+kyvernoFile, "")
+		validator, err := validation.New()
+		require.NoError(t, err)
+
+		assessment, err := validator.ValidateOnPath(ctx, passDir+kyvernoFile, "")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
 
@@ -54,7 +60,11 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("success - arbitrary file contexnts", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
-		assessment, err := validate.ValidateOnPath(ctx, passDir+"/component-definition-string-file.yaml", "")
+		validator, err := validation.New()
+		if err != nil {
+			t.Errorf("error creating validator: %v", err)
+		}
+		assessment, err := validator.ValidateOnPath(ctx, passDir+"/component-definition-string-file.yaml", "")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
 
@@ -68,7 +78,10 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("fail - opa", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, failDir)
-		assessment, err := validate.ValidateOnPath(ctx, failDir+oscalFile, "")
+		validator, err := validation.New()
+		require.NoError(t, err)
+
+		assessment, err := validator.ValidateOnPath(ctx, failDir+oscalFile, "")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
 
@@ -82,9 +95,16 @@ func TestFileValidation(t *testing.T) {
 	})
 	t.Run("fail - kyverno", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, failDir)
-		assessment, err := validate.ValidateOnPath(ctx, failDir+kyvernoFile, "")
-		assert.NoError(t, err)
-		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		validator, err := validation.New()
+		require.NoError(t, err)
+		assessment, err := validator.ValidateOnPath(ctx, failDir+kyvernoFile, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(assessment.Results) == 0 {
+			t.Fatal("Expected greater than zero results")
+		}
 
 		result := assessment.Results[0]
 		assert.NotNil(t, result, "Expected findings to be not nil")
@@ -97,7 +117,11 @@ func TestFileValidation(t *testing.T) {
 
 	t.Run("invalid input", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, "scenarios/file-validations/invalid")
-		_, err := validate.ValidateOnPath(ctx, "scenarios/file-validations/invalid/oscal-component.yaml", "")
-		require.Error(t, err)
+		validator, err := validation.New()
+		require.NoError(t, err)
+		_, err = validator.ValidateOnPath(ctx, "scenarios/file-validations/invalid/oscal-component.yaml", "")
+		if err == nil {
+			t.Fatal("expected error, got success")
+		}
 	})
 }

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
@@ -57,7 +57,12 @@ func TestOutputs(t *testing.T) {
 			components := *compDef.Components
 			validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-			findingMap, observations, err := validate.ValidateOnControlImplementations(ctx, components[0].ControlImplementations, validationStore, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			findingMap, observations, err := validator.ValidateOnControlImplementations(context.Background(), components[0].ControlImplementations, validationStore, "")
 			if err != nil {
 				t.Fatal(err)
 			}

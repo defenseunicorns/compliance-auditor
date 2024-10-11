@@ -83,19 +83,12 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 		MakeAssessmentResultsDeterministic(model.AssessmentResults)
 	}
 
-	var b bytes.Buffer
-
-	if filepath.Ext(filePath) == ".json" {
-		jsonEncoder := json.NewEncoder(&b)
-		jsonEncoder.SetIndent("", "  ")
-		jsonEncoder.Encode(model)
-	} else {
-		yamlEncoder := yamlV3.NewEncoder(&b)
-		yamlEncoder.SetIndent(2)
-		yamlEncoder.Encode(model)
+	b, err := ConvertOSCALToBytes(model, filepath.Ext(filePath))
+	if err != nil {
+		return fmt.Errorf("error converting OSCAL model to bytes: %v", err)
 	}
 
-	err = files.WriteOutput(b.Bytes(), filePath)
+	err = files.WriteOutput(b, filePath)
 	if err != nil {
 		return err
 	}
@@ -126,19 +119,14 @@ func OverwriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) e
 	if model.AssessmentResults != nil {
 		MakeAssessmentResultsDeterministic(model.AssessmentResults)
 	}
-	var b bytes.Buffer
 
-	if filepath.Ext(filePath) == ".json" {
-		jsonEncoder := json.NewEncoder(&b)
-		jsonEncoder.SetIndent("", "  ")
-		jsonEncoder.Encode(model)
-	} else {
-		yamlEncoder := yamlV3.NewEncoder(&b)
-		yamlEncoder.SetIndent(2)
-		yamlEncoder.Encode(model)
+	b, err := ConvertOSCALToBytes(model, filepath.Ext(filePath))
+	if err != nil {
+		return fmt.Errorf("error converting OSCAL model to bytes: %v", err)
 	}
 
-	if err := files.WriteOutput(b.Bytes(), filePath); err != nil {
+	err = files.WriteOutput(b, filePath)
+	if err != nil {
 		return err
 	}
 
@@ -271,6 +259,29 @@ func InjectIntoOSCALModel(target *oscalTypes_1_1_2.OscalModels, values map[strin
 	}
 
 	return newModel, nil
+}
+
+// ConvertOSCALToBytes returns a byte slice representation of an OSCAL model
+func ConvertOSCALToBytes(model *oscalTypes_1_1_2.OscalModels, fileExt string) ([]byte, error) {
+	var b bytes.Buffer
+
+	if fileExt == ".json" {
+		jsonEncoder := json.NewEncoder(&b)
+		jsonEncoder.SetIndent("", "  ")
+		err := jsonEncoder.Encode(model)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		yamlEncoder := yamlV3.NewEncoder(&b)
+		yamlEncoder.SetIndent(2)
+		err := yamlEncoder.Encode(model)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return b.Bytes(), nil
 }
 
 // convertOscalModelToMap converts an OSCAL model to a map[string]interface{}

@@ -13,16 +13,16 @@ type ResourceStore struct {
 	existing  map[string]*oscalTypes_1_1_2.Resource
 	fetched   map[string]*oscalTypes_1_1_2.Resource
 	hrefIdMap map[string][]string
-	cctx      *CompositionContext
+	composer  *Composer
 }
 
 // NewResourceStoreFromBackMatter creates a new resource store from the back matter of a component definition.
-func NewResourceStoreFromBackMatter(cctx *CompositionContext, backMatter *oscalTypes_1_1_2.BackMatter) *ResourceStore {
+func NewResourceStoreFromBackMatter(composer *Composer, backMatter *oscalTypes_1_1_2.BackMatter) *ResourceStore {
 	store := &ResourceStore{
 		existing:  make(map[string]*oscalTypes_1_1_2.Resource),
 		fetched:   make(map[string]*oscalTypes_1_1_2.Resource),
 		hrefIdMap: make(map[string][]string),
-		cctx:      cctx,
+		composer:  composer,
 	}
 
 	if backMatter != nil && *backMatter.Resources != nil {
@@ -128,8 +128,8 @@ func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link, baseDir
 	}
 
 	// template here if renderValidations is true
-	if s.cctx.renderValidations {
-		validationBytes, err = s.cctx.templateRenderer.Render(string(validationBytes), s.cctx.renderType)
+	if s.composer.renderValidations {
+		validationBytes, err = s.composer.templateRenderer.Render(string(validationBytes), s.composer.renderType)
 		if err != nil {
 			return nil, err
 		}
