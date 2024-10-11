@@ -1,0 +1,198 @@
+([]interface {}) (len=1 cap=1) {
+ (tea.WindowSizeMsg) {
+  Width: (int) 223,
+  Height: (int) 63
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) tab
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) tab
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) right
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) left
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) d
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) d
+}
+detail key pressed
+selected: 
+Description: |
+  Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: bf59763a-0c22-4046-ab00-1d2b47dad8df
+  # Control Description Support the management of system accounts using [Assignment: organization-defined automated mechanisms].
+  # Control Implementation NeuVector supports internal user accounts and roles in addition to LDAP and SSO for providing RBAC access.
+ImplementationStatementUuid: ""
+Links: null
+Origins: null
+Props: null
+RelatedObservations: null
+RelatedRisks: null
+Remarks: ""
+Target:
+  status:
+    state: not-satisfied
+  target-id: ac-2.1
+  type: objective-id
+Title: 'Validation Result - Control: ac-2.1'
+UUID: d263ec5d-4ee8-43b2-9705-b0afa44758b5
+
+([]interface {}) (len=1 cap=1) {
+ (common.DetailOpenMsg) {
+  Content: (string) (len=704) "Description: |\n  Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: bf59763a-0c22-4046-ab00-1d2b47dad8df\n  # Control Description Support the management of system accounts using [Assignment: organization-defined automated mechanisms].\n  # Control Implementation NeuVector supports internal user accounts and roles in addition to LDAP and SSO for providing RBAC access.\nImplementationStatementUuid: \"\"\nLinks: null\nOrigins: null\nProps: null\nRelatedObservations: null\nRelatedRisks: null\nRemarks: \"\"\nTarget:\n  status:\n    state: not-satisfied\n  target-id: ac-2.1\n  type: objective-id\nTitle: 'Validation Result - Control: ac-2.1'\nUUID: d263ec5d-4ee8-43b2-9705-b0afa44758b5\n",
+  Height: (int) 63,
+  Width: (int) 223
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) d
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) d
+}
+detail key pressed
+selected: 
+Description: |
+  Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a
+  # Control Implementation
+    Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.
+ImplementationStatementUuid: ""
+Links: null
+Origins: null
+Props: null
+RelatedObservations:
+- observation-uuid: 1cc8559c-f4df-46bc-9adb-7f5923a9de91
+- observation-uuid: dbc9b893-9847-4ffa-8a91-7642f18f9784
+- observation-uuid: 435f54e2-3606-4250-9e16-79326844e82e
+- observation-uuid: ff67f994-802a-4668-a261-f0cbfb7982d5
+RelatedRisks: null
+Remarks: ""
+Target:
+  status:
+    state: satisfied
+  target-id: ac-4
+  type: objective-id
+Title: 'Validation Result - Control: ac-4'
+UUID: 1e16362c-0987-4314-bc1f-a1696344df0e
+
+([]interface {}) (len=1 cap=1) {
+ (common.DetailOpenMsg) {
+  Content: (string) (len=838) "Description: |\n  Control Implementation: d2afb4c4-2cd8-5305-a6cc-d1bc7b388d0c / Implemented Requirement: 9e158525-96bd-4d4f-a674-7e3eab9aea7a\n  # Control Implementation\n    Istio encrypts all in-mesh communication at runtime using FIPS verified mTLS in addition to ingress and egress gateways for controlling communication.\nImplementationStatementUuid: \"\"\nLinks: null\nOrigins: null\nProps: null\nRelatedObservations:\n- observation-uuid: 1cc8559c-f4df-46bc-9adb-7f5923a9de91\n- observation-uuid: dbc9b893-9847-4ffa-8a91-7642f18f9784\n- observation-uuid: 435f54e2-3606-4250-9e16-79326844e82e\n- observation-uuid: ff67f994-802a-4668-a261-f0cbfb7982d5\nRelatedRisks: null\nRemarks: \"\"\nTarget:\n  status:\n    state: satisfied\n  target-id: ac-4\n  type: objective-id\nTitle: 'Validation Result - Control: ac-4'\nUUID: 1e16362c-0987-4314-bc1f-a1696344df0e\n",
+  Height: (int) 63,
+  Width: (int) 223
+ }
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) esc
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) down
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) up
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}
+([]interface {}) (len=1 cap=1) {
+ (tea.KeyMsg) enter
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/evertras/bubble-table/table"
 	"github.com/mattn/go-runewidth"
 	"gopkg.in/yaml.v3"
 )
@@ -91,6 +92,26 @@ func FocusedPanelKeyMap() viewport.KeyMap {
 
 func UnfocusedPanelKeyMap() viewport.KeyMap {
 	km := viewport.KeyMap{}
+
+	return km
+}
+
+func FocusedTableKeyMap() table.KeyMap {
+	km := table.DefaultKeyMap()
+	km.PageUp = key.NewBinding(
+		key.WithKeys("pgup"),
+		key.WithHelp("pgup", "page up"),
+	)
+	km.PageDown = key.NewBinding(
+		key.WithKeys("pgdown"),
+		key.WithHelp("pgdown", "page down"),
+	)
+
+	return km
+}
+
+func UnfocusedTableKeyMap() table.KeyMap {
+	km := table.KeyMap{}
 
 	return km
 }

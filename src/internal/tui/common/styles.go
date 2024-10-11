@@ -3,6 +3,7 @@ package common
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -23,8 +24,9 @@ const (
 var (
 
 	// Colors
-
+	Text       = lipgloss.AdaptiveColor{Light: "#000000", Dark: "#ffffff"}
 	Subtle     = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
+	Subtle2    = lipgloss.AdaptiveColor{Light: "#706f6f", Dark: "#989797"}
 	Highlight  = lipgloss.AdaptiveColor{Light: "#6d26fc", Dark: "#7D56F4"}
 	Highlight2 = lipgloss.AdaptiveColor{Light: "#8f58fc", Dark: "#8f6ef0"}
 	Focused    = lipgloss.AdaptiveColor{Light: "#8378ab", Dark: "#bfb2eb"}
@@ -102,7 +104,7 @@ var (
 	OverlayStyle = lipgloss.NewStyle().
 			Border(lipgloss.DoubleBorder(), true).
 			BorderForeground(Focused).
-			Padding(1, 1)
+			Padding(1, 1, 0, 1)
 
 	OverlayWarnStyle = lipgloss.NewStyle().
 				Border(lipgloss.DoubleBorder(), true).
@@ -115,6 +117,32 @@ var (
 			Padding(1, 2).
 			Margin(1).
 			Width(30)
+
+	SummaryTextStyle = lipgloss.NewStyle().
+				Foreground(Text).Margin(0, 1)
+
+	// Table Styles
+	TableStyles = table.Styles{
+		Header:   lipgloss.NewStyle().Foreground(Highlight).Bold(true),
+		Cell:     lipgloss.NewStyle().Foreground(Subtle),
+		Selected: lipgloss.NewStyle().Foreground(Highlight),
+	}
+
+	UnfocusedTableStyles = table.Styles{
+		Header:   lipgloss.NewStyle().Foreground(Highlight).Bold(true),
+		Cell:     lipgloss.NewStyle().Foreground(Subtle),
+		Selected: lipgloss.NewStyle().Foreground(Subtle),
+	}
+
+	TableStyleBase = lipgloss.NewStyle().
+			Foreground(Text).
+			BorderForeground(Subtle2).
+			Align(lipgloss.Left)
+
+	TableStyleActive = lipgloss.NewStyle().
+				Foreground(Text).
+				BorderForeground(Highlight).
+				Align(lipgloss.Left)
 
 	// Help
 	KeyStyle        = lipgloss.NewStyle().Foreground(HelpKey)
