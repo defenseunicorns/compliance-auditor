@@ -361,3 +361,31 @@ func sortBackMatter(backmatter *oscalTypes.BackMatter) {
 	}
 	return
 }
+
+// Merges two arrays of resources into a single array
+func mergeResources(orig *[]oscalTypes.Resource, latest *[]oscalTypes.Resource) *[]oscalTypes.Resource {
+	if orig == nil {
+		return latest
+	}
+
+	if latest == nil {
+		return orig
+	}
+
+	result := make([]oscalTypes.Resource, 0)
+
+	tempResource := make(map[string]oscalTypes.Resource)
+	for _, resource := range *orig {
+		tempResource[resource.UUID] = resource
+		result = append(result, resource)
+	}
+
+	for _, resource := range *latest {
+		// Only append if does not exist
+		if _, ok := tempResource[resource.UUID]; !ok {
+			result = append(result, resource)
+		}
+	}
+
+	return &result
+}

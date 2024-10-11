@@ -2,6 +2,7 @@ package oscal
 
 import (
 	"fmt"
+	"os"
 	"slices"
 	"sort"
 	"time"
@@ -88,7 +89,18 @@ func (p *Profile) HandleExisting(filepath string) error {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("output File %s currently exist - cannot merge artifacts", filepath)
+		existingFileBytes, err := os.ReadFile(filepath)
+		if err != nil {
+			return fmt.Errorf("error reading file: %v", err)
+		}
+		profile := NewProfile()
+		profile.NewModel(existingFileBytes)
+		model, err := MergeProfileModels(profile.Model, p.Model)
+		if err != nil {
+			return err
+		}
+		p.Model = model
+		return nil
 	} else {
 		return nil
 	}
@@ -189,4 +201,63 @@ func GenerateProfile(command string, source string, include []string, exclude []
 
 	return &profile, nil
 
+}
+
+func MergeProfileModels(original *oscalTypes.Profile, latest *oscalTypes.Profile) (*oscalTypes.Profile, error) {
+
+	originalMap := make(map[string]oscalTypes.Import)
+	latestMap := make(map[string]oscalTypes.Import)
+
+	// Merge import items by href
+	// we need to account for 1 -> N items in both models
+	// do a simple merge by href now -> TODO: add intelligence for storing some source identifying information
+	if len(original.Imports) == 0 {
+		return original, fmt.Errorf("existing profile has no imports")
+	}
+
+	for _, item := range original.Imports {
+		originalMap[item.Href] = item
+	}
+
+	if len(latest.Imports) == 0 {
+		return original, fmt.Errorf("new profile has no imports ")
+	}
+
+	for _, item := range latest.Imports {
+		latestMap[item.Href] = item
+	}
+
+	tempImports := make([]oscalTypes.Import, 0)
+
+	for key, value := range latestMap {
+		if _, ok := originalMap[key]; ok {
+			// item exists - replace
+			tempImports = append(tempImports, value)
+			delete(originalMap, key)
+		} else {
+			// append the item
+			tempImports = append(tempImports, value)
+		}
+	}
+
+	for _, item := range originalMap {
+		tempImports = append(tempImports, item)
+	}
+
+	// merge the back-matter resources
+	if original.BackMatter != nil && latest.BackMatter != nil {
+		original.BackMatter = &oscalTypes.BackMatter{
+			Resources: mergeResources(original.BackMatter.Resources, latest.BackMatter.Resources),
+		}
+	} else if original.BackMatter == nil && latest.BackMatter != nil {
+		original.BackMatter = latest.BackMatter
+	}
+
+	original.Imports = tempImports
+	original.Metadata.LastModified = time.Now()
+
+	// Artifact will be modified - need to update the UUID
+	original.UUID = uuid.NewUUID()
+
+	return original, nil
 }

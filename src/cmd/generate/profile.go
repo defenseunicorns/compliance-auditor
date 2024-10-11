@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
@@ -45,14 +44,10 @@ func GenerateProfileCommand() *cobra.Command {
 				outputFile = "profile.yaml"
 			}
 
-			// pre-check if the output file exists
-			exists, err := pkgCommon.CheckFileExists(outputFile)
+			/// Check if output file contains a valid OSCAL model
+			_, err := oscal.ValidOSCALModelAtPath(outputFile)
 			if err != nil {
-				return err
-			}
-
-			if exists {
-				return fmt.Errorf("output File %s currently exist - cannot merge artifacts", outputFile)
+				return fmt.Errorf("invalid OSCAL model at output: %v", err)
 			}
 
 			command := fmt.Sprintf("%s --source %s", cmd.CommandPath(), source)

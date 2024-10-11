@@ -211,34 +211,6 @@ func mergeControlImplementations(original *oscalTypes_1_1_2.ControlImplementatio
 	return original
 }
 
-// Merges two arrays of resources into a single array
-func mergeResources(orig *[]oscalTypes_1_1_2.Resource, latest *[]oscalTypes_1_1_2.Resource) *[]oscalTypes_1_1_2.Resource {
-	if orig == nil {
-		return latest
-	}
-
-	if latest == nil {
-		return orig
-	}
-
-	result := make([]oscalTypes_1_1_2.Resource, 0)
-
-	tempResource := make(map[string]oscalTypes_1_1_2.Resource)
-	for _, resource := range *orig {
-		tempResource[resource.UUID] = resource
-		result = append(result, resource)
-	}
-
-	for _, resource := range *latest {
-		// Only append if does not exist
-		if _, ok := tempResource[resource.UUID]; !ok {
-			result = append(result, resource)
-		}
-	}
-
-	return &result
-}
-
 // Merges two arrays of links into a single array
 // TODO: account for overriding validations
 func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[]oscalTypes_1_1_2.Link {
