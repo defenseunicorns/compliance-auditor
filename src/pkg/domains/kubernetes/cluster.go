@@ -89,5 +89,5 @@ func (c *Cluster) validateAndGetGVR(group, version, resource string) (*metav1.AP
 		}
 	}
 
-	return nil, fmt.Errorf("resource %s not found in group %s version %s", resource, group, version)
+	return nil, fmt.Errorf("resource %s not found in group, %s, version, %s", resource, group, version)
 }

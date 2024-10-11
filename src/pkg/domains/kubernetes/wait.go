@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	pkgkubernetes "github.com/defenseunicorns/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/cli-utils/pkg/object"
@@ -16,7 +17,7 @@ func EvaluateWait(ctx context.Context, cluster *Cluster, waitPayload Wait) error
 	}
 
 	// TODO: incorporate wait for multiple objects?
-	obj, err := globalCluster.validateAndGetGVR(waitPayload.Group, waitPayload.Version, waitPayload.Resource)
+	obj, err := cluster.validateAndGetGVR(waitPayload.Group, waitPayload.Version, waitPayload.Resource)
 	if err != nil {
 		return fmt.Errorf("unable to validate GVR: %v", err)
 	}
@@ -24,7 +25,7 @@ func EvaluateWait(ctx context.Context, cluster *Cluster, waitPayload Wait) error
 		Name:      waitPayload.Name,
 		Namespace: waitPayload.Namespace,
 		GroupKind: schema.GroupKind{
-			Group: obj.Group,
+			Group: waitPayload.Group,
 			Kind:  obj.Kind,
 		},
 	}
@@ -42,6 +43,6 @@ func EvaluateWait(ctx context.Context, cluster *Cluster, waitPayload Wait) error
 	}
 	waitCtx, waitCancel := context.WithTimeout(ctx, duration)
 	defer waitCancel()
-
+	message.Debugf("Waiting for %s %s/%s to be ready", waitPayload.Resource, waitPayload.Name, waitPayload.Namespace)
 	return pkgkubernetes.WaitForReady(waitCtx, cluster.watcher, []object.ObjMetadata{objMeta})
 }

@@ -70,6 +70,50 @@ domain:
         file: '<some url>'              # Optional - File name where resource(s) to create are stored; Only optional if manifest is not specified. Currently does not support relative paths.
 ```
 
+In addition to simply creating and reading individual resources, you can create a resource, wait for it to be ready, then read the possible children resources that should be created. For example the following `kubernetes-spec` will create a deployment, wait for it to be ready, and then read the pods that should be children of that deployment:
+
+```yaml
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    create-resources:
+    - name: testDeploy
+      manifest: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: test-deployment
+          namespace: validation-test
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: test-app
+          template:
+            metadata:
+              labels:
+                app: test-app
+            spec:
+              containers:
+              - name: test-container
+                image: nginx
+    wait:
+      group: apps
+      version: v1
+      resource: deployments
+      name: test-deployment
+      namespace: validation-test
+    resources:
+    - name: validationTestPods
+      resource-rule:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+```
+
+> [!NOTE]
+> The `create-resources` is evaluated prior to the `wait`, and `wait` is evaluated prior to the `resources`.
+
 ## Lists vs Named Resource
 
 When Lula retrieves all targeted resources (bounded by namespace when applicable), the payload is a list of resources. When a resource Name is specified - the payload will be a single object. 

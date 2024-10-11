@@ -88,30 +88,55 @@ func CreateKubernetesDomain(spec *KubernetesSpec) (types.Domain, error) {
 
 // GetResources returns the resources from the Kubernetes domain
 // Evaluates the `create-resources` first, `wait` second, and finally `resources` last
-func (k KubernetesDomain) GetResources(ctx context.Context) (resources types.DomainResources, err error) {
+func (k KubernetesDomain) GetResources(ctx context.Context) (types.DomainResources, error) {
+	createdResources := make(types.DomainResources)
+	resources := make(types.DomainResources)
+	var namespaces []string
+
 	cluster, err := GetCluster()
 	if err != nil {
 		return nil, err
+	}
+
+	// Evaluate the create-resources parameter
+	if k.Spec.CreateResources != nil {
+		createdResources, namespaces, err = CreateAllResources(ctx, cluster, k.Spec.CreateResources)
+		if err != nil {
+			return nil, fmt.Errorf("error in create: %v", err)
+		}
+		// Destroy the resources after everything else has been evaluated
+		defer func() {
+			if cleanupErr := DestroyAllResources(ctx, cluster.kclient, createdResources, namespaces); cleanupErr != nil {
+				if err == nil {
+					err = cleanupErr
+				}
+			}
+		}()
 	}
 
 	// Evaluate the wait condition
 	if k.Spec.Wait != nil {
 		err := EvaluateWait(ctx, cluster, *k.Spec.Wait)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error in wait: %v", err)
 		}
 	}
 
-	// TODO: Return both?
+	// Evaluate the resources parameter
 	if k.Spec.Resources != nil {
 		resources, err = QueryCluster(ctx, cluster, k.Spec.Resources)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error in query: %v", err)
 		}
-	} else if k.Spec.CreateResources != nil {
-		resources, err = CreateE2E(ctx, cluster, k.Spec.CreateResources)
-		if err != nil {
-			return nil, err
+	}
+
+	// Join the resources and createdResources
+	// Note - resource keys must be unique
+	if len(resources) == 0 {
+		return createdResources, nil
+	} else {
+		for k, v := range createdResources {
+			resources[k] = v
 		}
 	}
 
