@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/defenseunicorns/lula/compare/v0.9.0...v0.9.1) (2024-10-12)
+
+
+### Bug Fixes
+
+* **release:** add environment to push job ([#735](https://github.com/defenseunicorns/lula/issues/735)) ([1ed52f1](https://github.com/defenseunicorns/lula/commit/1ed52f1cf36214ef20ac5a95cee5d5f266232192))
+
 ## [0.9.0](https://github.com/defenseunicorns/lula/compare/v0.8.0...v0.9.0) (2024-10-11)
 
 
