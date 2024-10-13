@@ -64,12 +64,12 @@ func ComposeCommand() *cobra.Command {
 			}
 
 			// Compose the OSCAL model
-			compositionCtx, err := composition.New(opts...)
+			composer, err := composition.New(opts...)
 			if err != nil {
-				return fmt.Errorf("error creating composition context: %v", err)
+				return fmt.Errorf("error creating new composer: %v", err)
 			}
 
-			model, err := compositionCtx.ComposeFromPath(cmd.Context(), inputFile)
+			model, err := composer.ComposeFromPath(cmd.Context(), inputFile)
 			if err != nil {
 				return fmt.Errorf("error composing model from path: %v", err)
 			}

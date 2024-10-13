@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -36,7 +36,12 @@ func TestRemoteValidation(t *testing.T) {
 		Assess("Validate local validation file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/remote-validations/component-definition.yaml"
 
-			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+			validator, err := validation.New(validation.WithComposition(nil, oscalPath))
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}

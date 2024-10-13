@@ -20,7 +20,7 @@ import (
 
 type RenderedContent string
 
-type CompositionContext struct {
+type Composer struct {
 	modelDir          string
 	templateRenderer  *template.TemplateRenderer
 	renderTemplate    bool
@@ -28,28 +28,28 @@ type CompositionContext struct {
 	renderType        template.RenderType
 }
 
-func New(opts ...Option) (*CompositionContext, error) {
-	var compositionCtx CompositionContext
+func New(opts ...Option) (*Composer, error) {
+	var composer Composer
 
 	for _, opt := range opts {
-		if err := opt(&compositionCtx); err != nil {
+		if err := opt(&composer); err != nil {
 			return nil, err
 		}
 	}
 
-	return &compositionCtx, nil
+	return &composer, nil
 }
 
 // ComposeFromPath composes an OSCAL model from a file path
-func (cc *CompositionContext) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
+func (c *Composer) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Template if renderTemplate is true -> Only renders the local data (e.g., what is in the file)
-	if cc.renderTemplate {
-		data, err = cc.templateRenderer.Render(string(data), cc.renderType)
+	if c.renderTemplate {
+		data, err = c.templateRenderer.Render(string(data), c.renderType)
 		if err != nil {
 			return nil, err
 		}
@@ -60,7 +60,7 @@ func (cc *CompositionContext) ComposeFromPath(ctx context.Context, path string) 
 		return nil, err
 	}
 
-	err = cc.ComposeComponentDefinitions(ctx, model.ComponentDefinition, cc.modelDir)
+	err = c.ComposeComponentDefinitions(ctx, model.ComponentDefinition, c.modelDir)
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +69,13 @@ func (cc *CompositionContext) ComposeFromPath(ctx context.Context, path string) 
 }
 
 // ComposeComponentDefinitions composes an OSCAL component definition by adding the remote resources to the back matter and updating with back matter links.
-func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
+func (c *Composer) ComposeComponentDefinitions(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
 
 	// Compose the component validations
-	err := cc.ComposeComponentValidations(ctx, compDef, baseDir)
+	err := c.ComposeComponentValidations(ctx, compDef, baseDir)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,8 @@ func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, c
 			}
 
 			// template here if renderTemplate is true
-			if cc.renderTemplate {
-				response, err = cc.templateRenderer.Render(string(response), cc.renderType)
+			if c.renderTemplate {
+				response, err = c.templateRenderer.Render(string(response), c.renderType)
 				if err != nil {
 					return err
 				}
@@ -116,7 +116,7 @@ func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, c
 			for _, importDef := range componentDefs {
 				// Reconcile the base directory from the import component definition href
 				importDir := network.GetLocalFileDir(importComponentDef.Href, baseDir)
-				err = cc.ComposeComponentDefinitions(ctx, importDef, importDir)
+				err = c.ComposeComponentDefinitions(ctx, importDef, importDir)
 				if err != nil {
 					return err
 				}
@@ -137,13 +137,13 @@ func (cc *CompositionContext) ComposeComponentDefinitions(ctx context.Context, c
 }
 
 // ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
-func (cc *CompositionContext) ComposeComponentValidations(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
+func (c *Composer) ComposeComponentValidations(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
 
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
 
-	resourceMap := NewResourceStoreFromBackMatter(cc, compDef.BackMatter)
+	resourceMap := NewResourceStoreFromBackMatter(c, compDef.BackMatter)
 
 	// If there are no components, there is nothing to do
 	if compDef.Components == nil {
@@ -152,41 +152,41 @@ func (cc *CompositionContext) ComposeComponentValidations(ctx context.Context, c
 
 	for componentIndex, component := range *compDef.Components {
 		// If there are no control-implementations, skip to the next component
-		controlImplementations := *component.ControlImplementations
-		if controlImplementations == nil {
-			continue
-		}
-		for controlImplementationIndex, controlImplementation := range controlImplementations {
-			for implementedRequirementIndex, implementedRequirement := range controlImplementation.ImplementedRequirements {
-				if implementedRequirement.Links != nil {
-					compiledLinks := []oscalTypes_1_1_2.Link{}
+		if component.ControlImplementations != nil {
+			controlImplementations := *component.ControlImplementations
+			for controlImplementationIndex, controlImplementation := range controlImplementations {
+				for implementedRequirementIndex, implementedRequirement := range controlImplementation.ImplementedRequirements {
+					if implementedRequirement.Links != nil {
+						compiledLinks := []oscalTypes_1_1_2.Link{}
 
-					for _, link := range *implementedRequirement.Links {
-						if common.IsLulaLink(link) {
-							ids, err := resourceMap.AddFromLink(&link, baseDir)
-							if err != nil {
-								// return err
-								newId := uuid.NewUUID()
-								message.Debugf("Error adding validation %s from link %s: %v", newId, link.Href, err)
-								ids = []string{newId}
-							}
-							for _, id := range ids {
-								link := oscalTypes_1_1_2.Link{
-									Rel:  link.Rel,
-									Href: common.AddIdPrefix(id),
-									Text: link.Text,
+						for _, link := range *implementedRequirement.Links {
+							if common.IsLulaLink(link) {
+								ids, err := resourceMap.AddFromLink(&link, baseDir)
+								if err != nil {
+									// return err
+									newId := uuid.NewUUID()
+									message.Debugf("Error adding validation %s from link %s: %v", newId, link.Href, err)
+									ids = []string{newId}
 								}
+								for _, id := range ids {
+									link := oscalTypes_1_1_2.Link{
+										Rel:  link.Rel,
+										Href: common.AddIdPrefix(id),
+										Text: link.Text,
+									}
+									compiledLinks = append(compiledLinks, link)
+								}
+							} else {
 								compiledLinks = append(compiledLinks, link)
 							}
-						} else {
-							compiledLinks = append(compiledLinks, link)
 						}
+						(*component.ControlImplementations)[controlImplementationIndex].ImplementedRequirements[implementedRequirementIndex].Links = &compiledLinks
+						(*compDef.Components)[componentIndex] = component
 					}
-					(*component.ControlImplementations)[controlImplementationIndex].ImplementedRequirements[implementedRequirementIndex].Links = &compiledLinks
-					(*compDef.Components)[componentIndex] = component
 				}
 			}
 		}
+
 	}
 	allFetched := resourceMap.AllFetched()
 	if compDef.BackMatter != nil && compDef.BackMatter.Resources != nil {

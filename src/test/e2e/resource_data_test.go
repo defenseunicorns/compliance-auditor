@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
@@ -71,7 +71,12 @@ func TestResourceDataValidation(t *testing.T) {
 			oscalPath := "./scenarios/resource-data/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
