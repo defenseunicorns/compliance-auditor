@@ -152,12 +152,6 @@ func GetComponents(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) []compo
 	return components
 }
 
-func RunValidation(oscalComponent *oscalTypes_1_1_2.ComponentDefinition, framework framework) (*oscalTypes_1_1_2.AssessmentResults, error) {
-	// TODO: add validation logic
-	// Should this be called from the main model? probably yeah so you can update the assessment results model too + redirect to it...
-	return nil, nil
-}
-
 func getComponentText(component component) string {
 	if component.Uuid == "" {
 		return "No Components"

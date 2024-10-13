@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"os"
-	"reflect"
 
 	"github.com/charmbracelet/bubbles/key"
 	blist "github.com/charmbracelet/bubbles/list"
@@ -147,33 +146,10 @@ func DumpToLog(msg ...any) {
 }
 
 func ToYamlString(input interface{}) (string, error) {
-	result := make(map[string]interface{})
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-	if v.Kind() != reflect.Struct {
-		return "", fmt.Errorf("input must be a struct")
-	}
-
-	t := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldType := t.Field(i)
-
-		// Skip unexported fields
-		if !field.CanInterface() {
-			continue
-		}
-
-		fieldName := fieldType.Name
-		result[fieldName] = field.Interface()
-	}
-
-	yamlData, err := yaml.Marshal(result)
+	yamlData, err := yaml.Marshal(input)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to marshal to YAML: %w", err)
 	}
-	return string(yamlData), nil
 
+	return string(yamlData), nil
 }

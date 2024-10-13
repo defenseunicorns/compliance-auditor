@@ -23,6 +23,7 @@ type Keys struct {
 	Save           key.Binding
 	Newline        key.Binding
 	Detail         key.Binding
+	Validate       key.Binding
 }
 
 var CommonKeys = Keys{
@@ -81,6 +82,10 @@ var CommonKeys = Keys{
 	Detail: key.NewBinding(
 		key.WithKeys("d"),
 		key.WithHelp("d", "detail"),
+	),
+	Validate: key.NewBinding(
+		key.WithKeys("ctrl+v"),
+		key.WithHelp("ctrl+v", "validate"),
 	),
 }
 

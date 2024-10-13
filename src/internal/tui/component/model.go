@@ -19,11 +19,10 @@ const (
 )
 
 type Model struct {
-	open               bool
+	IsOpen             bool
 	help               common.HelpModel
 	keys               keys
 	focus              focus
-	validatePopup      common.PopupModel
 	componentModel     *oscalTypes_1_1_2.ComponentDefinition
 	components         []component
 	selectedComponent  component
@@ -142,7 +141,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.updateSizing(msg.Height-common.TabOffset, msg.Width)
 
 	case tea.KeyMsg:
-		if m.open {
+		if m.IsOpen {
 			k := msg.String()
 			switch k {
 			case common.ContainsKey(k, m.keys.Help.Keys()):
@@ -163,9 +162,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.focus = (m.focus + 1) % (maxFocus + 1)
 					m.updateKeyBindings()
 				}
-
-			case common.ContainsKey(k, m.keys.Validate.Keys()):
-				//
 
 			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				switch m.focus {
@@ -466,12 +462,22 @@ func (m *Model) UpdateWithComponentDefinition(oscalComponent *oscalTypes_1_1_2.C
 	m.resetWidgets()
 }
 
+// RunValidation runs the validation for the currently selected target in the component view
+func (m *Model) RunValidation() (*oscalTypes_1_1_2.AssessmentResults, error) {
+	// validator, err := validation.NewValidator(m.componentModel)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	return nil, nil
+}
+
 func (m *Model) Close() {
-	m.open = false
+	m.IsOpen = false
 }
 
 func (m *Model) Open(height, width int) {
-	m.open = true
+	m.IsOpen = true
 	m.updateSizing(height, width)
 }
 

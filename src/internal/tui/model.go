@@ -31,6 +31,7 @@ type model struct {
 	assessmentPlanModel       common.TbdModal
 	systemSecurityPlanModel   common.TbdModal
 	profileModel              common.TbdModal
+	validateModel             common.PopupModel
 	closeModel                common.PopupModel
 	saveModel                 common.SaveModel
 	width                     int
@@ -76,6 +77,7 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 	}
 
 	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
+	validateModel := common.NewPopupModel("Run Validation", "", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
 	saveModel := common.NewSaveModel(componentFilePath)
 
 	return model{
@@ -83,6 +85,7 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 		tabs:                      tabs,
 		componentFilePath:         componentFilePath,
 		writtenComponentModel:     writtenComponentModel,
+		validateModel:             validateModel,
 		closeModel:                closeModel,
 		saveModel:                 saveModel,
 		componentModel:            componentModel,
@@ -181,6 +184,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			return m, nil
+
+		case common.ContainsKey(k, m.keys.Validate.Keys()):
+			if m.componentModel.IsOpen {
+				// Open validation popup with Selected target in component view
+
+				// Move this all to a receiver function of the validation popup model
+				// TODO: checkbox to run executable validations
+				// Run validation
+				assessmentresults, err := m.componentModel.RunValidation()
+				if err != nil {
+					common.PrintToLog("error running validation: %v", err)
+					return m, nil
+				}
+
+				// Update assessment results model
+				m.assessmentResultsModel.UpdateWithAssessmentResults(assessmentresults) // Latest should be at the top of the list
+
+				// Open assessment results model / Close component model
+				m.assessmentResultsModel.Open(m.height-common.TabOffset, m.width)
+				m.componentModel.Close()
+			}
 
 		case common.ContainsKey(k, m.keys.Cancel.Keys()):
 			if m.closeModel.Open {
