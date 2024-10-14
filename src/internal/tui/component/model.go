@@ -41,6 +41,7 @@ type Model struct {
 	validations        blist.Model
 	selectedValidation validationLink
 	detailView         common.DetailModel
+	validateModel      ValidateModel
 	width              int
 	height             int
 }
@@ -112,6 +113,7 @@ func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefin
 		validationPicker:  validationPicker,
 		validations:       v,
 		detailView:        common.NewDetailModel(),
+		validateModel:     NewValidateModel(oscalComponent),
 	}
 
 	model.UpdateWithComponentDefinition(oscalComponent)
@@ -148,7 +150,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.help.ShowAll = !m.help.ShowAll
 
 			case common.ContainsKey(k, m.keys.NavigateLeft.Keys()):
-				if !m.componentPicker.Open && !m.frameworkPicker.Open && !m.detailView.Open {
+				if !m.inOverlay() {
 					if m.focus == 0 {
 						m.focus = maxFocus
 					} else {
@@ -158,7 +160,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case common.ContainsKey(k, m.keys.NavigateRight.Keys()):
-				if !m.componentPicker.Open && !m.frameworkPicker.Open && !m.detailView.Open {
+				if !m.inOverlay() {
 					m.focus = (m.focus + 1) % (maxFocus + 1)
 					m.updateKeyBindings()
 				}
@@ -166,7 +168,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case common.ContainsKey(k, m.keys.Confirm.Keys()):
 				switch m.focus {
 				case focusComponentSelection:
-					if len(m.components) > 0 && !m.componentPicker.Open {
+					if len(m.components) > 0 && !m.inOverlay() {
 						return m, func() tea.Msg {
 							return common.PickerOpenMsg{
 								Kind: componentPickerKind,
@@ -175,7 +177,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				case focusFrameworkSelection:
-					if len(m.frameworks) > 0 && !m.frameworkPicker.Open {
+					if len(m.frameworks) > 0 && !m.inOverlay() {
 						return m, func() tea.Msg {
 							return common.PickerOpenMsg{
 								Kind: frameworkPickerKind,
@@ -258,6 +260,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
+			case common.ContainsKey(k, m.keys.Validate.Keys()):
+				if !m.inOverlay() {
+					m.validateModel.Open(m.height, m.width, m.selectedFramework.Name)
+				}
+
 			case common.ContainsKey(k, m.keys.Cancel.Keys()):
 				if m.selectedControl.OscalControl != nil {
 					switch m.focus {
@@ -307,6 +314,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.detailView = mdl.(common.DetailModel)
 	cmds = append(cmds, cmd)
 
+	mdl, cmd = m.validateModel.Update(msg)
+	m.validateModel = mdl.(ValidateModel)
+	cmds = append(cmds, cmd)
+
 	m.remarks, cmd = m.remarks.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -331,6 +342,9 @@ func (m Model) View() string {
 	}
 	if m.detailView.Open {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.detailView.View(), lipgloss.WithWhitespaceChars(" "))
+	}
+	if m.validateModel.IsOpen {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.validateModel.View(), lipgloss.WithWhitespaceChars(" "))
 	}
 	return m.mainView()
 }
@@ -512,6 +526,13 @@ func (m *Model) UpdateDescription(description string) {
 	if m.selectedControl.OscalControl != nil {
 		m.selectedControl.OscalControl.Description = description
 	}
+}
+
+func (m *Model) inOverlay() bool {
+	if m.componentPicker.Open || m.frameworkPicker.Open || m.detailView.Open || m.validateModel.IsOpen {
+		return true
+	}
+	return false
 }
 
 func (m *Model) resetWidgets() {

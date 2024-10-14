@@ -9,15 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type PopupOpenMsg struct {
-	Title, Content, Warning string
-}
-type PopupCloseMsg struct{}
-
-type PopupFailMsg struct {
-	Err error
-}
-
 type PopupModel struct {
 	Open    bool
 	Title   string
@@ -56,15 +47,6 @@ func (m PopupModel) Init() tea.Cmd {
 }
 
 func (m PopupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-
-	case PopupOpenMsg:
-		m.Open = true
-		m.UpdateText(msg.Title, msg.Content, msg.Warning)
-
-	case PopupCloseMsg:
-		m.Open = false
-	}
 	return m, nil
 }
 

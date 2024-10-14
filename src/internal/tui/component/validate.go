@@ -12,6 +12,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 )
@@ -40,23 +41,25 @@ type ValidateModel struct {
 	runExecutable     bool
 	validating        bool
 	validatable       bool
+	target            string
 	content           string
-	filePath          string
-	componentModel    *Model
+	oscalComponent    *oscalTypes_1_1_2.ComponentDefinition
+	controlImplSet    []oscalTypes_1_1_2.ControlImplementationSet
+	validationStore   *validationstore.ValidationStore
 	assessmentResults *oscalTypes_1_1_2.AssessmentResults
 	help              common.HelpModel
 	height            int
 	width             int
 }
 
-func NewValidateModel(componentModel *Model, filepath string) ValidateModel {
+func NewValidateModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) ValidateModel {
 	help := common.NewHelpModel(true)
 	help.ShortHelp = []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel}
 
 	return ValidateModel{
 		help:           help,
-		componentModel: componentModel,
-		filePath:       filepath,
+		oscalComponent: oscalComponent,
+		runExecutable:  true, // Hardcoding for now, tbd on optional input from user
 		height:         defaultPopupHeight,
 		width:          defaultPopupWidth,
 	}
@@ -82,6 +85,7 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case common.ContainsKey(k, common.CommonKeys.Confirm.Keys()):
 				if m.validatable {
 					m.validating = true
+					m.content = "Validating..."
 					cmds = append(cmds, func() tea.Msg {
 						return ValidateStartMsg{}
 					})
@@ -94,7 +98,13 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case ValidateStartMsg:
-			m.assessmentResults, err = m.RunValidations(m.runExecutable)
+			validationStart := time.Now()
+			m.assessmentResults, err = m.RunValidations(m.runExecutable, m.target)
+			validationDuration := time.Since(validationStart)
+			// just adding a minimum of 2 seconds to the "validating" popup
+			if validationDuration < time.Second*2 {
+				time.Sleep(time.Second*2 - validationDuration)
+			}
 
 			cmds = append(cmds, func() tea.Msg {
 				return ValidationCompleteMsg{
@@ -103,8 +113,6 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 
 		case ValidationCompleteMsg:
-			m.validating = false
-
 			cmds = append(cmds, func() tea.Msg {
 				time.Sleep(time.Second * 2)
 				return ValidateCloseAndResetMsg{}
@@ -119,57 +127,68 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				})
 			}
+			return m, tea.Sequence(cmds...)
 
 		case ValidateCloseAndResetMsg:
 			m.IsOpen = false
 			m.validatable = false
 			m.validating = false
+			m.target = ""
 
 		}
 	}
-	return m, tea.Sequence(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
 func (m ValidateModel) View() string {
-	common.PrintToLog("in validate view")
-	common.DumpToLog(m)
-	var content string
 	popupStyle := common.OverlayStyle.
 		Width(m.width).
 		Height(m.height)
 
 	if m.validating {
-		// TODO: Add progress spinner/feedback
-		content = "Validating..."
+		// Add progress spinner/feedback?
 		m.help.ShortHelp = []key.Binding{}
-	} else {
-		content = m.content
 	}
-	validationContent := lipgloss.JoinVertical(lipgloss.Top, content, "\n", m.help.View())
+	validationContent := lipgloss.JoinVertical(lipgloss.Top, m.content, "\n", m.help.View())
 	return popupStyle.Render(validationContent)
 }
 
-func (m *ValidateModel) Open(height, width int, oscalComponent *oscalTypes_1_1_2.ComponentDefinition, target string) {
+func (m *ValidateModel) Open(height, width int, target string) {
 	m.IsOpen = true
+	m.target = target
 	m.updateSizing(int(float64(height)*validateHeightScale), int(float64(width)*validateWidthScale))
 	var content strings.Builder
 
 	// update the model with component data
-	var validationStore *validationstore.ValidationStore
-	if oscalComponent != nil {
-		if oscalComponent.BackMatter != nil {
-			validationStore = validationstore.NewValidationStoreFromBackMatter(*oscalComponent.BackMatter)
+	if m.oscalComponent != nil {
+		if m.oscalComponent.BackMatter != nil {
+			m.validationStore = validationstore.NewValidationStoreFromBackMatter(*m.oscalComponent.BackMatter)
 		} else {
-			validationStore = validationstore.NewValidationStore()
+			m.validationStore = validationstore.NewValidationStore()
 		}
 
-		hasExecutables, msg := validationStore.DryRun()
+		controlImplementationMap := oscal.FilterControlImplementations(m.oscalComponent)
 
-		content.WriteString(fmt.Sprintf("Validate Component Definition on Target: %s\n\n%s", target, msg))
-		if hasExecutables {
-			content.WriteString("\n⚠️ Includes Executable Validations ⚠️\n")
+		if controlImplSet, ok := controlImplementationMap[target]; ok {
+			m.controlImplSet = controlImplSet
+			requirementStore := requirementstore.NewRequirementStore(&controlImplSet)
+
+			content.WriteString("Run Validations?")
+			content.WriteString("\n🔍 Validate Component Definition on Target: ")
+			content.WriteString(target)
+			requirementStore.ResolveLulaValidations(m.validationStore)
+			reqtStats := requirementStore.GetStats(m.validationStore)
+			content.WriteString(fmt.Sprintf("\n\n• Found %d Implemented Requirements", reqtStats.TotalRequirements))
+			content.WriteString(fmt.Sprintf("\n• Found %d runnable Lula Validations", reqtStats.TotalValidations))
+
+			hasExecutables, _ := m.validationStore.DryRun()
+			if hasExecutables {
+				content.WriteString("\n⚠️ Includes Executable Validations ⚠️\n")
+			}
+			m.validatable = true
+		} else {
+			content.WriteString("No Framework selected")
 		}
-		m.validatable = true
 	} else {
 		content.WriteString("Nothing to Validate")
 	}
@@ -185,21 +204,24 @@ func (m *ValidateModel) updateSizing(height, width int) {
 	}
 }
 
-func (m *ValidateModel) RunValidations(runExecutable bool) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*oscalTypes_1_1_2.AssessmentResults, error) {
 	validator, err := validation.New(
 		validation.WithAllowExecution(runExecutable, true),
 	)
 	if err != nil {
 		return nil, err
 	}
-	framework := m.componentModel.GetSelectedFramework()
-	if framework.OscalFramework == nil {
-		return nil, fmt.Errorf("framework is nil")
-	}
 
-	results, err := validator.ValidateOnCompDef(context.Background(), m.componentModel.GetComponentDefinition(), framework.Name)
-	if err != nil {
-		return nil, err
+	results := make([]oscalTypes_1_1_2.Result, 0)
+	if len(m.controlImplSet) > 0 {
+		findings, observations, _ := validator.ValidateOnControlImplementations(context.Background(), &m.controlImplSet, m.validationStore, target)
+		result, err := oscal.CreateResult(findings, observations)
+		if err != nil {
+			return nil, err
+		}
+		// add/update the source to the result props - make source = framework or omit?
+		oscal.UpdateProps("target", oscal.LULA_NAMESPACE, target, result.Props)
+		results = append(results, result)
 	}
 
 	if len(results) == 0 {

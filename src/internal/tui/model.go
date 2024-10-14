@@ -23,6 +23,7 @@ type model struct {
 	tabs                      []string
 	activeTab                 int
 	componentFilePath         string
+	assessmentResultsFilePath string
 	writtenComponentModel     *oscalTypes_1_1_2.ComponentDefinition
 	componentModel            component.Model
 	assessmentResultsModel    assessmentresults.Model
@@ -31,7 +32,6 @@ type model struct {
 	assessmentPlanModel       common.TbdModal
 	systemSecurityPlanModel   common.TbdModal
 	profileModel              common.TbdModal
-	validateModel             component.ValidateModel
 	closeModel                common.PopupModel
 	saveModel                 common.SaveModel
 	width                     int
@@ -82,14 +82,13 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 
 	saveModel := common.NewSaveModel(componentFilePath)
 	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
-	validateModel := component.NewValidateModel(&componentModel, assessmentResultsFilePath)
 
 	return model{
 		keys:                      common.CommonKeys,
 		tabs:                      tabs,
 		componentFilePath:         componentFilePath,
+		assessmentResultsFilePath: assessmentResultsFilePath,
 		writtenComponentModel:     writtenComponentModel,
-		validateModel:             validateModel,
 		closeModel:                closeModel,
 		saveModel:                 saveModel,
 		componentModel:            componentModel,
@@ -136,9 +135,6 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
-
-	common.PrintToLog("in model update")
-	common.DumpToLog(msg)
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -190,11 +186,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return m, nil
 
-		case common.ContainsKey(k, m.keys.Validate.Keys()):
-			if m.componentModel.IsOpen {
-				m.validateModel.Open(m.height, m.width, m.componentModel.GetComponentDefinition(), m.componentModel.GetSelectedFramework().Name)
-			}
-
 		case common.ContainsKey(k, m.keys.Cancel.Keys()):
 			if m.closeModel.Open {
 				m.closeModel.Open = false
@@ -238,18 +229,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			common.PrintToLog("error merging assessment results")
 		}
 
-		// Open assessment results model / Close component model
-		m.assessmentResultsModel.Open(m.height-common.TabOffset, m.width)
-		m.componentModel.Close()
+		// Save assessment results data
+		err = oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{AssessmentResults: m.assessmentResultsModel.GetAssessmentResults()})
+		if err != nil {
+			common.PrintToLog("error writing assessment results model: %v", err)
+		}
+
+		m.activeTab = 1 // assessment results tab
 	}
 
 	mdl, cmd := m.saveModel.Update(msg)
 	m.saveModel = mdl.(common.SaveModel)
 	cmds = append(cmds, cmd)
-
-	// mdl, cmd = m.validateModel.Update(msg)
-	// m.validateModel = mdl.(component.ValidateModel)
-	// cmds = append(cmds, cmd)
 
 	tabModel, cmd := m.loadTabModel(msg)
 	if tabModel != nil {
@@ -271,9 +262,6 @@ func (m model) View() string {
 	}
 	if m.saveModel.Open {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.saveModel.View(), lipgloss.WithWhitespaceChars(" "))
-	}
-	if m.validateModel.IsOpen {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.validateModel.View(), lipgloss.WithWhitespaceChars(" "))
 	}
 	return m.mainView()
 }

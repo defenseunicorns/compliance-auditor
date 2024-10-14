@@ -3,6 +3,7 @@ package console
 import (
 	"fmt"
 	"os"
+	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui"
@@ -60,6 +61,13 @@ func ConsoleCommand() *cobra.Command {
 			}
 
 			// TODO: need to integrate with the log file handled by messages
+			ts := time.Now().Format("2006-01-02-15-04-05")
+			logFile, err := os.CreateTemp("", fmt.Sprintf("lula-%s-*.log", ts))
+			if err != nil {
+				return fmt.Errorf("error saving a log file to a temporary directory")
+			}
+			message.UseLogFile(logFile)
+
 			var dumpFile *os.File
 			if message.GetLogLevel() == message.DebugLevel {
 				dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)

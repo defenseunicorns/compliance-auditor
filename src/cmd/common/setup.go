@@ -33,7 +33,7 @@ func SetupClI(logLevel string) error {
 	}
 
 	if !config.SkipLogFile {
-		message.UseLogFile()
+		message.UseLogFile(nil)
 	}
 
 	printViperConfigUsed()

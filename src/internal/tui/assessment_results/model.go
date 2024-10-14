@@ -325,8 +325,13 @@ func (m *Model) Open(height, width int) {
 	m.updateSizing(height, width)
 }
 
+func (m *Model) GetAssessmentResults() *oscalTypes_1_1_2.AssessmentResults {
+	return m.oscalAssessment
+}
+
 func (m *Model) UpdateWithAssessmentResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) {
 	var selectedResult result
+	m.oscalAssessment = assessmentResults
 
 	results := GetResults(assessmentResults)
 

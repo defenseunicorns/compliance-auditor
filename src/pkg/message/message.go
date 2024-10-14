@@ -78,14 +78,14 @@ func init() {
 }
 
 // UseLogFile writes output to stderr and a logFile.
-func UseLogFile() {
+func UseLogFile(inputLogFile *os.File) {
 	// Prepend the log filename with a timestamp.
 	ts := time.Now().Format("2006-01-02-15-04-05")
 
 	var err error
-	if logFile != nil {
+	if inputLogFile != nil {
 		// Use the existing log file if logFile is set
-		LogWriter = io.MultiWriter(os.Stderr, logFile)
+		LogWriter = io.MultiWriter(inputLogFile)
 		pterm.SetDefaultOutput(LogWriter)
 	} else {
 		// Try to create a temp log file if one hasn't been made already
