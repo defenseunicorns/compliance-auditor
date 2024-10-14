@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/evertras/bubble-table/table"
 )
 
@@ -39,6 +40,7 @@ type Model struct {
 	help                  common.HelpModel
 	keys                  keys
 	focus                 focus
+	oscalAssessment       *oscalTypes_1_1_2.AssessmentResults
 	results               []result
 	resultsPicker         common.PickerModel
 	selectedResult        result
@@ -69,6 +71,7 @@ func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentRes
 	model := Model{
 		keys:                  assessmentKeys,
 		help:                  help,
+		oscalAssessment:       assessmentResults,
 		resultsPicker:         resultsPicker,
 		comparedResultsPicker: comparedResultsPicker,
 		findingsSummary:       findingsSummary,
@@ -370,6 +373,21 @@ func (m *Model) UpdateWithAssessmentResults(assessmentResults *oscalTypes_1_1_2.
 
 	m.observationsTable = observationsTable
 	m.findingsTable = findingsTable
+}
+
+func (m *Model) MergeNewResults(newResults *oscalTypes_1_1_2.AssessmentResults) error {
+	if newResults != nil {
+		if m.oscalAssessment == nil {
+			m.UpdateWithAssessmentResults(newResults)
+			return nil
+		}
+		combinedAssessmentResults, err := oscal.MergeAssessmentResults(m.oscalAssessment, newResults)
+		if err != nil {
+			return fmt.Errorf("error merging assessment results: %v", err)
+		}
+		m.UpdateWithAssessmentResults(combinedAssessmentResults)
+	}
+	return nil
 }
 
 // func (m *Model) UpdateWithComparedResults(result, comparedResult *oscalTypes_1_1_2.Result) {

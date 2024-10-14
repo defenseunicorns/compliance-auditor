@@ -31,7 +31,7 @@ type model struct {
 	assessmentPlanModel       common.TbdModal
 	systemSecurityPlanModel   common.TbdModal
 	profileModel              common.TbdModal
-	validateModel             common.PopupModel
+	validateModel             component.ValidateModel
 	closeModel                common.PopupModel
 	saveModel                 common.SaveModel
 	width                     int
@@ -58,6 +58,7 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 	writtenComponentModel := new(oscalTypes_1_1_2.ComponentDefinition)
 	componentFilePath := "component.yaml"
 	assessmentResultsModel := assessmentresults.NewAssessmentResultsModel(nil)
+	assessmentResultsFilePath := "assessment-results.yaml"
 
 	for k, v := range modelMap {
 		// TODO: update these with the UpdateModel functions for the respective models
@@ -73,12 +74,15 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 			}
 		case "assessment-results":
 			assessmentResultsModel = assessmentresults.NewAssessmentResultsModel(v.AssessmentResults)
+			if _, ok := filePathMap[k]; ok {
+				assessmentResultsFilePath = filePathMap[k]
+			}
 		}
 	}
 
-	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
-	validateModel := common.NewPopupModel("Run Validation", "", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
 	saveModel := common.NewSaveModel(componentFilePath)
+	closeModel := common.NewPopupModel("Quit Console", "Are you sure you want to quit the Lula Console?", []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel})
+	validateModel := component.NewValidateModel(&componentModel, assessmentResultsFilePath)
 
 	return model{
 		keys:                      common.CommonKeys,
@@ -133,6 +137,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
+	common.PrintToLog("in model update")
 	common.DumpToLog(msg)
 
 	switch msg := msg.(type) {
@@ -187,23 +192,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case common.ContainsKey(k, m.keys.Validate.Keys()):
 			if m.componentModel.IsOpen {
-				// Open validation popup with Selected target in component view
-
-				// Move this all to a receiver function of the validation popup model
-				// TODO: checkbox to run executable validations
-				// Run validation
-				assessmentresults, err := m.componentModel.RunValidation()
-				if err != nil {
-					common.PrintToLog("error running validation: %v", err)
-					return m, nil
-				}
-
-				// Update assessment results model
-				m.assessmentResultsModel.UpdateWithAssessmentResults(assessmentresults) // Latest should be at the top of the list
-
-				// Open assessment results model / Close component model
-				m.assessmentResultsModel.Open(m.height-common.TabOffset, m.width)
-				m.componentModel.Close()
+				m.validateModel.Open(m.height, m.width, m.componentModel.GetComponentDefinition(), m.componentModel.GetSelectedFramework().Name)
 			}
 
 		case common.ContainsKey(k, m.keys.Cancel.Keys()):
@@ -241,11 +230,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, tea.Quit)
 		}
 		return m, tea.Sequence(cmds...)
+
+	case component.ValidationDataMsg:
+		// Update assessment results model
+		err := m.assessmentResultsModel.MergeNewResults(msg.AssessmentResults)
+		if err != nil {
+			common.PrintToLog("error merging assessment results")
+		}
+
+		// Open assessment results model / Close component model
+		m.assessmentResultsModel.Open(m.height-common.TabOffset, m.width)
+		m.componentModel.Close()
 	}
 
 	mdl, cmd := m.saveModel.Update(msg)
 	m.saveModel = mdl.(common.SaveModel)
 	cmds = append(cmds, cmd)
+
+	// mdl, cmd = m.validateModel.Update(msg)
+	// m.validateModel = mdl.(component.ValidateModel)
+	// cmds = append(cmds, cmd)
 
 	tabModel, cmd := m.loadTabModel(msg)
 	if tabModel != nil {
@@ -267,6 +271,9 @@ func (m model) View() string {
 	}
 	if m.saveModel.Open {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.saveModel.View(), lipgloss.WithWhitespaceChars(" "))
+	}
+	if m.validateModel.IsOpen {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.validateModel.View(), lipgloss.WithWhitespaceChars(" "))
 	}
 	return m.mainView()
 }

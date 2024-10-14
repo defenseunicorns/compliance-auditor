@@ -23,7 +23,7 @@ type Model struct {
 	help               common.HelpModel
 	keys               keys
 	focus              focus
-	componentModel     *oscalTypes_1_1_2.ComponentDefinition
+	oscalComponent     *oscalTypes_1_1_2.ComponentDefinition
 	components         []component
 	selectedComponent  component
 	componentPicker    common.PickerModel
@@ -432,7 +432,7 @@ func (m *Model) UpdateWithComponentDefinition(oscalComponent *oscalTypes_1_1_2.C
 
 	// Update data if component definition is not nil
 	if oscalComponent != nil {
-		m.componentModel = oscalComponent
+		m.oscalComponent = oscalComponent
 		components = GetComponents(oscalComponent)
 	}
 
@@ -462,16 +462,6 @@ func (m *Model) UpdateWithComponentDefinition(oscalComponent *oscalTypes_1_1_2.C
 	m.resetWidgets()
 }
 
-// RunValidation runs the validation for the currently selected target in the component view
-func (m *Model) RunValidation() (*oscalTypes_1_1_2.AssessmentResults, error) {
-	// validator, err := validation.NewValidator(m.componentModel)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	return nil, nil
-}
-
 func (m *Model) Close() {
 	m.IsOpen = false
 }
@@ -487,7 +477,12 @@ func (m *Model) GetDimensions() (height, width int) {
 
 // GetComponentDefinition returns the component definition model, used on save events
 func (m *Model) GetComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
-	return m.componentModel
+	return m.oscalComponent
+}
+
+// GetSelectedFramework returns the selected framework
+func (m *Model) GetSelectedFramework() framework {
+	return m.selectedFramework
 }
 
 // TestSetSelectedControl is a test helper function to set the selected control
