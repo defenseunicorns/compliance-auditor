@@ -18,7 +18,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-      security-events: writez
+      security-events: write
     env:
       GO111MODULE: on
     steps:
