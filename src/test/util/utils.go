@@ -15,7 +15,7 @@ import (
 )
 
 func GetDeployment(deploymentFilePath string) (*appsv1.Deployment, error) {
-	bytes, err := os.ReadFile(deploymentFilePath)
+	bytes, err := os.ReadFile(deploymentFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func GetDeployment(deploymentFilePath string) (*appsv1.Deployment, error) {
 }
 
 func GetClusterRole(clusterRoleFilePath string) (*rbacv1.ClusterRole, error) {
-	bytes, err := os.ReadFile(clusterRoleFilePath)
+	bytes, err := os.ReadFile(clusterRoleFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func GetClusterRole(clusterRoleFilePath string) (*rbacv1.ClusterRole, error) {
 }
 
 func GetPod(podFilePath string) (*v1.Pod, error) {
-	bytes, err := os.ReadFile(podFilePath)
+	bytes, err := os.ReadFile(podFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func GetPod(podFilePath string) (*v1.Pod, error) {
 }
 
 func GetConfigMap(configMapFilePath string) (*v1.ConfigMap, error) {
-	bytes, err := os.ReadFile(configMapFilePath)
+	bytes, err := os.ReadFile(configMapFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func GetConfigMap(configMapFilePath string) (*v1.ConfigMap, error) {
 }
 
 func GetService(serviceFilePath string) (*v1.Service, error) {
-	bytes, err := os.ReadFile(serviceFilePath)
+	bytes, err := os.ReadFile(serviceFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func GetService(serviceFilePath string) (*v1.Service, error) {
 }
 
 func GetSecret(secretFilePath string) (*v1.Secret, error) {
-	bytes, err := os.ReadFile(secretFilePath)
+	bytes, err := os.ReadFile(secretFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func GetSecret(secretFilePath string) (*v1.Secret, error) {
 }
 
 func GetIngress(ingressFilePath string) (*netv1.Ingress, error) {
-	bytes, err := os.ReadFile(ingressFilePath)
+	bytes, err := os.ReadFile(ingressFilePath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}

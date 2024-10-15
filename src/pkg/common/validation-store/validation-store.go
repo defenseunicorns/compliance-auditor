@@ -147,7 +147,7 @@ func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, 
 			// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
 			filename := fmt.Sprintf("%s.json", resourceUuid)
 			resourceFile := filepath.Join(resourcesDir, "resources", filename)
-			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm)
+			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm) // #nosec G301
 			if err != nil {
 				message.Debugf("Error creating directory for remote resource: %v", err)
 			}

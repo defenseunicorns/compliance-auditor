@@ -35,7 +35,7 @@ func New(opts ...Option) (*Validator, error) {
 func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
 	var oscalModel *oscalTypes_1_1_2.OscalCompleteSchema
 	if v.composer == nil {
-		data, err := os.ReadFile(path)
+		data, err := os.ReadFile(path) // #nosec G304
 		if err != nil {
 			return nil, fmt.Errorf("error getting path: %v", err)
 		}

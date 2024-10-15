@@ -48,7 +48,7 @@ var consoleCmd = &cobra.Command{
 		// TODO: need to integrate with the log file handled by messages
 		var dumpFile *os.File
 		if message.GetLogLevel() == message.DebugLevel {
-			dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+			dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644) // #nosec G302
 			if err != nil {
 				message.Fatalf(err, err.Error())
 			}

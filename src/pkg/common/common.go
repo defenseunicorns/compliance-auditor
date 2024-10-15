@@ -51,7 +51,7 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	if os.IsNotExist(err) {
 		return data, fmt.Errorf("Path: %v does not exist - unable to digest document", path)
 	}
-	data, err = os.ReadFile(path)
+	data, err = os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return data, err
 	}

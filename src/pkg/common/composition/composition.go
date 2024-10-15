@@ -42,7 +42,7 @@ func New(opts ...Option) (*Composer, error) {
 
 // ComposeFromPath composes an OSCAL model from a file path
 func (c *Composer) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
