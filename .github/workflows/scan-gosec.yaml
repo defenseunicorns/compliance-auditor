@@ -10,6 +10,8 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+  - cron: '0 0 * * 0'
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -26,8 +28,7 @@ jobs:
       - name: Run Gosec Security Scanner
         uses: securego/gosec@d4617f51baf75f4f809066386a4f9d27b3ac3e46 # v2.21.4
         with:
-          # we let the report trigger content trigger a failure using the GitHub Security features.
-          args: '-no-fail -fmt sarif -out results.sarif ./...'
+          args: '-fmt sarif -out results.sarif ./...'
       
       - name: Upload artifact
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
@@ -39,5 +40,4 @@ jobs:
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@c36620d31ac7c881962c3d9dd939c40ec9434f2b # v3.26.12
         with:
-          # Path to SARIF file relative to the root of the repository
           sarif_file: results.sarif
