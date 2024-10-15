@@ -36,7 +36,7 @@ func MakeRequests(Requests []Request) (types.DomainResources, error) {
 		if contentType == "application/json" {
 
 			var prettyBuff bytes.Buffer
-			json.Indent(&prettyBuff, body, "", "  ")
+			_ = json.Indent(&prettyBuff, body, "", "  ") // G104
 			prettyJson := prettyBuff.String()
 
 			var tempData interface{}

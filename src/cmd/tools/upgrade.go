@@ -73,7 +73,7 @@ func init() {
 	toolsCmd.AddCommand(upgradeCmd)
 
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.InputFile, "input-file", "f", "", "the path to a oscal json schema file")
-	upgradeCmd.MarkFlagRequired("input-file")
+	upgradeCmd.MarkFlagRequired("input-file") // #nosec G104
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.OutputFile, "output-file", "o", "", "the path to write the linted oscal json schema file (default is the input file)")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.Version, "version", "v", versioning.GetLatestSupportedVersion(), "the version of the oscal schema to validate against (default is the latest supported version)")
 	upgradeCmd.Flags().StringVarP(&upgradeOpts.ValidationResult, "validation-result", "r", "", "the path to write the validation result file")

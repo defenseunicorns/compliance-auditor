@@ -396,7 +396,7 @@ func overrideTemplateValues(templateData *TemplateData, overrides map[string]str
 		} else if strings.HasPrefix(path, "."+CONST+".") {
 			// Set the value in the templateData.Constants
 			key := strings.TrimPrefix(path, "."+CONST+".")
-			setNestedValue(templateData.Constants, key, value)
+			_ = setNestedValue(templateData.Constants, key, value) // G104
 		}
 	}
 }

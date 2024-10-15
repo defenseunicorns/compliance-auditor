@@ -23,7 +23,7 @@ var LogLevelCLI string
 var rootCmd = &cobra.Command{
 	Use: "lula",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		common.SetupClI(LogLevelCLI)
+		_ = common.SetupClI(LogLevelCLI) // G104
 	},
 	Short: "Risk Management as Code",
 	Long:  `Real Time Risk Transparency through automated validation`,

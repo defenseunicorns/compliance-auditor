@@ -63,11 +63,11 @@ func init() {
 	v := common.InitViper()
 
 	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
-	evaluateCmd.MarkFlagRequired("input-file")
+	evaluateCmd.MarkFlagRequired("input-file") // #nosec G104
 	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", v.GetBool(common.VSummary), "Print a summary of the evaluation")
 	evaluateCmd.Flags().BoolVar(&opts.machine, "machine", false, "Print a machine-readable output")
-	evaluateCmd.Flags().MarkHidden("machine") // Hidden for now as internal use only
+	evaluateCmd.Flags().MarkHidden("machine") // #nosec G104
 
 }
 
@@ -101,7 +101,10 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 			AssessmentResults: assessment,
 		}
 
-		oscal.WriteOscalModel(filePath, &model)
+		err := oscal.WriteOscalModel(filePath, &model)
+		if err != nil {
+			message.WarnErrf("error while writing assessment results: %s", err.Error())
+		}
 	}
 	return nil
 }

@@ -122,7 +122,7 @@ func (m *model) writeOscalModel() tea.Msg {
 	}
 	common.PrintToLog("model saved")
 
-	DeepCopy(m.oscalModel, m.writtenOscalModel)
+	_ = DeepCopy(m.oscalModel, m.writtenOscalModel) // G104
 	return common.SaveSuccessMsg{}
 }
 

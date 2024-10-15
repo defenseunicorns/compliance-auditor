@@ -342,7 +342,7 @@ func Table(header []string, data [][]string, columnSize []int) {
 		table = append(table, pterm.TableData{row}...)
 	}
 
-	pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render()
+	_ = pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render() // G104
 }
 
 // Add line breaks for table

@@ -75,10 +75,16 @@ var lintCmd = &cobra.Command{
 		if opts.ResultFile != "" {
 			// If there is only one validation result, write it to the file
 			if len(validationResults) == 1 {
-				oscalValidation.WriteValidationResult(validationResults[0], opts.ResultFile)
+				err := oscalValidation.WriteValidationResult(validationResults[0], opts.ResultFile) // G104
+				if err != nil {
+					message.WarnErrf("error while writing validation results: %s", err.Error())
+				}
 			} else {
 				// If there are multiple validation results, write them to the file
-				oscalValidation.WriteValidationResults(validationResults, opts.ResultFile)
+				err := oscalValidation.WriteValidationResults(validationResults, opts.ResultFile) // G104
+				if err != nil {
+					message.WarnErrf("error while writing validation results: %s", err.Error())
+				}
 			}
 		}
 

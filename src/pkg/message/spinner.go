@@ -162,7 +162,7 @@ func (p *Spinner) Pause() string {
 	var spinnerText string
 	if p.spinner != nil && p.spinner.IsActive {
 		spinnerText = p.spinner.Text
-		p.spinner.Stop()
+		_ = p.spinner.Stop() // G104
 	}
 	return spinnerText
 }
