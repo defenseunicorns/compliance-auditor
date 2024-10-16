@@ -5,6 +5,3 @@ linters:
     - gofmt
     - goimports
     - prealloc
-
-run:
-  issues-exit-code: 0 # just for now!
