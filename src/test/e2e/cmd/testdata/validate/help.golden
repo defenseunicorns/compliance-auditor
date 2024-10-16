@@ -1,23 +1,9 @@
----
-title: lula validate
-description: Lula CLI command reference for <code>lula validate</code>.
-type: docs
----
-## lula validate
-
-validate an OSCAL component definition
-
-### Synopsis
-
 Lula Validation of an OSCAL component definition
 
-```
-lula validate [flags]
-```
+Usage:
+  validate [flags]
 
-### Examples
-
-```
+Examples:
 
 To validate on a cluster:
 	lula validate -f ./oscal-component.yaml
@@ -30,11 +16,8 @@ To run validations and automatically confirm execution
 To run validations non-interactively (no execution)
 	lula dev validate -f ./oscal-component.yaml --non-interactive
 
-```
 
-### Options
-
-```
+Flags:
       --confirm-execution    confirm execution scripts run as part of the validation
   -h, --help                 help for validate
   -f, --input-file string    the path to the target OSCAL component definition
@@ -43,15 +26,3 @@ To run validations non-interactively (no execution)
       --save-resources       saves the resources to 'resources' directory at assessment-results level
   -s, --set strings          set a value in the template data
   -t, --target string        the specific control implementations or framework to validate against
-```
-
-### Options inherited from parent commands
-
-```
-  -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")
-```
-
-### SEE ALSO
-
-* [lula](./lula.md)	 - Risk Management as Code
-

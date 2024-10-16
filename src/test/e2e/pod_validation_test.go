@@ -11,13 +11,13 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
-	"github.com/defenseunicorns/go-oscal/src/pkg/validation"
+	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"github.com/defenseunicorns/lula/src/types"
@@ -207,7 +207,6 @@ func TestPodLabelValidation(t *testing.T) {
 
 func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
 	message.NoProgress = true
-	validate.SaveResources = false
 
 	tempDir := t.TempDir()
 
@@ -228,9 +227,14 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 	}
 	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
-	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+	validator, err := validation.New()
 	if err != nil {
-		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
+		t.Errorf("error creating validation context: %v", err)
+	}
+
+	assessment, err := validator.ValidateOnPath(context.Background(), revisionOptions.OutputFile, "")
+	if err != nil {
+		t.Fatalf("Failed to validate oscal file: %s", revisionOptions.OutputFile)
 	}
 
 	if len(assessment.Results) == 0 {
@@ -306,7 +310,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 		t.Fatal("Failed to prepend results to existing report")
 	}
 
-	validatorResponse, err := validation.ValidationCommand("sar-test.yaml")
+	validatorResponse, err := oscalValidation.ValidationCommand("sar-test.yaml")
 	if err != nil || validatorResponse.JsonSchemaError != nil {
 		t.Fatal("File failed linting")
 	}
@@ -317,11 +321,13 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Con
 
 func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
 	message.NoProgress = true
-	validate.ConfirmExecution = false
-	validate.RunNonInteractively = true
-	validate.SaveResources = false
 
-	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+	validator, err := validation.New(validation.WithAllowExecution(false, true))
+	if err != nil {
+		t.Errorf("error creating validation context: %v", err)
+	}
+
+	assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -362,12 +368,14 @@ func generateObservationRemarksMap(observations []oscalTypes_1_1_2.Observation) 
 
 func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) context.Context {
 	message.NoProgress = true
-	validate.SaveResources = true
 	tempDir := t.TempDir()
-	validate.ResourcesDir = tempDir
 
-	// Validate on path
-	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+	validator, err := validation.New(validation.WithResourcesDir(true, tempDir))
+	if err != nil {
+		t.Errorf("error creating validation context: %v", err)
+	}
+
+	assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

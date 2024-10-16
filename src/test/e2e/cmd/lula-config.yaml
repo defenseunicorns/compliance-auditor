@@ -18,4 +18,3 @@ variables:
     default: this-should-be-overridden
 
 log_level: info
-target: il5
