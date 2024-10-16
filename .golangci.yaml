@@ -1,0 +1,10 @@
+linters:
+  # all default linters enabled
+  enable:
+    - gosec
+    - gofmt
+    - goimports
+    - prealloc
+
+run:
+  issues-exit-code: 0 # just for now!
