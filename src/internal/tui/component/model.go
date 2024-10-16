@@ -13,9 +13,11 @@ import (
 )
 
 const (
-	height           = 20
-	width            = 12
-	dialogFixedWidth = 40
+	componentPickerKind common.PickerKind = "component"
+	frameworkPickerKind common.PickerKind = "framework"
+	height                                = 20
+	width                                 = 12
+	dialogFixedWidth                      = 40
 )
 
 type Model struct {
@@ -46,10 +48,11 @@ type Model struct {
 	height             int
 }
 
-const (
-	componentPickerKind common.PickerKind = "component"
-	frameworkPickerKind common.PickerKind = "framework"
-)
+type ModelOpenMsg struct {
+	Height int
+	Width  int
+}
+type ModelCloseMsg struct{}
 
 func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) Model {
 	var selectedComponent component
@@ -139,150 +142,151 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+	case ModelOpenMsg:
+		m.Open(msg.Height, msg.Width)
+
 	case tea.WindowSizeMsg:
 		m.updateSizing(msg.Height-common.TabOffset, msg.Width)
 
 	case tea.KeyMsg:
-		if m.IsOpen {
-			k := msg.String()
-			switch k {
-			case common.ContainsKey(k, m.keys.Help.Keys()):
-				m.help.ShowAll = !m.help.ShowAll
+		k := msg.String()
+		switch k {
+		case common.ContainsKey(k, m.keys.Help.Keys()):
+			m.help.ShowAll = !m.help.ShowAll
 
-			case common.ContainsKey(k, m.keys.NavigateLeft.Keys()):
-				if !m.inOverlay() {
-					if m.focus == 0 {
-						m.focus = maxFocus
-					} else {
-						m.focus--
+		case common.ContainsKey(k, m.keys.NavigateLeft.Keys()):
+			if !m.inOverlay() {
+				if m.focus == 0 {
+					m.focus = maxFocus
+				} else {
+					m.focus--
+				}
+				m.updateKeyBindings()
+			}
+
+		case common.ContainsKey(k, m.keys.NavigateRight.Keys()):
+			if !m.inOverlay() {
+				m.focus = (m.focus + 1) % (maxFocus + 1)
+				m.updateKeyBindings()
+			}
+
+		case common.ContainsKey(k, m.keys.Confirm.Keys()):
+			switch m.focus {
+			case focusComponentSelection:
+				if len(m.components) > 0 && !m.inOverlay() {
+					return m, func() tea.Msg {
+						return common.PickerOpenMsg{
+							Kind: componentPickerKind,
+						}
 					}
+				}
+
+			case focusFrameworkSelection:
+				if len(m.frameworks) > 0 && !m.inOverlay() {
+					return m, func() tea.Msg {
+						return common.PickerOpenMsg{
+							Kind: frameworkPickerKind,
+						}
+					}
+				}
+
+			case focusControls:
+				if selectedItem := m.controls.SelectedItem(); selectedItem != nil {
+					m.selectedControl = m.controls.SelectedItem().(control)
+					m.remarks.SetContent(m.selectedControl.OscalControl.Remarks)
+					m.description.SetContent(m.selectedControl.OscalControl.Description)
+
+					// update validations list for selected control
+					validationItems := make([]blist.Item, len(m.selectedControl.Validations))
+					for i, val := range m.selectedControl.Validations {
+						validationItems[i] = val
+					}
+					m.validations.SetItems(validationItems)
+				}
+
+			case focusValidations:
+				if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
+					m.selectedValidation = selectedItem.(validationLink)
+				}
+
+			case focusRemarks:
+				if m.remarksEditor.Focused() {
+					remarks := m.remarksEditor.Value()
+					m.UpdateRemarks(remarks)
+					m.remarksEditor.Blur()
+					m.remarks.SetContent(remarks)
 					m.updateKeyBindings()
 				}
 
-			case common.ContainsKey(k, m.keys.NavigateRight.Keys()):
-				if !m.inOverlay() {
-					m.focus = (m.focus + 1) % (maxFocus + 1)
+			case focusDescription:
+				if m.descriptionEditor.Focused() {
+					description := m.descriptionEditor.Value()
+					m.UpdateDescription(description)
+					m.descriptionEditor.Blur()
+					m.description.SetContent(description)
 					m.updateKeyBindings()
 				}
+			}
 
-			case common.ContainsKey(k, m.keys.Confirm.Keys()):
+		case common.ContainsKey(k, m.keys.Edit.Keys()):
+			if m.selectedControl.OscalControl != nil {
 				switch m.focus {
-				case focusComponentSelection:
-					if len(m.components) > 0 && !m.inOverlay() {
-						return m, func() tea.Msg {
-							return common.PickerOpenMsg{
-								Kind: componentPickerKind,
-							}
+				case focusRemarks:
+					if !m.remarksEditor.Focused() {
+						m.remarksEditor.SetValue(m.selectedControl.OscalControl.Remarks)
+						m.remarks.SetContent(m.remarksEditor.View())
+						_ = m.remarksEditor.Focus()
+						m.updateKeyBindings()
+					}
+				case focusDescription:
+					if !m.descriptionEditor.Focused() {
+						m.descriptionEditor.SetValue(m.selectedControl.OscalControl.Description)
+						m.description.SetContent(m.descriptionEditor.View())
+						_ = m.descriptionEditor.Focus()
+						m.updateKeyBindings()
+					}
+				}
+			}
+
+		case common.ContainsKey(k, m.keys.Detail.Keys()):
+			switch m.focus {
+			case focusValidations:
+				// TODO: update the key locks
+				if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
+					valLink := selectedItem.(validationLink)
+					m.validations.KeyMap = common.UnfocusedListKeyMap()
+					return m, func() tea.Msg {
+						return common.DetailOpenMsg{
+							Content:      getValidationText(valLink),
+							WindowHeight: (m.height + common.TabOffset),
+							WindowWidth:  m.width,
 						}
 					}
+				}
+			}
 
-				case focusFrameworkSelection:
-					if len(m.frameworks) > 0 && !m.inOverlay() {
-						return m, func() tea.Msg {
-							return common.PickerOpenMsg{
-								Kind: frameworkPickerKind,
-							}
-						}
-					}
+		case common.ContainsKey(k, m.keys.Validate.Keys()):
+			if !m.inOverlay() {
+				m.validateModel.Open(m.height, m.width, m.selectedFramework.Name)
+			}
 
-				case focusControls:
-					if selectedItem := m.controls.SelectedItem(); selectedItem != nil {
-						m.selectedControl = m.controls.SelectedItem().(control)
-						m.remarks.SetContent(m.selectedControl.OscalControl.Remarks)
-						m.description.SetContent(m.selectedControl.OscalControl.Description)
-
-						// update validations list for selected control
-						validationItems := make([]blist.Item, len(m.selectedControl.Validations))
-						for i, val := range m.selectedControl.Validations {
-							validationItems[i] = val
-						}
-						m.validations.SetItems(validationItems)
-					}
-
-				case focusValidations:
-					if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
-						m.selectedValidation = selectedItem.(validationLink)
-					}
-
+		case common.ContainsKey(k, m.keys.Cancel.Keys()):
+			if m.selectedControl.OscalControl != nil {
+				switch m.focus {
 				case focusRemarks:
 					if m.remarksEditor.Focused() {
-						remarks := m.remarksEditor.Value()
-						m.UpdateRemarks(remarks)
 						m.remarksEditor.Blur()
-						m.remarks.SetContent(remarks)
-						m.updateKeyBindings()
+						m.remarks.SetContent(m.selectedControl.OscalControl.Remarks)
 					}
 
 				case focusDescription:
 					if m.descriptionEditor.Focused() {
-						description := m.descriptionEditor.Value()
-						m.UpdateDescription(description)
 						m.descriptionEditor.Blur()
-						m.description.SetContent(description)
-						m.updateKeyBindings()
+						m.description.SetContent(m.selectedControl.OscalControl.Description)
 					}
 				}
-
-			case common.ContainsKey(k, m.keys.Edit.Keys()):
-				if m.selectedControl.OscalControl != nil {
-					switch m.focus {
-					case focusRemarks:
-						if !m.remarksEditor.Focused() {
-							m.remarksEditor.SetValue(m.selectedControl.OscalControl.Remarks)
-							m.remarks.SetContent(m.remarksEditor.View())
-							_ = m.remarksEditor.Focus()
-							m.updateKeyBindings()
-						}
-					case focusDescription:
-						if !m.descriptionEditor.Focused() {
-							m.descriptionEditor.SetValue(m.selectedControl.OscalControl.Description)
-							m.description.SetContent(m.descriptionEditor.View())
-							_ = m.descriptionEditor.Focus()
-							m.updateKeyBindings()
-						}
-					}
-				}
-
-			case common.ContainsKey(k, m.keys.Detail.Keys()):
-				switch m.focus {
-				case focusValidations:
-					// TODO: update the key locks
-					if selectedItem := m.validations.SelectedItem(); selectedItem != nil {
-						valLink := selectedItem.(validationLink)
-						m.validations.KeyMap = common.UnfocusedListKeyMap()
-						return m, func() tea.Msg {
-							return common.DetailOpenMsg{
-								Content:      getValidationText(valLink),
-								WindowHeight: (m.height + common.TabOffset),
-								WindowWidth:  m.width,
-							}
-						}
-					}
-				}
-
-			case common.ContainsKey(k, m.keys.Validate.Keys()):
-				if !m.inOverlay() {
-					m.validateModel.Open(m.height, m.width, m.selectedFramework.Name)
-				}
-
-			case common.ContainsKey(k, m.keys.Cancel.Keys()):
-				if m.selectedControl.OscalControl != nil {
-					switch m.focus {
-					case focusRemarks:
-						if m.remarksEditor.Focused() {
-							m.remarksEditor.Blur()
-							m.remarks.SetContent(m.selectedControl.OscalControl.Remarks)
-						}
-
-					case focusDescription:
-						if m.descriptionEditor.Focused() {
-							m.descriptionEditor.Blur()
-							m.description.SetContent(m.selectedControl.OscalControl.Description)
-						}
-					}
-				}
-				m.updateKeyBindings()
 			}
+			m.updateKeyBindings()
 		}
 
 	case common.PickerItemSelected:
@@ -346,6 +350,7 @@ func (m Model) View() string {
 	if m.validateModel.IsOpen {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.validateModel.View(), lipgloss.WithWhitespaceChars(" "))
 	}
+
 	return m.mainView()
 }
 

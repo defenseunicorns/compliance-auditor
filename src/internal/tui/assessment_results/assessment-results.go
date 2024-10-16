@@ -3,6 +3,7 @@ package assessmentresults
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	pkgResult "github.com/defenseunicorns/lula/src/pkg/common/result"
 	"github.com/evertras/bubble-table/table"
 )
 
@@ -22,21 +24,22 @@ var (
 )
 
 type result struct {
-	uuid, title      string
-	timestamp        string
-	oscalResult      *oscalTypes_1_1_2.Result
-	findings         *[]oscalTypes_1_1_2.Finding
-	observations     *[]oscalTypes_1_1_2.Observation
-	findingsRows     []table.Row
-	observationsRows []table.Row
-	observationsMap  map[string]table.Row
-	summaryData      summaryData
+	Uuid, Title      string
+	Timestamp        string
+	OscalResult      *oscalTypes_1_1_2.Result
+	Findings         *[]oscalTypes_1_1_2.Finding
+	Observations     *[]oscalTypes_1_1_2.Observation
+	FindingsRows     []table.Row
+	ObservationsRows []table.Row
+	FindingsMap      map[string]table.Row
+	ObservationsMap  map[string]table.Row
+	SummaryData      summaryData
 }
 
 type summaryData struct {
-	numFindings, numObservations int
-	numFindingsSatisfied         int
-	numObservationsSatisfied     int
+	NumFindings, NumObservations int
+	NumFindingsSatisfied         int
+	NumObservationsSatisfied     int
 }
 
 func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result {
@@ -51,6 +54,8 @@ func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result 
 			findingsRows := make([]table.Row, 0)
 			observationsRows := make([]table.Row, 0)
 			observationsMap := make(map[string]table.Row)
+			findingsMap := make(map[string]table.Row)
+			observationsControlMap := make(map[string][]string, 0)
 
 			for _, f := range *r.Findings {
 				findingString, err := common.ToYamlString(f)
@@ -62,6 +67,11 @@ func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result 
 				if f.RelatedObservations != nil {
 					for _, o := range *f.RelatedObservations {
 						relatedObs = append(relatedObs, o.ObservationUuid)
+						if _, ok := observationsControlMap[o.ObservationUuid]; !ok {
+							observationsControlMap[o.ObservationUuid] = []string{f.Target.TargetId}
+						} else {
+							observationsControlMap[o.ObservationUuid] = append(observationsControlMap[o.ObservationUuid], f.Target.TargetId)
+						}
 					}
 				}
 				if f.Target.Status.State == "satisfied" {
@@ -73,15 +83,18 @@ func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result 
 					style = satisfiedColors["other"]
 				}
 
-				findingsRows = append(findingsRows, table.NewRow(table.RowData{
-					columnKeyName:        f.Target.TargetId,
-					columnKeyStatus:      table.NewStyledCell(f.Target.Status.State, style),
-					columnKeyDescription: strings.ReplaceAll(f.Description, "\n", " "),
+				findingRow := table.NewRow(table.RowData{
+					ColumnKeyName:        f.Target.TargetId,
+					ColumnKeyStatus:      table.NewStyledCell(f.Target.Status.State, style),
+					ColumnKeyDescription: strings.ReplaceAll(f.Description, "\n", " "),
 					// Hidden columns
-					columnKeyFinding:    findingString,
-					columnKeyRelatedObs: relatedObs,
-				}))
+					ColumnKeyFinding:    findingString,
+					ColumnKeyRelatedObs: relatedObs,
+				})
+				findingsRows = append(findingsRows, findingRow)
+				findingsMap[f.Target.TargetId] = findingRow
 			}
+
 			for _, o := range *r.Observations {
 				state := "undefined"
 				var remarks strings.Builder
@@ -111,33 +124,41 @@ func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result 
 					common.PrintToLog("error converting observation to yaml: %v", err)
 					obsString = ""
 				}
+
+				var controlIds []string
+				if ids, ok := observationsControlMap[o.UUID]; ok {
+					controlIds = ids
+				}
+
 				obsRow := table.NewRow(table.RowData{
-					columnKeyName:        GetReadableObservationName(o.Description),
-					columnKeyStatus:      table.NewStyledCell(state, style),
-					columnKeyDescription: remarks.String(),
+					ColumnKeyName:        GetReadableObservationName(o.Description),
+					ColumnKeyStatus:      table.NewStyledCell(state, style),
+					ColumnKeyControlIds:  strings.Join(controlIds, ", "),
+					ColumnKeyDescription: remarks.String(),
 					// Hidden columns
-					columnKeyObservation:  obsString,
-					columnKeyValidationId: findUuid(o.Description),
+					ColumnKeyObservation:  obsString,
+					ColumnKeyValidationId: findUuid(o.Description),
 				})
 				observationsRows = append(observationsRows, obsRow)
 				observationsMap[o.UUID] = obsRow
 			}
 
 			results = append(results, result{
-				uuid:             r.UUID,
-				title:            r.Title,
-				oscalResult:      &r,
-				timestamp:        r.Start.Format(time.RFC3339),
-				findings:         r.Findings,
-				observations:     r.Observations,
-				findingsRows:     findingsRows,
-				observationsRows: observationsRows,
-				observationsMap:  observationsMap,
-				summaryData: summaryData{
-					numFindings:              numFindings,
-					numObservations:          numObservations,
-					numFindingsSatisfied:     numFindingsSatisfied,
-					numObservationsSatisfied: numObservationsSatisfied,
+				Uuid:             r.UUID,
+				Title:            r.Title,
+				OscalResult:      &r,
+				Timestamp:        r.Start.Format(time.RFC3339),
+				Findings:         r.Findings,
+				Observations:     r.Observations,
+				FindingsRows:     findingsRows,
+				ObservationsRows: observationsRows,
+				FindingsMap:      findingsMap,
+				ObservationsMap:  observationsMap,
+				SummaryData: summaryData{
+					NumFindings:              numFindings,
+					NumObservations:          numObservations,
+					NumFindingsSatisfied:     numFindingsSatisfied,
+					NumObservationsSatisfied: numObservationsSatisfied,
 				},
 			})
 		}
@@ -146,10 +167,76 @@ func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result 
 	return results
 }
 
+func GetResultComparison(selectedResult, comparedResult result) ([]table.Row, []table.Row) {
+	findingsRows := make([]table.Row, 0)
+	observationsRows := make([]table.Row, 0)
+	observations := make([]string, 0)
+
+	if selectedResult.OscalResult != nil && comparedResult.OscalResult != nil {
+		resultComparison := pkgResult.NewResultComparisonMap(*selectedResult.OscalResult, *comparedResult.OscalResult)
+		for k, v := range resultComparison {
+			// Make compared finding row
+			var comparedFindingRow table.Row
+			var ok bool
+			if comparedFindingRow, ok = selectedResult.FindingsMap[k]; ok {
+				comparedFindingRow.Data[ColumnKeyStatusChange] = v.StateChange
+				if r, ok := comparedResult.FindingsMap[k]; ok {
+					// Finding exists in both results
+					comparedFindingRow.Data[ColumnKeyComparedFinding] = r.Data[ColumnKeyFinding]
+				} else {
+					// Finding is new
+					comparedFindingRow.Data[ColumnKeyComparedFinding] = ""
+				}
+			} else {
+				if comparedFindingRow, ok = comparedResult.FindingsMap[k]; ok {
+					// Finding was removed
+					comparedFindingRow.Data[ColumnKeyComparedFinding] = comparedFindingRow.Data[ColumnKeyFinding]
+					comparedFindingRow.Data[ColumnKeyFinding] = ""
+					comparedFindingRow.Data[ColumnKeyStatusChange] = v.StateChange
+				}
+			}
+			findingsRows = append(findingsRows, comparedFindingRow)
+
+			// Make compared observation row
+			for _, op := range v.ObservationPairs {
+				if op != nil {
+					obsUuid := ""
+					var comparedObservationRow table.Row
+					if comparedObservationRow, ok = selectedResult.ObservationsMap[op.ObservationUuid]; ok {
+						obsUuid = op.ObservationUuid
+						comparedObservationRow.Data[ColumnKeyStatusChange] = op.StateChange
+						if r, ok := comparedResult.ObservationsMap[op.ComparedObservationUuid]; ok {
+							comparedObservationRow.Data[ColumnKeyComparedObservation] = r.Data[ColumnKeyObservation]
+						} else {
+							// Observation is new
+							comparedObservationRow.Data[ColumnKeyComparedObservation] = ""
+						}
+					} else {
+						if comparedObservationRow, ok = comparedResult.ObservationsMap[op.ComparedObservationUuid]; ok {
+							// Observation was removed
+							obsUuid = op.ComparedObservationUuid
+							comparedObservationRow.Data[ColumnKeyStatusChange] = op.StateChange
+							comparedObservationRow.Data[ColumnKeyComparedObservation] = comparedObservationRow.Data[ColumnKeyObservation]
+							comparedObservationRow.Data[ColumnKeyObservation] = ""
+						}
+					}
+					// Check if observation has already been added
+					if obsUuid != "" && !slices.Contains(observations, obsUuid) {
+						observations = append(observations, obsUuid)
+						observationsRows = append(observationsRows, comparedObservationRow)
+					}
+				}
+			}
+		}
+	}
+
+	return findingsRows, observationsRows
+}
+
 func getComparedResults(results []result, selectedResult result) []string {
 	comparedResults := []string{"None"}
 	for _, r := range results {
-		if r.uuid != selectedResult.uuid {
+		if r.Uuid != selectedResult.Uuid {
 			comparedResults = append(comparedResults, getResultText(r))
 		}
 	}
@@ -158,21 +245,21 @@ func getComparedResults(results []result, selectedResult result) []string {
 
 func getResultText(result result) string {
 	var resultText strings.Builder
-	if result.uuid == "" {
+	if result.Uuid == "" {
 		return "No Result Selected"
 	}
-	resultText.WriteString(result.title)
-	if result.oscalResult != nil {
-		thresholdFound, threshold := oscal.GetProp("threshold", oscal.LULA_NAMESPACE, result.oscalResult.Props)
+	resultText.WriteString(result.Title)
+	if result.OscalResult != nil {
+		thresholdFound, threshold := oscal.GetProp("threshold", oscal.LULA_NAMESPACE, result.OscalResult.Props)
 		if thresholdFound && threshold == "true" {
 			resultText.WriteString(", Threshold")
 		}
-		targetFound, target := oscal.GetProp("target", oscal.LULA_NAMESPACE, result.oscalResult.Props)
+		targetFound, target := oscal.GetProp("target", oscal.LULA_NAMESPACE, result.OscalResult.Props)
 		if targetFound {
 			resultText.WriteString(fmt.Sprintf(", %s", target))
 		}
 	}
-	resultText.WriteString(fmt.Sprintf(" - %s", result.timestamp))
+	resultText.WriteString(fmt.Sprintf(" - %s", result.Timestamp))
 
 	return resultText.String()
 }

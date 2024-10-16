@@ -55,10 +55,18 @@ func (m *Model) outOfFocus() {
 
 func (m *Model) updateFocusHelpKeys() {
 	switch m.focus {
+	case focusResultSelection:
+		m.help.ShortHelp = shortHelpDialogBox
+		m.help.FullHelpOneLine = fullHelpDialogBoxOneLine
+		m.help.FullHelp = fullHelpDialogBox
+	case focusCompareSelection:
+		m.help.ShortHelp = shortHelpDialogBox
+		m.help.FullHelpOneLine = fullHelpDialogBoxOneLine
+		m.help.FullHelp = fullHelpDialogBox
 	case focusFindings:
-		m.help.ShortHelp = common.ShortHelpTable
-		m.help.FullHelpOneLine = common.FullHelpTableOneLine
-		m.help.FullHelp = common.FullHelpTable
+		m.help.ShortHelp = common.ShortHelpTableWithSelect
+		m.help.FullHelpOneLine = common.FullHelpTableWithSelectOneLine
+		m.help.FullHelp = common.FullHelpTableWithSelect
 	case focusObservations:
 		m.help.ShortHelp = common.ShortHelpTable
 		m.help.FullHelpOneLine = common.FullHelpTableOneLine

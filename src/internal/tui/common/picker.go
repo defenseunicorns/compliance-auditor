@@ -120,4 +120,5 @@ func (m PickerModel) View() string {
 
 func (m *PickerModel) UpdateItems(items []string) {
 	m.items = items
+	m.selected = 0
 }

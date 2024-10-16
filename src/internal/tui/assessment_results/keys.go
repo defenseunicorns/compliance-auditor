@@ -9,6 +9,7 @@ type keys struct {
 	Validate      key.Binding
 	Evaluate      key.Binding
 	Confirm       key.Binding
+	Select        key.Binding
 	Cancel        key.Binding
 	Navigation    key.Binding
 	NavigateLeft  key.Binding
@@ -24,6 +25,7 @@ var assessmentKeys = keys{
 	Quit:          common.CommonKeys.Quit,
 	Help:          common.CommonKeys.Help,
 	Confirm:       common.CommonKeys.Confirm,
+	Select:        common.CommonKeys.Select,
 	Cancel:        common.CommonKeys.Cancel,
 	Navigation:    common.CommonKeys.Navigation,
 	NavigateLeft:  common.CommonKeys.NavigateLeft,
@@ -48,5 +50,16 @@ var (
 	}
 	fullHelpNoFocus = [][]key.Binding{
 		{assessmentKeys.Navigation}, {assessmentKeys.SwitchModels}, {assessmentKeys.Help},
+	}
+
+	// focus dialog box
+	shortHelpDialogBox = []key.Binding{
+		assessmentKeys.Select, assessmentKeys.Navigation, assessmentKeys.SwitchModels, assessmentKeys.Help,
+	}
+	fullHelpDialogBoxOneLine = []key.Binding{
+		assessmentKeys.Select, assessmentKeys.Navigation, assessmentKeys.SwitchModels, assessmentKeys.Help,
+	}
+	fullHelpDialogBox = [][]key.Binding{
+		{assessmentKeys.Select}, {assessmentKeys.Navigation}, {assessmentKeys.SwitchModels}, {assessmentKeys.Help},
 	}
 )

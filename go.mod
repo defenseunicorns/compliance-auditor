@@ -10,8 +10,8 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/defenseunicorns/pkg/kubernetes v0.3.0
-	github.com/google/go-cmp v0.6.0
 	github.com/evertras/bubble-table v0.17.0
+	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
 	github.com/mattn/go-runewidth v0.0.16
@@ -23,7 +23,6 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.31.1
 	k8s.io/apimachinery v0.31.1
@@ -177,6 +176,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/cli-runtime v0.31.1 // indirect
 	k8s.io/component-base v0.31.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect

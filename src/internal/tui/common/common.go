@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -152,4 +153,12 @@ func ToYamlString(input interface{}) (string, error) {
 	}
 
 	return string(yamlData), nil
+}
+
+func DeepCopy(src, dst interface{}) error {
+	data, err := json.Marshal(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, dst)
 }

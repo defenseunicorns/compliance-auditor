@@ -13,6 +13,8 @@ import (
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/muesli/termenv"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -40,9 +42,7 @@ func TestComponentDefinitionBasicView(t *testing.T) {
 	msgs := []tea.Msg{}
 
 	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 // TestComponentDefinitionComponentSwitch tests that the component picker executes correctly
@@ -62,9 +62,7 @@ func TestComponentDefinitionComponentSwitch(t *testing.T) {
 	}
 
 	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 // TestComponentControlSelect tests that the user can navigate to a control, select it, and see expected
@@ -82,9 +80,7 @@ func TestComponentControlSelect(t *testing.T) {
 	}
 
 	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 // TestEditViewComponentDefinitionModel tests that the editing views of the component definition model are correct
@@ -113,9 +109,7 @@ func TestEditViewComponentDefinitionModel(t *testing.T) {
 	}
 
 	err := testhelpers.RunTestModelView(t, model, reset, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 // TestEditViewComponentDefinitionModel tests that the editing views of the component definition model are correct
@@ -136,9 +130,7 @@ func TestDetailValidationViewComponentDefinitionModel(t *testing.T) {
 	}
 
 	err := testhelpers.RunTestModelView(t, model, nil, msgs, timeout, maxRetries, height, width)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 // TestEditComponentDefinitionModel tests that a component definition model can be modified, written, and re-read
@@ -164,29 +156,19 @@ func TestEditComponentDefinitionModel(t *testing.T) {
 
 	// Write the model to a temp file
 	err := oscal.OverwriteOscalModel(tempOscalFile.Name(), mdl)
-	if err != nil {
-		t.Errorf("error overwriting oscal model: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Read the model from the temp file
 	modifiedOscalModel := testhelpers.OscalFromPath(t, tempOscalFile.Name())
 	compDefn := modifiedOscalModel.ComponentDefinition
-	if compDefn == nil {
-		t.Errorf("component definition is nil")
-	}
+	require.NotNil(t, compDefn)
 	for _, c := range *compDefn.Components {
-		if c.ControlImplementations == nil {
-			t.Errorf("control implementations are nil")
-		}
+		require.NotNil(t, c.ControlImplementations)
 		for _, f := range *c.ControlImplementations {
 			for _, r := range f.ImplementedRequirements {
 				if r.ControlId == testControlId {
-					if r.Remarks != testRemarks {
-						t.Errorf("Expected remarks to be %s, got %s", testRemarks, r.Remarks)
-					}
-					if r.Description != testDescription {
-						t.Errorf("Expected remarks to be %s, got %s", testDescription, r.Description)
-					}
+					assert.Equal(t, testRemarks, r.Remarks)
+					assert.Equal(t, testDescription, r.Description)
 				}
 			}
 		}

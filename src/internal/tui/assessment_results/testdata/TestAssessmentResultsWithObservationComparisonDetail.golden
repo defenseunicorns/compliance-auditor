@@ -1,0 +1,57 @@
+         ╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗         
+         ║                                                                                                                                                                                    ║         
+         ║ Control IDs: ID-1                                                                                                                                                                  ║         
+         ║                                                                                                                                                                                    ║         
+         ║ Observation: lula-validation-1                                                                                                                                                     ║         
+         ║                                                                                                                                                                                    ║         
+         ║ collected: 2024-10-15T10:56:06.553304-04:00                                                                                                                                        ║         
+         ║ description: |                                                                                                                                                                     ║         
+         ║     [TEST]: 88AB3470-B96B-4D7C-BC36-02BF9563C46C - lula-validation-1                                                                                                               ║         
+         ║ methods:                                                                                                                                                                           ║         
+         ║     - TEST                                                                                                                                                                         ║         
+         ║ relevant-evidence:                                                                                                                                                                 ║         
+         ║     - description: |                                                                                                                                                               ║         
+         ║         Result: not-satisfied                                                                                                                                                      ║         
+         ║ uuid: 92cb3cad-bbcd-431a-aaa9-cd47275a3982                                                                                                                                         ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║ Compared Observation: lula-validation-1                                                                                                                                            ║         
+         ║                                                                                                                                                                                    ║         
+         ║ collected: 2024-10-15T10:55:51.725223-04:00                                                                                                                                        ║         
+         ║ description: |                                                                                                                                                                     ║         
+         ║     [TEST]: 88AB3470-B96B-4D7C-BC36-02BF9563C46C - lula-validation-1                                                                                                               ║         
+         ║ methods:                                                                                                                                                                           ║         
+         ║     - TEST                                                                                                                                                                         ║         
+         ║ relevant-evidence:                                                                                                                                                                 ║         
+         ║     - description: |                                                                                                                                                               ║         
+         ║         Result: satisfied                                                                                                                                                          ║         
+         ║ uuid: 0e7fc8b3-b230-49f9-be7c-8f011536dfb4                                                                                                                                         ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║ ↑/k scroll up • ↓/j scroll down • esc cancel                                                                                                                                       ║         
+         ╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝         
