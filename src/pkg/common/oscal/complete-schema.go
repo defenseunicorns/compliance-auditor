@@ -304,7 +304,7 @@ func InjectIntoOSCALModel(target *oscalTypes.OscalModels, values map[string]inte
 }
 
 // ConvertOSCALToBytes returns a byte slice representation of an OSCAL model
-func ConvertOSCALToBytes(model *oscalTypes_1_1_2.OscalModels, fileExt string) ([]byte, error) {
+func ConvertOSCALToBytes(model *oscalTypes.OscalModels, fileExt string) ([]byte, error) {
 	var b bytes.Buffer
 
 	if fileExt == ".json" {
