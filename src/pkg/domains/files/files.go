@@ -133,7 +133,8 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	for _, f := range unstructuredFiles {
 		// we don't need to copy these files, we'll just slurp the contents into
 		// a string and append that as one big DomainResource
-		b, err := os.ReadFile(filepath.Join(workDir, f.Path)) // #nosec G304
+		path := filepath.Clean(filepath.Join(workDir, f.Path))
+		b, err := os.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("error reading source files: %w", err)
 		}

@@ -151,8 +151,8 @@ func FetchLocalFile(url *url.URL, config *fetchOpts) ([]byte, error) {
 	if _, err := os.Stat(requestUri); err != nil {
 		requestUri = filepath.Join(config.baseDir, url.Host, requestUri)
 	}
-
-	bytes, err := os.ReadFile(requestUri) // #nosec G304
+	requestUri = filepath.Clean(requestUri)
+	bytes, err := os.ReadFile(requestUri)
 	return bytes, err
 }
 
