@@ -106,7 +106,7 @@ func (p *Spinner) Updatef(format string, a ...any) {
 func (p *Spinner) Stop() {
 	if p.spinner != nil && p.spinner.IsActive {
 		//nolint:errcheck
-		p.spinner.Stop()
+		p.spinner.Stop() // #nosec G104
 	}
 	activeSpinner = nil
 }
@@ -153,7 +153,7 @@ func (p *Spinner) Fatalf(err error, format string, a ...any) {
 	if p.spinner != nil {
 		p.spinner.RemoveWhenDone = true
 		//nolint:errcheck
-		p.spinner.Stop()
+		p.spinner.Stop() // #nosec G104
 		activeSpinner = nil
 	}
 	Fatalf(err, format, a...)
@@ -164,12 +164,8 @@ func (p *Spinner) Pause() string {
 	var spinnerText string
 	if p.spinner != nil && p.spinner.IsActive {
 		spinnerText = p.spinner.Text
-<<<<<<< HEAD
-		_ = p.spinner.Stop() // G104
-=======
 		//nolint:errcheck
-		p.spinner.Stop()
->>>>>>> 05a7f6e075adafeb2b3c635803cc12083f12c01d
+		p.spinner.Stop() // #nosec G104
 	}
 	return spinnerText
 }
