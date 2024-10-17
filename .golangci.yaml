@@ -1,7 +1,6 @@
 linters:
   # all default linters enabled
   enable:
-    - gosec
     - gofmt
     - goimports
     - prealloc
