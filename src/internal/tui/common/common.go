@@ -162,3 +162,10 @@ func DeepCopy(src, dst interface{}) error {
 	}
 	return json.Unmarshal(data, dst)
 }
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}

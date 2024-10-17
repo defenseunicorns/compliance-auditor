@@ -18,8 +18,7 @@ import (
 )
 
 type SwitchTabMsg struct {
-	FromTab int
-	ToTab   int
+	ToTab int
 }
 
 type model struct {
@@ -139,7 +138,6 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
-	fromTab := m.activeTab
 
 	common.DumpToLog(msg)
 
@@ -154,12 +152,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch k {
 		case common.ContainsKey(k, m.keys.ModelRight.Keys()):
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
-			return m, func() tea.Msg {
+			cmds = append(cmds, func() tea.Msg {
 				return SwitchTabMsg{
-					FromTab: fromTab,
-					ToTab:   m.activeTab,
+					ToTab: m.activeTab,
 				}
-			}
+			})
 
 		case common.ContainsKey(k, m.keys.ModelLeft.Keys()):
 			if m.activeTab == 0 {
@@ -167,12 +164,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.activeTab = m.activeTab - 1
 			}
-			return m, func() tea.Msg {
+			cmds = append(cmds, func() tea.Msg {
 				return SwitchTabMsg{
-					FromTab: fromTab,
-					ToTab:   m.activeTab,
+					ToTab: m.activeTab,
 				}
-			}
+			})
 
 		case common.ContainsKey(k, m.keys.Confirm.Keys()):
 			if m.closeModel.Open {
@@ -243,18 +239,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case component.ValidationDataMsg:
 		// Update assessment results model
-		err := m.assessmentResultsModel.MergeNewResults(msg.AssessmentResults)
-		if err != nil {
-			common.PrintToLog("error merging assessment results")
-		}
+		// err := m.assessmentResultsModel.MergeNewResults(msg.AssessmentResults)
+		// if err != nil {
+		// 	common.PrintToLog("error merging assessment results")
+		// }
 
 		// Save assessment results data
-		err = oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{AssessmentResults: m.assessmentResultsModel.GetAssessmentResults()})
+		// TODO: add to save workflow
+		err := oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{AssessmentResults: m.assessmentResultsModel.GetAssessmentResults()})
 		if err != nil {
 			common.PrintToLog("error writing assessment results model: %v", err)
 		}
 
 		m.activeTab = 1 // assessment results tab
+		cmds = append(cmds, func() tea.Msg {
+			return SwitchTabMsg{
+				ToTab: m.activeTab,
+			}
+		})
 
 	case SwitchTabMsg:
 		return m, m.openTab(msg.ToTab)

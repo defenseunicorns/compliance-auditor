@@ -20,10 +20,15 @@ import (
 const (
 	validateWidthScale  = 0.5
 	validateHeightScale = 0.6
-	defaultPopupHeight  = 15
-	defaultPopupWidth   = 50
+	minimumHeight       = 15
+	minimumWidth        = 50
 )
 
+type ValidateOpenMsg struct {
+	Height int
+	Width  int
+	Target string
+}
 type ValidateStartMsg struct{}
 type ValidationCompleteMsg struct {
 	Err error
@@ -31,10 +36,7 @@ type ValidationCompleteMsg struct {
 type ValidationDataMsg struct {
 	AssessmentResults *oscalTypes_1_1_2.AssessmentResults
 }
-type ValidateCloseAndResetMsg struct{}
-type ValidateModelMsg struct {
-	RunExecutables bool
-}
+type ValidateCloseMsg struct{}
 
 type ValidateModel struct {
 	IsOpen            bool
@@ -60,8 +62,8 @@ func NewValidateModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) Vali
 		help:           help,
 		oscalComponent: oscalComponent,
 		runExecutable:  true, // Hardcoding for now, tbd on optional input from user
-		height:         defaultPopupHeight,
-		width:          defaultPopupWidth,
+		height:         minimumHeight,
+		width:          minimumWidth,
 	}
 }
 
@@ -73,70 +75,75 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var err error
 
-	if m.IsOpen {
-		switch msg := msg.(type) {
-		case tea.WindowSizeMsg:
-			m.updateSizing(int(float64(msg.Height)*validateHeightScale), int(float64(msg.Width)*validateWidthScale))
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.updateSizing(int(float64(msg.Height)*validateHeightScale), int(float64(msg.Width)*validateWidthScale))
 
-		case tea.KeyMsg:
-			k := msg.String()
+	case tea.KeyMsg:
+		k := msg.String()
 
-			switch k {
-			case common.ContainsKey(k, common.CommonKeys.Confirm.Keys()):
-				if m.validatable {
-					m.validating = true
-					m.content = "Validating..."
-					cmds = append(cmds, func() tea.Msg {
-						return ValidateStartMsg{}
-					})
-				} else {
-					m.IsOpen = false
-				}
-
-			case common.ContainsKey(k, common.CommonKeys.Cancel.Keys()):
+		switch k {
+		case common.ContainsKey(k, common.CommonKeys.Confirm.Keys()):
+			if m.validatable {
+				m.validating = true
+				m.content = "Validating..."
+				cmds = append(cmds, func() tea.Msg {
+					return ValidateStartMsg{}
+				})
+			} else {
 				m.IsOpen = false
 			}
 
-		case ValidateStartMsg:
-			validationStart := time.Now()
-			m.assessmentResults, err = m.RunValidations(m.runExecutable, m.target)
-			validationDuration := time.Since(validationStart)
-			// just adding a minimum of 2 seconds to the "validating" popup
-			if validationDuration < time.Second*2 {
-				time.Sleep(time.Second*2 - validationDuration)
-			}
+		case common.ContainsKey(k, common.CommonKeys.Cancel.Keys()):
+			m.IsOpen = false
+		}
 
+	case ValidateOpenMsg:
+		m.IsOpen = true
+		m.target = msg.Target
+		m.updateSizing(int(float64(msg.Height)*validateHeightScale), int(float64(msg.Width)*validateWidthScale))
+		m.setInitialContent()
+
+	case ValidateStartMsg:
+		validationStart := time.Now()
+		m.assessmentResults, err = m.RunValidations(m.runExecutable, m.target)
+		validationDuration := time.Since(validationStart)
+		// just adding a minimum of 2 seconds to the "validating" popup
+		if validationDuration < time.Second*2 {
+			time.Sleep(time.Second*2 - validationDuration)
+		}
+
+		cmds = append(cmds, func() tea.Msg {
+			return ValidationCompleteMsg{
+				Err: err,
+			}
+		})
+
+	case ValidationCompleteMsg:
+		cmds = append(cmds, func() tea.Msg {
+			time.Sleep(time.Second * 2)
+			return ValidateCloseMsg{}
+		})
+		if msg.Err != nil {
+			m.content = fmt.Sprintf("Error running validation: %v", msg.Err)
+		} else {
+			m.content = "Validation Complete"
 			cmds = append(cmds, func() tea.Msg {
-				return ValidationCompleteMsg{
-					Err: err,
+				return ValidationDataMsg{
+					AssessmentResults: m.assessmentResults,
 				}
 			})
-
-		case ValidationCompleteMsg:
-			cmds = append(cmds, func() tea.Msg {
-				time.Sleep(time.Second * 2)
-				return ValidateCloseAndResetMsg{}
-			})
-			if msg.Err != nil {
-				m.content = fmt.Sprintf("Error running validation: %v", msg.Err)
-			} else {
-				m.content = "Validation Complete"
-				cmds = append(cmds, func() tea.Msg {
-					return ValidationDataMsg{
-						AssessmentResults: m.assessmentResults,
-					}
-				})
-			}
-			return m, tea.Sequence(cmds...)
-
-		case ValidateCloseAndResetMsg:
-			m.IsOpen = false
-			m.validatable = false
-			m.validating = false
-			m.target = ""
-
 		}
+		return m, tea.Sequence(cmds...)
+
+	case ValidateCloseMsg:
+		m.IsOpen = false
+		m.validatable = false
+		m.validating = false
+		m.target = ""
+
 	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -153,10 +160,7 @@ func (m ValidateModel) View() string {
 	return popupStyle.Render(validationContent)
 }
 
-func (m *ValidateModel) Open(height, width int, target string) {
-	m.IsOpen = true
-	m.target = target
-	m.updateSizing(int(float64(height)*validateHeightScale), int(float64(width)*validateWidthScale))
+func (m *ValidateModel) setInitialContent() {
 	var content strings.Builder
 
 	// update the model with component data
@@ -169,13 +173,13 @@ func (m *ValidateModel) Open(height, width int, target string) {
 
 		controlImplementationMap := oscal.FilterControlImplementations(m.oscalComponent)
 
-		if controlImplSet, ok := controlImplementationMap[target]; ok {
+		if controlImplSet, ok := controlImplementationMap[m.target]; ok {
 			m.controlImplSet = controlImplSet
 			requirementStore := requirementstore.NewRequirementStore(&controlImplSet)
 
 			content.WriteString("Run Validations?")
 			content.WriteString("\n🔍 Validate Component Definition on Target: ")
-			content.WriteString(target)
+			content.WriteString(m.target)
 			requirementStore.ResolveLulaValidations(m.validationStore)
 			reqtStats := requirementStore.GetStats(m.validationStore)
 			content.WriteString(fmt.Sprintf("\n\n• Found %d Implemented Requirements", reqtStats.TotalRequirements))
@@ -196,12 +200,8 @@ func (m *ValidateModel) Open(height, width int, target string) {
 }
 
 func (m *ValidateModel) updateSizing(height, width int) {
-	if height < defaultPopupHeight {
-		height = defaultPopupHeight
-	}
-	if width < defaultPopupWidth {
-		width = defaultPopupWidth
-	}
+	m.height = common.Max(height, minimumHeight)
+	m.width = common.Max(width, minimumWidth)
 }
 
 func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*oscalTypes_1_1_2.AssessmentResults, error) {

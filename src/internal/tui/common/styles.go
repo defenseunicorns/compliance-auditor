@@ -164,10 +164,3 @@ func HelpStyle(width int) lipgloss.Style {
 		Width(width - PanelStyle.GetHorizontalPadding() - PanelStyle.GetHorizontalMargins()).
 		Height(1)
 }
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}

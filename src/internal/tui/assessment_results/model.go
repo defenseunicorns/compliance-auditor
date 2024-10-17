@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/internal/tui/component"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/evertras/bubble-table/table"
 )
@@ -231,6 +232,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.findingsTable, m.observationsTable, m.currentObservations = m.getComparedResultTables(m.selectedResult, m.comparedResult)
 			}
+		}
+
+	case component.ValidationDataMsg:
+		err := m.MergeNewResults(msg.AssessmentResults)
+		if err != nil {
+			common.PrintToLog("error merging assessment results")
 		}
 	}
 

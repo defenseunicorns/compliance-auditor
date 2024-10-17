@@ -267,7 +267,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case common.ContainsKey(k, m.keys.Validate.Keys()):
 			if !m.inOverlay() {
-				m.validateModel.Open(m.height, m.width, m.selectedFramework.Name)
+				return m, func() tea.Msg {
+					return ValidateOpenMsg{
+						Target: m.selectedFramework.Name,
+						Height: m.height,
+						Width:  m.width,
+					}
+				}
 			}
 
 		case common.ContainsKey(k, m.keys.Cancel.Keys()):
