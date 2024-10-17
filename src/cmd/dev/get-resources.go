@@ -35,7 +35,7 @@ var getResourcesCmd = &cobra.Command{
 	Example: getResourcesHelp,
 	Run: func(cmd *cobra.Command, args []string) {
 		spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
-		spinner := message.NewProgressSpinner(spinnerMessage)
+		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
 
 		ctx := context.Background()

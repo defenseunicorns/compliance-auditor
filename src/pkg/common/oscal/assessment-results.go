@@ -212,33 +212,6 @@ func MakeAssessmentResultsDeterministic(assessment *oscalTypes_1_1_2.AssessmentR
 
 }
 
-// findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
-func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) ([]*oscalTypes_1_1_2.Result, []*oscalTypes_1_1_2.Result) {
-
-	thresholds := make([]*oscalTypes_1_1_2.Result, 0)
-	sortedResults := make([]*oscalTypes_1_1_2.Result, 0)
-
-	for _, assessment := range resultMap {
-		for _, result := range assessment.Results {
-			if result.Props != nil {
-				for _, prop := range *result.Props {
-					if prop.Name == "threshold" && prop.Value == "true" {
-						thresholds = append(thresholds, &result)
-					}
-				}
-			}
-			// Store all results in a non-sorted list
-			sortedResults = append(sortedResults, &result)
-		}
-	}
-
-	// Sort the results by start time
-	slices.SortFunc(sortedResults, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
-	slices.SortFunc(thresholds, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
-
-	return thresholds, sortedResults
-}
-
 // filterResults consumes many assessment-results objects and builds out a map of EvalResults filtered by target
 // this function looks at the target prop as the key in the map
 func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
