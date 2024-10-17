@@ -319,7 +319,7 @@ func Truncate(text string, length int, invert bool) string {
 
 // Table prints a padded table containing the specified header and data
 // Note - columnSize should be an array of ints that add up to 100
-func Table(header []string, data [][]string, columnSize []int) {
+func Table(header []string, data [][]string, columnSize []int) error {
 	pterm.Println()
 	termWidth := pterm.GetTerminalWidth() - 10 // Subtract 10 for padding
 
@@ -342,7 +342,11 @@ func Table(header []string, data [][]string, columnSize []int) {
 		table = append(table, pterm.TableData{row}...)
 	}
 
+<<<<<<< HEAD
 	_ = pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render() // G104
+=======
+	return pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render()
+>>>>>>> 05a7f6e075adafeb2b3c635803cc12083f12c01d
 }
 
 // Add line breaks for table

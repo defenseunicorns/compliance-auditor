@@ -23,7 +23,7 @@ func MakeRequests(Requests []Request) (types.DomainResources, error) {
 		}
 		if resp.StatusCode != 200 {
 			return nil,
-				fmt.Errorf("expected status code 200 but got %d\n", resp.StatusCode)
+				fmt.Errorf("expected status code 200 but got %d", resp.StatusCode)
 		}
 
 		defer resp.Body.Close()
@@ -36,7 +36,14 @@ func MakeRequests(Requests []Request) (types.DomainResources, error) {
 		if contentType == "application/json" {
 
 			var prettyBuff bytes.Buffer
+<<<<<<< HEAD
 			_ = json.Indent(&prettyBuff, body, "", "  ") // G104
+=======
+			err := json.Indent(&prettyBuff, body, "", "  ")
+			if err != nil {
+				return nil, err
+			}
+>>>>>>> 05a7f6e075adafeb2b3c635803cc12083f12c01d
 			prettyJson := prettyBuff.String()
 
 			var tempData interface{}

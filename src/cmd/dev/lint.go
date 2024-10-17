@@ -37,20 +37,18 @@ var lintCmd = &cobra.Command{
 		validationResults := DevLintCommand(lintOpts.InputFiles)
 
 		// If result file is specified, write the validation results to the file
+		var err error
 		if lintOpts.ResultFile != "" {
 			// If there is only one validation result, write it to the file
 			if len(validationResults) == 1 {
-				err := oscalValidation.WriteValidationResult(validationResults[0], lintOpts.ResultFile)
-				if err != nil {
-					message.WarnErrf("error while writing validation results: %s", err.Error())
-				}
+				err = oscalValidation.WriteValidationResult(validationResults[0], lintOpts.ResultFile)
 			} else {
 				// If there are multiple validation results, write them to the file
-				err := oscalValidation.WriteValidationResults(validationResults, lintOpts.ResultFile)
-				if err != nil {
-					message.WarnErrf("error while writing validation results: %s", err.Error())
-				}
+				err = oscalValidation.WriteValidationResults(validationResults, lintOpts.ResultFile)
 			}
+		}
+		if err != nil {
+			message.Fatal(err, "Error writing validation results")
 		}
 
 		// If there is at least one validation result that is not valid, exit with a fatal error

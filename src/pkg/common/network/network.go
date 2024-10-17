@@ -92,9 +92,9 @@ func WithBaseDir(baseDir string) FetchOption {
 func Fetch(inputURL string, opts ...FetchOption) (bytes []byte, err error) {
 	config := &fetchOpts{}
 	for _, opt := range opts {
-		err = opt(config) // G104
+		err = opt(config)
 		if err != nil {
-			return
+			return bytes, err
 		}
 	}
 

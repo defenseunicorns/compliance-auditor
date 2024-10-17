@@ -63,12 +63,18 @@ func init() {
 	v := common.InitViper()
 
 	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
-	evaluateCmd.MarkFlagRequired("input-file") // #nosec G104
+
+	err := evaluateCmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing evaluate command flags")
+	}
 	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", v.GetBool(common.VSummary), "Print a summary of the evaluation")
 	evaluateCmd.Flags().BoolVar(&opts.machine, "machine", false, "Print a machine-readable output")
-	evaluateCmd.Flags().MarkHidden("machine") // #nosec G104
-
+	err = evaluateCmd.Flags().MarkHidden("machine") // Hidden for now as internal use only
+	if err != nil {
+		message.Fatal(err, "error initializing hidden evaluate command flags")
+	}
 }
 
 func EvaluateCommand() *cobra.Command {
@@ -103,7 +109,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 		err := oscal.WriteOscalModel(filePath, &model)
 		if err != nil {
-			message.WarnErrf("error while writing assessment results: %s", err.Error())
+			return err
 		}
 	}
 	return nil
@@ -142,7 +148,10 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 		// Print summary
 		if summary {
 			message.Info("Summary of All Observations:")
-			findingsWithoutObservations = result.Collapse(resultComparison).PrintObservationComparisonTable(false, true, false)
+			findingsWithoutObservations, err = result.Collapse(resultComparison).PrintObservationComparisonTable(false, true, false)
+			if err != nil {
+				return fmt.Errorf("error printing results: %w", err)
+			}
 			if len(findingsWithoutObservations) > 0 {
 				message.Warnf("%d Finding(s) Without Observations", len(findingsWithoutObservations))
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
@@ -208,7 +217,10 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 				"removed-satisfied":     resultComparison["removed-satisfied"],
 				"removed-not-satisfied": resultComparison["removed-not-satisfied"],
 			}
-			findingsWithoutObservations = result.Collapse(failedFindings).PrintObservationComparisonTable(true, false, true)
+			findingsWithoutObservations, err = result.Collapse(failedFindings).PrintObservationComparisonTable(true, false, true)
+			if err != nil {
+				return fmt.Errorf("error printing results: %w", err)
+			}
 			// handle controls that failed but didn't have observations
 			if len(findingsWithoutObservations) > 0 {
 				message.Warnf("%d Failed Finding(s) Without Observations", len(findingsWithoutObservations))
