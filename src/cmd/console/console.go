@@ -65,6 +65,9 @@ var consoleCmd = &cobra.Command{
 
 func ConsoleCommand() *cobra.Command {
 	consoleCmd.Flags().StringVarP(&opts.InputFile, "input-file", "f", "", "the path to the target OSCAL model")
-	consoleCmd.MarkFlagRequired("input-file")
+	err := consoleCmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing console command flags")
+	}
 	return consoleCmd
 }

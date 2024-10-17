@@ -58,6 +58,7 @@ func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, t
 		go func() {
 			if timeout != NO_TIMEOUT {
 				time.Sleep(time.Duration(timeout) * time.Second)
+				//nolint:errcheck
 				cmd.Help()
 				message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
 			}
