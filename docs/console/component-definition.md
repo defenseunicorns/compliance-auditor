@@ -10,6 +10,14 @@ lula console -f /path/to/oscal-component.yaml
 ```
 The `oscal-component.yaml` will need to be a valid OSCAL model - to use with the Component Definition view, it must contain the `component-definition` top level key.
 
+To include an output file to save any changes made to the component definition, use the `--component-output` or `-c`flag:
+```shell
+lula console -f /path/to/oscal-component.yaml -c /path/to/output.yaml
+```
+
+> [!Note] 
+> Several component definition models can be passed into the console, via `-f` in a comma-separated list. For multiple component definitions, the output file will default to `component.yaml` unless specified.
+
 ## Keys
 
 The Component Definition model responds to the following keys for navigation and interaction (some widgets have additional key response, see respective help views for more information):
@@ -27,7 +35,7 @@ The Component Definition model responds to the following keys for navigation and
 | `/` | Filter list |
 | `↳` | Select item |
 | `e` | Edit available fields (remarks and description) |
-| `ctrl+s` | Save changes (Note: this will overwrite the original file) |
+| `ctrl+s` | Save changes (Note: this may overwrite the original file if an output file unspecified) |
 | `esc` | Cancel |
 
 During console viewing, the top-right corner will display the help keys availble in the context of the selected widget. When an overlay is open, the help keys will be displayed in the overlay.
