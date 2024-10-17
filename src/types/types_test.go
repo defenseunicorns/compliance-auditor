@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetDomainResourcesAsJSON(t *testing.T) {
@@ -51,9 +52,11 @@ func TestGetDomainResourcesAsJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.validation.GetDomainResourcesAsJSON()
 			var jsonWant map[string]interface{}
-			json.Unmarshal(tt.want, &jsonWant)
+			err := json.Unmarshal(tt.want, &jsonWant)
+			require.NoError(t, err)
 			var jsonGot map[string]interface{}
-			json.Unmarshal(got, &jsonGot)
+			err = json.Unmarshal(got, &jsonGot)
+			require.NoError(t, err)
 			if !reflect.DeepEqual(jsonGot, jsonWant) {
 				t.Errorf("GetDomainResourcesAsJSON() got = %v, want %v", jsonGot, jsonWant)
 			}

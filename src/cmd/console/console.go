@@ -80,7 +80,10 @@ func ConsoleCommand() *cobra.Command {
 	}
 
 	consoleCmd.Flags().StringSliceVarP(&inputFiles, "input-files", "f", []string{}, "the path to the target OSCAL models, comma separated")
-	consoleCmd.MarkFlagRequired("input-files")
+	err := consoleCmd.MarkFlagRequired("input-files")
+	if err != nil {
+		message.Fatal(err, "error initializing console command flags")
+	}
 	consoleCmd.Flags().StringVarP(&componentOutputFile, "component-output", "c", "", "the path to the component definition output file")
 	return consoleCmd
 }

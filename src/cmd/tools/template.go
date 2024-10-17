@@ -96,7 +96,10 @@ func TemplateCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target artifact")
-	cmd.MarkFlagRequired("input-file")
+	err := cmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing template command flags")
+	}
 	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be directed to stdout")
 	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
 	cmd.Flags().StringVarP(&renderTypeString, "render", "r", "masked", "values to render the template with, options are: masked, constants, non-sensitive, all")

@@ -173,9 +173,10 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 		})
 	}
 
+	var err error
 	if len(rows) != 0 {
-		message.Table(header, rows, columnSize)
+		err = message.Table(header, rows, columnSize)
 	}
 
-	return findings, observations, nil
+	return findings, observations, err
 }
