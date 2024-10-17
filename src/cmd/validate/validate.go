@@ -11,6 +11,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 )
@@ -113,7 +114,10 @@ func ValidateCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to write assessment results. Creates a new file or appends to existing files")
 	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	cmd.MarkFlagRequired("input-file")
+	err := cmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing upgrade command flags")
+	}
 	cmd.Flags().StringVarP(&target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
 	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	cmd.Flags().BoolVar(&runNonInteractively, "non-interactive", false, "run the command non-interactively")

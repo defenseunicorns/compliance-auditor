@@ -200,7 +200,10 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 	templateData.SensitiveVariables = mergeStringMaps(templateData.SensitiveVariables, envMap)
 
 	// Apply overrides
-	overrideTemplateValues(templateData, overrides)
+	err = overrideTemplateValues(templateData, overrides)
+	if err != nil {
+		return templateData, err
+	}
 
 	// Validate that all env vars have values - currently debug prints missing env vars (do we want to return an error?)
 	var variablesMissing strings.Builder
@@ -380,7 +383,7 @@ func checkForInvalidKeys(constants map[string]interface{}, variables []VariableC
 }
 
 // overrideTemplateValues overrides values in the templateData object with values from the overrides map
-func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) {
+func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) error {
 	for path, value := range overrides {
 		// for each key, check if .var or .const
 		// if .var, set the value in the templateData.Variables or templateData.SensitiveVariables
@@ -396,9 +399,13 @@ func overrideTemplateValues(templateData *TemplateData, overrides map[string]str
 		} else if strings.HasPrefix(path, "."+CONST+".") {
 			// Set the value in the templateData.Constants
 			key := strings.TrimPrefix(path, "."+CONST+".")
-			setNestedValue(templateData.Constants, key, value)
+			err := setNestedValue(templateData.Constants, key, value)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // Helper function to set a value in a map based on a JSON-like key path

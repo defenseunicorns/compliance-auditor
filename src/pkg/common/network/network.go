@@ -92,7 +92,10 @@ func WithBaseDir(baseDir string) FetchOption {
 func Fetch(inputURL string, opts ...FetchOption) (bytes []byte, err error) {
 	config := &fetchOpts{}
 	for _, opt := range opts {
-		opt(config)
+		err = opt(config)
+		if err != nil {
+			return bytes, err
+		}
 	}
 
 	url, checksum, err := ParseChecksum(inputURL)

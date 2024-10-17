@@ -10,6 +10,7 @@ import (
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -116,7 +117,8 @@ func TestDryRun(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			v := validationstore.NewValidationStore()
 			for _, validation := range tt.validations {
-				v.AddValidation(&validation)
+				_, err := v.AddValidation(&validation)
+				require.NoError(t, err)
 			}
 
 			executable, _ := v.DryRun()
