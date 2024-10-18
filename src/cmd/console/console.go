@@ -3,6 +3,7 @@ package console
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui"
@@ -62,7 +63,7 @@ func ConsoleCommand() *cobra.Command {
 			// TODO: need to integrate with the log file handled by messages
 			var dumpFile *os.File
 			if message.GetLogLevel() == message.DebugLevel {
-				dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+				dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
 				if err != nil {
 					return err
 				}
@@ -94,6 +95,7 @@ func GetModelsByFiles(inputFiles []string, setOutputFiles map[string]string) (ma
 
 	// Get the OSCAL models from the files
 	for _, inputFile := range inputFiles {
+		inputFile = filepath.Clean(inputFile)
 		data, err := os.ReadFile(inputFile)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error reading file: %v", err)

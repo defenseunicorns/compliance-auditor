@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
@@ -35,6 +36,7 @@ func New(opts ...Option) (*Validator, error) {
 func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
 	var oscalModel *oscalTypes_1_1_2.OscalCompleteSchema
 	if v.composer == nil {
+		path = filepath.Clean(path)
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("error getting path: %v", err)
