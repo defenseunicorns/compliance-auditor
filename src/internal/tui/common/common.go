@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/mattn/go-runewidth"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -121,4 +122,13 @@ func DumpToLog(msg ...any) {
 	if DumpFile != nil {
 		spew.Fdump(DumpFile, msg)
 	}
+}
+
+func ToYamlString(input interface{}) (string, error) {
+	yamlData, err := yaml.Marshal(input)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal to YAML: %w", err)
+	}
+
+	return string(yamlData), nil
 }

@@ -19,7 +19,7 @@ component-definition:
           lula-version: ""
           metadata:
             name: Test validation with templating
-            uuid: 99fc662c-109a-4e26-8398-75f3db67f862
+            uuid: XXX
           provider:
             opa-spec:
               rego: |
@@ -41,7 +41,7 @@ component-definition:
                 value_of_my_secret :=
             type: opa
         title: Test validation with templating
-        uuid: 99fc662c-109a-4e26-8398-75f3db67f862
+        uuid: XXX
   components:
     - control-implementations:
         - description: Validate generic security requirements
@@ -52,9 +52,9 @@ component-definition:
                 - href: '#99fc662c-109a-4e26-8398-75f3db67f862'
                   rel: lula
                   text: local path template validation
-              uuid: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+              uuid: XXX
           source: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
-          uuid: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A
+          uuid: XXX
       description: |
         Lula - the Compliance Validator
       purpose: Validate compliance controls
@@ -64,7 +64,7 @@ component-definition:
           role-id: provider
       title: lula
       type: software
-      uuid: A9D5204C-7E5B-4C43-BD49-34DF759B9F04
+      uuid: XXX
   metadata:
     last-modified: XXX
     oscal-version: 1.1.2
@@ -74,7 +74,7 @@ component-definition:
             rel: website
         name: Lula Development
         type: organization
-        uuid: C18F4A9F-A402-415B-8D13-B51739D689FF
+        uuid: XXX
     title: Lula Demo
     version: "20220913"
-  uuid: E6A291A4-2BC8-43A0-B4B2-FD67CAAE1F8F
+  uuid: XXX

@@ -10,6 +10,7 @@ type keys struct {
 	Generate      key.Binding
 	Confirm       key.Binding
 	Select        key.Binding
+	Detail        key.Binding
 	Save          key.Binding
 	Cancel        key.Binding
 	Navigation    key.Binding
@@ -24,6 +25,7 @@ var componentKeys = keys{
 	Quit:          common.CommonKeys.Quit,
 	Help:          common.CommonKeys.Help,
 	Edit:          common.CommonKeys.Edit,
+	Detail:        common.CommonKeys.Detail,
 	Save:          common.CommonKeys.Save,
 	Select:        common.CommonKeys.Select,
 	Confirm:       common.CommonKeys.Confirm,
@@ -72,5 +74,18 @@ var (
 	}
 	fullHelpEditableDialogBox = [][]key.Binding{
 		{componentKeys.Edit}, {componentKeys.Save}, {componentKeys.Navigation}, {componentKeys.SwitchModels}, {componentKeys.Help},
+	}
+
+	// focus validations
+	shortHelpValidations = []key.Binding{
+		componentKeys.Detail, common.ListKeys.Up, common.ListKeys.Down, common.ListKeys.Filter, componentKeys.Help,
+	}
+
+	fullHelpValidationsOneLine = []key.Binding{
+		componentKeys.Detail, common.ListKeys.Up, common.ListKeys.Down, common.ListKeys.Filter, componentKeys.Navigation, componentKeys.SwitchModels, componentKeys.Help,
+	}
+
+	fullHelpValidations = [][]key.Binding{
+		{componentKeys.Detail}, {componentKeys.Navigation}, {componentKeys.SwitchModels}, {componentKeys.Help},
 	}
 )
