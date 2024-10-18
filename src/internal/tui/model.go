@@ -63,6 +63,15 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 	assessmentResultsModel := assessmentresults.NewAssessmentResultsModel(nil)
 	assessmentResultsFilePath := "assessment-results.yaml"
 
+	for k, v := range filePathMap {
+		switch k {
+		case "component":
+			componentFilePath = v
+		case "assessment-results":
+			assessmentResultsFilePath = v
+		}
+	}
+
 	for k, v := range modelMap {
 		// TODO: update these with the UpdateModel functions for the respective models
 		switch k {
@@ -72,14 +81,8 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 			if err != nil {
 				common.PrintToLog("error creating deep copy of component model: %v", err)
 			}
-			if _, ok := filePathMap[k]; ok {
-				componentFilePath = filePathMap[k]
-			}
 		case "assessment-results":
 			assessmentResultsModel = assessmentresults.NewAssessmentResultsModel(v.AssessmentResults)
-			if _, ok := filePathMap[k]; ok {
-				assessmentResultsFilePath = filePathMap[k]
-			}
 		}
 	}
 
@@ -238,25 +241,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Sequence(cmds...)
 
 	case component.ValidationDataMsg:
-		// Update assessment results model
-		// err := m.assessmentResultsModel.MergeNewResults(msg.AssessmentResults)
-		// if err != nil {
-		// 	common.PrintToLog("error merging assessment results")
-		// }
+		// Pass through to update assessment results model
+		mdl, cmd := m.assessmentResultsModel.Update(msg)
+		m.assessmentResultsModel = mdl.(assessmentresults.Model)
+		cmds = append(cmds, cmd)
 
+	case assessmentresults.AssessmentUpdatedMsg:
 		// Save assessment results data
 		// TODO: add to save workflow
-		err := oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{AssessmentResults: m.assessmentResultsModel.GetAssessmentResults()})
-		if err != nil {
-			common.PrintToLog("error writing assessment results model: %v", err)
-		}
-
-		m.activeTab = 1 // assessment results tab
-		cmds = append(cmds, func() tea.Msg {
-			return SwitchTabMsg{
-				ToTab: m.activeTab,
+		assessmentResults := m.assessmentResultsModel.GetAssessmentResults()
+		if assessmentResults != nil {
+			err := oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{AssessmentResults: assessmentResults})
+			if err != nil {
+				common.PrintToLog("error writing assessment results model: %v", err)
 			}
-		})
+
+			m.activeTab = 1 // assessment results tab
+			cmds = append(cmds, func() tea.Msg {
+				return SwitchTabMsg{
+					ToTab: m.activeTab,
+				}
+			})
+		}
 
 	case SwitchTabMsg:
 		return m, m.openTab(msg.ToTab)

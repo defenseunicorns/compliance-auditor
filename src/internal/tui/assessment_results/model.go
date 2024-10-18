@@ -65,6 +65,7 @@ type ModelOpenMsg struct {
 	Width  int
 }
 type ModelCloseMsg struct{}
+type AssessmentUpdatedMsg struct{}
 
 func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentResults) Model {
 	help := common.NewHelpModel(false)
@@ -238,6 +239,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		err := m.MergeNewResults(msg.AssessmentResults)
 		if err != nil {
 			common.PrintToLog("error merging assessment results")
+		} else {
+			cmds = append(cmds, func() tea.Msg {
+				return AssessmentUpdatedMsg{}
+			})
 		}
 	}
 

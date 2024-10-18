@@ -24,6 +24,9 @@ To view multiple OSCAL models in the Console:
 
 To specify an output file to save any changes made to the component definition:
 	lula console -f /path/to/oscal-component.yaml -c /path/to/output.yaml
+
+To specify an output file to save component definition assessment results:
+	lula console -f /path/to/oscal-component.yaml -a /path/to/output.yaml
 `
 
 var consoleLong = `
@@ -34,6 +37,7 @@ interact with the OSCAL documents in a more intuitive and visual way.
 func ConsoleCommand() *cobra.Command {
 	var inputFiles []string
 	var componentOutputFile string
+	var assessmentResultsOutputFile string
 
 	consoleCmd := &cobra.Command{
 		Use:     "console",
@@ -46,6 +50,10 @@ func ConsoleCommand() *cobra.Command {
 			// Check if output files are specified - Add more as needed
 			if componentOutputFile != "" {
 				setOutputFiles["component"] = componentOutputFile
+			}
+
+			if assessmentResultsOutputFile != "" {
+				setOutputFiles["assessment-results"] = assessmentResultsOutputFile
 			}
 
 			models, modelFiles, err := GetModelsByFiles(inputFiles, setOutputFiles)
@@ -94,6 +102,7 @@ func ConsoleCommand() *cobra.Command {
 		message.Fatal(err, "error initializing console command flags")
 	}
 	consoleCmd.Flags().StringVarP(&componentOutputFile, "component-output", "c", "", "the path to the component definition output file")
+	consoleCmd.Flags().StringVarP(&assessmentResultsOutputFile, "assessment-output", "a", "", "the path to the assessment results output file")
 	return consoleCmd
 }
 

@@ -19,7 +19,7 @@ import (
 
 const (
 	validateWidthScale  = 0.5
-	validateHeightScale = 0.6
+	validateHeightScale = 0.3
 	minimumHeight       = 15
 	minimumWidth        = 50
 )
@@ -107,6 +107,9 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ValidateStartMsg:
 		validationStart := time.Now()
 		m.assessmentResults, err = m.RunValidations(m.runExecutable, m.target)
+		if err != nil {
+			common.PrintToLog("error running validations: %v", err)
+		}
 		validationDuration := time.Since(validationStart)
 		// just adding a minimum of 2 seconds to the "validating" popup
 		if validationDuration < time.Second*2 {
