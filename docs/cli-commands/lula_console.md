@@ -31,14 +31,18 @@ To view multiple OSCAL models in the Console:
 To specify an output file to save any changes made to the component definition:
 	lula console -f /path/to/oscal-component.yaml -c /path/to/output.yaml
 
+To specify an output file to save component definition assessment results:
+	lula console -f /path/to/oscal-component.yaml -a /path/to/output.yaml
+
 ```
 
 ### Options
 
 ```
-  -c, --component-output string   the path to the component definition output file
-  -h, --help                      help for console
-  -f, --input-files strings       the path to the target OSCAL models, comma separated
+  -a, --assessment-output string   the path to the assessment results output file
+  -c, --component-output string    the path to the component definition output file
+  -h, --help                       help for console
+  -f, --input-files strings        the path to the target OSCAL models, comma separated
 ```
 
 ### Options inherited from parent commands
