@@ -45,7 +45,7 @@ var validateCmd = &cobra.Command{
 	Example: validateHelp,
 	Run: func(cmd *cobra.Command, args []string) {
 		spinnerMessage := fmt.Sprintf("Validating %s", validateOpts.InputFile)
-		spinner := message.NewProgressSpinner(spinnerMessage)
+		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
 
 		ctx := context.Background()
@@ -60,7 +60,7 @@ var validateCmd = &cobra.Command{
 		}
 
 		// Reset the spinner message
-		spinner.Updatef(spinnerMessage)
+		spinner.Updatef("%s", spinnerMessage)
 
 		// If a resources file is provided, read the resources file
 		if validateOpts.ResourcesFile != "" {

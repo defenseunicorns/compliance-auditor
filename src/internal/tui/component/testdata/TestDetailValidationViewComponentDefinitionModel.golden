@@ -1,0 +1,57 @@
+         ╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗         
+         ║                                                                                                                                                                                    ║         
+         ║ Validate pods with label foo=bar - 88AB3470-B96B-4D7C-BC36-02BF9563C46C                                                                                                            ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║ Domain: kubernetes                                                                                                                                                                 ║         
+         ║ resources:                                                                                                                                                                         ║         
+         ║     - name: jsoncm                                                                                                                                                                 ║         
+         ║       description: ""                                                                                                                                                              ║         
+         ║       resource-rule:                                                                                                                                                               ║         
+         ║         name: configmap-json                                                                                                                                                       ║         
+         ║         group: ""                                                                                                                                                                  ║         
+         ║         version: v1                                                                                                                                                                ║         
+         ║         resource: configmaps                                                                                                                                                       ║         
+         ║         namespaces:                                                                                                                                                                ║         
+         ║             - validation-test                                                                                                                                                      ║         
+         ║         field:                                                                                                                                                                     ║         
+         ║             jsonpath: .data.person.json                                                                                                                                            ║         
+         ║             type: yaml                                                                                                                                                             ║         
+         ║             base64: false                                                                                                                                                          ║         
+         ║     - name: yamlcm                                                                                                                                                                 ║         
+         ║       description: ""                                                                                                                                                              ║         
+         ║       resource-rule:                                                                                                                                                               ║         
+         ║         name: configmap-yaml                                                                                                                                                       ║         
+         ║         group: ""                                                                                                                                                                  ║         
+         ║         version: v1                                                                                                                                                                ║         
+         ║         resource: configmaps                                                                                                                                                       ║         
+         ║         namespaces:                                                                                                                                                                ║         
+         ║             - validation-test                                                                                                                                                      ║         
+         ║         field:                                                                                                                                                                     ║         
+         ║             jsonpath: .data.app-config.yaml                                                                                                                                        ║         
+         ║             type: yaml                                                                                                                                                             ║         
+         ║             base64: false                                                                                                                                                          ║         
+         ║     - name: secret                                                                                                                                                                 ║         
+         ║       description: ""                                                                                                                                                              ║         
+         ║       resource-rule:                                                                                                                                                               ║         
+         ║         name: example-secret                                                                                                                                                       ║         
+         ║         group: ""                                                                                                                                                                  ║         
+         ║         version: v1                                                                                                                                                                ║         
+         ║         resource: secrets                                                                                                                                                          ║         
+         ║         namespaces:                                                                                                                                                                ║         
+         ║             - validation-test                                                                                                                                                      ║         
+         ║         field:                                                                                                                                                                     ║         
+         ║             jsonpath: .data.auth                                                                                                                                                   ║         
+         ║             type: yaml                                                                                                                                                             ║         
+         ║             base64: true                                                                                                                                                           ║         
+         ║     - name: pod                                                                                                                                                                    ║         
+         ║       description: ""                                                                                                                                                              ║         
+         ║       resource-rule:                                                                                                                                                               ║         
+         ║         name: example-pod                                                                                                                                                          ║         
+         ║         group: ""                                                                                                                                                                  ║         
+         ║         version: v1                                                                                                                                                                ║         
+         ║                                                                                                                                                                                    ║         
+         ║                                                                                                                                                                                    ║         
+         ║ ↑/k scroll up • ↓/j scroll down • esc cancel                                                                                                                                       ║         
+         ║                                                                                                                                                                                    ║         
+         ╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝         

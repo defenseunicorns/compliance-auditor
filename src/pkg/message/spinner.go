@@ -113,7 +113,7 @@ func (p *Spinner) Stop() {
 
 // Success prints a success message and stops the spinner.
 func (p *Spinner) Success() {
-	p.Successf(p.startText)
+	p.Successf("%s", p.startText)
 }
 
 // Successf prints a success message with the spinner and stops it.
@@ -145,7 +145,7 @@ func (p *Spinner) Errorf(err error, format string, a ...any) {
 
 // Fatal calls message.Fatalf with the given error.
 func (p *Spinner) Fatal(err error) {
-	p.Fatalf(err, p.startText)
+	p.Fatalf(err, "%s", p.startText)
 }
 
 // Fatalf calls message.Fatalf with the given error and format.

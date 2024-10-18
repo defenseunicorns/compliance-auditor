@@ -186,6 +186,7 @@ func init() {
 	common.InitViper()
 
 	generateCmd.AddCommand(generateComponentCmd)
+	generateCmd.AddCommand(GenerateProfileCommand())
 	// generateCmd.AddCommand(generateAssessmentPlanCmd)
 	// generateCmd.AddCommand(generateSystemSecurityPlanCmd)
 	// generateCmd.AddCommand(generatePOAMCmd)

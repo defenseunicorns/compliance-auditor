@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -217,7 +218,7 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 			variablesMissing.WriteString(fmt.Sprintf("sensitive variable %s is missing a value;\n", k))
 		}
 	}
-	message.Debugf(variablesMissing.String())
+	message.Debug(variablesMissing.String())
 
 	return templateData, nil
 }
@@ -346,14 +347,14 @@ func returnUniqueMatches(matches [][]string, captures int) map[string][]string {
 // checkForInvalidKeys checks for invalid characters in keys for go text/template
 // cannot contain '-' or '.'
 func checkForInvalidKeys(constants map[string]interface{}, variables []VariableConfig) error {
-	var errors strings.Builder
+	var errs strings.Builder
 
 	containsInvalidChars := func(key string) {
 		if strings.Contains(key, "-") {
-			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
+			errs.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
 		}
 		if strings.Contains(key, ".") {
-			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
+			errs.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
 		}
 	}
 
@@ -375,8 +376,8 @@ func checkForInvalidKeys(constants map[string]interface{}, variables []VariableC
 		containsInvalidChars(variable.Key)
 	}
 
-	if errors.Len() > 0 {
-		return fmt.Errorf(errors.String()[:len(errors.String())-1])
+	if errs.Len() > 0 {
+		return errors.New(errs.String()[:len(errs.String())-1])
 	}
 
 	return nil

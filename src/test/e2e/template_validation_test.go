@@ -24,6 +24,7 @@ import (
 // check pass and fail?...
 
 func TestTemplateValidation(t *testing.T) {
+	const ckPodTmplValidation contextKey = "pod-template-validation"
 	featureTemplateValidation := features.New("Check Template Validation").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
@@ -38,7 +39,7 @@ func TestTemplateValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod-template-validation", pod)
+			ctx = context.WithValue(ctx, ckPodTmplValidation, pod)
 
 			return ctx
 		}).
@@ -149,7 +150,7 @@ func TestTemplateValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("pod-template-validation").(*corev1.Pod)
+			pod := ctx.Value(ckPodTmplValidation).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

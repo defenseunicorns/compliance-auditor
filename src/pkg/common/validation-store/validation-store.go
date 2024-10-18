@@ -112,7 +112,7 @@ func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, 
 	for k, val := range v.validationMap {
 		completedText := "evaluated"
 		spinnerMessage := fmt.Sprintf("Running validation %s", k)
-		spinner := message.NewProgressSpinner(spinnerMessage)
+		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
 		err := val.Validate(ctx, types.ExecutionAllowed(confirmExecution))
 		if err != nil {

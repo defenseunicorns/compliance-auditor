@@ -54,11 +54,9 @@ func (m PopupModel) Init() tea.Cmd {
 }
 
 func (m PopupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	PrintToLog("in popup update")
 	DumpToLog(msg)
 	switch msg := msg.(type) {
 	case PopupMsg:
-		PrintToLog("in popup msg")
 		m.UpdateText(msg.Title, msg.Content, msg.Warning)
 
 	case PopupClose:
@@ -68,7 +66,6 @@ func (m PopupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m PopupModel) View() string {
-	PrintToLog("in popup view")
 	popupStyle := OverlayWarnStyle.
 		Width(popupWidth).
 		Height(popupHeight)

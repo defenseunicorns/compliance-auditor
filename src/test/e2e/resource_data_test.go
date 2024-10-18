@@ -16,6 +16,12 @@ import (
 )
 
 func TestResourceDataValidation(t *testing.T) {
+	const (
+		ckCfgMapYaml contextKey = "configmap-yaml"
+		ckCfgMapJSON contextKey = "configmap-json"
+		ckSecret     contextKey = "secret"
+		ckPod        contextKey = "pod"
+	)
 	featureTrueDataValidation := features.New("Check Resource Data Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the json configmap
@@ -26,7 +32,7 @@ func TestResourceDataValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMapJson); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "configmap-json", configMapJson)
+			ctx = context.WithValue(ctx, ckCfgMapJSON, configMapJson)
 
 			// Create the configmap with yaml data
 			configMapYaml, err := util.GetConfigMap("./scenarios/resource-data/configmap_yaml.yaml")
@@ -36,7 +42,7 @@ func TestResourceDataValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMapYaml); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "configmap-yaml", configMapYaml)
+			ctx = context.WithValue(ctx, ckCfgMapYaml, configMapYaml)
 
 			// Create the secret
 			secret, err := util.GetSecret("./scenarios/resource-data/secret.yaml")
@@ -46,7 +52,7 @@ func TestResourceDataValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, secret); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "secret", secret)
+			ctx = context.WithValue(ctx, ckSecret, secret)
 
 			// Create the pod
 			pod, err := util.GetPod("./scenarios/resource-data/pod.yaml")
@@ -63,7 +69,7 @@ func TestResourceDataValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod", pod)
+			ctx = context.WithValue(ctx, ckPod, pod)
 
 			return ctx
 		}).
@@ -101,7 +107,7 @@ func TestResourceDataValidation(t *testing.T) {
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Delete the json configmap
-			configMapJson := ctx.Value("configmap-json").(*corev1.ConfigMap)
+			configMapJson := ctx.Value(ckCfgMapJSON).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMapJson); err != nil {
 				t.Fatal(err)
 			}
@@ -114,7 +120,7 @@ func TestResourceDataValidation(t *testing.T) {
 			}
 
 			// Delete the yaml configmap
-			configMapYaml := ctx.Value("configmap-yaml").(*corev1.ConfigMap)
+			configMapYaml := ctx.Value(ckCfgMapYaml).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMapYaml); err != nil {
 				t.Fatal(err)
 			}
@@ -127,7 +133,7 @@ func TestResourceDataValidation(t *testing.T) {
 			}
 
 			// Delete the secret
-			secret := ctx.Value("secret").(*corev1.Secret)
+			secret := ctx.Value(ckSecret).(*corev1.Secret)
 			if err := config.Client().Resources().Delete(ctx, secret); err != nil {
 				t.Fatal(err)
 			}
@@ -140,7 +146,7 @@ func TestResourceDataValidation(t *testing.T) {
 			}
 
 			// Delete the pod
-			pod := ctx.Value("pod").(*corev1.Pod)
+			pod := ctx.Value(ckPod).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
