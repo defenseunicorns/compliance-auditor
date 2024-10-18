@@ -1,4 +1,4 @@
-name: Scan CVEs
+name: Scan CVEs - Codeql
 
 permissions:
   contents: read

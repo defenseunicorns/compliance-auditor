@@ -91,7 +91,7 @@ func writeResources(data types.DomainResources, filepath string) {
 
 	// If a filepath is provided, write the JSON data to the file.
 	if filepath != "" {
-		err := os.WriteFile(filepath, []byte(jsonData), 0644)
+		err := os.WriteFile(filepath, []byte(jsonData), 0600) // G306
 		if err != nil {
 			message.Fatalf(err, "error writing resource JSON to file: %v", err)
 		}

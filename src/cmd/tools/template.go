@@ -86,7 +86,7 @@ func TemplateCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("failed to create output file path: %v", err)
 				}
-				err = os.WriteFile(outputFile, output, 0644)
+				err = os.WriteFile(outputFile, output, 0600) // G306
 				if err != nil {
 					return err
 				}

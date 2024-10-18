@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
@@ -42,6 +43,7 @@ func New(opts ...Option) (*Composer, error) {
 
 // ComposeFromPath composes an OSCAL model from a file path
 func (c *Composer) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
+	path = filepath.Clean(path)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
