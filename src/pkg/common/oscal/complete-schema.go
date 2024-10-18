@@ -42,9 +42,12 @@ func NewOscalModel(data []byte) (*oscalTypes.OscalModels, error) {
 // This will replace WriteOscalModel() if/when all models are implemented
 func WriteOscalModelNew(filePath string, model OSCALModel) error {
 	// Ensure model is deterministic
-	model.MakeDeterministic()
+	err := model.MakeDeterministic()
+	if err != nil {
+		return err
+	}
 
-	err := model.HandleExisting(filePath)
+	err = model.HandleExisting(filePath)
 	if err != nil {
 		return err
 	}
@@ -55,11 +58,17 @@ func WriteOscalModelNew(filePath string, model OSCALModel) error {
 	if filepath.Ext(filePath) == ".json" {
 		jsonEncoder := json.NewEncoder(&b)
 		jsonEncoder.SetIndent("", "  ")
-		jsonEncoder.Encode(model.GetCompleteModel())
+		err := jsonEncoder.Encode(model.GetCompleteModel())
+		if err != nil {
+			return err
+		}
 	} else {
 		yamlEncoder := yamlV3.NewEncoder(&b)
 		yamlEncoder.SetIndent(2)
-		yamlEncoder.Encode(model.GetCompleteModel())
+		err := yamlEncoder.Encode(model.GetCompleteModel())
+		if err != nil {
+			return err
+		}
 	}
 
 	err = files.WriteOutput(b.Bytes(), filePath)

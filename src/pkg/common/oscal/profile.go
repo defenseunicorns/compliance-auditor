@@ -3,6 +3,7 @@ package oscal
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"sort"
 	"time"
@@ -83,18 +84,22 @@ func (p *Profile) MakeDeterministic() error {
 	return nil
 }
 
-func (p *Profile) HandleExisting(filepath string) error {
-	exists, err := common.CheckFileExists(filepath)
+func (p *Profile) HandleExisting(path string) error {
+	exists, err := common.CheckFileExists(path)
 	if err != nil {
 		return err
 	}
 	if exists {
-		existingFileBytes, err := os.ReadFile(filepath)
+		path = filepath.Clean(path)
+		existingFileBytes, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("error reading file: %v", err)
 		}
 		profile := NewProfile()
-		profile.NewModel(existingFileBytes)
+		err = profile.NewModel(existingFileBytes)
+		if err != nil {
+			return err
+		}
 		model, err := MergeProfileModels(profile.Model, p.Model)
 		if err != nil {
 			return err
