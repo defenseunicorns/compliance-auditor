@@ -13,6 +13,7 @@ import (
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/internal/tui"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/muesli/termenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -117,6 +118,8 @@ func TestNewOSCALModelWithSave(t *testing.T) {
 func TestNewOSCALWithValidate(t *testing.T) {
 	tempLog := testhelpers.CreateTempFile(t, "log")
 	defer os.Remove(tempLog.Name())
+	message.UseLogFile(tempLog)
+	message.NoProgress = true
 
 	tempOscalFile := testhelpers.CreateTempFile(t, "yaml")
 	defer os.Remove(tempOscalFile.Name())
