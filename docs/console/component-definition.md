@@ -4,19 +4,10 @@ The Component Definition view currently allows for a read and limited write expe
 
 ## Usage
 
-To view an OSCAL Component Definition model in the Console:
-```shell
-lula console -f /path/to/oscal-component.yaml
-```
-The `oscal-component.yaml` will need to be a valid OSCAL model - to use with the Component Definition view, it must contain the `component-definition` top level key.
-
-To include an output file to save any changes made to the component definition, use the `--component-output` or `-c`flag:
-```shell
-lula console -f /path/to/oscal-component.yaml -c /path/to/output.yaml
-```
-
-> [!Note] 
-> Several component definition models can be passed into the console, via `-f` in a comma-separated list. For multiple component definitions, the output file will default to `component.yaml` unless specified.
+The Component Definition model supports the following views:
+ * [Read-Only Navigation](./component-definition.md#read-only-navigation)
+ * [Editing Remarks and Description](./component-definition.md#editing-remarks-and-description)
+ * [Validation Detail](./component-definition.md#validation-detail)
 
 ## Keys
 
@@ -28,13 +19,14 @@ The Component Definition model responds to the following keys for navigation and
 | `ctrl+c` | Quit |
 | `tab` | Tab right between models |
 | `shift+tab` | Tab left between models |
-| `←/h` | Navigate left in model|
-| `→/l` | Navigate right in model |
+| `←/h` | Navigate left across widgets model|
+| `→/l` | Navigate right across widgets model |
 | `↑/k` | Move up in list OR scroll up in panel |
 | `↓/j` | Move down in list OR scroll up in panel |
 | `/` | Filter list |
 | `↳` | Select item |
 | `e` | Edit available fields (remarks and description) |
+| `d` | Detail available fields (validations) |
 | `ctrl+s` | Save changes (Note: this may overwrite the original file if an output file unspecified) |
 | `esc` | Cancel |
 
@@ -44,8 +36,18 @@ During console viewing, the top-right corner will display the help keys availble
 
 ### Read-Only Navigation
 
+The model can be sorted by Component, Framework, and Control. Additional data/features provided by the Component Definition OSCAL Model are not currently supported for viewing in the Console.
+
 <img align="right" src="../../images/component-defn-console-read.gif" alt="component definition console read" style="width:100%; height:auto;">
 
 ### Editing Remarks and Description
 
+Limited editing of the remarks and description is supported. Once changes are made, to be persisted back to the file, the data will need to be saved via the `ctrl+s` key.
+
 <img align="right" src="../../images/component-defn-console-edit.gif" alt="component definition console edit" style="width:100%; height:auto;">
+
+### Validation Detail
+
+The Validation Detail is a view that displays a somewhat curated version of the Lula Validation. It is intended to be a quick view of the validation, and is not a one-to-one representation.
+
+<img align="right" src="../../images/component-defn-console-validation-detail" alt="component definition console validation detail" style="width:100%; height:auto;">

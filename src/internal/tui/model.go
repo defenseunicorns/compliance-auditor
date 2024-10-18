@@ -127,7 +127,7 @@ func (m *model) writeOscalModel() tea.Msg {
 	}
 	common.PrintToLog("model saved")
 
-	common.DeepCopy(m.componentModel.GetComponentDefinition(), m.writtenComponentModel)
+	_ = common.DeepCopy(m.componentModel.GetComponentDefinition(), m.writtenComponentModel)
 	return common.SaveSuccessMsg{}
 }
 

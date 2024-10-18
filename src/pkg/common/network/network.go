@@ -1,8 +1,8 @@
 package network
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  // #nosec G501
+	"crypto/sha1" // #nosec G505
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -92,7 +92,10 @@ func WithBaseDir(baseDir string) FetchOption {
 func Fetch(inputURL string, opts ...FetchOption) (bytes []byte, err error) {
 	config := &fetchOpts{}
 	for _, opt := range opts {
-		opt(config)
+		err = opt(config)
+		if err != nil {
+			return bytes, err
+		}
 	}
 
 	url, checksum, err := ParseChecksum(inputURL)
@@ -148,7 +151,7 @@ func FetchLocalFile(url *url.URL, config *fetchOpts) ([]byte, error) {
 	if _, err := os.Stat(requestUri); err != nil {
 		requestUri = filepath.Join(config.baseDir, url.Host, requestUri)
 	}
-
+	requestUri = filepath.Clean(requestUri)
 	bytes, err := os.ReadFile(requestUri)
 	return bytes, err
 }
@@ -176,10 +179,10 @@ func ValidateChecksum(data []byte, expectedChecksum string) error {
 	var actualChecksum string
 	switch len(expectedChecksum) {
 	case md5.Size * 2:
-		hash := md5.Sum(data)
+		hash := md5.Sum(data) // #nosec G401
 		actualChecksum = hex.EncodeToString(hash[:])
 	case sha1.Size * 2:
-		hash := sha1.Sum(data)
+		hash := sha1.Sum(data) // #nosec G401
 		actualChecksum = hex.EncodeToString(hash[:])
 	case sha256.Size * 2:
 		hash := sha256.Sum256(data)

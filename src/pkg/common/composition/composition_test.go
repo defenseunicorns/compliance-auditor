@@ -10,6 +10,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
@@ -122,25 +123,11 @@ func TestComposeFromPath(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
-
-		if compDefComposed.Components == nil {
-			t.Error("expected the component definition to have components")
-		}
-
-		if compDefComposed.BackMatter == nil {
-			t.Error("expected the component definition to have back matter")
-		}
-
-		if compDefComposed.BackMatter.Resources == nil {
-			t.Error("expected the component definition to have back matter resources")
-		}
-
-		if len(*compDefComposed.BackMatter.Resources) != 0 {
-			t.Error("expected the back matter to contain 0 resources (validation)")
-		}
+		require.NotNil(t, compDefComposed)
+		require.NotNil(t, compDefComposed.Components)
+		require.NotNil(t, compDefComposed.BackMatter)
+		require.NotNil(t, compDefComposed.BackMatter.Resources)
+		require.Equal(t, len(*compDefComposed.BackMatter.Resources), 0)
 	})
 
 	// Test the templating of the component definition with nested templated imports
@@ -168,25 +155,11 @@ func TestComposeFromPath(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
-
-		if compDefComposed.Components == nil {
-			t.Error("expected the component definition to have components")
-		}
-
-		if compDefComposed.BackMatter == nil {
-			t.Error("expected the component definition to have back matter")
-		}
-
-		if compDefComposed.BackMatter.Resources == nil {
-			t.Fatalf("expected the component definition to have back matter resources")
-		}
-
-		if len(*compDefComposed.BackMatter.Resources) != 1 {
-			t.Error("expected the back matter to contain 1 resource (validation)")
-		}
+		require.NotNil(t, compDefComposed)
+		require.NotNil(t, compDefComposed.Components)
+		require.NotNil(t, compDefComposed.BackMatter)
+		require.NotNil(t, compDefComposed.BackMatter.Resources)
+		require.Len(t, *compDefComposed.BackMatter.Resources, 1)
 	})
 
 	t.Run("Errors when file does not exist", func(t *testing.T) {
@@ -240,9 +213,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		// Only the last-modified timestamp should be different
 		if !reflect.DeepEqual(*og.BackMatter, *compDefComposed.BackMatter) {
@@ -260,12 +231,10 @@ func TestComposeComponentDefinitions(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		if reflect.DeepEqual(*og, *compDefComposed) {
-			t.Errorf("expected component definition to have changed.")
+			t.Error("expected component definition to have changed.")
 		}
 	})
 
@@ -279,9 +248,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		if compDefComposed.Components == og.Components {
 			t.Error("expected there to be components")
@@ -302,9 +269,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		if compDefComposed.Components == og.Components {
 			t.Error("expected there to be components")
@@ -332,9 +297,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		if compDefComposed.Components == og.Components {
 			t.Error("expected there to be new components")
@@ -393,9 +356,7 @@ func TestComposeComponentValidations(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		// Only the last-modified timestamp should be different
 		if !reflect.DeepEqual(*og.BackMatter, *compDefComposed.BackMatter) {
@@ -413,9 +374,7 @@ func TestComposeComponentValidations(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		if reflect.DeepEqual(*og, *compDefComposed) {
 			t.Error("expected the component definition to be changed")
@@ -440,9 +399,7 @@ func TestComposeComponentValidations(t *testing.T) {
 		}
 
 		compDefComposed := model.ComponentDefinition
-		if compDefComposed == nil {
-			t.Error("expected the component definition to be non-nil")
-		}
+		require.NotNil(t, compDefComposed)
 
 		if reflect.DeepEqual(*og, *compDefComposed) {
 			t.Error("expected the component definition to be changed")

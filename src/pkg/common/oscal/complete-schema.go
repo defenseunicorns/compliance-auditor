@@ -50,6 +50,7 @@ func WriteOscalModel(filePath string, model *oscalTypes_1_1_2.OscalModels) error
 
 	if _, err := os.Stat(filePath); err == nil {
 		// If the file exists - read the data into the model
+		filePath = filepath.Clean(filePath)
 		existingFileBytes, err := os.ReadFile(filePath)
 		if err != nil {
 			return fmt.Errorf("error reading file: %v", err)
@@ -219,7 +220,7 @@ func ValidOSCALModelAtPath(path string) (bool, error) {
 	if err != nil {
 		return false, nil
 	}
-
+	path = filepath.Clean(path)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return true, err

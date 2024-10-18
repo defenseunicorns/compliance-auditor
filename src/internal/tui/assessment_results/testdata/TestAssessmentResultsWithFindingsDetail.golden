@@ -11,7 +11,7 @@
          ║     - observation-uuid: 32c1b7c8-2e64-4786-b589-2d82587d4157                                                                                                                       ║         
          ║ target:                                                                                                                                                                            ║         
          ║     status:                                                                                                                                                                        ║         
-         ║         state: not-satisfied                                                                                                                                                       ║         
+         ║         state: satisfied                                                                                                                                                           ║         
          ║     target-id: ID-1                                                                                                                                                                ║         
          ║     type: objective-id                                                                                                                                                             ║         
          ║ title: 'Validation Result - Control: ID-1'                                                                                                                                         ║         

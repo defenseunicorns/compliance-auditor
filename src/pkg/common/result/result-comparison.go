@@ -27,7 +27,7 @@ type ResultComparison struct {
 }
 
 // PrintResultComparisonTable prints a table output of compared results
-func (r ResultComparison) PrintResultComparisonTable(changedOnly bool) {
+func (r ResultComparison) PrintResultComparisonTable(changedOnly bool) error {
 	header := []string{"Observation", "Satisfied", "Change", "New Remarks", "Threshold Remarks"}
 	rows := make([][]string, 0)
 	columnSize := []int{20, 10, 15, 25, 30}
@@ -46,14 +46,18 @@ func (r ResultComparison) PrintResultComparisonTable(changedOnly bool) {
 		})
 	}
 	if len(rows) != 0 {
-		message.Table(header, rows, columnSize)
+		err := message.Table(header, rows, columnSize)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 type ResultComparisonMap map[string]ResultComparison
 
 // PrintObservationComparisonTable prints a table output of compared observations, per control
-func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool, skipRemoved bool, failedOnly bool) []string {
+func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool, skipRemoved bool, failedOnly bool) ([]string, error) {
 	header := []string{"Control ID(s)", "Observation", "Satisfied", "Change", "New Remarks", "Threshold Remarks"}
 	rows := make([][]string, 0)
 	columnSize := []int{10, 20, 5, 15, 25, 25}
@@ -81,11 +85,12 @@ func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool, 
 			observationPair.ComparedObservation,
 		})
 	}
+	var err error
 	if len(rows) != 0 {
-		message.Table(header, rows, columnSize)
+		err = message.Table(header, rows, columnSize)
 	}
 
-	return noObservations
+	return noObservations, err
 }
 
 // NewResultComparisonMap -> create a map of result comparisons from two OSCAL results
@@ -151,7 +156,7 @@ func Collapse(mapResultComparisonMap map[string]ResultComparisonMap) ResultCompa
 
 // Refactor observations by controls
 func RefactorObservationsByControls(ResultComparisonMap ResultComparisonMap) (map[string]ObservationPair, map[string][]string, []string) {
-	// for each category, add the observationpair and add controlId
+	// for each category, add the ObservationPair and add controlId
 	observationPairMap := make(map[string]ObservationPair)
 	controlObservationMap := make(map[string][]string)
 	noObservations := make([]string, 0)

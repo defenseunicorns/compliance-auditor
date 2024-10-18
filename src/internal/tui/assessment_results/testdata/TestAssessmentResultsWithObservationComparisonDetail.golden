@@ -12,6 +12,8 @@
          ║ relevant-evidence:                                                                                                                                                                 ║         
          ║     - description: |                                                                                                                                                               ║         
          ║         Result: not-satisfied                                                                                                                                                      ║         
+         ║       remarks: |                                                                                                                                                                   ║         
+         ║         validate.msg: Pod label foo is NOT bar                                                                                                                                     ║         
          ║ uuid: 92cb3cad-bbcd-431a-aaa9-cd47275a3982                                                                                                                                         ║         
          ║                                                                                                                                                                                    ║         
          ║                                                                                                                                                                                    ║         
@@ -25,11 +27,9 @@
          ║ relevant-evidence:                                                                                                                                                                 ║         
          ║     - description: |                                                                                                                                                               ║         
          ║         Result: satisfied                                                                                                                                                          ║         
+         ║       remarks: |                                                                                                                                                                   ║         
+         ║         validate.msg: Pod label foo=bar is satisfied                                                                                                                               ║         
          ║ uuid: 0e7fc8b3-b230-49f9-be7c-8f011536dfb4                                                                                                                                         ║         
-         ║                                                                                                                                                                                    ║         
-         ║                                                                                                                                                                                    ║         
-         ║                                                                                                                                                                                    ║         
-         ║                                                                                                                                                                                    ║         
          ║                                                                                                                                                                                    ║         
          ║                                                                                                                                                                                    ║         
          ║                                                                                                                                                                                    ║         

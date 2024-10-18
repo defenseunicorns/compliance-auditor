@@ -136,7 +136,7 @@ func UnfocusedTextAreaKeyMap() textarea.KeyMap {
 func PrintToLog(format string, a ...any) {
 	if DumpFile != nil {
 		out := fmt.Sprintf(format, a...)
-		spew.Fprintln(DumpFile, out)
+		_, _ = spew.Fprintln(DumpFile, out) // G104
 	}
 }
 

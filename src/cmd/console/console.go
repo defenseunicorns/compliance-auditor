@@ -3,6 +3,7 @@ package console
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -70,7 +71,7 @@ func ConsoleCommand() *cobra.Command {
 
 			var dumpFile *os.File
 			if message.GetLogLevel() == message.DebugLevel {
-				dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+				dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
 				if err != nil {
 					return err
 				}
@@ -88,7 +89,10 @@ func ConsoleCommand() *cobra.Command {
 	}
 
 	consoleCmd.Flags().StringSliceVarP(&inputFiles, "input-files", "f", []string{}, "the path to the target OSCAL models, comma separated")
-	consoleCmd.MarkFlagRequired("input-files")
+	err := consoleCmd.MarkFlagRequired("input-files")
+	if err != nil {
+		message.Fatal(err, "error initializing console command flags")
+	}
 	consoleCmd.Flags().StringVarP(&componentOutputFile, "component-output", "c", "", "the path to the component definition output file")
 	return consoleCmd
 }
@@ -99,6 +103,7 @@ func GetModelsByFiles(inputFiles []string, setOutputFiles map[string]string) (ma
 
 	// Get the OSCAL models from the files
 	for _, inputFile := range inputFiles {
+		inputFile = filepath.Clean(inputFile)
 		data, err := os.ReadFile(inputFile)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error reading file: %v", err)

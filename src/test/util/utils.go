@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	appsv1 "k8s.io/api/apps/v1"
@@ -14,8 +15,9 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func GetDeployment(deploymentFilePath string) (*appsv1.Deployment, error) {
-	bytes, err := os.ReadFile(deploymentFilePath)
+func GetDeployment(path string) (*appsv1.Deployment, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +29,9 @@ func GetDeployment(deploymentFilePath string) (*appsv1.Deployment, error) {
 	return deployment, nil
 }
 
-func GetClusterRole(clusterRoleFilePath string) (*rbacv1.ClusterRole, error) {
-	bytes, err := os.ReadFile(clusterRoleFilePath)
+func GetClusterRole(path string) (*rbacv1.ClusterRole, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +43,9 @@ func GetClusterRole(clusterRoleFilePath string) (*rbacv1.ClusterRole, error) {
 	return clusterRole, nil
 }
 
-func GetPod(podFilePath string) (*v1.Pod, error) {
-	bytes, err := os.ReadFile(podFilePath)
+func GetPod(path string) (*v1.Pod, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +57,9 @@ func GetPod(podFilePath string) (*v1.Pod, error) {
 	return pod, nil
 }
 
-func GetConfigMap(configMapFilePath string) (*v1.ConfigMap, error) {
-	bytes, err := os.ReadFile(configMapFilePath)
+func GetConfigMap(path string) (*v1.ConfigMap, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +71,9 @@ func GetConfigMap(configMapFilePath string) (*v1.ConfigMap, error) {
 	return configMap, nil
 }
 
-func GetService(serviceFilePath string) (*v1.Service, error) {
-	bytes, err := os.ReadFile(serviceFilePath)
+func GetService(path string) (*v1.Service, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +85,9 @@ func GetService(serviceFilePath string) (*v1.Service, error) {
 	return service, nil
 }
 
-func GetSecret(secretFilePath string) (*v1.Secret, error) {
-	bytes, err := os.ReadFile(secretFilePath)
+func GetSecret(path string) (*v1.Secret, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -92,8 +99,9 @@ func GetSecret(secretFilePath string) (*v1.Secret, error) {
 	return secret, nil
 }
 
-func GetIngress(ingressFilePath string) (*netv1.Ingress, error) {
-	bytes, err := os.ReadFile(ingressFilePath)
+func GetIngress(path string) (*netv1.Ingress, error) {
+	path = filepath.Clean(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
