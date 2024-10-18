@@ -19,10 +19,10 @@ The Component Definition model responds to the following keys for navigation and
 | `ctrl+c` | Quit |
 | `tab` | Tab right between models |
 | `shift+tab` | Tab left between models |
-| `←/h` | Navigate left across widgets model|
-| `→/l` | Navigate right across widgets model |
-| `↑/k` | Move up in list OR scroll up in panel |
-| `↓/j` | Move down in list OR scroll up in panel |
+| `←`/`h` | Navigate left across widgets model|
+| `→`/`l` | Navigate right across widgets model |
+| `↑`/`k` | Move up in list OR scroll up in panel |
+| `↓`/`j` | Move down in list OR scroll up in panel |
 | `/` | Filter list |
 | `↳` | Select item |
 | `e` | Edit available fields (remarks and description) |
@@ -39,15 +39,25 @@ During console viewing, the top-right corner will display the help keys availble
 The model can be sorted by Component, Framework, and Control. Additional data/features provided by the Component Definition OSCAL Model are not currently supported for viewing in the Console.
 
 <img align="right" src="../../images/component-defn-console-read.gif" alt="component definition console read" style="width:100%; height:auto;">
+<div style="clear: both;"></div>
 
 ### Editing Remarks and Description
 
 Limited editing of the remarks and description is supported. Once changes are made, to be persisted back to the file, the data will need to be saved via the `ctrl+s` key.
 
-<img align="right" src="../../images/component-defn-console-edit.gif" alt="component definition console edit" style="width:100%; height:auto;">
+<img align="right" src="../../images/component-defn-console-edit.gif" alt="component definition console edit" style="width:100%; height:auto;"><br>
+<div style="clear: both;"></div>
 
 ### Validation Detail
 
 The Validation Detail is a view that displays a somewhat curated version of the Lula Validation. It is intended to be a quick view of the validation, and is not a one-to-one representation.
 
-<img align="right" src="../../images/component-defn-console-validation-detail" alt="component definition console validation detail" style="width:100%; height:auto;">
+<img align="right" src="../../images/component-defn-console-validation-detail.gif" alt="component definition console validation detail" style="width:100%; height:auto;">
+<div style="clear: both;"></div>
+
+### Validation Execution
+
+A validation can be executed using the `ctrl+v` keycommand. This will run the validation ONLY for the currently active framework.
+
+<img align="right" src="../../images/component-defn-console-validate.gif" alt="component definition console validation detail" style="width:100%; height:auto;">
+<div style="clear: both;"></div>

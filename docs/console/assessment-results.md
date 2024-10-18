@@ -18,10 +18,10 @@ The Assessment Results model responds to the following keys for navigation and i
 | `ctrl+c` | Quit |
 | `tab` | Tab right between models |
 | `shift+tab` | Tab left between models |
-| `←/h` | Navigate left across widgets in model|
-| `→/l` | Navigate right across widgets model |
-| `↑/k` | Move up in table OR scroll up in panel |
-| `↓/j` | Move down in table OR scroll up in panel |
+| `←`/`h` | Navigate left across widgets in model|
+| `→`/`l` | Navigate right across widgets model |
+| `↑`/`k` | Move up in table OR scroll up in panel |
+| `↓`/`j` | Move down in table OR scroll up in panel |
 | `/` | Filter table |
 | `↳` | Select available item |
 | `d` | Detail available item (findings and observations) |
@@ -34,7 +34,9 @@ During console viewing, the top-right corner will display the help keys availble
 ### Result View
 
 <img align="right" src="../../images/assessment-results-console.gif" alt="assessment results console" style="width:100%; height:auto;">
+<div style="clear: both;"></div>
 
 ### Result Comparison View
 
 <img align="right" src="../../images/assessment-results-console-compare.gif" alt="assessment results console comparison" style="width:100%; height:auto;">
+<div style="clear: both;"></div>
