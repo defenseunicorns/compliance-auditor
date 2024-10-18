@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -189,6 +190,18 @@ func ValidationFromString(raw, uuid string) (validation types.LulaValidation, er
 	}
 
 	return validation, nil
+}
+
+func CheckFileExists(filepath string) (bool, error) {
+	if _, err := os.Stat(filepath); err == nil {
+		return true, nil
+
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+
+	} else {
+		return false, err
+	}
 }
 
 // CleanMultilineString removes leading and trailing whitespace from a multiline string

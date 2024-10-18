@@ -1,0 +1,22 @@
+profile:
+  imports:
+    - href: catalog.yaml
+      include-controls:
+        - with-ids:
+            - ac-1
+            - ac-2
+            - ac-3
+  merge:
+    as-is: true
+  metadata:
+    last-modified: 2024-10-09T22:11:59.770494477Z
+    oscal-version: 1.1.2
+    props:
+      - name: generation
+        ns: https://docs.lula.dev/oscal/ns
+        value: lula generate profile --source catalog.yaml --include ac-1,ac-2,ac-3
+    published: 2024-10-09T22:11:59.770494477Z
+    remarks: Profile generated from Lula
+    title: Profile
+    version: 0.0.1
+  uuid: 9a24dfc0-077a-4afa-964b-81ed099d2e09
