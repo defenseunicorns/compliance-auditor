@@ -29,6 +29,7 @@ import (
 )
 
 func TestPodLabelValidation(t *testing.T) {
+	const ckTestPodLabel contextKey = "test-pod-label"
 	featureTrueValidation := features.New("Check Pod Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/pod-label/pod.pass.yaml")
@@ -42,22 +43,22 @@ func TestPodLabelValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			return context.WithValue(ctx, "test-pod-label", pod)
+			return context.WithValue(ctx, ckTestPodLabel, pod)
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			return validatePodLabelPass(ctx, t, config, oscalPath)
+			return validatePodLabelPass(ctx, t, oscalPath)
 		}).
 		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
-			return validatePodLabelPass(ctx, t, config, oscalPath)
+			return validatePodLabelPass(ctx, t, oscalPath)
 		}).
 		Assess("Validate pod label (save-resources=remote)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
 			return validateSaveResources(ctx, t, oscalPath)
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-label").(*corev1.Pod)
+			pod := ctx.Value(ckTestPodLabel).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -88,7 +89,7 @@ func TestPodLabelValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			return context.WithValue(ctx, "test-pod-label", pod)
+			return context.WithValue(ctx, ckTestPodLabel, pod)
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
@@ -101,7 +102,7 @@ func TestPodLabelValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-label").(*corev1.Pod)
+			pod := ctx.Value(ckTestPodLabel).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -126,7 +127,7 @@ func TestPodLabelValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			return context.WithValue(ctx, "test-pod-label", pod)
+			return context.WithValue(ctx, ckTestPodLabel, pod)
 		}).
 		Assess("All not-satisfied", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-all-bad.yaml"
@@ -134,7 +135,7 @@ func TestPodLabelValidation(t *testing.T) {
 			observationRemarksMap := generateObservationRemarksMap(*observations)
 
 			for _, f := range *findings {
-				// relatedobservations should have len = 1
+				// related observations should have len = 1
 				relatedObs := *f.RelatedObservations
 				if f.RelatedObservations == nil || len(relatedObs) != 1 {
 					t.Fatal("RelatedObservations should have len = 1")
@@ -190,7 +191,7 @@ func TestPodLabelValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-label").(*corev1.Pod)
+			pod := ctx.Value(ckTestPodLabel).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -205,7 +206,7 @@ func TestPodLabelValidation(t *testing.T) {
 	testEnv.Test(t, featureTrueValidation, featureFalseValidation, featureBadValidation)
 }
 
-func validatePodLabelPass(ctx context.Context, t *testing.T, config *envconf.Config, oscalPath string) context.Context {
+func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) context.Context {
 	message.NoProgress = true
 
 	tempDir := t.TempDir()

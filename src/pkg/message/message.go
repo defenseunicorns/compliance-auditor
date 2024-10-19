@@ -153,7 +153,7 @@ func Warnf(format string, a ...any) {
 // WarnErr prints an error message as a warning.
 func WarnErr(err any, message string) {
 	debugPrinter(2, err)
-	Warnf(message)
+	Warnf("%s", message)
 }
 
 // WarnErrf prints an error message as a warning with a given format.
@@ -261,7 +261,7 @@ func HeaderInfof(format string, a ...any) {
 		WithBackgroundStyle(pterm.NewStyle(pterm.BgDarkGray)).
 		WithTextStyle(pterm.NewStyle(pterm.FgLightWhite)).
 		WithMargin(2).
-		Printfln(message + strings.Repeat(" ", padding))
+		Printfln("%s", message+strings.Repeat(" ", padding))
 }
 
 // HorizontalRule prints a white horizontal rule to separate the terminal

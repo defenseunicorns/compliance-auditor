@@ -20,6 +20,7 @@ import (
 )
 
 func TestOutputs(t *testing.T) {
+	const ckTestPodOutputs contextKey = "test-pod-outputs"
 	featureTrueOutputs := features.New("Check Outputs").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/outputs/pod.yaml")
@@ -33,7 +34,7 @@ func TestOutputs(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			return context.WithValue(ctx, "test-pod-outputs", pod)
+			return context.WithValue(ctx, ckTestPodOutputs, pod)
 		}).
 		Assess("Validate Outputs", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/outputs/oscal-component.yaml"
@@ -91,12 +92,12 @@ func TestOutputs(t *testing.T) {
 				}
 			}
 
-			message.Infof("Successfully validated payload.output structure")
+			message.Info("Successfully validated payload.output structure")
 
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-outputs").(*corev1.Pod)
+			pod := ctx.Value(ckTestPodOutputs).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

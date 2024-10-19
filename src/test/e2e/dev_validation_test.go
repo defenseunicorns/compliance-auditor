@@ -17,6 +17,8 @@ import (
 )
 
 func TestDevValidation(t *testing.T) {
+	const ckPodDevValidate contextKey = "pod-dev-validate"
+
 	featureTrueDevValidate := features.New("Check dev validate").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
@@ -31,7 +33,7 @@ func TestDevValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod-dev-validate", pod)
+			ctx = context.WithValue(ctx, ckPodDevValidate, pod)
 
 			return ctx
 		}).
@@ -131,7 +133,7 @@ func TestDevValidation(t *testing.T) {
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 
 			// Delete the pod
-			pod := ctx.Value("pod-dev-validate").(*corev1.Pod)
+			pod := ctx.Value(ckPodDevValidate).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

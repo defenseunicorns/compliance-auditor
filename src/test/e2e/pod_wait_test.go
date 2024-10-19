@@ -13,6 +13,7 @@ import (
 )
 
 func TestPodWaitValidation(t *testing.T) {
+	const ckTestPodLabel contextKey = "test-pod-label"
 	featureTrueValidation := features.New("Check Pod Wait for Ready - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/wait-field/pod.yaml")
@@ -26,7 +27,7 @@ func TestPodWaitValidation(t *testing.T) {
 
 			// We are purposefully not going to wait until the pod is ready and start Assess
 
-			return context.WithValue(ctx, "test-pod-label", pod)
+			return context.WithValue(ctx, ckTestPodLabel, pod)
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/wait-field/oscal-component.yaml"
@@ -61,7 +62,7 @@ func TestPodWaitValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-label").(*corev1.Pod)
+			pod := ctx.Value(ckTestPodLabel).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

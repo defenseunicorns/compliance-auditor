@@ -197,6 +197,13 @@ func getValidationText(validationLink validationLink) string {
 				apiSpec = ""
 			}
 			text.WriteString(apiSpec)
+		case "file":
+			fileSpec, err := common.ToYamlString(validation.Domain.FileSpec)
+			if err != nil {
+				common.PrintToLog("error converting fileSpec to yaml: %v", err)
+				fileSpec = ""
+			}
+			text.WriteString(fileSpec)
 		}
 		text.WriteString("\n\n")
 	}

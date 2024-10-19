@@ -7,18 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
-	width = 96
-
-	columnWidth = 30
-
-	modalWidth         = 60
-	modalHeight        = 7
-	defaultPopupWidth  = 40
-	defaultPopupHeight = 10
-)
-
-// Style definitions.
+// Common Style definitions.
 var (
 
 	// Colors

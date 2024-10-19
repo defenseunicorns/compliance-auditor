@@ -16,6 +16,14 @@ import (
 )
 
 func TestMultiResourceValidation(t *testing.T) {
+	const (
+		ckValidationTest2   contextKey = "validation-test2-ns"
+		ckValidationTest1   contextKey = "validation-test1-ns"
+		ckAPIFieldConfigMap contextKey = "api-field-configmap"
+		ckApiFieldPod       contextKey = "api-field-pod"
+		ckPodvt1            contextKey = "podvt1"
+		ckPodvt2            contextKey = "podvt2"
+	)
 	featureTrueAPIValidation := features.New("Check Multi-Resource API Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the configmap
@@ -26,7 +34,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-configmap", configMap)
+			ctx = context.WithValue(ctx, ckAPIFieldConfigMap, configMap)
 
 			// Create the pod
 			pod, err := util.GetPod("./scenarios/multi-resource/pod.yaml")
@@ -43,7 +51,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-pod", pod)
+			ctx = context.WithValue(ctx, ckApiFieldPod, pod)
 			// Create additional Namespace
 			nsvt1, err := util.GetNamespace("validation-test1")
 			if err != nil {
@@ -52,7 +60,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, nsvt1); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "validation-test1-ns", nsvt1)
+			ctx = context.WithValue(ctx, ckValidationTest1, nsvt1)
 
 			// Create the pod
 			podvt1, err := util.GetPod("./scenarios/multi-resource/podvt1.yaml")
@@ -69,7 +77,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "podvt1", podvt1)
+			ctx = context.WithValue(ctx, ckPodvt1, podvt1)
 			// Create additional Namespace
 			nsvt2, err := util.GetNamespace("validation-test2")
 			if err != nil {
@@ -78,7 +86,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, nsvt2); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "validation-test2-ns", nsvt2)
+			ctx = context.WithValue(ctx, ckValidationTest2, nsvt2)
 
 			// Create the pod
 			podvt2, err := util.GetPod("./scenarios/multi-resource/podvt2.yaml")
@@ -95,7 +103,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "podvt2", podvt2)
+			ctx = context.WithValue(ctx, ckPodvt2, podvt2)
 
 			return ctx
 		}).
@@ -132,7 +140,7 @@ func TestMultiResourceValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			podvt2 := ctx.Value("podvt2").(*corev1.Pod)
+			podvt2 := ctx.Value(ckPodvt2).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, podvt2); err != nil {
 				t.Fatal(err)
 			}
@@ -144,12 +152,12 @@ func TestMultiResourceValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			nsvt2 := ctx.Value("validation-test2-ns").(*corev1.Namespace)
+			nsvt2 := ctx.Value(ckValidationTest2).(*corev1.Namespace)
 			if err := config.Client().Resources().Delete(ctx, nsvt2); err != nil {
 				t.Fatal(err)
 			}
 
-			podvt1 := ctx.Value("podvt1").(*corev1.Pod)
+			podvt1 := ctx.Value(ckPodvt1).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, podvt1); err != nil {
 				t.Fatal(err)
 			}
@@ -161,12 +169,12 @@ func TestMultiResourceValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			nsvt1 := ctx.Value("validation-test1-ns").(*corev1.Namespace)
+			nsvt1 := ctx.Value(ckValidationTest1).(*corev1.Namespace)
 			if err := config.Client().Resources().Delete(ctx, nsvt1); err != nil {
 				t.Fatal(err)
 			}
 
-			pod := ctx.Value("api-field-pod").(*corev1.Pod)
+			pod := ctx.Value(ckApiFieldPod).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -178,7 +186,7 @@ func TestMultiResourceValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			configMap := ctx.Value("api-field-configmap").(*corev1.ConfigMap)
+			configMap := ctx.Value(ckAPIFieldConfigMap).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
