@@ -1,3 +1,4 @@
+#kics-scan ignore
 ---
 apiVersion: v1
 kind: Pod
