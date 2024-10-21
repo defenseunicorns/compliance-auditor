@@ -2,22 +2,44 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
 
-func MakeRequests(Requests []Request) (types.DomainResources, error) {
+func (a ApiDomain) makeRequests(_ context.Context) (types.DomainResources, error) {
 	collection := make(map[string]interface{}, 0)
 
-	for _, request := range Requests {
-		transport := &http.Transport{}
-		client := &http.Client{Transport: transport}
+	var defaultOpts *ApiOpts
+	if a.Spec.Options == nil {
+		defaultOpts = new(ApiOpts)
+	} else {
+		defaultOpts = a.Spec.Options
+	}
 
-		resp, err := client.Get(request.URL)
+	// configure the default HTTP client using any top-level Options. Individual requests with overrides will get bespoke clients.
+	transport := &http.Transport{}
+	if defaultOpts.Proxy != "" {
+		proxy, err := url.Parse(a.Spec.Options.Proxy)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing proxy url: %s", err)
+		}
+		transport.Proxy = http.ProxyURL(proxy)
+	}
+
+	defaultClient := &http.Client{Transport: transport}
+	if defaultOpts.Timeout != 0 {
+		defaultClient.Timeout = time.Duration(defaultOpts.Timeout) * time.Second
+	}
+
+	for _, request := range a.Spec.Requests {
+		resp, err := defaultClient.Get(request.URL)
 		if err != nil {
 			return nil, err
 		}

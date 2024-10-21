@@ -362,8 +362,45 @@
                             "url": {
                                 "type": "string",
                                 "format": "uri"
+                            },
+                            "method": {
+                                "type": "string",
+                                "enum": ["Get", "Head", "Post", "PostForm"],
+                                "default": "Get"
+                            },
+                            "body": {
+                                "type": "string"
+                            },
+                            "parameters": {
+                                "type": "object",
+                                "additionalProperties": { "type": "string"}
+                            },
+                            "options": {
+                                "$ref": "#/definitions/api-options"
                             }
                         }
+                    },
+                    "required": ["name", "url"]
+                },
+                "options": {
+                    "$ref": "#/definitions/api-options"
+                }
+            },
+            "required": ["requests"]
+        },
+        "api-options": {
+            "type": "object",
+            "properties": {
+                "timeout": {
+                    "type": "integer"
+                },
+                "proxy": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
