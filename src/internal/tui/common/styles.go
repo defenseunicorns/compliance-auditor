@@ -7,6 +7,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	defaultPopupWidth  = 40
+	defaultPopupHeight = 10
+)
+
 // Common Style definitions.
 var (
 
