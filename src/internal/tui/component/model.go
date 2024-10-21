@@ -258,7 +258,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, func() tea.Msg {
 						return common.DetailOpenMsg{
 							Content:      getValidationText(valLink),
-							WindowHeight: (m.height + common.TabOffset),
+							WindowHeight: m.height,
 							WindowWidth:  m.width,
 						}
 					}

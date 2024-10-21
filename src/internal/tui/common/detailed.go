@@ -12,7 +12,7 @@ const (
 	detailWidth  = 80
 	detailHeight = 20
 	widthScale   = 0.9
-	heightScale  = 0.9
+	heightScale  = 1
 )
 
 type DetailOpenMsg struct {
@@ -49,7 +49,7 @@ func (m DetailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.updateSizing(int(float64(msg.Height)*heightScale), int(float64(msg.Width)*widthScale))
+		m.updateSizing(int(float64(msg.Height-TabOffset)*heightScale), int(float64(msg.Width-TabOffset)*widthScale))
 
 	case tea.KeyMsg:
 		k := msg.String()

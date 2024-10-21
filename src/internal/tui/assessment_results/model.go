@@ -179,7 +179,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, func() tea.Msg {
 						return common.DetailOpenMsg{
 							Content:      m.getFindingsDetail(),
-							WindowHeight: (m.height + common.TabOffset),
+							WindowHeight: m.height,
 							WindowWidth:  m.width,
 						}
 					}
@@ -191,7 +191,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, func() tea.Msg {
 						return common.DetailOpenMsg{
 							Content:      m.getObsDetail(),
-							WindowHeight: (m.height + common.TabOffset),
+							WindowHeight: m.height,
 							WindowWidth:  m.width,
 						}
 					}
