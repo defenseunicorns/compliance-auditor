@@ -295,15 +295,14 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
-	// TODO: should the props be added regardless?
+	observation.Props = &[]oscalTypes_1_1_2.Property{
+		{
+			Name:  "validation",
+			Ns:    "https://docs.lula.dev/oscal/ns",
+			Value: common.AddIdPrefix(validation.UUID),
+		},
+	}
 	if resourcesHref != "" {
-		observation.Props = &[]oscalTypes_1_1_2.Property{
-			{
-				Name:  "validation",
-				Ns:    "https://docs.lula.dev/oscal/ns",
-				Value: common.AddIdPrefix(validation.UUID),
-			},
-		}
 		observation.Links = &[]oscalTypes_1_1_2.Link{
 			{
 				Href: resourcesHref,

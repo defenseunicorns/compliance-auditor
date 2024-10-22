@@ -64,7 +64,7 @@ func TestMakeDeterministic(t *testing.T) {
 		t.Helper()
 
 		// Make deterministic
-		model.MakeDeterministic()
+		_ = model.MakeDeterministic()
 
 		if model.Model == nil && expectNil {
 			return

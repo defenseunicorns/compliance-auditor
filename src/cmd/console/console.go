@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/internal/tui"
@@ -23,6 +24,9 @@ To view multiple OSCAL models in the Console:
 
 To specify an output file to save any changes made to the component definition:
 	lula console -f /path/to/oscal-component.yaml -c /path/to/output.yaml
+
+To specify an output file to save component definition assessment results:
+	lula console -f /path/to/oscal-component.yaml -a /path/to/output.yaml
 `
 
 var consoleLong = `
@@ -33,6 +37,7 @@ interact with the OSCAL documents in a more intuitive and visual way.
 func ConsoleCommand() *cobra.Command {
 	var inputFiles []string
 	var componentOutputFile string
+	var assessmentResultsOutputFile string
 
 	consoleCmd := &cobra.Command{
 		Use:     "console",
@@ -45,6 +50,10 @@ func ConsoleCommand() *cobra.Command {
 			// Check if output files are specified - Add more as needed
 			if componentOutputFile != "" {
 				setOutputFiles["component"] = componentOutputFile
+			}
+
+			if assessmentResultsOutputFile != "" {
+				setOutputFiles["assessment-results"] = assessmentResultsOutputFile
 			}
 
 			models, modelFiles, err := GetModelsByFiles(inputFiles, setOutputFiles)
@@ -61,6 +70,13 @@ func ConsoleCommand() *cobra.Command {
 			}
 
 			// TODO: need to integrate with the log file handled by messages
+			ts := time.Now().Format("2006-01-02-15-04-05")
+			logFile, err := os.CreateTemp("", fmt.Sprintf("lula-%s-*.log", ts))
+			if err != nil {
+				return fmt.Errorf("error saving a log file to a temporary directory")
+			}
+			message.UseLogFile(logFile)
+
 			var dumpFile *os.File
 			if message.GetLogLevel() == message.DebugLevel {
 				dumpFile, err = os.OpenFile("debug.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
@@ -86,6 +102,7 @@ func ConsoleCommand() *cobra.Command {
 		message.Fatal(err, "error initializing console command flags")
 	}
 	consoleCmd.Flags().StringVarP(&componentOutputFile, "component-output", "c", "", "the path to the component definition output file")
+	consoleCmd.Flags().StringVarP(&assessmentResultsOutputFile, "assessment-output", "a", "", "the path to the assessment results output file")
 	return consoleCmd
 }
 

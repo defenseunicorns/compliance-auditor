@@ -9,28 +9,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
-	popupWidth  = 40
-	popupHeight = 10
-)
-
-type PopupMsg struct {
-	Title   string
-	Content string
-	Warning string
-}
-type PopupClose struct{}
-
-type PopupFailMsg struct {
-	Err error
-}
-
 type PopupModel struct {
 	Open    bool
 	Title   string
 	Content string
 	Warning string
 	Help    HelpModel
+	height  int
+	width   int
 }
 
 func NewPopupModel(title, content string, helpKeys []key.Binding) PopupModel {
@@ -40,6 +26,8 @@ func NewPopupModel(title, content string, helpKeys []key.Binding) PopupModel {
 		Help:    help,
 		Title:   title,
 		Content: content,
+		height:  defaultPopupHeight,
+		width:   defaultPopupWidth,
 	}
 }
 
@@ -49,26 +37,23 @@ func (m *PopupModel) UpdateText(title, content, warning string) {
 	m.Warning = warning
 }
 
+func (m *PopupModel) SetDimensions(height, width int) {
+	m.height = height
+	m.width = width
+}
+
 func (m PopupModel) Init() tea.Cmd {
 	return nil
 }
 
 func (m PopupModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	DumpToLog(msg)
-	switch msg := msg.(type) {
-	case PopupMsg:
-		m.UpdateText(msg.Title, msg.Content, msg.Warning)
-
-	case PopupClose:
-		m.Open = false
-	}
 	return m, nil
 }
 
 func (m PopupModel) View() string {
 	popupStyle := OverlayWarnStyle.
-		Width(popupWidth).
-		Height(popupHeight)
+		Width(m.width).
+		Height(m.height)
 
 	content := strings.Builder{}
 	content.WriteString(fmt.Sprintf("%s\n", m.Title))

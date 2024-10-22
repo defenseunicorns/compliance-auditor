@@ -13,6 +13,7 @@ import (
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/internal/tui"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/muesli/termenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -111,5 +112,61 @@ func TestNewOSCALModelWithSave(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestNewOSCALWithValidate(t *testing.T) {
+	tempLog := testhelpers.CreateTempFile(t, "log")
+	defer os.Remove(tempLog.Name())
+	message.UseLogFile(tempLog)
+	message.NoProgress = true
+
+	tempOscalFile := testhelpers.CreateTempFile(t, "yaml")
+	defer os.Remove(tempOscalFile.Name())
+
+	oscalComponent := testhelpers.OscalFromPath(t, "../../test/unit/common/oscal/valid-multi-component-validations.yaml")
+	model := tui.NewOSCALModel(
+		map[string]*oscalTypes_1_1_2.OscalCompleteSchema{
+			"component": oscalComponent,
+		},
+		map[string]string{
+			"component":          "none.yaml",
+			"assessment-results": tempOscalFile.Name(),
+		}, tempLog)
+
+	msgs := []tea.Msg{
+		tea.KeyMsg{Type: tea.KeyRight}, // Select component
+		tea.KeyMsg{Type: tea.KeyRight}, // Select framework
+		tea.KeyMsg{Type: tea.KeyEnter}, // Open framework
+		tea.KeyMsg{Type: tea.KeyDown},  // Navigate to rev4
+		tea.KeyMsg{Type: tea.KeyDown},  // Navigate to rev4
+		tea.KeyMsg{Type: tea.KeyEnter}, // Select rev4
+		tea.KeyMsg{Type: tea.KeyCtrlV}, // Open validation
+		tea.KeyMsg{Type: tea.KeyEnter}, // Run validation
+	}
+
+	tm := teatest.NewTestModel(t, model, teatest.WithInitialTermSize(width, height))
+
+	for _, msg := range msgs {
+		tm.Send(msg)
+		time.Sleep(time.Millisecond * time.Duration(50))
+	}
+
+	time.Sleep(time.Second * 5) // Give it a few seconds to execute and write the file
+
+	err := tm.Quit()
+	assert.NoError(t, err)
+
+	// Check output file contents
+	oscalModel := testhelpers.OscalFromPath(t, tempOscalFile.Name())
+	assessmentResults := oscalModel.AssessmentResults
+	require.NotNil(t, assessmentResults)
+
+	for _, result := range assessmentResults.Results {
+		require.NotNil(t, result.Findings)
+		assert.Equal(t, 6, len(*result.Findings))
+
+		require.NotNil(t, result.Observations)
+		assert.Equal(t, 2, len(*result.Observations))
 	}
 }

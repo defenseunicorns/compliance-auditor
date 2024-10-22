@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -9,12 +10,13 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/evertras/bubble-table/table"
 	"github.com/mattn/go-runewidth"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	TabOffset     = 10
+	TabOffset     = 6
 	DefaultWidth  = 200
 	DefaultHeight = 60
 )
@@ -94,6 +96,26 @@ func UnfocusedPanelKeyMap() viewport.KeyMap {
 	return km
 }
 
+func FocusedTableKeyMap() table.KeyMap {
+	km := table.DefaultKeyMap()
+	km.PageUp = key.NewBinding(
+		key.WithKeys("pgup"),
+		key.WithHelp("pgup", "page up"),
+	)
+	km.PageDown = key.NewBinding(
+		key.WithKeys("pgdown"),
+		key.WithHelp("pgdown", "page down"),
+	)
+
+	return km
+}
+
+func UnfocusedTableKeyMap() table.KeyMap {
+	km := table.KeyMap{}
+
+	return km
+}
+
 func FocusedTextAreaKeyMap() textarea.KeyMap {
 	km := textarea.DefaultKeyMap
 
@@ -131,4 +153,19 @@ func ToYamlString(input interface{}) (string, error) {
 	}
 
 	return string(yamlData), nil
+}
+
+func DeepCopy(src, dst interface{}) error {
+	data, err := json.Marshal(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, dst)
+}
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

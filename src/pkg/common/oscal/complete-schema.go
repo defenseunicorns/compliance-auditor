@@ -380,7 +380,6 @@ func sortBackMatter(backmatter *oscalTypes.BackMatter) {
 			backmatter.Resources = &resources
 		}
 	}
-	return
 }
 
 // Merges two arrays of resources into a single array
