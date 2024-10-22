@@ -47,6 +47,10 @@
          ║     - name: pod                                                                                                                                                                    ║         
          ║       description: ""                                                                                                                                                              ║         
          ║       resource-rule:                                                                                                                                                               ║         
+         ║         name: example-pod                                                                                                                                                          ║         
+         ║         group: ""                                                                                                                                                                  ║         
+         ║         version: v1                                                                                                                                                                ║         
+         ║         resource: pods                                                                                                                                                             ║         
          ║                                                                                                                                                                                    ║         
          ║                                                                                                                                                                                    ║         
          ║ ↑/k scroll up • ↓/j scroll down • esc cancel                                                                                                                                       ║         

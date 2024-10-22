@@ -426,7 +426,7 @@ func (m *Model) MergeNewResults(newResults *oscalTypes_1_1_2.AssessmentResults) 
 func (m *Model) updateSizing(height, width int) {
 	m.height = height
 	m.width = width
-	totalHeight := m.height
+	totalHeight := m.height - 4 // Subtract vertical margin/padding not accounted for below
 
 	topSectionHeight := common.HelpStyle(m.width).GetHeight() + common.DialogBoxStyle.GetHeight()
 	bottomSectionHeight := totalHeight - topSectionHeight - 2 // 2 for summary height

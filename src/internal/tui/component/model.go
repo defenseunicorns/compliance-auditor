@@ -578,7 +578,7 @@ func (m *Model) updateSizing(height, width int) {
 	m.width = width
 
 	// Set internal sizing properties
-	totalHeight := m.height
+	totalHeight := m.height - 4 // Subtract vertical margin/padding not accounted for below
 	leftWidth := m.width / 4
 	rightWidth := m.width - leftWidth - common.PanelStyle.GetHorizontalPadding() - common.PanelStyle.GetHorizontalMargins()
 

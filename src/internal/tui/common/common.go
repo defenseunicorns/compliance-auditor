@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	TabOffset     = 10
+	TabOffset     = 6
 	DefaultWidth  = 200
 	DefaultHeight = 60
 )

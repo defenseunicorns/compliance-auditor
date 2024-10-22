@@ -159,6 +159,7 @@ func (m ValidateModel) View() string {
 		// Add progress spinner/feedback?
 		m.help.ShortHelp = []key.Binding{}
 	}
+	m.fillContentPane()
 	validationContent := lipgloss.JoinVertical(lipgloss.Top, m.content, "\n", m.help.View())
 	return popupStyle.Render(validationContent)
 }
@@ -180,8 +181,8 @@ func (m *ValidateModel) setInitialContent() {
 			m.controlImplSet = controlImplSet
 			requirementStore := requirementstore.NewRequirementStore(&controlImplSet)
 
-			content.WriteString("Run Validations?")
-			content.WriteString("\n🔍 Validate Component Definition on Target: ")
+			content.WriteString("Run Validations?\n\n")
+			content.WriteString("🔍 Validate Component Definition on Target: ")
 			content.WriteString(m.target)
 			requirementStore.ResolveLulaValidations(m.validationStore)
 			reqtStats := requirementStore.GetStats(m.validationStore)
@@ -237,4 +238,13 @@ func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*osca
 	}
 
 	return assessmentresults, nil
+}
+
+// Helper method to fill up the validate model content pane with newlines so help is pushed down
+func (m *ValidateModel) fillContentPane() {
+	availableContentHeight := m.height - common.HelpStyle(m.width).GetHeight() - 2 // 2 for the border
+	contentHeight := strings.Count(m.content, "\n")
+	for range availableContentHeight - contentHeight {
+		m.content += "\n"
+	}
 }
