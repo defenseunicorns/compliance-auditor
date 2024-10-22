@@ -57,7 +57,7 @@ The Validation Detail is a view that displays a somewhat curated version of the 
 
 ### Validation Execution
 
-A validation can be executed using the `ctrl+v` keycommand. This will run the validation ONLY for the currently active framework.
+A validation can be executed using the `ctrl+v` keycommand. This will run the validation ONLY for the currently active framework. This also will automatically run executable validations. Future work will be added to allow for more granular control over validation execution in the console.
 
 <img align="right" src="../../images/component-defn-console-validate.gif" alt="component definition console validation detail" style="width:100%; height:auto;">
 <div style="clear: both;"></div>
