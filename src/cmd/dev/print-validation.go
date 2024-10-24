@@ -3,7 +3,6 @@ package dev
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/spf13/cobra"
@@ -13,21 +12,13 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
-type printValidationFlags struct {
-	component       string // -c --component
-	assessment      string // -a --assessment
-	observationUuid string // -o --observation-uuid
-}
-
-var printValidationOpts = &printValidationFlags{}
-
 var printValidationHelp = `
 To print a specific lula validation that generated a given observation:
 	lula dev print-validation --component /path/to/component.yaml --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
 `
 
 var printValidationCmdLong = `
-Print out the the Lula Validation that yielded the provided observation
+Prints the Lula Validation from a specified observation. Assumes that the validation is in the back matter of the provided component definition.
 `
 
 func PrintValidationCommand() *cobra.Command {
@@ -41,8 +32,8 @@ func PrintValidationCommand() *cobra.Command {
 	printValidationCmd := &cobra.Command{
 		Use:     "print-validation",
 		Short:   "Print Lula Validation",
-		Long:    printResourcesCmdLong,
-		Example: printResourcesHelp,
+		Long:    printValidationCmdLong,
+		Example: printValidationHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the component, assessment, validation ID, and result type to lookup the resources
 			componentData, err := os.ReadFile(component)
@@ -55,11 +46,6 @@ func PrintValidationCommand() *cobra.Command {
 				return fmt.Errorf("error creating oscal component definition model: %v", err)
 			}
 
-			componentDir, err := filepath.Abs(filepath.Dir(component))
-			if err != nil {
-				return fmt.Errorf("error getting component directory: %v", err)
-			}
-
 			assessmentData, err := os.ReadFile(assessment)
 			if err != nil {
 				return fmt.Errorf("invalid assessment file: %v", err)
@@ -70,7 +56,10 @@ func PrintValidationCommand() *cobra.Command {
 				return fmt.Errorf("error creating oscal assessment results model: %v", err)
 			}
 
-			err = PrintValidation(oscalComponent, oscalAssessment, componentDir, observationUuid, outputFile)
+			err = PrintValidation(oscalComponent, oscalAssessment, observationUuid, outputFile)
+			if err != nil {
+				return fmt.Errorf("error printing validation: %v", err)
+			}
 
 			return nil
 		},
@@ -101,7 +90,7 @@ func init() {
 	devCmd.AddCommand(PrintValidationCommand())
 }
 
-func PrintValidation(component *oscalTypes_1_1_2.ComponentDefinition, assessment *oscalTypes_1_1_2.AssessmentResults, componentDir, observationUuid, outputFile string) error {
+func PrintValidation(component *oscalTypes_1_1_2.ComponentDefinition, assessment *oscalTypes_1_1_2.AssessmentResults, observationUuid, outputFile string) error {
 	if component == nil {
 		return fmt.Errorf("component definition is nil")
 	}

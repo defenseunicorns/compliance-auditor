@@ -44,6 +44,10 @@ assessment-results:
               href: file://../resources/valid-resources.json
           methods:
             - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#88AB3470-B96B-4D7C-BC36-02BF9563C46C'
           relevant-evidence:
             - description: |
                 Result: not-satisfied
@@ -112,6 +116,10 @@ assessment-results:
             [TEST]: 01e21994-2cfc-45fb-ac84-d00f2e5912b0 - lula-validation-2
           methods:
             - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#not-found'
           relevant-evidence:
             - description: |
                 Result: satisfied
