@@ -127,9 +127,9 @@ func PrintValidation(component *oscalTypes_1_1_2.ComponentDefinition, assessment
 
 	// Print the validation
 	if outputFile == "" {
-		message.Printf(validation)
+		message.Printf("%s", validation)
 	} else {
-		err = os.WriteFile(outputFile, []byte(validation), 0600)
+		err = os.WriteFile(outputFile, []byte(validation), 0600) // G306
 		if err != nil {
 			return fmt.Errorf("error writing validation to file: %v", err)
 		}
