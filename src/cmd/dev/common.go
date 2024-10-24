@@ -132,14 +132,12 @@ func writeResources(data types.DomainResources, filepath string) error {
 
 	// If a filepath is provided, write the JSON data to the file.
 	if filepath != "" {
-		err := os.WriteFile(filepath, []byte(jsonData), 0600) // G306
+		err := os.WriteFile(filepath, []byte(jsonData), 0600)
 		if err != nil {
 			return fmt.Errorf("error writing resource JSON to file: %v", err)
 		}
 	} else {
-		// fmt.Printf(jsonData)
 		message.Printf(jsonData)
-		// message.Detail(jsonData)
 	}
 	return nil
 }
