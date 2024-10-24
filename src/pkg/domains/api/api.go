@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -34,8 +33,8 @@ func (a ApiDomain) makeRequests(_ context.Context) (types.DomainResources, error
 	}
 
 	defaultClient := &http.Client{Transport: transport}
-	if defaultOpts.Timeout != 0 {
-		defaultClient.Timeout = time.Duration(defaultOpts.Timeout) * time.Second
+	if defaultOpts.timeout != nil {
+		defaultClient.Timeout = *defaultOpts.timeout
 	}
 
 	for _, request := range a.Spec.Requests {

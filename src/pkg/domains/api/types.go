@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -14,7 +15,7 @@ type ApiDomain struct {
 
 func CreateApiDomain(spec *ApiSpec) (types.Domain, error) {
 	// Check validity of spec
-	err := validateSpec(spec)
+	err := validateAndMutateSpec(spec)
 	if err != nil {
 		return nil, err
 	}
@@ -57,4 +58,7 @@ type ApiOpts struct {
 	Timeout string   `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 	Proxy   string   `json:"proxy,omitempty" yaml:"proxy,omitempty"`
 	Headers []string `json:"headers,omitempty" yaml:"headers,omitempty"`
+
+	// internally-managed options
+	timeout *time.Duration
 }
