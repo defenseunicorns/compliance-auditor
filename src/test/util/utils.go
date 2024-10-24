@@ -13,6 +13,8 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 func GetDeployment(path string) (*appsv1.Deployment, error) {
@@ -131,6 +133,7 @@ func ExecuteCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, outp
 	cmd.SetOut(buf)
 	cmd.SetErr(buf)
 	cmd.SetArgs(args)
+	message.UseBuffer(buf)
 
 	execErr := cmd.Execute()
 

@@ -2,6 +2,7 @@
 package message
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -99,6 +100,12 @@ func UseLogFile(inputLogFile *os.File) {
 			Note(message)
 		}
 	}
+}
+
+// UseBuffer writes output to a buffer
+func UseBuffer(buf *bytes.Buffer) {
+	LogWriter = io.MultiWriter(buf)
+	pterm.SetDefaultOutput(LogWriter)
 }
 
 // SetLogLevel sets the log level.
@@ -277,6 +284,10 @@ func JSONValue(value any) string {
 		debugPrinter(2, fmt.Sprintf("ERROR marshalling json: %s", err.Error()))
 	}
 	return string(bytes)
+}
+
+func Printf(format string, a ...any) {
+	pterm.Printf(format, a...)
 }
 
 // Paragraph formats text into a paragraph matching the TermWidth
