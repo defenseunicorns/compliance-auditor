@@ -3,12 +3,12 @@ package dev
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/spf13/cobra"
 
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -40,7 +40,7 @@ func PrintResourcesCommand() *cobra.Command {
 		Long:    printResourcesCmdLong,
 		Example: printResourcesHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			assessmentData, err := os.ReadFile(assessment)
+			assessmentData, err := common.ReadFileToBytes(assessment)
 			if err != nil {
 				return fmt.Errorf("invalid assessment file: %v", err)
 			}

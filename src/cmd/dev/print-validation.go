@@ -36,7 +36,7 @@ func PrintValidationCommand() *cobra.Command {
 		Example: printValidationHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get the component, assessment, validation ID, and result type to lookup the resources
-			componentData, err := os.ReadFile(component)
+			componentData, err := common.ReadFileToBytes(component)
 			if err != nil {
 				return fmt.Errorf("invalid component file: %v", err)
 			}
@@ -46,7 +46,7 @@ func PrintValidationCommand() *cobra.Command {
 				return fmt.Errorf("error creating oscal component definition model: %v", err)
 			}
 
-			assessmentData, err := os.ReadFile(assessment)
+			assessmentData, err := common.ReadFileToBytes(assessment)
 			if err != nil {
 				return fmt.Errorf("invalid assessment file: %v", err)
 			}
@@ -129,7 +129,7 @@ func PrintValidation(component *oscalTypes_1_1_2.ComponentDefinition, assessment
 	if outputFile == "" {
 		message.Printf("%s", validation)
 	} else {
-		err = os.WriteFile(outputFile, []byte(validation), 0600) // G306
+		err = os.WriteFile(outputFile, []byte(validation), 0600)
 		if err != nil {
 			return fmt.Errorf("error writing validation to file: %v", err)
 		}
