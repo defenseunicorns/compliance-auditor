@@ -4,15 +4,18 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
+
+	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 )
 
 const STDIN = "0"
@@ -103,4 +106,40 @@ func RunSingleValidation(ctx context.Context, validationBytes []byte, opts ...ty
 	}
 
 	return lulaValidation, nil
+}
+
+// GetObservationByUuid returns the observation with the given UUID
+func GetObservationByUuid(assessmentResults *oscalTypes_1_1_2.AssessmentResults, observationUuid string) (*oscalTypes_1_1_2.Observation, error) {
+	if assessmentResults == nil {
+		return nil, fmt.Errorf("assessment results is nil")
+	}
+
+	for _, result := range assessmentResults.Results {
+		if result.Observations != nil {
+			for _, observation := range *result.Observations {
+				if observation.UUID == observationUuid {
+					return &observation, nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("observation with uuid %s not found", observationUuid)
+}
+
+// writeResources writes the resources to a file or stdout
+func writeResources(data types.DomainResources, filepath string) error {
+	jsonData := message.JSONValue(data)
+
+	// If a filepath is provided, write the JSON data to the file.
+	if filepath != "" {
+		err := os.WriteFile(filepath, []byte(jsonData), 0600) // G306
+		if err != nil {
+			return fmt.Errorf("error writing resource JSON to file: %v", err)
+		}
+	} else {
+		// fmt.Printf(jsonData)
+		message.Printf(jsonData)
+		// message.Detail(jsonData)
+	}
+	return nil
 }
