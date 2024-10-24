@@ -7,16 +7,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/pkg/common/validation"
-	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestOutputs(t *testing.T) {
@@ -91,9 +92,6 @@ func TestOutputs(t *testing.T) {
 					}
 				}
 			}
-
-			message.Info("Successfully validated payload.output structure")
-
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {

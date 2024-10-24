@@ -14,6 +14,13 @@ import (
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/e2e-framework/klient/wait"
+	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
+	"sigs.k8s.io/e2e-framework/pkg/envconf"
+	"sigs.k8s.io/e2e-framework/pkg/features"
+
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -21,11 +28,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"github.com/defenseunicorns/lula/src/types"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/e2e-framework/klient/wait"
-	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
-	"sigs.k8s.io/e2e-framework/pkg/envconf"
-	"sigs.k8s.io/e2e-framework/pkg/features"
 )
 
 func TestPodLabelValidation(t *testing.T) {
@@ -93,12 +95,12 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			validatePodLabelFail(ctx, t, oscalPath)
+			validatePodLabelFail(t, oscalPath)
 			return ctx
 		}).
 		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
-			validatePodLabelFail(ctx, t, oscalPath)
+			validatePodLabelFail(t, oscalPath)
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -131,7 +133,7 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("All not-satisfied", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-all-bad.yaml"
-			findings, observations := validatePodLabelFail(ctx, t, oscalPath)
+			findings, observations := validatePodLabelFail(t, oscalPath)
 			observationRemarksMap := generateObservationRemarksMap(*observations)
 
 			for _, f := range *findings {
@@ -226,7 +228,6 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	if err != nil {
 		t.Fatal("Failed to write upgraded component definition with: ", err)
 	}
-	message.Infof("Successfully upgraded %s to %s with OSCAL version %s %s\n", oscalPath, revisionOptions.OutputFile, revisionResponse.Reviser.GetSchemaVersion(), revisionResponse.Reviser.GetModelType())
 
 	validator, err := validation.New()
 	if err != nil {
@@ -267,9 +268,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 
 	// Write the assessment results to file
 	err = oscal.WriteOscalModel("sar-test.yaml", &model)
-	if err != nil {
-		message.Fatalf(err, "error writing component to file")
-	}
+	require.NoError(t, err)
 
 	initialResultCount := len(report.Results)
 
@@ -288,9 +287,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 
 	// Write the assessment results to file
 	err = oscal.WriteOscalModel("sar-test.yaml", &model)
-	if err != nil {
-		message.Fatalf(err, "error writing component to file")
-	}
+	require.NoError(t, err)
 
 	data, err := os.ReadFile("sar-test.yaml")
 	if err != nil {
@@ -315,17 +312,16 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	if err != nil || validatorResponse.JsonSchemaError != nil {
 		t.Fatal("File failed linting")
 	}
-	message.Infof("Successfully validated %s is valid OSCAL version %s %s\n", "sar-test.yaml", validatorResponse.Validator.GetSchemaVersion(), validatorResponse.Validator.GetModelType())
 
 	return ctx
 }
 
-func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
+func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
 	message.NoProgress = true
 
 	validator, err := validation.New(validation.WithAllowExecution(false, true))
 	if err != nil {
-		t.Errorf("error creating validation context: %v", err)
+		t.Fatalf("error creating validation context: %v", err)
 	}
 
 	assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")

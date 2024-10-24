@@ -56,5 +56,4 @@ func TestLintCommand(t *testing.T) {
 			}
 		})
 	}
-
 }
