@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"time"
 )
@@ -30,35 +29,31 @@ func validateAndMutateSpec(spec *ApiSpec) (errs error) {
 		errs = errors.Join(errs, err)
 	}
 
-	for _, request := range spec.Requests {
-		if request.Name == "" {
+	for i := range spec.Requests {
+		if spec.Requests[i].Name == "" {
 			errs = errors.Join(errs, errors.New("request name cannot be empty"))
 		}
-		if request.URL == "" {
+		if spec.Requests[i].URL == "" {
 			errs = errors.Join(errs, errors.New("request url cannot be empty"))
 		}
-		url, err := url.Parse(request.URL)
+		reqUrl, err := url.Parse(spec.Requests[i].URL)
 		if err != nil {
 			errs = errors.Join(errs, errors.New("invalid request url"))
 		} else {
-			request.reqURL = url
+			spec.Requests[i].reqURL = reqUrl
 		}
-		if request.Method != "" {
-			switch m := request.Method; m {
-			case "Get", "get", "GET":
-				request.method = http.MethodGet
-			case "Head", "head", "HEAD":
-				request.method = http.MethodHead
-			case "Post", "post", "POST":
-				request.method = http.MethodPost
-			case "Postform", "postform", "POSTFORM": // PostForm is not a separate HTTP method, but it uses a different function (http.PostForm)
-				request.method = "POSTFORM"
-			default:
-				errs = errors.Join(errs, fmt.Errorf("unsupported method: %s", request.Method))
+		if spec.Requests[i].Params != nil {
+			queryParameters := url.Values{}
+			for k, v := range spec.Requests[i].Params {
+				queryParameters.Add(k, v)
 			}
+			spec.Requests[i].reqParameters = queryParameters
 		}
-		if request.Options != nil {
-			validateAndMutateOptions(request.Options)
+		if spec.Requests[i].Options != nil {
+			err = validateAndMutateOptions(spec.Requests[i].Options)
+			if err != nil {
+				errs = errors.Join(errs, err)
+			}
 		}
 	}
 

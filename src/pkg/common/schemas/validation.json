@@ -363,14 +363,6 @@
                                 "type": "string",
                                 "format": "uri"
                             },
-                            "method": {
-                                "type": "string",
-                                "enum": ["Get", "Head", "Post", "PostForm"],
-                                "default": "Get"
-                            },
-                            "body": {
-                                "type": "string"
-                            },
                             "parameters": {
                                 "type": "object",
                                 "additionalProperties": { "type": "string"}

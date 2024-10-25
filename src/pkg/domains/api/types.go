@@ -38,7 +38,8 @@ func (a ApiDomain) IsExecutable() bool {
 // ApiSpec contains a list of API requests
 type ApiSpec struct {
 	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
-	// Opts will be applied to all requests, except those which have their own specified ApiOpts
+	// Opts will be applied to all requests, except those which have their own
+	// specified ApiOpts
 	Options *ApiOpts `mapstructure:"options" json:"options,omitempty" yaml:"options,omitempty"`
 }
 
@@ -46,22 +47,21 @@ type ApiSpec struct {
 type Request struct {
 	Name   string            `json:"name" yaml:"name"`
 	URL    string            `json:"url" yaml:"url"`
-	Method string            `json:"method,omitempty" yaml:"method,omitempty"`
-	Body   string            `json:"body,omitempty" yaml:"body,omitempty"`
 	Params map[string]string `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-	// ApiOpts specific to this request
+	// ApiOpts specific to this request. If ApiOpts is present, values in the
+	// ApiSpec-level Options are ignored for this request.
 	Options *ApiOpts `json:"options,omitempty" yaml:"options,omitempty"`
 
 	// internally-managed options
-	reqURL *url.URL
-	method string
+	reqURL        *url.URL
+	reqParameters url.Values
 }
 
 type ApiOpts struct {
 	// Timeout in seconds
-	Timeout string   `json:"timeout,omitempty" yaml:"timeout,omitempty"`
-	Proxy   string   `json:"proxy,omitempty" yaml:"proxy,omitempty"`
-	Headers []string `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Timeout string            `json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	Proxy   string            `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+	Headers map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
 
 	// internally-managed options
 	timeout  *time.Duration
