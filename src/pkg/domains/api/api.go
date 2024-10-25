@@ -15,6 +15,8 @@ import (
 func (a ApiDomain) makeRequests(_ context.Context) (types.DomainResources, error) {
 	collection := make(map[string]interface{}, 0)
 
+	// defaultOpts apply to all requests, but may be overridden by adding an
+	// options block to an individual request.
 	var defaultOpts *ApiOpts
 	if a.Spec.Options == nil {
 		defaultOpts = new(ApiOpts)
@@ -22,7 +24,8 @@ func (a ApiDomain) makeRequests(_ context.Context) (types.DomainResources, error
 		defaultOpts = a.Spec.Options
 	}
 
-	// configure the default HTTP client using any top-level Options. Individual requests with overrides will get bespoke clients.
+	// configure the default HTTP client using any top-level Options. Individual
+	// requests with overrides will get bespoke clients.
 	transport := &http.Transport{}
 	if defaultOpts.Proxy != "" {
 		proxy, err := url.Parse(a.Spec.Options.Proxy)

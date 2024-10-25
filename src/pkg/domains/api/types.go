@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
@@ -43,14 +44,17 @@ type ApiSpec struct {
 
 // Request is a single API request
 type Request struct {
-	Name         string            `json:"name" yaml:"name"`
-	URL          string            `json:"url" yaml:"url"`
-	Method       string            `json:"method,omitempty" yaml:"method,omitempty"`
-	IsExecutable bool              `json:"executable,omitempty" yaml:"executable,omitempty"`
-	Body         string            `json:"body,omitempty" yaml:"body,omitempty"`
-	Params       map[string]string `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Name   string            `json:"name" yaml:"name"`
+	URL    string            `json:"url" yaml:"url"`
+	Method string            `json:"method,omitempty" yaml:"method,omitempty"`
+	Body   string            `json:"body,omitempty" yaml:"body,omitempty"`
+	Params map[string]string `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	// ApiOpts specific to this request
 	Options *ApiOpts `json:"options,omitempty" yaml:"options,omitempty"`
+
+	// internally-managed options
+	reqURL *url.URL
+	method string
 }
 
 type ApiOpts struct {
@@ -60,5 +64,6 @@ type ApiOpts struct {
 	Headers []string `json:"headers,omitempty" yaml:"headers,omitempty"`
 
 	// internally-managed options
-	timeout *time.Duration
+	timeout  *time.Duration
+	proxyURL *url.URL
 }
