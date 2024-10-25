@@ -158,9 +158,8 @@ require (
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
 	github.com/tmccombs/hcl2json v0.3.1 // indirect
 	github.com/tonistiigi/go-csvvalue v0.0.0-20240710180619-ddb21b71c0b4 // indirect
-	github.com/vladimirvivien/gexe v0.3.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
-	github.com/vladimirvivien/gexe v0.2.0 // indirect
+	github.com/vladimirvivien/gexe v0.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
