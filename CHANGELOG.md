@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.10.0](https://github.com/defenseunicorns/lula/compare/v0.9.1...v0.10.0) (2024-10-25)
+
+
+### Features
+
+* **console:** add support for multiple input files ([#729](https://github.com/defenseunicorns/lula/issues/729)) ([103ca0d](https://github.com/defenseunicorns/lula/commit/103ca0deabbb5db7fc90512c82817cb91bdd4c3f))
+* **console:** assessment results generation ([#744](https://github.com/defenseunicorns/lula/issues/744)) ([6cb5933](https://github.com/defenseunicorns/lula/commit/6cb5933828f137d2ee024427f76885d12f5ad4bc))
+* **console:** lula validation view ([#727](https://github.com/defenseunicorns/lula/issues/727)) ([481648f](https://github.com/defenseunicorns/lula/commit/481648fb366da9abf19441d39b81173935424704))
+* **generate:** support for profile model and basic generation ([#694](https://github.com/defenseunicorns/lula/issues/694)) ([cb4fc6f](https://github.com/defenseunicorns/lula/commit/cb4fc6f2282547352c0a3a88ddd135c5a86e58eb))
+
+
+### Miscellaneous
+
+* address linter report - swallowed errors and minor test cleanup of nil checks ([#740](https://github.com/defenseunicorns/lula/issues/740)) ([05a7f6e](https://github.com/defenseunicorns/lula/commit/05a7f6e075adafeb2b3c635803cc12083f12c01d))
+* **build:** add golangci-lint to the pipeline as a non-blocking step ([#742](https://github.com/defenseunicorns/lula/issues/742)) ([fedb0c9](https://github.com/defenseunicorns/lula/commit/fedb0c9731656941b24c9d2cf6fb85bdc4604002))
+* **deps:** update actions/checkout action to v4.2.2 ([#756](https://github.com/defenseunicorns/lula/issues/756)) ([7e1a193](https://github.com/defenseunicorns/lula/commit/7e1a1937bc69b99de67c50185b5c3c3a87cb4395))
+* **deps:** update actions/setup-go action to v5.1.0 ([#761](https://github.com/defenseunicorns/lula/issues/761)) ([e464cd0](https://github.com/defenseunicorns/lula/commit/e464cd04092ce78b50c750933edcc85c7f4fecdc))
+* **deps:** update actions/setup-node action to v4.1.0 ([#759](https://github.com/defenseunicorns/lula/issues/759)) ([2fd7f86](https://github.com/defenseunicorns/lula/commit/2fd7f86fc4f4723e34a3818fdd4e6282ee4cfed5))
+* **deps:** update anchore/sbom-action action to v0.17.4 ([#731](https://github.com/defenseunicorns/lula/issues/731)) ([36ef42a](https://github.com/defenseunicorns/lula/commit/36ef42aefb9fa5d48997a7f4b7d342c6a0d92cd3))
+* **deps:** update anchore/sbom-action action to v0.17.5 ([#753](https://github.com/defenseunicorns/lula/issues/753)) ([521452c](https://github.com/defenseunicorns/lula/commit/521452cf57370bcc4521020736b52438a5df797d))
+* **deps:** update github/codeql-action action to v3.26.13 ([#737](https://github.com/defenseunicorns/lula/issues/737)) ([86c9376](https://github.com/defenseunicorns/lula/commit/86c93762fcfc9eb819989dd0e376a798a6add4b2))
+* **deps:** update github/codeql-action action to v3.27.0 ([#745](https://github.com/defenseunicorns/lula/issues/745)) ([c87621e](https://github.com/defenseunicorns/lula/commit/c87621e40c2203cac8b4273d2291beab8765d8b2))
+* **deps:** update kubernetes packages to v0.31.2 ([#757](https://github.com/defenseunicorns/lula/issues/757)) ([259b180](https://github.com/defenseunicorns/lula/commit/259b18071651db2efd574cfa791d14b1f81628f3))
+* **deps:** update module github.com/charmbracelet/bubbletea to v1.1.2 ([#763](https://github.com/defenseunicorns/lula/issues/763)) ([83c9c3a](https://github.com/defenseunicorns/lula/commit/83c9c3aa841534ff785c138a9247b867995dbc98))
+* **deps:** update module github.com/charmbracelet/lipgloss to v0.13.1 ([#755](https://github.com/defenseunicorns/lula/issues/755)) ([821643d](https://github.com/defenseunicorns/lula/commit/821643d005b8c5480ef6bbb36d8961b8e6d4a352))
+* **deps:** update module github.com/open-policy-agent/conftest to v0.56.0 ([#743](https://github.com/defenseunicorns/lula/issues/743)) ([c8b2293](https://github.com/defenseunicorns/lula/commit/c8b2293eaa3594acf6b867252020a2a513d820e3))
+* **deps:** update module sigs.k8s.io/e2e-framework to v0.5.0 ([#754](https://github.com/defenseunicorns/lula/issues/754)) ([1f7f3c7](https://github.com/defenseunicorns/lula/commit/1f7f3c72d06acd6cb394e565abd69760dffba93d))
+* **lint:** appease the linter ([#746](https://github.com/defenseunicorns/lula/issues/746)) ([bcb2ab0](https://github.com/defenseunicorns/lula/commit/bcb2ab0b7d150e2d908fe2a9d674663f3c040489))
+* **scan:** integrate KICS scanning into PR pipelines ([#751](https://github.com/defenseunicorns/lula/issues/751)) ([0112462](https://github.com/defenseunicorns/lula/commit/0112462ec52cec8150b559f2745f2974bbd18de6))
+* **scanning:** create gosec integration in pipelines ([#739](https://github.com/defenseunicorns/lula/issues/739)) ([41bce03](https://github.com/defenseunicorns/lula/commit/41bce03649ce3cbb578c0bcb2d223884348c86d5))
+
 ## [0.9.1](https://github.com/defenseunicorns/lula/compare/v0.9.0...v0.9.1) (2024-10-12)
 
 
