@@ -25,8 +25,8 @@ To lint existing OSCAL files:
 `
 
 var lintCmd = &cobra.Command{
-	Use:   "lint",
-	Short: "Validate OSCAL against schema",
+	Use:     "lint",
+	Short:   "Validate OSCAL against schema",
 	Long:    "Validate OSCAL documents are properly configured against the OSCAL schema",
 	Example: lintHelp,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -73,12 +73,16 @@ var lintCmd = &cobra.Command{
 
 		// If result file is specified, write the validation results to the file
 		if opts.ResultFile != "" {
+			var err error
 			// If there is only one validation result, write it to the file
 			if len(validationResults) == 1 {
-				oscalValidation.WriteValidationResult(validationResults[0], opts.ResultFile)
+				err = oscalValidation.WriteValidationResult(validationResults[0], opts.ResultFile)
 			} else {
 				// If there are multiple validation results, write them to the file
-				oscalValidation.WriteValidationResults(validationResults, opts.ResultFile)
+				err = oscalValidation.WriteValidationResults(validationResults, opts.ResultFile)
+			}
+			if err != nil {
+				message.Fatal(err, "Error writing validation results")
 			}
 		}
 

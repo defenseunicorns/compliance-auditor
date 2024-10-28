@@ -13,6 +13,7 @@ import (
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
+	"github.com/defenseunicorns/lula/src/pkg/domains/files"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
@@ -49,25 +50,39 @@ func (v *Validation) MarshalYaml() ([]byte, error) {
 
 // ToResource converts a Validation object to a Resource object
 func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err error) {
-	resource = &oscalTypes_1_1_2.Resource{}
-	resource.Title = v.Metadata.Name
-	if v.Metadata.UUID != "" {
-		resource.UUID = v.Metadata.UUID
+	resourceUuid := uuid.NewUUID()
+	title := "Lula Validation"
+	if v.Metadata != nil {
+		if v.Metadata.UUID != "" && checkValidUuid(v.Metadata.UUID) {
+			resourceUuid = v.Metadata.UUID
+		}
+		if v.Metadata.Name != "" {
+			title = v.Metadata.Name
+		}
 	} else {
-		resource.UUID = uuid.NewUUID()
+		v.Metadata = &Metadata{}
 	}
-	// If the provider is opa, trim whitespace from the rego
-	if v.Provider != nil && v.Provider.OpaSpec != nil {
-		re := regexp.MustCompile(`[ \t]+\r?\n`)
-		v.Provider.OpaSpec.Rego = re.ReplaceAllString(v.Provider.OpaSpec.Rego, "\n")
+	// Update the metadata for the validation
+	v.Metadata.UUID = resourceUuid
+	v.Metadata.Name = title
+
+	if v.Provider != nil {
+		if v.Provider.OpaSpec != nil {
+			// Clean multiline string in rego
+			v.Provider.OpaSpec.Rego = CleanMultilineString(v.Provider.OpaSpec.Rego)
+		}
 	}
 
 	validationBytes, err := v.MarshalYaml()
 	if err != nil {
 		return nil, err
 	}
-	resource.Description = string(validationBytes)
-	return resource, nil
+
+	return &oscalTypes_1_1_2.Resource{
+		Title:       title,
+		UUID:        resourceUuid,
+		Description: string(validationBytes),
+	}, nil
 }
 
 // Metadata is a structure that contains the name and uuid of a validation
@@ -84,6 +99,8 @@ type Domain struct {
 	KubernetesSpec *kube.KubernetesSpec `json:"kubernetes-spec,omitempty" yaml:"kubernetes-spec,omitempty"`
 	// ApiSpec is the specification for an API domain, required if type is api
 	ApiSpec *api.ApiSpec `json:"api-spec,omitempty" yaml:"api-spec,omitempty"`
+	// FileSpec is the specification for a File domain, required if type is file
+	FileSpec *files.Spec `json:"file-spec,omitempty" yaml:"file-spec,omitempty"`
 }
 
 type Provider struct {
@@ -133,7 +150,7 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	// TODO: Is there a better location for context?
 	ctx := context.Background()
 
-	domain, err := GetDomain(validation.Domain, ctx)
+	domain, err := GetDomain(validation.Domain)
 	if domain == nil {
 		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidDomain, validation.Domain.Type)
 	} else if err != nil {
@@ -158,4 +175,9 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	}
 
 	return lulaValidation, nil
+}
+
+func checkValidUuid(uuid string) bool {
+	re := regexp.MustCompile(`^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[45][0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$`)
+	return re.MatchString(uuid)
 }

@@ -22,6 +22,8 @@ type Keys struct {
 	Edit           key.Binding
 	Save           key.Binding
 	Newline        key.Binding
+	Detail         key.Binding
+	Validate       key.Binding
 }
 
 var CommonKeys = Keys{
@@ -76,6 +78,14 @@ var CommonKeys = Keys{
 	Save: key.NewBinding(
 		key.WithKeys("ctrl+s"),
 		key.WithHelp("ctrl+s", "save"),
+	),
+	Detail: key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "detail"),
+	),
+	Validate: key.NewBinding(
+		key.WithKeys("ctrl+v"),
+		key.WithHelp("ctrl+v", "validate"),
 	),
 }
 
@@ -179,7 +189,6 @@ var (
 	}
 )
 
-// Implemented for
 type editorKeys struct {
 	Confirm    key.Binding
 	NewLine    key.Binding
@@ -215,5 +224,111 @@ var (
 	}
 	FullHelpEditing = [][]key.Binding{
 		{EditKeys.Confirm}, {EditKeys.NewLine}, {EditKeys.DeleteWord}, {EditKeys.Cancel},
+	}
+)
+
+type tableKeys struct {
+	Up             key.Binding
+	PgUp           key.Binding
+	Down           key.Binding
+	PgDown         key.Binding
+	Select         key.Binding
+	ClearFilter    key.Binding
+	ClearSelection key.Binding
+	Filter         key.Binding
+	Detail         key.Binding
+}
+
+var TableKeys = tableKeys{
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "move up"),
+	),
+	PgUp: key.NewBinding(
+		key.WithKeys("pgup"),
+		key.WithHelp("pgup", "page up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "move down"),
+	),
+	PgDown: key.NewBinding(
+		key.WithKeys("pgdn"),
+		key.WithHelp("pgdn", "page down"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↳", "select"),
+	),
+	Filter: key.NewBinding(
+		key.WithKeys("/"),
+		key.WithHelp("/", "filter"),
+	),
+	ClearFilter: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "clear filter"),
+	),
+	ClearSelection: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "clear selection"),
+	),
+	Detail: key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "detail"),
+	),
+}
+
+var (
+	ShortHelpTable = []key.Binding{
+		TableKeys.Up, TableKeys.Down, TableKeys.Filter, TableKeys.Detail, CommonKeys.Help,
+	}
+	FullHelpTableOneLine = []key.Binding{
+		TableKeys.Up, TableKeys.Down, TableKeys.Detail, TableKeys.ClearFilter, TableKeys.PgUp, TableKeys.PgDown, CommonKeys.Help,
+	}
+	FullHelpTable = [][]key.Binding{
+		{TableKeys.Up}, {TableKeys.Down}, {TableKeys.Detail}, {TableKeys.ClearFilter}, {TableKeys.PgUp}, {TableKeys.PgDown}, {CommonKeys.Help},
+	}
+
+	ShortHelpTableWithSelect = []key.Binding{
+		TableKeys.Up, TableKeys.Down, TableKeys.Filter, TableKeys.Detail, TableKeys.Select, CommonKeys.Help,
+	}
+	FullHelpTableWithSelectOneLine = []key.Binding{
+		TableKeys.Up, TableKeys.Down, TableKeys.Select, TableKeys.Detail, TableKeys.ClearFilter, TableKeys.ClearSelection, TableKeys.PgUp, TableKeys.PgDown, CommonKeys.Help,
+	}
+	FullHelpTableWithSelect = [][]key.Binding{
+		{TableKeys.Up}, {TableKeys.Down}, {TableKeys.Select}, {TableKeys.Detail}, {TableKeys.ClearFilter}, {TableKeys.ClearSelection}, {TableKeys.PgUp}, {TableKeys.PgDown}, {CommonKeys.Help},
+	}
+)
+
+type detailKeys struct {
+	Up     key.Binding
+	Down   key.Binding
+	Cancel key.Binding
+}
+
+var DetailKeys = detailKeys{
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "scroll up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "scroll down"),
+	),
+	Cancel: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "cancel"),
+	),
+}
+
+var (
+	ShortHelpDetail = []key.Binding{
+		DetailKeys.Up, DetailKeys.Down, DetailKeys.Cancel,
+	}
+	FullHelpDetailOneLine = []key.Binding{
+		DetailKeys.Up, DetailKeys.Down, DetailKeys.Cancel,
+	}
+	FullHelpDetail = [][]key.Binding{
+		{DetailKeys.Up}, {DetailKeys.Down}, {DetailKeys.Cancel},
 	}
 )

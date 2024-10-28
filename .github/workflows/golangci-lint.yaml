@@ -1,0 +1,26 @@
+name: golangci-lint
+on:
+  pull_request:
+    branches:
+      - main
+    types: [milestoned, opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      - name: Setup golang
+        uses: ./.github/actions/golang
+      
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+        with:
+          args: --timeout=5m

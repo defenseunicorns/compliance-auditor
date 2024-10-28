@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -57,7 +58,8 @@ func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, t
 		go func() {
 			if timeout != NO_TIMEOUT {
 				time.Sleep(time.Duration(timeout) * time.Second)
-				cmd.Help()
+				//nolint:errcheck
+				cmd.Help() // #nosec G104
 				message.Fatalf(fmt.Errorf("timed out waiting for stdin"), "timed out waiting for stdin")
 			}
 		}()
@@ -82,7 +84,7 @@ func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, t
 }
 
 // RunSingleValidation runs a single validation
-func RunSingleValidation(validationBytes []byte, opts ...types.LulaValidationOption) (lulaValidation types.LulaValidation, err error) {
+func RunSingleValidation(ctx context.Context, validationBytes []byte, opts ...types.LulaValidationOption) (lulaValidation types.LulaValidation, err error) {
 	var validation common.Validation
 
 	err = yaml.Unmarshal(validationBytes, &validation)
@@ -95,7 +97,7 @@ func RunSingleValidation(validationBytes []byte, opts ...types.LulaValidationOpt
 		return lulaValidation, err
 	}
 
-	err = lulaValidation.Validate(opts...)
+	err = lulaValidation.Validate(ctx, opts...)
 	if err != nil {
 		return lulaValidation, err
 	}

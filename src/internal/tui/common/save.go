@@ -106,10 +106,9 @@ func (m SaveModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m SaveModel) View() string {
-	PrintToLog("in popup view")
 	popupStyle := OverlayWarnStyle.
-		Width(popupWidth).
-		Height(popupHeight)
+		Width(defaultPopupWidth).
+		Height(defaultPopupHeight)
 
 	content := strings.Builder{}
 	content.WriteString(fmt.Sprintf("%s\n", m.Title))

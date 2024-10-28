@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -116,7 +117,7 @@ func GetResourcesOnly(onlyResources bool) LulaValidationOption {
 }
 
 // Perform the validation, and store the result in the LulaValidation struct
-func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
+func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOption) error {
 	if !val.Evaluated {
 		var result Result
 		var err error
@@ -157,7 +158,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		if config.staticResources != nil {
 			resources = config.staticResources
 		} else {
-			resources, err = (*val.Domain).GetResources()
+			resources, err = (*val.Domain).GetResources(ctx)
 			if err != nil {
 				return fmt.Errorf("%w: %v", ErrDomainGetResources, err)
 			}
@@ -196,7 +197,7 @@ func (val *LulaValidation) GetDomainResourcesAsJSON() []byte {
 type DomainResources map[string]interface{}
 
 type Domain interface {
-	GetResources() (DomainResources, error)
+	GetResources(context.Context) (DomainResources, error)
 	IsExecutable() bool
 }
 

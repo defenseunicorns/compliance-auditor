@@ -1,6 +1,7 @@
 package validationstore
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -105,15 +106,15 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(confirmExecution, saveResources bool, resourcesDir string) []oscalTypes_1_1_2.Observation {
+func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, resourcesDir string) []oscalTypes_1_1_2.Observation {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
 
 	for k, val := range v.validationMap {
 		completedText := "evaluated"
 		spinnerMessage := fmt.Sprintf("Running validation %s", k)
-		spinner := message.NewProgressSpinner(spinnerMessage)
+		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
-		err := val.Validate(types.ExecutionAllowed(confirmExecution))
+		err := val.Validate(ctx, types.ExecutionAllowed(confirmExecution))
 		if err != nil {
 			message.Debugf("Error running validation %s: %v", k, err)
 			// Update validation with failed results
@@ -146,7 +147,7 @@ func (v *ValidationStore) RunValidations(confirmExecution, saveResources bool, r
 			// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
 			filename := fmt.Sprintf("%s.json", resourceUuid)
 			resourceFile := filepath.Join(resourcesDir, "resources", filename)
-			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm)
+			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm) // #nosec G301
 			if err != nil {
 				message.Debugf("Error creating directory for remote resource: %v", err)
 			}

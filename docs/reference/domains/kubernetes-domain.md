@@ -29,18 +29,19 @@ domain:
           base64:                       # Optional - Boolean whether field is base64 encoded
 ```
 
-> [!Tip]
-> Lula supports eventual-consistency through use of an optional `wait` field in the `kubernetes-spec`. 
+Lula supports eventual-consistency through use of an optional `wait` field in the `kubernetes-spec`. This parameter supports waiting for a specified resource to be `Ready` in the cluster. This may be particularly useful if evaluating the status of a selected resource or evaluating the children of a specified resource.
 
 ```yaml
 domain:
   type: kubernetes
   kubernetes-spec:
     wait:                               # Optional - Group of resources to read from Kubernetes
-      condition: Ready                  # ...
-      kind: pod/test-pod-wait           # ...
-      namespace: validation-test        # ...
-      timeout: 30s                      # ...
+      group:                            # Optional - Empty or "" for core group
+      version: v1                       # Required - Version of resource
+      resource: pods                    # Required - Resource type (API-recognized type, not Kind)Required - Resource type (API-recognized type, not Kind)
+      name: test-pod-wait               # Required - Name of the resource to wait for
+      namespace: validation-test        # Optional - For namespaced resources
+      timeout: 30s                      # Optional - Defaults to 30s
     resources:
     - name: podsvt
       resource-rule:
@@ -49,6 +50,9 @@ domain:
         resource: pods
         namespaces: [validation-test]
 ```
+
+> [!Tip]
+> Both `resources` and `wait` use the Group, Version, Resource constructs to identify the resource to be evaluated. To identify those using `kubectl`, executing `kubectl explain <resource/kind/short name>` will provide the Group and Version, the `resource` field is the API-recognized type and can be confirmed by consulting the list provided by `kubectl api-resources`.
 
 ### Resource Creation
 
@@ -65,6 +69,50 @@ domain:
           <some manifest(s)>
         file: '<some url>'              # Optional - File name where resource(s) to create are stored; Only optional if manifest is not specified. Currently does not support relative paths.
 ```
+
+In addition to simply creating and reading individual resources, you can create a resource, wait for it to be ready, then read the possible children resources that should be created. For example the following `kubernetes-spec` will create a deployment, wait for it to be ready, and then read the pods that should be children of that deployment:
+
+```yaml
+domain: 
+  type: kubernetes
+  kubernetes-spec:
+    create-resources:
+    - name: testDeploy
+      manifest: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: test-deployment
+          namespace: validation-test
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: test-app
+          template:
+            metadata:
+              labels:
+                app: test-app
+            spec:
+              containers:
+              - name: test-container
+                image: nginx
+    wait:
+      group: apps
+      version: v1
+      resource: deployments
+      name: test-deployment
+      namespace: validation-test
+    resources:
+    - name: validationTestPods
+      resource-rule:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+```
+
+> [!NOTE]
+> The `create-resources` is evaluated prior to the `wait`, and `wait` is evaluated prior to the `resources`.
 
 ## Lists vs Named Resource
 

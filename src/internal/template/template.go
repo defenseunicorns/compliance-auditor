@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -182,7 +183,8 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 		return templateData, err
 	}
 
-	templateData.Constants = constants
+	templateData.Constants = deepCopyMap(constants)
+
 	for _, variable := range variables {
 		if variable.Sensitive {
 			templateData.SensitiveVariables[variable.Key] = variable.Default
@@ -199,7 +201,10 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 	templateData.SensitiveVariables = mergeStringMaps(templateData.SensitiveVariables, envMap)
 
 	// Apply overrides
-	overrideTemplateValues(templateData, overrides)
+	err = overrideTemplateValues(templateData, overrides)
+	if err != nil {
+		return templateData, err
+	}
 
 	// Validate that all env vars have values - currently debug prints missing env vars (do we want to return an error?)
 	var variablesMissing strings.Builder
@@ -213,7 +218,7 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 			variablesMissing.WriteString(fmt.Sprintf("sensitive variable %s is missing a value;\n", k))
 		}
 	}
-	message.Debugf(variablesMissing.String())
+	message.Debug(variablesMissing.String())
 
 	return templateData, nil
 }
@@ -245,6 +250,33 @@ func GetEnvVars(prefix string) map[string]string {
 	}
 
 	return envMap
+}
+
+// IsTemplate checks if the given string contains valid template syntax
+func IsTemplate(data string) bool {
+	// Check for basic template syntax markers
+	if !strings.Contains(data, "{{") || !strings.Contains(data, "}}") {
+		return false
+	}
+
+	// Attempt to parse the template
+	tpl := createTemplate()
+	_, err := tpl.Parse(data)
+	return err == nil
+}
+
+func ParseRenderType(item string) (RenderType, error) {
+	switch strings.ToLower(item) {
+	case "masked":
+		return MASKED, nil
+	case "constants":
+		return CONSTANTS, nil
+	case "non-sensitive":
+		return NONSENSITIVE, nil
+	case "all":
+		return ALL, nil
+	}
+	return "", fmt.Errorf("invalid render type: %s", item)
 }
 
 // createTemplate creates a new template object
@@ -315,14 +347,14 @@ func returnUniqueMatches(matches [][]string, captures int) map[string][]string {
 // checkForInvalidKeys checks for invalid characters in keys for go text/template
 // cannot contain '-' or '.'
 func checkForInvalidKeys(constants map[string]interface{}, variables []VariableConfig) error {
-	var errors strings.Builder
+	var errs strings.Builder
 
 	containsInvalidChars := func(key string) {
 		if strings.Contains(key, "-") {
-			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
+			errs.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
 		}
 		if strings.Contains(key, ".") {
-			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
+			errs.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
 		}
 	}
 
@@ -344,15 +376,15 @@ func checkForInvalidKeys(constants map[string]interface{}, variables []VariableC
 		containsInvalidChars(variable.Key)
 	}
 
-	if errors.Len() > 0 {
-		return fmt.Errorf(errors.String()[:len(errors.String())-1])
+	if errs.Len() > 0 {
+		return errors.New(errs.String()[:len(errs.String())-1])
 	}
 
 	return nil
 }
 
 // overrideTemplateValues overrides values in the templateData object with values from the overrides map
-func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) {
+func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) error {
 	for path, value := range overrides {
 		// for each key, check if .var or .const
 		// if .var, set the value in the templateData.Variables or templateData.SensitiveVariables
@@ -368,9 +400,13 @@ func overrideTemplateValues(templateData *TemplateData, overrides map[string]str
 		} else if strings.HasPrefix(path, "."+CONST+".") {
 			// Set the value in the templateData.Constants
 			key := strings.TrimPrefix(path, "."+CONST+".")
-			setNestedValue(templateData.Constants, key, value)
+			err := setNestedValue(templateData.Constants, key, value)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // Helper function to set a value in a map based on a JSON-like key path
@@ -394,4 +430,57 @@ func setNestedValue(m map[string]interface{}, path string, value interface{}) er
 	// Set the final value
 	m[lastKey] = value
 	return nil
+}
+
+func deepCopyMap(input map[string]interface{}) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new map to hold the copy
+	copy := make(map[string]interface{})
+
+	for key, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[key] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[key] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[key] = v
+		}
+	}
+
+	return copy
+}
+
+// Helper function to deep copy a slice of interface{}
+func deepCopySlice(input []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new slice to hold the copy
+	copy := make([]interface{}, len(input))
+
+	for i, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[i] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[i] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[i] = v
+		}
+	}
+
+	return copy
 }

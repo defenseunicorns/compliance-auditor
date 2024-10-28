@@ -1,0 +1,6 @@
+linters:
+  # all default linters enabled
+  enable:
+    - gofmt
+    - goimports
+    - prealloc

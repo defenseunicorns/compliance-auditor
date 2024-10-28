@@ -1,0 +1,14 @@
+component-definition:
+  uuid: ea3e8daf-a055-4593-95f4-fa1b10eab448
+  metadata:
+    title: example no implementations
+    last-modified: "2023-11-29T17:48:16Z"
+    version: "20231129"
+    oscal-version: 1.1.2
+  components:
+    - uuid: b87ba90e-86db-4980-9600-fbfc8bf3c4f1
+      type: software
+      title: Test
+      description: |
+        this represents a component without any control implementations
+      purpose: Provides a testing 

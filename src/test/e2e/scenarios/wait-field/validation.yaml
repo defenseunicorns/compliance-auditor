@@ -8,10 +8,10 @@ domain:
           version: v1
           namespaces: [validation-test]
     wait:
-      condition: Ready
-      kind: pod/test-pod-wait
+      version: v1
+      resource: pods
+      name: test-pod-wait
       namespace: validation-test
-      timeout: 30s
 provider:
   type: opa
   opa-spec:
