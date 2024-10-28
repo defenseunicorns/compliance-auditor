@@ -1,8 +1,8 @@
 package network
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  // #nosec G501
+	"crypto/sha1" // #nosec G505
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -66,11 +66,38 @@ func ParseChecksum(src string) (*url.URL, string, error) {
 	return url, checksum, nil
 }
 
+type fetchOpts struct {
+	baseDir string
+}
+
+type FetchOption func(*fetchOpts) error
+
+func WithBaseDir(baseDir string) FetchOption {
+	return func(opts *fetchOpts) error {
+		// check if baseDir is a valid directory
+		if _, err := os.Stat(baseDir); err != nil {
+			return err
+		}
+		opts.baseDir = baseDir
+		return nil
+	}
+}
+
+// TODO: add more options for timeout, retries, etc.
+
 // Fetch fetches the response body from a given URL after validating it.
 // If the URL scheme is "file", the file is fetched from the local filesystem.
 // If the URL scheme is "http", "https", or "ftp", the file is fetched from the remote server.
 // If the URL has a checksum, the file is validated against the checksum.
-func Fetch(inputURL string) (bytes []byte, err error) {
+func Fetch(inputURL string, opts ...FetchOption) (bytes []byte, err error) {
+	config := &fetchOpts{}
+	for _, opt := range opts {
+		err = opt(config)
+		if err != nil {
+			return bytes, err
+		}
+	}
+
 	url, checksum, err := ParseChecksum(inputURL)
 	if err != nil {
 		return bytes, err
@@ -78,7 +105,7 @@ func Fetch(inputURL string) (bytes []byte, err error) {
 
 	// If the URL is a file, fetch the file from the local filesystem
 	if url.Scheme == "file" {
-		bytes, err = FetchLocalFile(url)
+		bytes, err = FetchLocalFile(url, config)
 		if err != nil {
 			return bytes, err
 		}
@@ -114,7 +141,7 @@ func Fetch(inputURL string) (bytes []byte, err error) {
 // FetchLocalFile fetches a local file from a given URL.
 // If the URL scheme is not "file", an error is returned.
 // If the URL is relative, the component definition directory is prepended if set, otherwise the current working directory is prepended.
-func FetchLocalFile(url *url.URL) ([]byte, error) {
+func FetchLocalFile(url *url.URL, config *fetchOpts) ([]byte, error) {
 	if url.Scheme != "file" {
 		return nil, errors.New("expected file URL scheme")
 	}
@@ -122,16 +149,27 @@ func FetchLocalFile(url *url.URL) ([]byte, error) {
 
 	// If the request uri is absolute, use it directly
 	if _, err := os.Stat(requestUri); err != nil {
-		// if relative pre-pend cwd
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, err
-		}
-		requestUri = filepath.Join(cwd, requestUri)
+		requestUri = filepath.Join(config.baseDir, url.Host, requestUri)
 	}
-
+	requestUri = filepath.Clean(requestUri)
 	bytes, err := os.ReadFile(requestUri)
 	return bytes, err
+}
+
+func GetLocalFileDir(inputURL, baseDir string) string {
+	url, err := url.Parse(inputURL)
+	if err != nil {
+		return ""
+	}
+	requestUri := url.RequestURI()
+
+	if url.Scheme == "file" {
+		fullPath := filepath.Join(baseDir, url.Host, requestUri)
+		if _, err := os.Stat(fullPath); err == nil {
+			return filepath.Dir(fullPath)
+		}
+	}
+	return ""
 }
 
 // ValidateChecksum validates a given checksum against a given []bytes.
@@ -141,10 +179,10 @@ func ValidateChecksum(data []byte, expectedChecksum string) error {
 	var actualChecksum string
 	switch len(expectedChecksum) {
 	case md5.Size * 2:
-		hash := md5.Sum(data)
+		hash := md5.Sum(data) // #nosec G401
 		actualChecksum = hex.EncodeToString(hash[:])
 	case sha1.Size * 2:
-		hash := sha1.Sum(data)
+		hash := sha1.Sum(data) // #nosec G401
 		actualChecksum = hex.EncodeToString(hash[:])
 	case sha256.Size * 2:
 		hash := sha256.Sum256(data)

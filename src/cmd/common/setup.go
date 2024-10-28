@@ -7,8 +7,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
-func SetupClI(logLevel string) error {
-
+func SetupClI(logLevel string) {
 	match := map[string]message.LogLevel{
 		"warn":  message.WarnLevel,
 		"info":  message.InfoLevel,
@@ -33,10 +32,8 @@ func SetupClI(logLevel string) error {
 	}
 
 	if !config.SkipLogFile {
-		message.UseLogFile()
+		message.UseLogFile(nil)
 	}
 
 	printViperConfigUsed()
-
-	return nil
 }

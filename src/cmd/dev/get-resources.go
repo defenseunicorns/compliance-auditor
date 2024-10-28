@@ -35,7 +35,7 @@ var getResourcesCmd = &cobra.Command{
 	Example: getResourcesHelp,
 	Run: func(cmd *cobra.Command, args []string) {
 		spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
-		spinner := message.NewProgressSpinner(spinnerMessage)
+		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
 
 		ctx := context.Background()
@@ -72,7 +72,7 @@ func init() {
 }
 
 func DevGetResources(ctx context.Context, validationBytes []byte, spinner *message.Spinner) (types.DomainResources, error) {
-	lulaValidation, err := RunSingleValidation(
+	lulaValidation, err := RunSingleValidation(ctx,
 		validationBytes,
 		types.ExecutionAllowed(getResourcesOpts.ConfirmExecution),
 		types.Interactive(RunInteractively),
@@ -91,7 +91,7 @@ func writeResources(data types.DomainResources, filepath string) {
 
 	// If a filepath is provided, write the JSON data to the file.
 	if filepath != "" {
-		err := os.WriteFile(filepath, []byte(jsonData), 0644)
+		err := os.WriteFile(filepath, []byte(jsonData), 0600) // G306
 		if err != nil {
 			message.Fatalf(err, "error writing resource JSON to file: %v", err)
 		}

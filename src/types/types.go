@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -25,6 +27,9 @@ const (
 type LulaValidation struct {
 	// Name of the Validation
 	Name string
+
+	// UUID of the validation - tied to the component-definition.backmatter
+	UUID string
 
 	// Provider is the provider that is evaluating the validation
 	Provider *Provider
@@ -116,7 +121,7 @@ func GetResourcesOnly(onlyResources bool) LulaValidationOption {
 }
 
 // Perform the validation, and store the result in the LulaValidation struct
-func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
+func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOption) error {
 	if !val.Evaluated {
 		var result Result
 		var err error
@@ -157,7 +162,7 @@ func (val *LulaValidation) Validate(opts ...LulaValidationOption) error {
 		if config.staticResources != nil {
 			resources = config.staticResources
 		} else {
-			resources, err = (*val.Domain).GetResources()
+			resources, err = (*val.Domain).GetResources(ctx)
 			if err != nil {
 				return fmt.Errorf("%w: %v", ErrDomainGetResources, err)
 			}
@@ -226,10 +231,23 @@ func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
 	return !(*val.Domain).IsExecutable()
 }
 
+// Return domain resources as a json []byte
+func (val *LulaValidation) GetDomainResourcesAsJSON() []byte {
+	if val.DomainResources == nil {
+		return []byte("{}")
+	}
+	jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
+	if err != nil {
+		message.Debugf("Error marshalling domain resources to JSON: %v", err)
+		jsonData = []byte(`{"Error": "Error marshalling to JSON"}`)
+	}
+	return jsonData
+}
+
 type DomainResources map[string]interface{}
 
 type Domain interface {
-	GetResources() (DomainResources, error)
+	GetResources(context.Context) (DomainResources, error)
 	IsExecutable() bool
 }
 

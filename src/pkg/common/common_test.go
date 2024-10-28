@@ -18,6 +18,7 @@ import (
 
 const multiValidationPath = "../../test/e2e/scenarios/remote-validations/multi-validations.yaml"
 const singleValidationPath = "../../test/e2e/scenarios/remote-validations/validation.opa.yaml"
+const whitespaceValidationPath = "../../test/e2e/scenarios/remote-validations/validation.whitespace.yaml"
 
 // Helper function to load test data
 func loadTestData(t *testing.T, path string) []byte {
@@ -115,11 +116,9 @@ func TestGetDomain(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := common.GetDomain(&tt.domain, ctx)
+			result, err := common.GetDomain(&tt.domain)
 			if (err != nil) != tt.expectedErr {
 				t.Fatalf("expected error: %v, got: %v", tt.expectedErr, err)
 			}
@@ -243,32 +242,38 @@ func TestValidationFromString(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    string
+		uuid    string
 		wantErr bool
 	}{
 		{
 			name:    "Valid Validation string",
 			data:    validationStrings[0],
+			uuid:    "88AB3470-B96B-4D7C-BC36-02BF9563C46C",
 			wantErr: false,
 		},
 		{
-			name:    "Invalid Validation string",
+			name:    "Invalid Validation, successfully unmarshalled",
 			data:    "Test: test",
+			uuid:    "a50c374a-deee-4032-9a0e-38e624f49c3d", // check that still returns a valid UUID even if invalid validation string
 			wantErr: true,
 		},
 		{
 			name:    "Empty Data",
 			data:    "",
+			uuid:    "",
 			wantErr: true,
 		},
-		// Additional test cases can be added here
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := common.ValidationFromString(tt.data)
+			lulaValidation, err := common.ValidationFromString(tt.data, tt.uuid)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidationFromString() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if lulaValidation.UUID != tt.uuid {
+				t.Errorf("ValidationFromString() UUID = %v, want %v", lulaValidation.UUID, tt.uuid)
 			}
 		})
 	}
@@ -340,7 +345,7 @@ func TestValidationToResource(t *testing.T) {
 		t.Parallel()
 		validation := &common.Validation{
 			Metadata: &common.Metadata{
-				UUID: "1234",
+				UUID: "1f639c6b-4e86-4c66-88b2-22dbf6d7ac02",
 				Name: "Test Validation",
 			},
 			Provider: &common.Provider{
@@ -388,8 +393,31 @@ func TestValidationToResource(t *testing.T) {
 			t.Errorf("ToResource() error = %v", err)
 		}
 
-		if resource.UUID == validation.Metadata.UUID {
-			t.Errorf("ToResource() description = \"\", want a valid UUID")
+		if resource.UUID != validation.Metadata.UUID {
+			t.Errorf("ToResource() resource UUID %s should match created validation UUID %s", resource.UUID, validation.Metadata.UUID)
+		}
+	})
+
+	t.Run("It trims whitespace from the validation", func(t *testing.T) {
+		t.Parallel()
+		validationBytes := loadTestData(t, whitespaceValidationPath)
+
+		validation, err := common.ReadValidationsFromYaml(validationBytes)
+		if err != nil {
+			t.Fatalf("yaml.Unmarshal failed: %v", err)
+		}
+
+		if len(validation) > 1 {
+			t.Errorf("Expected 1 validation, got %d", len(validation))
+		}
+
+		resource, err := validation[0].ToResource()
+		if err != nil {
+			t.Errorf("ToResource() error = %v", err)
+		}
+		strings.Contains(resource.Description, " \n")
+		if strings.Contains(resource.Description, " \n") {
+			t.Errorf("ToResource() description = should not contain whitespace followed by newline")
 		}
 	})
 }

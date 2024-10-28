@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -15,6 +15,7 @@ import (
 )
 
 func TestRemoteValidation(t *testing.T) {
+	const ckPodDevValidate contextKey = "pod-dev-validate"
 	featureRemoteValidation := features.New("Check dev validate").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
@@ -29,14 +30,19 @@ func TestRemoteValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod-dev-validate", pod)
+			ctx = context.WithValue(ctx, ckPodDevValidate, pod)
 
 			return ctx
 		}).
 		Assess("Validate local validation file", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/remote-validations/component-definition.yaml"
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			validator, err := validation.New(validation.WithComposition(nil, oscalPath))
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -63,7 +69,7 @@ func TestRemoteValidation(t *testing.T) {
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 
 			// Delete the pod
-			pod := ctx.Value("pod-dev-validate").(*corev1.Pod)
+			pod := ctx.Value(ckPodDevValidate).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

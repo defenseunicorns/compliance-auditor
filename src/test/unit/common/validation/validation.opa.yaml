@@ -1,0 +1,27 @@
+lula-version: ">=v0.2.0"
+metadata:
+  name: Validate pods with label foo=bar
+  uuid: 6c00ae8d-7187-42ab-8d89-f383447a0824
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podsvt
+        resource-rule:
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+
+      import future.keywords.every
+
+      validate {
+        every pod in input.podsvt {
+          podLabel := pod.metadata.labels.foo
+          podLabel == "bar"
+        }
+      }

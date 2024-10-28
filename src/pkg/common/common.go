@@ -3,14 +3,17 @@ package common
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
+	"github.com/defenseunicorns/lula/src/pkg/domains/files"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
@@ -49,6 +52,7 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	if os.IsNotExist(err) {
 		return data, fmt.Errorf("Path: %v does not exist - unable to digest document", path)
 	}
+	path = filepath.Clean(path)
 	data, err = os.ReadFile(path)
 	if err != nil {
 		return data, err
@@ -138,15 +142,17 @@ func SetCwdToFileDir(dirPath string) (resetFunc func(), err error) {
 }
 
 // Get the domain and providers
-func GetDomain(domain *Domain, ctx context.Context) (types.Domain, error) {
+func GetDomain(domain *Domain) (types.Domain, error) {
 	if domain == nil {
 		return nil, fmt.Errorf("domain is nil")
 	}
 	switch domain.Type {
 	case "kubernetes":
-		return kube.CreateKubernetesDomain(ctx, domain.KubernetesSpec)
+		return kube.CreateKubernetesDomain(domain.KubernetesSpec)
 	case "api":
 		return api.CreateApiDomain(domain.ApiSpec)
+	case "file":
+		return files.CreateDomain(domain.FileSpec)
 	default:
 		return nil, fmt.Errorf("domain is unsupported")
 	}
@@ -167,7 +173,7 @@ func GetProvider(provider *Provider, ctx context.Context) (types.Provider, error
 }
 
 // Converts a raw string to a Validation object (string -> common.Validation -> types.Validation)
-func ValidationFromString(raw string) (validation types.LulaValidation, err error) {
+func ValidationFromString(raw, uuid string) (validation types.LulaValidation, err error) {
 	if raw == "" {
 		return validation, fmt.Errorf("validation string is empty")
 	}
@@ -178,10 +184,29 @@ func ValidationFromString(raw string) (validation types.LulaValidation, err erro
 		return validation, err
 	}
 
-	validation, err = validationData.ToLulaValidation()
+	validation, err = validationData.ToLulaValidation(uuid)
 	if err != nil {
 		return validation, err
 	}
 
 	return validation, nil
+}
+
+func CheckFileExists(filepath string) (bool, error) {
+	if _, err := os.Stat(filepath); err == nil {
+		return true, nil
+
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+
+	} else {
+		return false, err
+	}
+}
+
+// CleanMultilineString removes leading and trailing whitespace from a multiline string
+func CleanMultilineString(str string) string {
+	re := regexp.MustCompile(`[ \t]+\r?\n`)
+	formatted := re.ReplaceAllString(str, "\n")
+	return formatted
 }

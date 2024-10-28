@@ -7,11 +7,13 @@ import (
 )
 
 type ObservationPair struct {
-	StateChange         StateChange
-	Satisfied           bool
-	Name                string
-	Observation         string
-	ComparedObservation string
+	StateChange             StateChange
+	Satisfied               bool
+	Name                    string
+	Observation             string
+	ObservationUuid         string
+	ComparedObservation     string
+	ComparedObservationUuid string
 }
 
 // CreateObservationPairs creates a slice of observation pairs from a slice of observations and compared observations
@@ -41,21 +43,24 @@ func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObser
 	// Calculate the state change
 	var state StateChange
 	var result bool
-	var observationRemarks, comparedObservationRemarks, name string
+	var observationRemarks, comparedObservationRemarks, observationUuid, comparedObservationUuid, name string
 	prefix := "[TEST]: "
 
 	if observation != nil {
+		observationUuid = observation.UUID
 		name = strings.TrimPrefix(observation.Description, prefix)
 		observationRemarks = getRemarks(observation.RelevantEvidence)
 		result = getObservationResult(observation.RelevantEvidence)
 		if comparedObservation == nil {
 			state = NEW
 		} else {
+			comparedObservationUuid = comparedObservation.UUID
 			comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
 			state = getStateChange(observation, comparedObservation)
 		}
 	} else {
 		if comparedObservation != nil {
+			comparedObservationUuid = comparedObservation.UUID
 			name = strings.TrimPrefix(comparedObservation.Description, prefix)
 			comparedObservationRemarks = getRemarks(comparedObservation.RelevantEvidence)
 			state = REMOVED
@@ -65,11 +70,13 @@ func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObser
 	}
 
 	return &ObservationPair{
-		StateChange:         state,
-		Satisfied:           result,
-		Name:                name,
-		Observation:         observationRemarks,
-		ComparedObservation: comparedObservationRemarks,
+		StateChange:             state,
+		Satisfied:               result,
+		Name:                    name,
+		Observation:             observationRemarks,
+		ObservationUuid:         observationUuid,
+		ComparedObservation:     comparedObservationRemarks,
+		ComparedObservationUuid: comparedObservationUuid,
 	}
 }
 

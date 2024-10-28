@@ -1,6 +1,7 @@
 package validationstore_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
@@ -9,6 +10,7 @@ import (
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -115,7 +117,8 @@ func TestDryRun(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			v := validationstore.NewValidationStore()
 			for _, validation := range tt.validations {
-				v.AddValidation(&validation)
+				_, err := v.AddValidation(&validation)
+				require.NoError(t, err)
 			}
 
 			executable, _ := v.DryRun()
@@ -164,7 +167,7 @@ func TestRunValidations(t *testing.T) {
 				v.AddLulaValidation(validation, uuid.NewUUID())
 			}
 
-			observations := v.RunValidations(true)
+			observations := v.RunValidations(context.Background(), true, false, "")
 			if len(observations) != tt.expectedObservations {
 				t.Errorf("Expected %d observations, but got %d", tt.expectedObservations, len(observations))
 			}
@@ -180,7 +183,7 @@ func TestGetRelatedObservation(t *testing.T) {
 	v.AddLulaValidation(validationPass, "1")
 	v.AddLulaValidation(validationFail, "2")
 
-	v.RunValidations(true)
+	v.RunValidations(context.Background(), true, false, "")
 
 	tests := []struct {
 		name               string

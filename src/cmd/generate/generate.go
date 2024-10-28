@@ -67,6 +67,12 @@ var generateComponentCmd = &cobra.Command{
 		var remarks []string
 		var title = "Component Title"
 
+		// Check if output file contains a valid OSCAL model
+		_, err := oscal.ValidOSCALModelAtPath(opts.OutputFile)
+		if err != nil {
+			message.Fatalf(err, "Output file %s is not a valid OSCAL model: %v", opts.OutputFile, err)
+		}
+
 		// check for Catalog Source - this field is required
 		if componentOpts.CatalogSource == "" {
 			message.Fatal(fmt.Errorf("no catalog source provided"), "generate component requires a catalog input source")
@@ -112,7 +118,7 @@ var generateComponentCmd = &cobra.Command{
 		// Create a component definition from the catalog given required context
 		comp, err := oscal.ComponentFromCatalog(command, source, catalog, title, componentOpts.Requirements, remarks, componentOpts.Framework)
 		if err != nil {
-			message.Fatalf(err, fmt.Sprintf("error creating component - %s\n", err.Error()))
+			message.Fatalf(err, "error creating component - %s\n", err.Error())
 		}
 
 		var model = oscalTypes_1_1_2.OscalModels{
@@ -180,6 +186,7 @@ func init() {
 	common.InitViper()
 
 	generateCmd.AddCommand(generateComponentCmd)
+	generateCmd.AddCommand(GenerateProfileCommand())
 	// generateCmd.AddCommand(generateAssessmentPlanCmd)
 	// generateCmd.AddCommand(generateSystemSecurityPlanCmd)
 	// generateCmd.AddCommand(generatePOAMCmd)

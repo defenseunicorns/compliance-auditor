@@ -211,34 +211,6 @@ func mergeControlImplementations(original *oscalTypes_1_1_2.ControlImplementatio
 	return original
 }
 
-// Merges two arrays of resources into a single array
-func mergeResources(orig *[]oscalTypes_1_1_2.Resource, latest *[]oscalTypes_1_1_2.Resource) *[]oscalTypes_1_1_2.Resource {
-	if orig == nil {
-		return latest
-	}
-
-	if latest == nil {
-		return orig
-	}
-
-	result := make([]oscalTypes_1_1_2.Resource, 0)
-
-	tempResource := make(map[string]oscalTypes_1_1_2.Resource)
-	for _, resource := range *orig {
-		tempResource[resource.UUID] = resource
-		result = append(result, resource)
-	}
-
-	for _, resource := range *latest {
-		// Only append if does not exist
-		if _, ok := tempResource[resource.UUID]; !ok {
-			result = append(result, resource)
-		}
-	}
-
-	return &result
-}
-
 // Merges two arrays of links into a single array
 // TODO: account for overriding validations
 func mergeLinks(orig []oscalTypes_1_1_2.Link, latest []oscalTypes_1_1_2.Link) *[]oscalTypes_1_1_2.Link {
@@ -530,39 +502,6 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	return controlMap
 }
 
-// Need to get components + frameworks + control implementations -> new struct?
-type ComponentFrameworks struct {
-	Component  oscalTypes_1_1_2.DefinedComponent
-	Frameworks map[string][]oscalTypes_1_1_2.ControlImplementationSet
-}
-
-func NewComponentFrameworks(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]ComponentFrameworks {
-	componentTargets := make(map[string]ComponentFrameworks)
-
-	if componentDefinition.Components != nil {
-		// Build a map[source/framework][]control-implementations
-		for _, component := range *componentDefinition.Components {
-			controlImplementationsMap := make(map[string][]oscalTypes_1_1_2.ControlImplementationSet)
-			if component.ControlImplementations != nil {
-				for _, controlImplementation := range *component.ControlImplementations {
-					// Using UUID here as the key -> could also be string -> what would we rather the user pass in?
-					controlImplementationsMap[controlImplementation.Source] = append(controlImplementationsMap[controlImplementation.Source], controlImplementation)
-					status, value := GetProp("framework", LULA_NAMESPACE, controlImplementation.Props)
-					if status {
-						controlImplementationsMap[value] = append(controlImplementationsMap[value], controlImplementation)
-					}
-				}
-			}
-			componentTargets[component.UUID] = ComponentFrameworks{
-				Component:  component,
-				Frameworks: controlImplementationsMap,
-			}
-		}
-	}
-
-	return componentTargets
-}
-
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
 	// sort components by title
 
@@ -623,16 +562,9 @@ func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) 
 	// sort backmatter
 	if component.BackMatter != nil {
 		backmatter := *component.BackMatter
-		if backmatter.Resources != nil {
-			resources := *backmatter.Resources
-			sort.Slice(resources, func(i, j int) bool {
-				return resources[i].Title < resources[j].Title
-			})
-			backmatter.Resources = &resources
-		}
+		sortBackMatter(&backmatter)
 		component.BackMatter = &backmatter
 	}
-
 }
 
 func contains(s []string, e string) bool {
@@ -661,10 +593,12 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 			}
 
 			var tabs string
-			for range level {
+			// Indents based on labels
+			for i := 0; i < level; i++ {
 				tabs += "\t"
 			}
-			prose := part.Prose
+			// Trims the whitespace
+			prose := strings.TrimSpace(part.Prose)
 			if prose == "" {
 				result += fmt.Sprintf("%s%s\n", tabs, label)
 			} else if strings.Contains(prose, "{{ insert: param,") {

@@ -2,17 +2,13 @@ package test
 
 import (
 	"context"
-
-	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
-	corev1 "k8s.io/api/core/v1"
-
-	// netv1 "k8s.io/api/networking/v1"
-	// "sigs.k8s.io/e2e-framework/klient/k8s"
 	"testing"
 	"time"
 
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
@@ -20,6 +16,10 @@ import (
 )
 
 func TestApiValidation(t *testing.T) {
+	const (
+		ckAPIFieldConfigMap contextKey = "api-field-configmap"
+		ckApiFieldPod       contextKey = "api-field-pod"
+	)
 	featureTrueValidation := features.New("Check API Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the configmap
@@ -30,7 +30,7 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-configmap", configMap)
+			ctx = context.WithValue(ctx, ckAPIFieldConfigMap, configMap)
 
 			// Create the pod
 			pod, err := util.GetPod("./scenarios/api-field/pod.yaml")
@@ -47,7 +47,7 @@ func TestApiValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-pod", pod)
+			ctx = context.WithValue(ctx, ckApiFieldPod, pod)
 
 			return ctx
 		}).
@@ -55,7 +55,12 @@ func TestApiValidation(t *testing.T) {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -80,7 +85,7 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("api-field-pod").(*corev1.Pod)
+			pod := ctx.Value(ckApiFieldPod).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -92,7 +97,7 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			configMap := ctx.Value("api-field-configmap").(*corev1.ConfigMap)
+			configMap := ctx.Value(ckAPIFieldConfigMap).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
@@ -116,7 +121,7 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-configmap", configMap)
+			ctx = context.WithValue(ctx, ckAPIFieldConfigMap, configMap)
 
 			pod, err := util.GetPod("./scenarios/api-field/pod.yaml")
 			if err != nil {
@@ -132,14 +137,19 @@ func TestApiValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-pod", pod)
+			ctx = context.WithValue(ctx, ckApiFieldPod, pod)
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(oscalPath, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -164,7 +174,7 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("api-field-pod").(*corev1.Pod)
+			pod := ctx.Value(ckApiFieldPod).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -176,7 +186,7 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			configMap := ctx.Value("api-field-configmap").(*corev1.ConfigMap)
+			configMap := ctx.Value(ckAPIFieldConfigMap).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}

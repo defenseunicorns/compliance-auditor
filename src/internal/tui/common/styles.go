@@ -3,32 +3,35 @@ package common
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 )
 
 const (
-	// In real life situations we'd adjust the document to fit the width we've
-	// detected. In the case of this example we're hardcoding the width, and
-	// later using the detected width only to truncate in order to avoid jaggy
-	// wrapping.
-	width = 96
-
-	columnWidth = 30
-
-	modalWidth  = 60
-	modalHeight = 7
+	defaultPopupWidth  = 40
+	defaultPopupHeight = 10
 )
 
-// Style definitions.
+// Common Style definitions.
 var (
 
 	// Colors
-
+	Text       = lipgloss.AdaptiveColor{Light: "#000000", Dark: "#ffffff"}
 	Subtle     = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
+	Subtle2    = lipgloss.AdaptiveColor{Light: "#706f6f", Dark: "#989797"}
 	Highlight  = lipgloss.AdaptiveColor{Light: "#6d26fc", Dark: "#7D56F4"}
+	Highlight2 = lipgloss.AdaptiveColor{Light: "#8f58fc", Dark: "#8f6ef0"}
 	Focused    = lipgloss.AdaptiveColor{Light: "#8378ab", Dark: "#bfb2eb"}
 	Special    = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
 	Background = lipgloss.AdaptiveColor{Light: "#c5c6c7", Dark: "#333436"}
+	Warning    = lipgloss.AdaptiveColor{Light: "#FFA100", Dark: "#F9A431"}
+
+	HelpKey        = lipgloss.AdaptiveColor{Light: "#909090", Dark: "#626262"}
+	HelpDesc       = lipgloss.AdaptiveColor{Light: "#B2B2B2", Dark: "#4A4A4A"}
+	HelpSep        = lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}
+	ActiveHelpKey  = Highlight2
+	ActiveHelpDesc = Highlight
+	ActiveHelpSep  = Highlight
 
 	// Tabs
 
@@ -93,7 +96,12 @@ var (
 	OverlayStyle = lipgloss.NewStyle().
 			Border(lipgloss.DoubleBorder(), true).
 			BorderForeground(Focused).
-			Padding(1, 1)
+			Padding(1, 1, 0, 1)
+
+	OverlayWarnStyle = lipgloss.NewStyle().
+				Border(lipgloss.DoubleBorder(), true).
+				BorderForeground(Warning).
+				Padding(1, 1)
 
 	BoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), true).
@@ -101,6 +109,40 @@ var (
 			Padding(1, 2).
 			Margin(1).
 			Width(30)
+
+	SummaryTextStyle = lipgloss.NewStyle().
+				Foreground(Text).Margin(0, 1)
+
+	// Table Styles
+	TableStyles = table.Styles{
+		Header:   lipgloss.NewStyle().Foreground(Highlight).Bold(true),
+		Cell:     lipgloss.NewStyle().Foreground(Subtle),
+		Selected: lipgloss.NewStyle().Foreground(Highlight),
+	}
+
+	UnfocusedTableStyles = table.Styles{
+		Header:   lipgloss.NewStyle().Foreground(Highlight).Bold(true),
+		Cell:     lipgloss.NewStyle().Foreground(Subtle),
+		Selected: lipgloss.NewStyle().Foreground(Subtle),
+	}
+
+	TableStyleBase = lipgloss.NewStyle().
+			Foreground(Text).
+			BorderForeground(Subtle2).
+			Align(lipgloss.Left)
+
+	TableStyleActive = lipgloss.NewStyle().
+				Foreground(Text).
+				BorderForeground(Highlight).
+				Align(lipgloss.Left)
+
+	// Help
+	KeyStyle        = lipgloss.NewStyle().Foreground(HelpKey)
+	DescStyle       = lipgloss.NewStyle().Foreground(HelpDesc)
+	SepStyle        = lipgloss.NewStyle().Foreground(HelpSep)
+	ActiveKeyStyle  = lipgloss.NewStyle().Foreground(ActiveHelpKey)
+	ActiveDescStyle = lipgloss.NewStyle().Foreground(ActiveHelpDesc)
+	ActiveSepStyle  = lipgloss.NewStyle().Foreground(ActiveHelpSep)
 )
 
 func HeaderView(titleText string, width int, focusColor lipgloss.AdaptiveColor) string {
@@ -115,11 +157,4 @@ func HelpStyle(width int) lipgloss.Style {
 		Align(lipgloss.Right).
 		Width(width - PanelStyle.GetHorizontalPadding() - PanelStyle.GetHorizontalMargins()).
 		Height(1)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

@@ -22,20 +22,14 @@ import (
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 )
 
-// CreateE2E() creates the test resources, reads status, and destroys them
-func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]interface{}, error) {
+// CreateAllResources() creates all resources and returns their status
+func CreateAllResources(ctx context.Context, cluster *Cluster, resources []CreateResource) (map[string]interface{}, []string, error) {
 	collections := make(map[string]interface{}, len(resources))
 	namespaces := make([]string, 0)
 	var errList []string
 
-	// Set up the clients
-	config, err := connect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to k8s cluster: %w", err)
-	}
-	client, err := klient.New(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create e2e client: %w", err)
+	if cluster == nil {
+		return nil, nil, fmt.Errorf("cluster is nil")
 	}
 
 	// Create the resources, collect the outcome
@@ -44,12 +38,12 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 		var err error
 		// Create namespace if specified
 		if resource.Namespace != "" {
-			new, err := createNamespace(ctx, client, resource.Namespace)
+			new, err := createNamespace(ctx, cluster.kclient, resource.Namespace)
 			if err != nil {
 				message.Debugf("error creating namespace %s: %v", resource.Namespace, err)
 				errList = append(errList, err.Error())
 			}
-			// Only add to list if not already in cluster
+			// Only add to list of resources to clean up if not already in cluster
 			if new {
 				namespaces = append(namespaces, resource.Namespace)
 			}
@@ -58,37 +52,29 @@ func CreateE2E(ctx context.Context, resources []CreateResource) (map[string]inte
 		// TODO: Allow both Manifest and File to be specified?
 		// Want to catch any errors and proceed in case resources have already been created
 		if resource.Manifest != "" {
-			collection, err = CreateFromManifest(ctx, client, []byte(resource.Manifest))
+			collection, err = CreateFromManifest(ctx, cluster.kclient, []byte(resource.Manifest))
 			if err != nil {
 				message.Debugf("error creating resource from manifest: %v", err)
 				errList = append(errList, err.Error())
 			}
 		} else if resource.File != "" {
-			collection, err = CreateFromFile(ctx, client, resource.File)
+			collection, err = CreateFromFile(ctx, cluster.kclient, resource.File)
 			if err != nil {
 				message.Debugf("error creating resource from file: %v", err)
 				errList = append(errList, err.Error())
 			}
 		} else {
-			// return nil, errors.New("resource must have either manifest or file specified")
 			errList = append(errList, "resource must have either manifest or file specified")
 		}
 		collections[resource.Name] = collection
 	}
 
-	// Destroy the resources
-	if err = DestroyAllResources(ctx, client, collections, namespaces); err != nil {
-		// If a resource can't be destroyed, return the error (include retry logic??)
-		message.Debugf("error destroying all resources: %v", err)
-		errList = append(errList, err.Error())
-	}
-
 	// Check if there were any errors
 	if len(errList) > 0 {
-		return nil, errors.New("errors encountered: " + strings.Join(errList, "; "))
+		return nil, nil, errors.New("errors creating resources encountered: " + strings.Join(errList, "; "))
 	}
 
-	return collections, nil
+	return collections, namespaces, nil
 }
 
 // CreateResourceFromManifest() creates the resource from the manifest string
@@ -158,7 +144,7 @@ func DestroyAllResources(ctx context.Context, client klient.Client, collections 
 
 	// Check if there were any errors
 	if len(errList) > 0 {
-		return errors.New("errors encountered: " + strings.Join(errList, "; "))
+		return errors.New("errors encountered destroying resources: " + strings.Join(errList, "; "))
 	}
 
 	return nil
@@ -166,16 +152,12 @@ func DestroyAllResources(ctx context.Context, client klient.Client, collections 
 
 // createResource() creates a resource in a k8s cluster
 func createResource(ctx context.Context, client klient.Client, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
-	// Modify the obj name to avoid collisions
-	// Omitting this - if you want to check a specific object name, this gets in the way. Additionally, probably aren't running in such quick succession that this is necessary
-	//obj.SetName(envconf.RandomName(obj.GetName(), 16))
-
 	// Create the object -> error returned when object is unable to be created
 	if err := client.Resources().Create(ctx, obj); err != nil {
 		return nil, err
 	}
 
-	// Wait for object to exist -> Times out at 10 seconds
+	// Wait for object to exist -> Times out at 30 seconds
 	conditionFunc := func(obj k8s.Object) bool {
 		if err := client.Resources().Get(ctx, obj.GetName(), obj.GetNamespace(), obj); err != nil {
 			return false
@@ -184,12 +166,12 @@ func createResource(ctx context.Context, client klient.Client, obj *unstructured
 	}
 	if err := wait.For(
 		conditions.New(client.Resources()).ResourceMatch(obj, conditionFunc),
-		wait.WithTimeout(time.Second*10),
+		wait.WithTimeout(time.Second*30),
 	); err != nil {
 		return nil, nil // Not returning error, just assuming that the object was blocked or not created
 	}
 
-	// Add pause for resources to do thier thang
+	// Add pause for resources to do thier thang -> this should be subsumed by the addition of wait and resources
 	time.Sleep(time.Second * 2) // Not sure if this is enough time, need to test with more complex resources
 
 	// Get the object to return
@@ -207,10 +189,10 @@ func destroyResource(ctx context.Context, client klient.Client, obj *unstructure
 		return err
 	}
 
-	// Wait for object to be removed from the cluster -> Times out at 30 seconds
+	// Wait for object to be removed from the cluster -> Times out at 5 minutes
 	if err := wait.For(
 		conditions.New(client.Resources()).ResourceDeleted(obj),
-		wait.WithTimeout(time.Second*30),
+		wait.WithTimeout(time.Minute*5),
 	); err != nil {
 		return err // Object is unable to be deleted... retry logic? Or just return error?
 	}

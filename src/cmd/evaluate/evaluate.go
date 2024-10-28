@@ -1,7 +1,9 @@
 package evaluate
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
@@ -23,13 +25,15 @@ To evaluate two results (threshold and latest) in a single OSCAL file:
 
 To target a specific framework for validation:
 	lula evaluate -f assessment-results.yaml --target critical
-
 `
+
+// TODO: add flag to print out old / new observation UUID so that they can be used by the dev print-resources/validation commands
 
 type flags struct {
 	InputFile []string // -f --input-file
 	Target    string   // -t --target
 	summary   bool     // -s --summary
+	machine   bool     // -m --machine
 }
 
 var opts = &flags{}
@@ -48,7 +52,10 @@ var evaluateCmd = &cobra.Command{
 			message.Fatal(err, err.Error())
 		}
 
-		EvaluateAssessments(assessmentMap, opts.Target, opts.summary)
+		err = EvaluateAssessments(assessmentMap, opts.Target, opts.summary, opts.machine)
+		if err != nil {
+			message.Fatal(err, err.Error())
+		}
 	},
 }
 
@@ -56,31 +63,40 @@ func init() {
 	v := common.InitViper()
 
 	evaluateCmd.Flags().StringSliceVarP(&opts.InputFile, "input-file", "f", []string{}, "Path to the file to be evaluated")
-	evaluateCmd.MarkFlagRequired("input-file")
+
+	err := evaluateCmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing evaluate command flags")
+	}
 	evaluateCmd.Flags().StringVarP(&opts.Target, "target", "t", v.GetString(common.VTarget), "the specific control implementations or framework to validate against")
 	evaluateCmd.Flags().BoolVarP(&opts.summary, "summary", "s", v.GetBool(common.VSummary), "Print a summary of the evaluation")
+	evaluateCmd.Flags().BoolVar(&opts.machine, "machine", false, "Print a machine-readable output")
+	err = evaluateCmd.Flags().MarkHidden("machine") // Hidden for now as internal use only
+	if err != nil {
+		message.Fatal(err, "error initializing hidden evaluate command flags")
+	}
 }
 
 func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary bool) {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary, machine bool) error {
 	// Identify the threshold & latest for comparison
 	resultMap := oscal.FilterResults(assessmentMap)
 
 	if target != "" {
 		if result, ok := resultMap[target]; ok {
-			err := evaluateTarget(result, target, summary)
+			err := evaluateTarget(result, target, summary, machine)
 			if err != nil {
-				message.Warn(err.Error())
+				return err
 			}
 		}
 	} else {
 		for source, result := range resultMap {
-			err := evaluateTarget(result, source, summary)
+			err := evaluateTarget(result, source, summary, machine)
 			if err != nil {
-				message.Warn(err.Error())
+				return err
 			}
 		}
 	}
@@ -91,11 +107,15 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 			AssessmentResults: assessment,
 		}
 
-		oscal.WriteOscalModel(filePath, &model)
+		err := oscal.WriteOscalModel(filePath, &model)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func evaluateTarget(target oscal.EvalResult, source string, summary bool) error {
+func evaluateTarget(target oscal.EvalResult, source string, summary, machine bool) error {
 	message.Debugf("Length of results: %d", len(target.Results))
 	if len(target.Results) == 0 {
 		return fmt.Errorf("no results found")
@@ -113,6 +133,7 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 			message.Fatal(fmt.Errorf("cannot compare the same assessment result against itself"), "cannot compare the same assessment result against itself")
 		}
 		var findingsWithoutObservations []string
+
 		// Compare the assessment results
 		spinner := message.NewProgressSpinner("Evaluating Assessment Results %s against %s\n", target.Threshold.UUID, target.Latest.UUID)
 		defer spinner.Stop()
@@ -121,17 +142,34 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 
 		status, resultComparison, err := oscal.EvaluateResults(target.Threshold, target.Latest)
 		if err != nil {
-			message.Fatal(err, err.Error())
+			return err
 		}
 
 		// Print summary
 		if summary {
 			message.Info("Summary of All Observations:")
-			findingsWithoutObservations = result.Collapse(resultComparison).PrintObservationComparisonTable(false, true, false)
+			findingsWithoutObservations, err = result.Collapse(resultComparison).PrintObservationComparisonTable(false, true, false)
+			if err != nil {
+				return fmt.Errorf("error printing results: %w", err)
+			}
 			if len(findingsWithoutObservations) > 0 {
 				message.Warnf("%d Finding(s) Without Observations", len(findingsWithoutObservations))
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
+		}
+
+		// Print machine-readable output
+		if machine && len(resultComparison["no-longer-satisfied"]) > 0 {
+			machineOutput := result.GetMachineFriendlyObservations(resultComparison["no-longer-satisfied"])
+
+			jsonData, err := json.MarshalIndent(map[string]interface{}{
+				"SATISFIED_TO_NOT_SATISFIED": machineOutput[result.SATISFIED_TO_NOT_SATISFIED],
+			}, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshaling map to JSON: %v", err)
+			}
+
+			defer fmt.Println(string(jsonData))
 		}
 
 		// Check 'status' - Result if evaluation is passing or failing
@@ -179,23 +217,23 @@ func evaluateTarget(target oscal.EvalResult, source string, summary bool) error 
 				"removed-satisfied":     resultComparison["removed-satisfied"],
 				"removed-not-satisfied": resultComparison["removed-not-satisfied"],
 			}
-			findingsWithoutObservations = result.Collapse(failedFindings).PrintObservationComparisonTable(true, false, true)
+			findingsWithoutObservations, err = result.Collapse(failedFindings).PrintObservationComparisonTable(true, false, true)
+			if err != nil {
+				return fmt.Errorf("error printing results: %w", err)
+			}
 			// handle controls that failed but didn't have observations
 			if len(findingsWithoutObservations) > 0 {
 				message.Warnf("%d Failed Finding(s) Without Observations", len(findingsWithoutObservations))
 				message.Info(strings.Join(findingsWithoutObservations, ", "))
 			}
 
-			message.Fatalf(fmt.Errorf("failed to meet established threshold"), "failed to meet established threshold")
-
-			// retain result as threshold
-			oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "true", target.Threshold.Props)
+			return fmt.Errorf("failed to meet established threshold")
 		}
 
 		spinner.Success()
 
 	} else if target.Threshold == nil {
-		message.Fatal(fmt.Errorf("no threshold assessment results could be identified"), "no threshold assessment results could be identified")
+		return fmt.Errorf("no threshold assessment results could be identified")
 	}
 
 	return nil

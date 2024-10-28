@@ -17,6 +17,10 @@ import (
 )
 
 func TestGetResources(t *testing.T) {
+	const (
+		ckPodGetResources contextKey = "pod-get-resources"
+		ckCfgGetResources contextKey = "config-get-resources"
+	)
 	featureTrueGetResources := features.New("Check dev get-resources").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
@@ -31,7 +35,7 @@ func TestGetResources(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod-get-resources", pod)
+			ctx = context.WithValue(ctx, ckPodGetResources, pod)
 
 			// Create the configmap
 			configMap, err := util.GetConfigMap("./scenarios/dev-get-resources/configmap.yaml")
@@ -41,7 +45,7 @@ func TestGetResources(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "configmap-get-resources", configMap)
+			ctx = context.WithValue(ctx, ckCfgGetResources, configMap)
 
 			return ctx
 		}).
@@ -75,13 +79,13 @@ func TestGetResources(t *testing.T) {
 				t.Fatal("The nginx-conf resource was not found in the collection")
 			}
 
-			message.Infof("Successfully validated dev get-resources command")
+			message.Info("Successfully validated dev get-resources command")
 
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Delete the configmap
-			configMap := ctx.Value("configmap-get-resources").(*corev1.ConfigMap)
+			configMap := ctx.Value(ckCfgGetResources).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
@@ -94,7 +98,7 @@ func TestGetResources(t *testing.T) {
 			}
 
 			// Delete the pod
-			pod := ctx.Value("pod-get-resources").(*corev1.Pod)
+			pod := ctx.Value(ckPodGetResources).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
