@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -23,13 +24,13 @@ func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (
 	// We may need a new type here to hold groups of resources
 
 	collections := make(map[string]interface{}, 0)
-	var errString string
+	var multierr []error
 
 	for _, resource := range resources {
 		collection, err := GetResourcesDynamically(ctx, cluster, resource.ResourceRule)
 		// capture error but continue with other resources
 		if err != nil {
-			errString += fmt.Sprintf("%v\n", err)
+			multierr = append(multierr, err)
 		}
 
 		if resource.ResourceRule.Name != "" {
@@ -50,8 +51,10 @@ func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (
 		}
 	}
 
-	if errString != "" {
-		return collections, fmt.Errorf("%s", errString)
+	if multierr != nil {
+		var result *multierror.Error
+		result = multierror.Append(result, multierr...)
+		return collections, fmt.Errorf("%s", result.Error())
 	}
 
 	return collections, nil
