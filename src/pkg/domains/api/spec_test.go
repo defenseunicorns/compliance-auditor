@@ -12,6 +12,7 @@ import (
 func TestValidateAndMutateOptions(t *testing.T) {
 	var testTimeout = 10 * time.Second
 	var zeroTimeout = 0 * time.Second
+
 	tests := map[string]struct {
 		input, want *ApiOpts
 		expectErrs  int
@@ -32,10 +33,12 @@ func TestValidateAndMutateOptions(t *testing.T) {
 			&ApiOpts{
 				Timeout: "10s",
 				Proxy:   "https://my.proxy",
+				Headers: map[string]string{"cache": "no-cache"},
 			},
 			&ApiOpts{
 				Timeout: "10s",
 				Proxy:   "https://my.proxy",
+				Headers: map[string]string{"cache": "no-cache"},
 				timeout: &testTimeout,
 				proxyURL: &url.URL{
 					Scheme: "https",
@@ -86,6 +89,11 @@ func TestValidateAndMutateOptions(t *testing.T) {
 }
 
 func TestValidateAndMutateSpec(t *testing.T) {
+	healthcheckUrl, err := url.Parse("http://example.com/health")
+	require.NoError(t, err)
+	testParams := url.Values{}
+	testParams.Add("key", "value")
+
 	tests := map[string]struct {
 		input, want *ApiSpec
 		expectErrs  int
@@ -99,6 +107,45 @@ func TestValidateAndMutateSpec(t *testing.T) {
 				Options: &ApiOpts{timeout: &defaultTimeout},
 			},
 			1,
+		},
+		"success": {
+			&ApiSpec{
+				Requests: []Request{
+					{
+						Name: "healthcheck",
+						URL:  "http://example.com/health",
+						Params: map[string]string{
+							"key": "value",
+						},
+						Options: &ApiOpts{
+							Headers: map[string]string{
+								"cache-control": "no-hit",
+							},
+						},
+					},
+				},
+			},
+			&ApiSpec{
+				Requests: []Request{
+					{
+						Name: "healthcheck",
+						URL:  "http://example.com/health",
+						Params: map[string]string{
+							"key": "value",
+						},
+						reqURL:        healthcheckUrl,
+						reqParameters: testParams,
+						Options: &ApiOpts{
+							Headers: map[string]string{
+								"cache-control": "no-hit",
+							},
+							timeout: &defaultTimeout,
+						},
+					},
+				},
+				Options: &ApiOpts{timeout: &defaultTimeout},
+			},
+			0,
 		},
 	}
 
@@ -122,7 +169,7 @@ func TestValidateAndMutateSpec(t *testing.T) {
 				}
 			}
 
-			if diff := cmp.Diff(test.want, test.input, cmp.AllowUnexported(ApiSpec{}, ApiOpts{})); diff != "" {
+			if diff := cmp.Diff(test.want, test.input, cmp.AllowUnexported(ApiSpec{}, ApiOpts{}, Request{})); diff != "" {
 				t.Fatalf("wrong result(-got +want):\n%s\n", diff)
 			}
 		})

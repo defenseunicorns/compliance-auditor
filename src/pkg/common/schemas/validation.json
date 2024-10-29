@@ -384,16 +384,14 @@
             "type": "object",
             "properties": {
                 "timeout": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "proxy": {
                     "type": "string"
                 },
                 "headers": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "object",
+                    "additionalProperties": { "type": "string"}
                 }
             }
         },
