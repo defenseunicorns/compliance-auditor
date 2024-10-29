@@ -2,15 +2,21 @@ package test
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
 
+	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/internal/template"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/test/util"
@@ -203,4 +209,43 @@ func TestApiValidation(t *testing.T) {
 		}).Feature()
 
 	testEnv.Test(t, featureTrueValidation, featureFalseValidation)
+}
+
+func TestApiValidation_templated(t *testing.T) {
+	message.NoProgress = true
+	dev.RunInteractively = false
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"pass": true}`))
+	}))
+	defer svr.Close()
+
+	tmpl := "scenarios/api-validations/component-definition.yaml.tmpl"
+	composer, err := composition.New(
+		composition.WithModelFromLocalPath(tmpl),
+		composition.WithRenderSettings("all", true),
+		composition.WithTemplateRenderer("all", nil, []template.VariableConfig{
+			{
+				Key:     "reqUrl",
+				Default: svr.URL,
+			},
+		}, []string{}),
+	)
+	require.NoError(t, err)
+
+	validator, err := validation.New(validation.WithComposition(composer, tmpl))
+	require.NoError(t, err)
+
+	assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(assessment.Results), 1)
+
+	result := assessment.Results[0]
+	require.NotNil(t, result.Findings)
+	for _, finding := range *result.Findings {
+		state := finding.Target.Status.State
+		if state != "satisfied" {
+			t.Fatal("State should be satisfied, but got :", state)
+		}
+	}
 }

@@ -1,0 +1,196 @@
+assessment-results:
+  import-ap:
+    href: ""
+  metadata:
+    last-modified: 2024-10-29T15:47:14.786284-04:00
+    oscal-version: 1.1.2
+    published: 2024-10-29T15:44:33.880441-04:00
+    remarks: Assessment Results generated from Lula
+    title: '[System Name] Security Assessment Results (SAR)'
+    version: 0.0.1
+  results:
+    - description: Assessment results for performing Validations with Lula version unset
+      findings:
+        - description: |
+            Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Implemented Requirement: 2851DD23-03D7-4245-B939-25F11F635359
+            NOT Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: 95049f8b-2fec-475b-9c66-54be2fb33723
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Control: ID-1'
+          uuid: e1beef74-6fc7-487d-adf9-4cf5acd0aee6
+      observations:
+        - collected: 2024-10-29T15:47:14.770886-04:00
+          description: |
+            [TEST]: C30E849E-C262-42DF-8C84-EA1B62A6AD90 - test pass
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#C30E849E-C262-42DF-8C84-EA1B62A6AD90'
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+          uuid: 95049f8b-2fec-475b-9c66-54be2fb33723
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/oscal/ns
+          value: "false"
+        - name: target
+          ns: https://docs.lula.dev/oscal/ns
+          value: https://github.com/defenseunicorns/lula
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-10-29T15:47:14.771041-04:00
+      title: Lula Validation Result
+      uuid: 2a73b7ae-1310-49cf-9fc4-3a558de2dce3
+    - description: Assessment results for performing Validations with Lula version unset
+      findings:
+        - description: |
+            Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Implemented Requirement: 2851DD23-03D7-4245-B939-25F11F635359
+            NOT Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: 140a6258-f47d-4f9f-9250-4e05c93ecbaf
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Control: ID-1'
+          uuid: d3924bf7-3eae-4212-9227-036ef7ed0143
+      observations:
+        - collected: 2024-10-29T15:45:40.595569-04:00
+          description: |
+            [TEST]: C30E849E-C262-42DF-8C84-EA1B62A6AD90 - test pass
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#C30E849E-C262-42DF-8C84-EA1B62A6AD90'
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+          uuid: 140a6258-f47d-4f9f-9250-4e05c93ecbaf
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/oscal/ns
+          value: "false"
+        - name: target
+          ns: https://docs.lula.dev/oscal/ns
+          value: https://github.com/defenseunicorns/lula
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-10-29T15:45:40.595842-04:00
+      title: Lula Validation Result
+      uuid: 08a6a242-a30d-477b-a9ea-3d5c8fc9c669
+    - description: Assessment results for performing Validations with Lula version unset
+      findings:
+        - description: |
+            Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Implemented Requirement: 2851DD23-03D7-4245-B939-25F11F635359
+            NOT Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: c81557b4-b5e5-4bc8-a0f3-a572cdc8333a
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Control: ID-1'
+          uuid: 4ca46f3a-1c9e-4d33-a9df-063d32adc8af
+      observations:
+        - collected: 2024-10-29T15:45:12.84235-04:00
+          description: |
+            [TEST]: C30E849E-C262-42DF-8C84-EA1B62A6AD90 - test pass
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#C30E849E-C262-42DF-8C84-EA1B62A6AD90'
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error running validation: provider Evaluate error: opa validation not performed - no resources to validate
+          uuid: c81557b4-b5e5-4bc8-a0f3-a572cdc8333a
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/oscal/ns
+          value: "false"
+        - name: target
+          ns: https://docs.lula.dev/oscal/ns
+          value: https://github.com/defenseunicorns/lula
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-10-29T15:45:12.842481-04:00
+      title: Lula Validation Result
+      uuid: f6596acf-4307-436e-b3ef-fc82b2346c2f
+    - description: Assessment results for performing Validations with Lula version unset
+      findings:
+        - description: |
+            Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Implemented Requirement: 2851DD23-03D7-4245-B939-25F11F635359
+            NOT Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum  dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          related-observations:
+            - observation-uuid: da9f7464-ec9a-4e3c-8d52-19e399ffae85
+          target:
+            status:
+              state: not-satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Control: ID-1'
+          uuid: 7a52b085-9322-417e-af20-1dc2fad5727d
+      observations:
+        - collected: 2024-10-29T15:44:33.880056-04:00
+          description: |
+            [TEST]: C30E849E-C262-42DF-8C84-EA1B62A6AD90 - test pass
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#C30E849E-C262-42DF-8C84-EA1B62A6AD90'
+          relevant-evidence:
+            - description: |
+                Result: not-satisfied
+              remarks: |
+                Error running validation: provider Evaluate error: opa validation not performed - no resources to validate
+          uuid: da9f7464-ec9a-4e3c-8d52-19e399ffae85
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/oscal/ns
+          value: "false"
+        - name: target
+          ns: https://docs.lula.dev/oscal/ns
+          value: https://github.com/defenseunicorns/lula
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-10-29T15:44:33.880439-04:00
+      title: Lula Validation Result
+      uuid: 5bc18561-4830-40df-ad0e-9f34c1f6ee03
+  uuid: 987e34a6-8be7-4322-be93-7b366043d0eb

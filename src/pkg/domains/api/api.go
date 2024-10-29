@@ -30,9 +30,8 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		defaultClient := clientFromOpts(defaultOpts)
 
 		for _, request := range a.Spec.Requests {
-			var responseType map[string]interface{}
+			var responseType interface{}
 			var err error
-
 			if request.Options == nil {
 				responseType, err = doHTTPReq(defaultClient, *request.reqURL, defaultOpts.Headers, request.reqParameters, responseType)
 			} else {
@@ -42,7 +41,6 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 			if err != nil {
 				return nil, err
 			}
-
 			collection[request.Name] = responseType
 		}
 		return collection, nil
