@@ -216,7 +216,8 @@ func TestApiValidation_templated(t *testing.T) {
 	dev.RunInteractively = false
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"pass": true}`))
+		_, err := w.Write([]byte(`{"pass": true}`))
+		require.NoError(t, err)
 	}))
 	defer svr.Close()
 
