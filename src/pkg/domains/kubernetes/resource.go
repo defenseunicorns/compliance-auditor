@@ -23,12 +23,13 @@ func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (
 	// We may need a new type here to hold groups of resources
 
 	collections := make(map[string]interface{}, 0)
+	var errString string
 
 	for _, resource := range resources {
 		collection, err := GetResourcesDynamically(ctx, cluster, resource.ResourceRule)
-		// log error but continue with other resources
+		// capture error but continue with other resources
 		if err != nil {
-			return nil, err
+			errString += fmt.Sprintf("%v\n", err)
 		}
 
 		if resource.ResourceRule.Name != "" {
@@ -48,6 +49,11 @@ func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (
 			}
 		}
 	}
+
+	if errString != "" {
+		return collections, fmt.Errorf("%s", errString)
+	}
+
 	return collections, nil
 }
 

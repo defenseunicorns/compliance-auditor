@@ -126,12 +126,13 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (types.DomainResourc
 	if k.Spec.Resources != nil {
 		resources, err = QueryCluster(ctx, cluster, k.Spec.Resources)
 		if err != nil {
-			return nil, fmt.Errorf("error in query: %v", err)
+			return resources, fmt.Errorf("error in query: %v", err)
 		}
 	}
 
 	// Join the resources and createdResources
 	// Note - resource keys must be unique
+	// TODO revisit the provenance of this activity
 	if len(resources) == 0 {
 		return createdResources, nil
 	} else {
