@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,7 +10,7 @@ import (
 	"strings"
 )
 
-func doHTTPReq[T any](client http.Client, url url.URL, headers map[string]string, queryParameters url.Values, respTy T) (T, error) {
+func doHTTPReq[T any](ctx context.Context, client http.Client, url url.URL, headers map[string]string, queryParameters url.Values, respTy T) (T, error) {
 	// append any query parameters.
 	q := url.Query()
 
@@ -20,11 +21,10 @@ func doHTTPReq[T any](client http.Client, url url.URL, headers map[string]string
 	// set the query to the encoded parameters
 	url.RawQuery = q.Encode()
 
-	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 	if err != nil {
 		return respTy, err
 	}
-
 	// add each header to the request
 	for k, v := range headers {
 		req.Header.Set(k, v)

@@ -21,6 +21,7 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 			// This isn't likely to be nil in real usage, since CreateApiDomain
 			// parses and mutates specs.
 			defaultOpts = new(ApiOpts)
+			defaultOpts.timeout = &defaultTimeout
 		} else {
 			defaultOpts = a.Spec.Options
 		}
@@ -33,10 +34,10 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 			var responseType interface{}
 			var err error
 			if request.Options == nil {
-				responseType, err = doHTTPReq(defaultClient, *request.reqURL, defaultOpts.Headers, request.reqParameters, responseType)
+				responseType, err = doHTTPReq(ctx, defaultClient, *request.reqURL, defaultOpts.Headers, request.reqParameters, responseType)
 			} else {
 				client := clientFromOpts(request.Options)
-				responseType, err = doHTTPReq(client, *request.reqURL, request.Options.Headers, request.reqParameters, responseType)
+				responseType, err = doHTTPReq(ctx, client, *request.reqURL, request.Options.Headers, request.reqParameters, responseType)
 			}
 			if err != nil {
 				return nil, err
