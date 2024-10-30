@@ -24,7 +24,6 @@ Collection of dev commands to make dev life easier
 * [lula](./lula.md)	 - Risk Management as Code
 * [lula dev get-resources](./lula_dev_get-resources.md)	 - Get Resources from a Lula Validation Manifest
 * [lula dev lint](./lula_dev_lint.md)	 - Lint validation files against schema
-* [lula dev print-resources](./lula_dev_print-resources.md)	 - Print Resources from a Lula Validation evaluation
-* [lula dev print-validation](./lula_dev_print-validation.md)	 - Print Lula Validation
+* [lula dev print](./lula_dev_print.md)	 - Print Resources or Lula Validation from an Assessment Observation
 * [lula dev validate](./lula_dev_validate.md)	 - Run an individual Lula validation.
 
