@@ -13771,7 +13771,6 @@
         "annotations": {
           "checksum/config": "9d9bced621e77ec20a9bf42da6b31a13ce3e48b53bb44c0e021e0bfe99128c73",
           "checksum/sc-dashboard-provider-config": "e70bf6a851099d385178a76de9757bb0bef8299da6d8443602590e44f05fdf24",
-          "checksum/secret": "110ea712f39f96f61d507e11b774e2e0f90fce1d1cfa234a759ed7840ff7e238",
           "istio.io/rev": "default",
           "kubectl.kubernetes.io/default-container": "grafana",
           "kubectl.kubernetes.io/default-logs-container": "grafana-sc-dashboard",
@@ -15436,7 +15435,6 @@
       "kind": "Pod",
       "metadata": {
         "annotations": {
-          "checksum/secret": "79f899ac6a4a76b043e67e4b17b25dfdf1b899526953bf3015fc1b4e41123ee5",
           "istio.io/rev": "default",
           "kubectl.kubernetes.io/default-container": "velero",
           "kubectl.kubernetes.io/default-logs-container": "velero",

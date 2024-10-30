@@ -1,10 +1,6 @@
 package transform_test
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -44,7 +40,8 @@ func TestAdd(t *testing.T) {
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
-		node.YNode().Decode(&nodeMap)
+		err = node.YNode().Decode(&nodeMap)
+		require.NoError(t, err)
 
 		require.Equal(t, convertBytesToMap(t, expected), nodeMap)
 	}
@@ -142,7 +139,8 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
-		node.YNode().Decode(&nodeMap)
+		err = node.YNode().Decode(&nodeMap)
+		require.NoError(t, err)
 
 		require.Equal(t, convertBytesToMap(t, expected), nodeMap)
 	}
@@ -239,7 +237,8 @@ func TestDelete(t *testing.T) {
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
-		node.YNode().Decode(&nodeMap)
+		err = node.YNode().Decode(&nodeMap)
+		require.NoError(t, err)
 
 		require.Equal(t, convertBytesToMap(t, expected), nodeMap)
 	}
@@ -323,7 +322,8 @@ func TestSetNodeAtPath(t *testing.T) {
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
-		node.YNode().Decode(&nodeMap)
+		err = node.YNode().Decode(&nodeMap)
+		require.NoError(t, err)
 
 		require.Equal(t, convertBytesToMap(t, expected), nodeMap)
 	}
@@ -510,7 +510,7 @@ foo:
 `),
 			valueByte: []byte(`
 test: just a string to inject
-another-key:: another-value
+another-key: another-value
 `),
 			expected: []byte(`
 foo:
@@ -527,7 +527,7 @@ foo:
         test: more data
       - uuid: 123
         test: just a string to inject
-        another-key:: another-value
+        another-key: another-value
 `),
 		},
 		{
@@ -628,29 +628,3 @@ pods:
 		})
 	}
 }
-
-func TestGetRNode(t *testing.T) {
-	// open json file converts to map[string]interface{}
-	jsonFile, err := os.Open("../../test/unit/types/resources-all-pods.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer jsonFile.Close()
-
-	byteValue, _ := io.ReadAll(jsonFile)
-	var data map[string]interface{}
-	json.Unmarshal(byteValue, &data)
-
-	path := "pods.[metadata.namespace=keycloak,metadata.name=keycloak-0].spec.containers.[name=istio-proxy]"
-	subsetMap := map[string]interface{}{
-		"image": "boo",
-	}
-	// rnode, err := inject.GetRNode(data, path)
-	result, err := transform.InjectMapData(data, subsetMap, path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(result)
-}
-
-// Path must resolve to a single node

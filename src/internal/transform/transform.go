@@ -101,7 +101,10 @@ func (t *TransformTarget) ExecuteTransform(path string, cType ChangeType, value 
 
 	// Write node into map[string]interface{}
 	var nodeMap map[string]interface{}
-	rootNodeCopy.YNode().Decode(&nodeMap)
+	err = rootNodeCopy.YNode().Decode(&nodeMap)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding root node: %v", err)
+	}
 
 	// Update the original
 	t.RootNode = rootNodeCopy
