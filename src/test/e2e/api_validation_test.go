@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -211,42 +212,72 @@ func TestApiValidation(t *testing.T) {
 	testEnv.Test(t, featureTrueValidation, featureFalseValidation)
 }
 
+// TestApiValidation_templated uses a URL parameter to control the return response from the API.
 func TestApiValidation_templated(t *testing.T) {
 	message.NoProgress = true
 	dev.RunInteractively = false
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, err := w.Write([]byte(`{"pass": true}`))
+		wantResp := r.URL.Query().Get("response")
+		require.NotEmpty(t, wantResp)
+		passRsp := false
+		if wantResp == "true" {
+			passRsp = true
+		}
+		resp := struct {
+			Pass bool `json:"pass"`
+		}{
+			passRsp,
+		}
+		err := json.NewEncoder(w).Encode(resp)
 		require.NoError(t, err)
 	}))
 	defer svr.Close()
 
 	tmpl := "scenarios/api-validations/component-definition.yaml.tmpl"
-	composer, err := composition.New(
-		composition.WithModelFromLocalPath(tmpl),
-		composition.WithRenderSettings("all", true),
-		composition.WithTemplateRenderer("all", nil, []template.VariableConfig{
-			{
-				Key:     "reqUrl",
-				Default: svr.URL,
-			},
-		}, []string{}),
-	)
-	require.NoError(t, err)
 
-	validator, err := validation.New(validation.WithComposition(composer, tmpl))
-	require.NoError(t, err)
+	// since it's just the two tests I'm using the name to check the assessment result.
+	tests := map[string]struct {
+		response string
+	}{
+		"satisfied":     {"true"},
+		"not-satisfied": {"false"},
+	}
 
-	assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(assessment.Results), 1)
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
 
-	result := assessment.Results[0]
-	require.NotNil(t, result.Findings)
-	for _, finding := range *result.Findings {
-		state := finding.Target.Status.State
-		if state != "satisfied" {
-			t.Fatal("State should be satisfied, but got :", state)
-		}
+			composer, err := composition.New(
+				composition.WithModelFromLocalPath(tmpl),
+				composition.WithRenderSettings("all", true),
+				composition.WithTemplateRenderer("all", nil, []template.VariableConfig{
+					{
+						Key:     "reqUrl",
+						Default: svr.URL,
+					},
+					{
+						Key:     "response",
+						Default: test.response,
+					},
+				}, []string{}),
+			)
+			require.NoError(t, err)
+
+			validator, err := validation.New(validation.WithComposition(composer, tmpl))
+			require.NoError(t, err)
+
+			assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
+			require.NoError(t, err)
+			require.GreaterOrEqual(t, len(assessment.Results), 1)
+
+			result := assessment.Results[0]
+			require.NotNil(t, result.Findings)
+			for _, finding := range *result.Findings {
+				state := finding.Target.Status.State
+				if state != name {
+					t.Fatalf("State should be %s, but got :%s", name, state)
+				}
+			}
+		})
 	}
 }

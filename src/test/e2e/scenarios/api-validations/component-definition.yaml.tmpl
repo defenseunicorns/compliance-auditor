@@ -55,7 +55,7 @@ component-definition:
               - name: healthcheck
                 url: {{ .var.reqUrl }}
                 parameters:
-                  key: value
+                  response: {{ .var.response }}
           provider: 
             type: opa
             opa-spec:
