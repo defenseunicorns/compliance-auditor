@@ -24,7 +24,7 @@ To print resources from lula validation manifest to output file:
 `
 
 var printResourcesCmdLong = `
-Print out the the JSON resources input that were provided to a Lula Validation, as identified by a given observation and assessment results file.
+Print out the JSON resources input that were provided to a Lula Validation, as identified by a given observation and assessment results file.
 `
 
 func PrintResourcesCommand() *cobra.Command {
