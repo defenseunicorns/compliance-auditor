@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/defenseunicorns/lula/src/internal/inject"
+	"github.com/defenseunicorns/lula/src/internal/transform"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -181,49 +181,55 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 }
 
 // RunTests executes any tests defined in the validation
-func (v *LulaValidation) RunTests() error {
+// TODO: how to capture the test results? Want to execute all so don't want to return an error if one fails
+func (v *LulaValidation) RunTests(ctx context.Context) error {
 	if v.DomainResources == nil {
 		return fmt.Errorf("domain resources are nil, tests cannot be run") // actually this probably isn't true...
 	}
 
-	// For each test, apply the permutation to the domain resources and run validate using those resources
+	// For each test, apply the transforms to the domain resources and run validate using those resources
 	if v.Tests != nil {
 		for _, test := range *v.Tests {
-			message.Infof("Running test %s", test.Name)
-			var err error
-			testResources := *v.DomainResources
-
-			for _, permutation := range test.Permutations {
-				// First grab the modified resources, if "target" is specified...
-				// modifiedResources := *v.DomainResources // do I need to do like a deep copy
-				// how do I make an empty map[string]interface{}?
-				// emptyMap := make(map[string]interface{})
-				// inject.ExtractMapData(*v.DomainResources, permutation.Target) -> subset
-				// inject.InjectMapData(subset, permutation.Value, permutation.Path) -> subsetWithValue
-				// inject.InjectMapData(*v.DomainResources, subsetWithValue, permutation.Target) -> modifiedResources
-				// run validate with modifiedResources
-				// run inject and return the modified resources
-				testResources, err := inject.InjectMapData(*v.DomainResources, permutation.Value, permutation.Path)
-				if err != nil {
-					return err
-				}
-				err = v.Validate(WithStaticResources(testResources))
-				if err != nil {
-					return err
-				}
-				// Check the expected result - pass or fail
+			// Create a fresh copy of the resources and validation to run each test on
+			testResources := deepCopyMap(*v.DomainResources)
+			testValidation := &LulaValidation{
+				Name:     fmt.Sprintf("Test %s", test.Name),
+				Provider: v.Provider,
+				Domain:   v.Domain,
 			}
 
-			err = v.Validate(WithStaticResources(testResources))
+			tt, err := transform.CreateTransformTarget(testResources)
+			if err != nil {
+				return fmt.Errorf("error creating transform target: %v", err)
+			}
+
+			for _, c := range test.Changes {
+				testResources, err = tt.ExecuteTransform(c.Path, c.Type, c.Value, c.ValueMap)
+				if err != nil {
+					return fmt.Errorf("error executing transform: %v", err)
+				}
+			}
+
+			err = testValidation.Validate(ctx, WithStaticResources(testResources))
 			if err != nil {
 				return err
 			}
 
 			// Check result
+			if test.ExpectedResult == "pass" {
+				if v.Result.Passing == 0 {
+					return fmt.Errorf("expected passing test result, but got %d", v.Result.Passing)
+				}
+			} else if test.ExpectedResult == "fail" {
+				if v.Result.Failing == 0 {
+					return fmt.Errorf("expected failing test result, but got %d", v.Result.Failing)
+				}
+			}
 		}
 	} else {
 		message.Debugf("No tests defined for validation %s", v.Name)
 	}
+	return nil
 }
 
 // Check if the validation requires confirmation before possible execution code is run
@@ -268,13 +274,80 @@ type Result struct {
 
 // Test is a struct that contains the name of the test, the permutations, and the expected result
 type Test struct {
-	Name           string        `json:"name" yaml:"name"`
-	Permutations   []Permutation `json:"permutations" yaml:"permutations"`
-	ExpectedResult string        `json:"expected-result" yaml:"expected-result"`
+	Name           string   `json:"name" yaml:"name"`
+	Changes        []Change `json:"changes" yaml:"changes"`
+	ExpectedResult string   `json:"expected-result" yaml:"expected-result"`
 }
 
-type Permutation struct {
-	ListTarget string                 `json:"list-target" yaml:"list-target"`
-	Path       string                 `json:"path" yaml:"path"`
-	Value      map[string]interface{} `json:"value" yaml:"value"`
+type Change struct {
+	Path     string                 `json:"path" yaml:"path"`
+	Type     transform.ChangeType   `json:"type" yaml:"type"`
+	Value    string                 `json:"value" yaml:"value"`
+	ValueMap map[string]interface{} `json:"value-map" yaml:"value-map"`
+}
+
+func (c *Change) Validate() error {
+	if c.Path == "" {
+		return fmt.Errorf("path is empty")
+	}
+	switch c.Type {
+	case transform.ChangeTypeAdd, transform.ChangeTypeUpdate, transform.ChangeTypeDelete:
+	default:
+		return fmt.Errorf("invalid type")
+	}
+
+	return nil
+}
+
+func deepCopyMap(input map[string]interface{}) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new map to hold the copy
+	copy := make(map[string]interface{})
+
+	for key, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[key] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[key] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[key] = v
+		}
+	}
+
+	return copy
+}
+
+// Helper function to deep copy a slice of interface{}
+func deepCopySlice(input []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new slice to hold the copy
+	copy := make([]interface{}, len(input))
+
+	for i, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[i] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[i] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[i] = v
+		}
+	}
+
+	return copy
 }

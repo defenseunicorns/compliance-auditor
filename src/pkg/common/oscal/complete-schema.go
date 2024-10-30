@@ -10,10 +10,11 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/internal/inject"
-	"github.com/defenseunicorns/lula/src/pkg/message"
 	yamlV3 "gopkg.in/yaml.v3"
 	"sigs.k8s.io/yaml"
+
+	"github.com/defenseunicorns/lula/src/internal/transform"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type OSCALModel interface {
@@ -299,18 +300,16 @@ func InjectIntoOSCALModel(target *oscalTypes.OscalModels, values map[string]inte
 	}
 
 	// Inject the values into the map at the path
-	newModelMap, err := inject.InjectMapData(modelMap, values, path)
+	tt, err := transform.CreateTransformTarget(modelMap)
+	if err != nil {
+		return nil, err
+	}
+	newModelMap, err := tt.ExecuteTransform(path, transform.ChangeTypeAdd, "", values)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the new model map back to an OSCAL model
-	newModel, err := convertMapToOscalModel(newModelMap)
-	if err != nil {
-		return nil, err
-	}
-
-	return newModel, nil
+	return convertMapToOscalModel(newModelMap)
 }
 
 // ConvertOSCALToBytes returns a byte slice representation of an OSCAL model
