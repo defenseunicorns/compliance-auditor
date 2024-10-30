@@ -1,12 +1,16 @@
 package types_test
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/defenseunicorns/lula/src/internal/transform"
+	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
+	"github.com/defenseunicorns/lula/src/types"
 )
 
 func TestGetDomainResourcesAsJSON(t *testing.T) {
@@ -64,9 +68,162 @@ func TestGetDomainResourcesAsJSON(t *testing.T) {
 	}
 }
 
-// func TestRunTests(t *testing.T) {
-// 	// TODO: read in a resources.json file, set that as domain resources in a LulaValidation, and run tests
-// 	// actually I think I need to create a validation too, and pull that in to test with...
+func TestRunTests(t *testing.T) {
+	t.Parallel()
 
-// 	// use src/test/unit/types/validation-all-pods.yaml as an example
-// }
+	runTest := func(t *testing.T, opaSpec opa.OpaSpec, validation types.LulaValidation, expectedTestReport []types.TestReport) {
+		opaProvider, err := opa.CreateOpaProvider(context.Background(), &opaSpec)
+		require.NoError(t, err)
+
+		validation.Provider = &opaProvider
+
+		testReports, err := validation.RunTests(context.Background())
+		require.NoError(t, err)
+
+		require.Equal(t, expectedTestReport, *testReports)
+	}
+
+	tests := []struct {
+		name       string
+		opaSpec    opa.OpaSpec
+		validation types.LulaValidation
+		want       []types.TestReport
+	}{
+		{
+			name: "valid tests",
+			opaSpec: opa.OpaSpec{
+				Rego: "package validate\n\nvalidate {input.test.metadata.name == \"test-resource\"}",
+			},
+			validation: types.LulaValidation{
+				DomainResources: &types.DomainResources{
+					"test": map[string]interface{}{
+						"metadata": map[string]interface{}{
+							"name": "test-resource",
+						},
+					},
+				},
+				Tests: &[]types.Test{
+					{
+						Name: "test-modify-name",
+						Changes: []types.Change{
+							{
+								Path:     "test.metadata.name",
+								Type:     transform.ChangeTypeUpdate,
+								Value:    "another-resource",
+								ValueMap: nil,
+							},
+						},
+						ExpectedResult: "not-satisfied",
+					},
+				},
+			},
+			want: []types.TestReport{
+				{
+					TestName: "test-modify-name",
+					Pass:     true,
+					Remarks:  map[string]string{},
+				},
+			},
+		},
+		{
+			name: "multiple tests",
+			opaSpec: opa.OpaSpec{
+				Rego: "package validate\n\nvalidate {input.test.metadata.name == \"test-resource\"}",
+			},
+			validation: types.LulaValidation{
+				DomainResources: &types.DomainResources{
+					"test": map[string]interface{}{
+						"metadata": map[string]interface{}{
+							"name": "test-resource",
+						},
+					},
+				},
+				Tests: &[]types.Test{
+					{
+						Name: "test-modify-name",
+						Changes: []types.Change{
+							{
+								Path:     "test.metadata.name",
+								Type:     transform.ChangeTypeUpdate,
+								Value:    "another-resource",
+								ValueMap: nil,
+							},
+						},
+						ExpectedResult: "not-satisfied",
+					},
+					{
+						Name: "test-add-another-field",
+						Changes: []types.Change{
+							{
+								Path:     "test.metadata.anotherField",
+								Type:     transform.ChangeTypeAdd,
+								Value:    "new-resource",
+								ValueMap: nil,
+							},
+						},
+						ExpectedResult: "satisfied",
+					},
+				},
+			},
+			want: []types.TestReport{
+				{
+					TestName: "test-modify-name",
+					Pass:     true,
+					Remarks:  map[string]string{},
+				},
+				{
+					TestName: "test-add-another-field",
+					Pass:     true,
+					Remarks:  map[string]string{},
+				},
+			},
+		},
+		{
+			name: "valid tests with remarks",
+			opaSpec: opa.OpaSpec{
+				Rego: "package validate\n\nvalidate {input.test.metadata.name == \"test-resource\"}\n\nmsg = input.test.metadata.name",
+				Output: &opa.OpaOutput{
+					Observations: []string{"validate.msg"},
+				},
+			},
+			validation: types.LulaValidation{
+				DomainResources: &types.DomainResources{
+					"test": map[string]interface{}{
+						"metadata": map[string]interface{}{
+							"name": "test-resource",
+						},
+					},
+				},
+				Tests: &[]types.Test{
+					{
+						Name: "test-modify-name",
+						Changes: []types.Change{
+							{
+								Path:     "test.metadata.name",
+								Type:     transform.ChangeTypeUpdate,
+								Value:    "another-resource",
+								ValueMap: nil,
+							},
+						},
+						ExpectedResult: "not-satisfied",
+					},
+				},
+			},
+			want: []types.TestReport{
+				{
+					TestName: "test-modify-name",
+					Pass:     true,
+					Remarks: map[string]string{
+						"validate.msg": "another-resource",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runTest(t, tt.opaSpec, tt.validation, tt.want)
+		})
+	}
+}

@@ -145,8 +145,8 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 		}
 
 		// Check if confirmation needed before execution
-		if (*val.Domain).IsExecutable() && config.staticResources == nil {
-			if !config.executionAllowed {
+		if config.staticResources == nil {
+			if (*val.Domain).IsExecutable() && !config.executionAllowed {
 				if config.isInteractive {
 					// Run confirmation user prompt
 					if confirm := message.PromptForConfirmation(config.spinner); !confirm {
@@ -182,54 +182,29 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 
 // RunTests executes any tests defined in the validation
 // TODO: how to capture the test results? Want to execute all so don't want to return an error if one fails
-func (v *LulaValidation) RunTests(ctx context.Context) error {
+func (v *LulaValidation) RunTests(ctx context.Context) (*[]TestReport, error) {
 	if v.DomainResources == nil {
-		return fmt.Errorf("domain resources are nil, tests cannot be run") // actually this probably isn't true...
+		return nil, fmt.Errorf("domain resources are nil, tests cannot be run") // actually this probably isn't true...
 	}
 
 	// For each test, apply the transforms to the domain resources and run validate using those resources
 	if v.Tests != nil {
+		testReports := make([]TestReport, 0)
 		for _, test := range *v.Tests {
 			// Create a fresh copy of the resources and validation to run each test on
 			testResources := deepCopyMap(*v.DomainResources)
 			testValidation := &LulaValidation{
-				Name:     fmt.Sprintf("Test %s", test.Name),
 				Provider: v.Provider,
-				Domain:   v.Domain,
 			}
 
-			tt, err := transform.CreateTransformTarget(testResources)
-			if err != nil {
-				return fmt.Errorf("error creating transform target: %v", err)
-			}
-
-			for _, c := range test.Changes {
-				testResources, err = tt.ExecuteTransform(c.Path, c.Type, c.Value, c.ValueMap)
-				if err != nil {
-					return fmt.Errorf("error executing transform: %v", err)
-				}
-			}
-
-			err = testValidation.Validate(ctx, WithStaticResources(testResources))
-			if err != nil {
-				return err
-			}
-
-			// Check result
-			if test.ExpectedResult == "pass" {
-				if v.Result.Passing == 0 {
-					return fmt.Errorf("expected passing test result, but got %d", v.Result.Passing)
-				}
-			} else if test.ExpectedResult == "fail" {
-				if v.Result.Failing == 0 {
-					return fmt.Errorf("expected failing test result, but got %d", v.Result.Failing)
-				}
-			}
+			testReports = append(testReports, test.run(ctx, testValidation, testResources))
 		}
+		return &testReports, nil
 	} else {
 		message.Debugf("No tests defined for validation %s", v.Name)
 	}
-	return nil
+
+	return nil, nil
 }
 
 // Check if the validation requires confirmation before possible execution code is run
@@ -277,6 +252,71 @@ type Test struct {
 	Name           string   `json:"name" yaml:"name"`
 	Changes        []Change `json:"changes" yaml:"changes"`
 	ExpectedResult string   `json:"expected-result" yaml:"expected-result"`
+}
+
+type TestReport struct {
+	TestName string            `json:"test-name"`
+	Pass     bool              `json:"pass"`
+	Remarks  map[string]string `json:"remarks"`
+}
+
+func (t *Test) run(ctx context.Context, validation *LulaValidation, resources map[string]interface{}) TestReport {
+	testReport := TestReport{
+		TestName: t.Name,
+	}
+
+	tt, err := transform.CreateTransformTarget(resources)
+	if err != nil {
+		testReport.Pass = false
+		testReport.Remarks = map[string]string{
+			"error creating transform target": err.Error(),
+		}
+		return testReport
+	}
+
+	for _, c := range t.Changes {
+		resources, err = tt.ExecuteTransform(c.Path, c.Type, c.Value, c.ValueMap)
+		if err != nil {
+			testReport.Pass = false
+			testReport.Remarks = map[string]string{
+				"error executing transform": err.Error(),
+			}
+			return testReport
+		}
+	}
+
+	err = validation.Validate(ctx, WithStaticResources(resources))
+	if err != nil {
+		testReport.Pass = false
+		testReport.Remarks = map[string]string{
+			"error running validation": err.Error(),
+		}
+		return testReport
+	}
+
+	// Update test report
+	testReport.Pass = (t.ExpectedResult == "satisfied" && validation.Result.Passing > 0) || (t.ExpectedResult == "not-satisfied" && validation.Result.Failing > 0)
+	testReport.Remarks = validation.Result.Observations
+
+	return testReport
+}
+
+func (c *Test) Validate() error {
+	if c.Name == "" {
+		return fmt.Errorf("name is empty")
+	}
+
+	if c.ExpectedResult != "satisfied" && c.ExpectedResult != "not-satisfied" {
+		return fmt.Errorf("expected-result must be satisfied or not-satisfied")
+	}
+
+	for _, change := range c.Changes {
+		if err := change.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type Change struct {

@@ -358,6 +358,28 @@ e:
   f: g
 `),
 		},
+		{
+			name:      "path-with-index-filter",
+			pathSlice: []string{"a", "[b=y]"},
+			node: []byte(`
+a:
+  - b: z
+    c: 1
+  - b: y
+    c: 2
+`),
+			newNode: []byte(`
+b: y
+c: 3
+`),
+			expected: []byte(`
+a:
+  - b: z
+    c: 1
+  - b: y
+    c: 3
+`),
+		},
 	}
 
 	for _, tt := range tests {
@@ -391,7 +413,7 @@ func TestIntegrationCreateAndExecuteTransform(t *testing.T) {
 		expected   []byte
 	}{
 		{
-			name:       "update-struct",
+			name:       "update-struct-simple-path",
 			path:       "metadata",
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
@@ -429,9 +451,9 @@ metadata:
 `),
 		},
 		{
-			name:       "add-new-data",
+			name:       "update-data-simple-path",
 			path:       "metadata.test",
-			changeType: transform.ChangeTypeAdd,
+			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
 name: target
 some-information: some-data
@@ -451,7 +473,7 @@ metadata:
 `),
 		},
 		{
-			name:       "test-update-at-index-string",
+			name:       "update-at-index-string",
 			path:       "foo.subset.[uuid=123].test",
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
@@ -473,7 +495,7 @@ foo:
 `),
 		},
 		{
-			name:       "test-update-at-index-string-with-encapsulation",
+			name:       "update-at-index-string-with-encapsulation",
 			path:       "foo.subset.[\"complex.key\"]",
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
@@ -489,9 +511,9 @@ foo:
 `),
 		},
 		{
-			name:       "test-add-at-double-index-map",
+			name:       "update-at-double-index-map",
 			path:       "foo.subset.[uuid=xyz].subsubset.[uuid=123]",
-			changeType: transform.ChangeTypeAdd,
+			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
 foo:
   subset:
@@ -531,7 +553,79 @@ foo:
 `),
 		},
 		{
-			name:       "test-update-at-double-filter",
+			name:       "update-list",
+			path:       "foo.subset.[uuid=xyz]",
+			changeType: transform.ChangeTypeUpdate,
+			target: []byte(`
+foo:
+  subset:
+  - uuid: abc
+    subsubset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: just some data at 123
+  - uuid: xyz
+    subsubset:
+      - uuid: 321
+        test: more data
+      - uuid: 123
+        test: some data to be replaced
+`),
+			valueByte: []byte(`
+subsubset:
+- uuid: new-uuid
+  test: new test data
+`),
+			expected: []byte(`
+foo:
+  subset:
+  - uuid: abc
+    subsubset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: just some data at 123
+  - uuid: xyz
+    subsubset:
+      - uuid: new-uuid
+        test: new test data
+`),
+		},
+		{
+			name:       "update-list-at-root",
+			path:       "foo",
+			changeType: transform.ChangeTypeUpdate,
+			target: []byte(`
+foo:
+  subset:
+  - uuid: abc
+    subsubset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: just some data at 123
+  - uuid: xyz
+    subsubset:
+      - uuid: 321
+        test: more data
+      - uuid: 123
+        test: some data to be replaced
+`),
+			valueByte: []byte(`
+subset:
+- uuid: hi
+  test: hi
+`),
+			expected: []byte(`
+foo:
+  subset:
+  - uuid: hi
+    test: hi
+`),
+		},
+		{
+			name:       "update-at-composite-filter",
 			path:       "pods.[metadata.namespace=foo,metadata.name=bar].metadata.labels.app",
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
@@ -563,7 +657,7 @@ pods:
 `),
 		},
 		{
-			name:       "test-update-at-nested-double-filter",
+			name:       "update-at-composite-double-filter",
 			path:       "pods.[metadata.namespace=foo,metadata.name=bar].spec.containers.[name=istio-proxy]",
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
@@ -618,6 +712,76 @@ pods:
           image: proxyv2
         - name: foo-app
           image: foo-app:v1
+`),
+		},
+		{
+			name:       "add-to-list",
+			path:       "foo.subset.[uuid=xyz]",
+			changeType: transform.ChangeTypeAdd,
+			target: []byte(`
+foo:
+  subset:
+  - uuid: abc
+    subsubset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: just some data at 123
+  - uuid: xyz
+    subsubset:
+      - uuid: 321
+        test: more data
+      - uuid: 123
+        test: some data to be replaced
+`),
+			valueByte: []byte(`
+subsubset:
+  - uuid: new-uuid
+    test: new test data
+`),
+			expected: []byte(`
+foo:
+  subset:
+  - uuid: abc
+    subsubset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: just some data at 123
+  - uuid: xyz
+    subsubset:
+      - uuid: 321
+        test: more data
+      - uuid: 123
+        test: some data to be replaced
+      - uuid: new-uuid
+        test: new test data
+`),
+		},
+		{
+			name:       "delete-from-struct",
+			path:       "metadata.some-submap.sub-data",
+			changeType: transform.ChangeTypeDelete,
+			target: []byte(`
+name: target
+metadata:
+  some-data: target-data
+  only-target-field: data
+  some-submap:
+    only-target-field: target-data
+    sub-data: this-should-be-overwritten
+  some-list:
+    - item1
+`),
+			expected: []byte(`
+name: target
+metadata:
+  some-data: target-data
+  only-target-field: data
+  some-submap:
+    only-target-field: target-data
+  some-list:
+    - item1
 `),
 		},
 	}

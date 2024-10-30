@@ -167,6 +167,50 @@ provider:
 			expectErr:       true,
 			expectedErrType: common.ErrInvalidProvider,
 		},
+		{
+			name: "Valid tests",
+			inputYaml: []byte(`
+lula-version: "1.0.0"
+metadata:
+  name: "test-invalid-provider"
+domain:
+  type: "kubernetes"
+  kubernetes-spec:
+    resources: []
+provider:
+  type: opa
+  opa-spec:
+    rego: "package validate\n\ndefault validate = false"
+tests:
+  - name: "test-1"
+    expected-result: satisfied
+`),
+		},
+		{
+			name: "Invalid tests",
+			inputYaml: []byte(`
+lula-version: "1.0.0"
+metadata:
+  name: "test-invalid-provider"
+domain:
+  type: "kubernetes"
+  kubernetes-spec:
+    resources: []
+provider:
+  type: opa
+  opa-spec:
+    rego: "package validate\n\ndefault validate = false"
+tests:
+  - name: "test-1"
+    changes:
+      - path: "a.b"
+        type: add
+        value: "c"
+    expected-result: fail
+`),
+			expectErr:       true,
+			expectedErrType: common.ErrInvalidSchema,
+		},
 	}
 
 	for _, tt := range tests {

@@ -10,6 +10,8 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
@@ -18,7 +20,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
-	"sigs.k8s.io/yaml"
 )
 
 // Define base errors for validations
@@ -28,6 +29,7 @@ var (
 	ErrInvalidVersion  = errors.New("version is invalid")
 	ErrInvalidDomain   = errors.New("domain is invalid")
 	ErrInvalidProvider = errors.New("provider is invalid")
+	ErrInvalidTest     = errors.New("test is invalid")
 )
 
 // Data structures for ingesting validation data
@@ -177,6 +179,11 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 
 	// Add tests if they exist
 	if validation.Tests != nil {
+		for _, test := range *validation.Tests {
+			if err := test.Validate(); err != nil {
+				return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidTest, err)
+			}
+		}
 		lulaValidation.Tests = validation.Tests
 	}
 
