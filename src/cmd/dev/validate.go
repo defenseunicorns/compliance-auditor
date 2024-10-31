@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 )
 
 var validateHelp = `
@@ -34,6 +36,7 @@ type ValidateFlags struct {
 	flags
 	ExpectedResult bool   // -e --expected-result
 	ResourcesFile  string // -r --resources-file
+	RunTests       bool   // -t --run-tests
 }
 
 var validateOpts = &ValidateFlags{}
@@ -48,7 +51,6 @@ var validateCmd = &cobra.Command{
 		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
 
-		ctx := context.Background()
 		var validationBytes []byte
 		var resourcesBytes []byte
 		var err error
@@ -75,6 +77,7 @@ var validateCmd = &cobra.Command{
 			}
 		}
 
+		ctx := context.WithValue(cmd.Context(), types.LulaValidationWorkDir, filepath.Dir(validateOpts.InputFile))
 		validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
 		if err != nil {
 			message.Fatalf(err, "error running dev validate: %v", err)
@@ -92,6 +95,29 @@ var validateCmd = &cobra.Command{
 			message.Infof("Observations:")
 			for key, observation := range validation.Result.Observations {
 				message.Infof("--> %s: %s", key, observation)
+			}
+		}
+
+		if validateOpts.RunTests {
+			testReports, err := validation.RunTests(ctx, true)
+			if err != nil {
+				message.Fatalf(err, "error running tests")
+			}
+			if testReports == nil {
+				message.HeaderInfof("No tests found")
+			} else {
+				message.HeaderInfof("Test results:")
+				for _, testReport := range *testReports {
+					message.Infof("Test: %s", testReport.TestName)
+					if testReport.Pass {
+						message.Success("Pass")
+					} else {
+						message.Warn("Fail")
+					}
+					for remark, value := range testReport.Remarks {
+						message.Infof("--> %s: %s", remark, value)
+					}
+				}
 			}
 		}
 
@@ -117,6 +143,7 @@ func init() {
 	validateCmd.Flags().IntVarP(&validateOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
 	validateCmd.Flags().BoolVarP(&validateOpts.ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
 	validateCmd.Flags().BoolVar(&validateOpts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
+	validateCmd.Flags().BoolVar(&validateOpts.RunTests, "run-tests", false, "run tests specified in the validation")
 }
 
 // DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it

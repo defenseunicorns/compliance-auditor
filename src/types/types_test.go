@@ -77,7 +77,7 @@ func TestRunTests(t *testing.T) {
 
 		validation.Provider = &opaProvider
 
-		testReports, err := validation.RunTests(context.Background())
+		testReports, err := validation.RunTests(context.Background(), false)
 		require.NoError(t, err)
 
 		require.Equal(t, expectedTestReport, *testReports)

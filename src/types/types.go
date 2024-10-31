@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/defenseunicorns/lula/src/internal/transform"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -182,7 +184,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 
 // RunTests executes any tests defined in the validation
 // TODO: how to capture the test results? Want to execute all so don't want to return an error if one fails
-func (v *LulaValidation) RunTests(ctx context.Context) (*[]TestReport, error) {
+func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*[]TestReport, error) {
 	if v.DomainResources == nil {
 		return nil, fmt.Errorf("domain resources are nil, tests cannot be run") // actually this probably isn't true...
 	}
@@ -197,7 +199,7 @@ func (v *LulaValidation) RunTests(ctx context.Context) (*[]TestReport, error) {
 				Provider: v.Provider,
 			}
 
-			testReports = append(testReports, test.run(ctx, testValidation, testResources))
+			testReports = append(testReports, test.run(ctx, testValidation, testResources, printResources))
 		}
 		return &testReports, nil
 	} else {
@@ -260,7 +262,7 @@ type TestReport struct {
 	Remarks  map[string]string `json:"remarks"`
 }
 
-func (t *Test) run(ctx context.Context, validation *LulaValidation, resources map[string]interface{}) TestReport {
+func (t *Test) run(ctx context.Context, validation *LulaValidation, resources map[string]interface{}, print bool) TestReport {
 	testReport := TestReport{
 		TestName: t.Name,
 	}
@@ -282,6 +284,19 @@ func (t *Test) run(ctx context.Context, validation *LulaValidation, resources ma
 				"error executing transform": err.Error(),
 			}
 			return testReport
+		}
+	}
+
+	// Print resources to validation directory
+	if print {
+		workDir, ok := ctx.Value(LulaValidationWorkDir).(string)
+		if !ok {
+			workDir = "."
+		}
+		jsonData := message.JSONValue(resources)
+		err = os.WriteFile(filepath.Join(workDir, fmt.Sprintf("%s.json", t.Name)), []byte(jsonData), 0600)
+		if err != nil {
+			message.Debugf("Error writing resource data to file: %v", err)
 		}
 	}
 
