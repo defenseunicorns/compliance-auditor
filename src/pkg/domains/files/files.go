@@ -158,7 +158,7 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		b, err := os.ReadFile(path)
 		if err != nil {
 			errs = errors.Join(errs, fmt.Errorf("error reading source files: %w", err))
-			drs[path] = ""
+			drs[f.Name] = ""
 			continue
 		}
 		drs[f.Name] = string(b)
