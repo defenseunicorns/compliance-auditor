@@ -50,7 +50,10 @@ var getResourcesCmd = &cobra.Command{
 
 		collection, err := DevGetResources(ctx, validationBytes, spinner)
 
-		writeResources(collection, getResourcesOpts.OutputFile)
+		// do not perform the write if there is nothing to write (likely error)
+		if collection != nil {
+			writeResources(collection, getResourcesOpts.OutputFile)
+		}
 
 		if err != nil {
 			message.Fatalf(err, "error running dev get-resources: %v", err)
@@ -81,7 +84,10 @@ func DevGetResources(ctx context.Context, validationBytes []byte, spinner *messa
 		types.GetResourcesOnly(true),
 	)
 	if err != nil {
-		return *lulaValidation.DomainResources, err
+		if lulaValidation.DomainResources != nil {
+			return *lulaValidation.DomainResources, err
+		}
+		return nil, err
 	}
 
 	return *lulaValidation.DomainResources, nil

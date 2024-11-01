@@ -1,36 +1,33 @@
+metadata:
+  name: Validate pods with label foo=bar
+  uuid: 1234
 domain:
-  type: file
-  file-spec:
-    filepaths:
-    - Name: config
-      path: config.json
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+      - name: podsvt
+        resource-rule:
+          name: demo-pod
+          version: v1
+          resource: pods
+          namespaces: [validation-test]
+      - name: notFound
+        resource-rule:
+          version: v1
+          resource: notaresource
+          namespaces: [validation-test]
 provider:
   type: opa
   opa-spec:
     rego: |
       package validate
-      import rego.v1
 
-      # Default values
-      default validate := false
-      default msg := "Not evaluated"
-      
-      validate if {
-        check_server_protocol.result
+      import future.keywords.every
+      default msg = "test 2"
+      validate {
+        podLabel := input.podsvt.metadata.labels.foo
+        podLabel == "bar"
       }
-      msg = check_server_protocol.msg
-      
-      config := input["config"]
-      protocol := config.server.protocol
-      
-      check_server_protocol = {"result": true, "msg": msg} if {
-        protocol == "https"
-        msg := "Server protocol is set to https"
-      } else = {"result": false, "msg": msg} if {
-        protocol == "http"
-        msg := "Server Protocol must be https - http is disallowed"
-      }
-
     output:
       validation: validate.validate
       observations:
