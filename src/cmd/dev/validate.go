@@ -75,7 +75,18 @@ var validateCmd = &cobra.Command{
 			}
 		}
 
-		validation, err := DevValidate(ctx, validationBytes, resourcesBytes, spinner)
+		config, _ := cmd.Flags().GetStringSlice("set")
+		message.Debug("command line 'set' flags: %s", config)
+
+		output, err := DevTemplate(validationBytes, config)
+		if err != nil {
+			message.Fatalf(err, "error templating validation: %v", err)
+		}
+
+		// add to debug logs accepting that this will print sensitive information?
+		message.Debug(string(output))
+
+		validation, err := DevValidate(ctx, output, resourcesBytes, spinner)
 		if err != nil {
 			message.Fatalf(err, "error running dev validate: %v", err)
 		}
@@ -108,8 +119,6 @@ var validateCmd = &cobra.Command{
 func init() {
 
 	common.InitViper()
-
-	devCmd.AddCommand(validateCmd)
 
 	validateCmd.Flags().StringVarP(&validateOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
 	validateCmd.Flags().StringVarP(&validateOpts.ResourcesFile, "resources-file", "r", "", "the path to an optional resources file")

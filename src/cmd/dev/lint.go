@@ -34,7 +34,10 @@ var lintCmd = &cobra.Command{
 			message.Fatalf(nil, "No input files specified")
 		}
 
-		validationResults := DevLintCommand(lintOpts.InputFiles)
+		config, _ := cmd.Flags().GetStringSlice("set")
+		message.Debug("command line 'set' flags: %s", config)
+
+		validationResults := DevLintCommand(lintOpts.InputFiles, config)
 
 		// If result file is specified, write the validation results to the file
 		var err error
@@ -64,7 +67,7 @@ var lintCmd = &cobra.Command{
 	},
 }
 
-func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
+func DevLintCommand(inputFiles []string, setOpts []string) []oscalValidation.ValidationResult {
 	var validationResults []oscalValidation.ValidationResult
 
 	for _, inputFile := range inputFiles {
@@ -88,7 +91,16 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 			break
 		}
 
-		validations, err := pkgCommon.ReadValidationsFromYaml(validationBytes)
+		output, err := DevTemplate(validationBytes, setOpts)
+		if err != nil {
+			handleFail(err)
+			break
+		}
+
+		// add to debug logs accepting that this will print sensitive information?
+		message.Debug(string(output))
+
+		validations, err := pkgCommon.ReadValidationsFromYaml(output)
 		if err != nil {
 			handleFail(err)
 			break
@@ -121,8 +133,6 @@ func DevLintCommand(inputFiles []string) []oscalValidation.ValidationResult {
 func init() {
 
 	common.InitViper()
-
-	devCmd.AddCommand(lintCmd)
 
 	lintCmd.Flags().StringSliceVarP(&lintOpts.InputFiles, "input-files", "f", []string{}, "the paths to validation files (comma-separated)")
 	lintCmd.Flags().StringVarP(&lintOpts.ResultFile, "result-file", "r", "", "the path to write the validation result")

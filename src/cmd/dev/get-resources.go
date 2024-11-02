@@ -33,37 +33,51 @@ var getResourcesCmd = &cobra.Command{
 	Short:   "Get Resources from a Lula Validation Manifest",
 	Long:    "Get the JSON resources specified in a Lula Validation Manifest",
 	Example: getResourcesHelp,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+
 		spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
 		spinner := message.NewProgressSpinner("%s", spinnerMessage)
 		defer spinner.Stop()
 
 		ctx := context.Background()
-		var validationBytes []byte
-		var err error
 
 		// Read the validation data from STDIN or provided file
-		validationBytes, err = ReadValidation(cmd, spinner, getResourcesOpts.InputFile, getResourcesOpts.Timeout)
+		validationBytes, err := ReadValidation(cmd, spinner, getResourcesOpts.InputFile, getResourcesOpts.Timeout)
 		if err != nil {
-			message.Fatalf(err, "error reading validation: %v", err)
+			return fmt.Errorf("error reading validation: %v", err)
 		}
 
-		collection, err := DevGetResources(ctx, validationBytes, spinner)
+		config, _ := cmd.Flags().GetStringSlice("set")
+		message.Debug("command line 'set' flags: %s", config)
+
+		output, err := DevTemplate(validationBytes, config)
 		if err != nil {
-			message.Fatalf(err, "error running dev get-resources: %v", err)
+			return fmt.Errorf("error templating validation: %v", err)
 		}
 
-		writeResources(collection, getResourcesOpts.OutputFile)
+		// add to debug logs accepting that this will print sensitive information?
+		message.Debug(string(output))
+
+		collection, err := DevGetResources(ctx, output, spinner)
+
+		// do not perform the write if there is nothing to write (likely error)
+		if collection != nil {
+			writeResources(collection, getResourcesOpts.OutputFile)
+		}
+
+		if err != nil {
+			return fmt.Errorf("error running dev get-resources: %v", err)
+		}
 
 		spinner.Success()
+
+		return nil
 	},
 }
 
 func init() {
 
 	common.InitViper()
-
-	devCmd.AddCommand(getResourcesCmd)
 
 	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
 	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.OutputFile, "output-file", "o", "", "the path to write the resources json")
@@ -80,6 +94,9 @@ func DevGetResources(ctx context.Context, validationBytes []byte, spinner *messa
 		types.GetResourcesOnly(true),
 	)
 	if err != nil {
+		if lulaValidation.DomainResources != nil {
+			return *lulaValidation.DomainResources, err
+		}
 		return nil, err
 	}
 
