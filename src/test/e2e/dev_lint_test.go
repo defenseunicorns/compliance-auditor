@@ -48,7 +48,7 @@ func TestLintCommand(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			validationResults := dev.DevLintCommand(tc.inputFiles)
+			validationResults := dev.DevLintCommand(tc.inputFiles, []string{})
 			for i, result := range validationResults {
 				if result.Valid != tc.valid[i] {
 					t.Errorf("Expected valid to be %v, but got %v", tc.valid[i], result.Valid)
