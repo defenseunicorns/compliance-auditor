@@ -40,7 +40,7 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 				responseType, err = doHTTPReq(ctx, client, *request.reqURL, request.Options.Headers, request.reqParameters, responseType)
 			}
 			if err != nil {
-				return nil, err
+				return collection, err
 			}
 			collection[request.Name] = responseType
 		}
