@@ -8,9 +8,7 @@ In the Lula Validation, a `tests` property is used to specify the each test that
 
 - `name`: The name of the test
 - `changes`: An array of changes or transformations to be applied to the resources used in the test validation
-- `expected-result`: The expected result of the test - pass or fail
-
-### Change
+- `expected-result`: The expected result of the test - satisfied or not-satisfied
 
 A change is a map of the following properties:
 
@@ -22,11 +20,55 @@ A change is a map of the following properties:
 - `value`: The value to be used for the operation (string)
 - `value-map`: The value to be used for the operation (map[string]interface{})
 
-#### Path Syntax
+An example of a test added to a validation is:
+
+```yaml
+domain:
+  type: kubernetes
+  kubernetes-spec:
+    resources:
+    - name: podsvt
+      resource-rule:
+        version: v1
+        resource: pods
+        namespaces: [validation-test]
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+
+      import future.keywords.every
+
+      validate {
+        every pod in input.podsvt {
+          podLabel := pod.metadata.labels.foo
+          podLabel == "bar"
+        }
+      }
+tests:
+  - name: modify-pod-label-not-satisfied
+    expected-result: not-satisfied
+    changes:
+      - path: podsvt.[metadata.namespace=validation-test].metadata.labels.foo
+        type: update
+        value: baz
+  - name: delete-pod-label-not-satisfied
+    expected-result: not-satisfied
+    changes:
+      - path: podsvt.[metadata.namespace=validation-test].metadata.labels.foo
+        type: delete
+```
+
+There are two tests here:
+* The first test will locate the first pod in the `validation-test` namespace and update the label `foo` to `baz`. Then a `validate` will be executed against the modified resources. The expected result of this is that the validation will fail, i.e., will be `not-satisfied`, which would result in a successful test.
+* The second test will locate the first pod in the `validation-test` namespace and delete the label `foo`, then proceed to validate the modified resources and compare to the expected result.
+
+### Path Syntax
 
 This feature uses the kyaml library to inject data into the resources, so the path syntax is based on this library. 
 
-The path should be a "." delimited string that specifies the keys along the path to the resource seeking to be modified. In addition to keys, a list can be specified by using the “[]” syntax. For example, the following path:
+The path should be a "." delimited string that specifies the keys along the path to the resource seeking to be modified. In addition to keys, a list item can be specified by using the “[some-key=value]” syntax. For example, the following path:
 
 ```
 pods.[metadata.namespace=grafana].spec.containers.[name=istio-proxy]
@@ -37,18 +79,21 @@ Will start at the pods key, then since the next item is a [*] it assumes pods is
 Multiple filters can be added for a list, for example the above example could be modified to filter both by namespace and pod name:
 
 ```
-pods.[metadata.namespace=grafana, metadata.name=operator].spec.containers.[name=istio-proxy]
+pods.[metadata.namespace=grafana,metadata.name=operator].spec.containers.[name=istio-proxy]
 ```
 
-To support map look-ups, [] will also be used, but when NOT separated by a “.” the item from the map will just be identified directly, e.g.,
+To support map keys containing ".", [] syntax will also be used, e.g.,
 
 ```
-namespaces.[metadata.namespace=grafana].metadata.labels["istio-injection"]
+namespaces.[metadata.namespace=grafana].metadata.labels.["some.key/label"]
 ```
 
-Note: The path will return only one item, the first item that matches the filters along the path. If no items match the filters, the path will return an empty map.
+Do not use the "[]" syntax for anything other than a key containing a ".", else the path will not be parsed correctly.
 
-#### Change Type Behavior
+>[!IMPORTANT]
+> The path will return only one item, the first item that matches the filters along the path. If no items match the filters, the path will return an empty map.
+
+### Change Type Behavior
 
 **Add**
 * All keys in the path must exist, except for the last key. If you are trying to add a map, then use `value-map` and specify the existing root key.
@@ -61,5 +106,19 @@ Note: The path will return only one item, the first item that matches the filter
 * Currently only supports deleting a key, error will be returned if the last item in the path resolves to a sequence.
 * No values should be specified for delete.
 
-## Examples
-See `src/test/unit/types/validation-all-pods.yaml` for an exmple of a validation with tests.
+## Executing Tests
+
+Tests can be executed by specifying the `--run-tests` flag when running `lula dev validate`. E.g.,
+
+```sh
+lula dev validate -f ./validation.yaml --run-tests
+```
+
+This will execute the tests and print the test results to the console. 
+
+To aid in debugging, the `--print-test-resources` flag can be used to print the resources used for each test to the validation directory, the filenames will be `<test-name>.json`.. E.g.,
+
+```sh
+lula dev validate -f ./validation.yaml --run-tests --print-test-resources
+```
+

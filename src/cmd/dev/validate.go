@@ -34,9 +34,10 @@ To hang for timeout of 5 seconds:
 
 type ValidateFlags struct {
 	flags
-	ExpectedResult bool   // -e --expected-result
-	ResourcesFile  string // -r --resources-file
-	RunTests       bool   // -t --run-tests
+	ExpectedResult     bool   // -e --expected-result
+	ResourcesFile      string // -r --resources-file
+	RunTests           bool   // --run-tests
+	PrintTestResources bool   // --print-test-resources
 }
 
 var validateOpts = &ValidateFlags{}
@@ -98,8 +99,17 @@ var validateCmd = &cobra.Command{
 			}
 		}
 
+		result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
+		// If the expected result is not equal to the actual result, return an error
+		if validateOpts.ExpectedResult != result {
+			message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
+		}
+		// Print the number of passing and failing results
+		message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
+
+		// Run tests if requested
 		if validateOpts.RunTests {
-			testReports, err := validation.RunTests(ctx, true)
+			testReports, err := validation.RunTests(ctx, validateOpts.PrintTestResources)
 			if err != nil {
 				message.Fatalf(err, "error running tests")
 			}
@@ -120,14 +130,6 @@ var validateCmd = &cobra.Command{
 				}
 			}
 		}
-
-		result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
-		// If the expected result is not equal to the actual result, return an error
-		if validateOpts.ExpectedResult != result {
-			message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", validateOpts.ExpectedResult, result)
-		}
-		// Print the number of passing and failing results
-		message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
 	},
 }
 
@@ -144,6 +146,7 @@ func init() {
 	validateCmd.Flags().BoolVarP(&validateOpts.ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
 	validateCmd.Flags().BoolVar(&validateOpts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	validateCmd.Flags().BoolVar(&validateOpts.RunTests, "run-tests", false, "run tests specified in the validation")
+	validateCmd.Flags().BoolVar(&validateOpts.PrintTestResources, "print-test-resources", false, "whether to print resources used for tests; prints <test-name>.json to the validation directory")
 }
 
 // DevValidate reads a validation manifest and converts it to a LulaValidation struct, then validates it

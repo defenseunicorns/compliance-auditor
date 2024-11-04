@@ -7,6 +7,8 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/utils"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 	"sigs.k8s.io/kustomize/kyaml/yaml/merge2"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type ChangeType string
@@ -36,6 +38,7 @@ func CreateTransformTarget(parent map[string]interface{}) (*TransformTarget, err
 func (t *TransformTarget) ExecuteTransform(path string, cType ChangeType, value string, valueMap map[string]interface{}) (map[string]interface{}, error) {
 	rootNodeCopy := t.RootNode.Copy()
 	pathSlice, lastSegment, err := CalcPath(path, cType)
+	message.Debugf("Path Slice: %v\nLast Item: %s", pathSlice, lastSegment)
 	if err != nil {
 		return nil, err
 	}
