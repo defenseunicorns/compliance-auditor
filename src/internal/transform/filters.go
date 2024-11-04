@@ -14,6 +14,10 @@ type filterParts struct {
 
 // BuildFilters builds kyaml filters from a pathSlice
 func BuildFilters(targetNode *yaml.RNode, pathSlice []string) ([]yaml.Filter, error) {
+	if targetNode == nil {
+		return nil, fmt.Errorf("root node is nil")
+	}
+
 	filters := make([]yaml.Filter, 0)
 	for _, segment := range pathSlice {
 		if isFilter, filterParts, err := extractFilter(segment); err != nil {
@@ -104,6 +108,10 @@ func returnIndexFromComplexFilters(targetNode *yaml.RNode, parentFilters []yaml.
 	parentNode, err := targetNode.Pipe(parentFilters...)
 	if err != nil {
 		return index, err
+	}
+
+	if parentNode == nil {
+		return index, fmt.Errorf("parent node is not found for filters: %v", parentFilters)
 	}
 
 	if parentNode.YNode().Kind == yaml.SequenceNode {

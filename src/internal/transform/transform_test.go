@@ -594,11 +594,10 @@ foo:
 		},
 		{
 			name:       "update-list-at-root",
-			path:       "foo",
+			path:       ".",
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
 foo:
-  subset:
   - uuid: abc
     subsubset:
     - uuid: 321
@@ -613,15 +612,14 @@ foo:
         test: some data to be replaced
 `),
 			valueByte: []byte(`
-subset:
+foo:
 - uuid: hi
   test: hi
 `),
 			expected: []byte(`
 foo:
-  subset:
-  - uuid: hi
-    test: hi
+- uuid: hi
+  test: hi
 `),
 		},
 		{

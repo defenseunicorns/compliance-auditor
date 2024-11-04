@@ -74,7 +74,7 @@ The path should be a "." delimited string that specifies the keys along the path
 pods.[metadata.namespace=grafana].spec.containers.[name=istio-proxy]
 ```
 
-Will start at the pods key, then since the next item is a [*] it assumes pods is a list, and will iterate over each item in the list to find where the key metadata.namespace is equal to grafana  It will then find the item where the key spec.containers is a list, and iterate over each item in the list to find where the key name is equal to istio-proxy 
+Will start at the pods key, then since the next item is a [*=*] it assumes pods is a list, and will iterate over each item in the list to find where the key `metadata.namespace` is equal to `grafana`. It will then find the `containers` list item in `spec`, and iterate over each item in the list to find where the key `name` is equal to `istio-proxy`.
 
 Multiple filters can be added for a list, for example the above example could be modified to filter both by namespace and pod name:
 
@@ -88,7 +88,13 @@ To support map keys containing ".", [] syntax will also be used, e.g.,
 namespaces.[metadata.namespace=grafana].metadata.labels.["some.key/label"]
 ```
 
-Do not use the "[]" syntax for anything other than a key containing a ".", else the path will not be parsed correctly.
+Additionally, individual list items can be found via their index, e.g.,
+
+```
+namespaces.[0].metadata.labels
+```
+
+Which will point to the labels key of the first namespace. Additionally, a `[-]` can be used to specify the last item in the list.
 
 >[!IMPORTANT]
 > The path will return only one item, the first item that matches the filters along the path. If no items match the filters, the path will return an empty map.
@@ -105,6 +111,20 @@ Do not use the "[]" syntax for anything other than a key containing a ".", else 
 **Delete**
 * Currently only supports deleting a key, error will be returned if the last item in the path resolves to a sequence.
 * No values should be specified for delete.
+
+A note about replacing a key with an empty map - due to the way the `kyaml` library works, simply trying to overwrite an existing key with an empty map will not yield a removal of all the existing data of the map, it will just try and merge the differences, which is possibly not the desired outcome. To replace a map with an empty map, you must combine `delete` a change type and `add` a change type, e.g.,
+
+```yaml
+changes:
+  - path: pods.[metadata.namespace=grafana].metadata.labels
+    type: delete
+  - path: pods.[metadata.namespace=grafana].metadata
+    type: add
+    value-map: 
+      labels: {}
+```
+
+Which will delete the existing labels map and then add an empty map, such that the "labels" key will still exist but will be an empty map.
 
 ## Executing Tests
 

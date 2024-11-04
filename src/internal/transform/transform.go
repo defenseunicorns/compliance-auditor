@@ -85,9 +85,9 @@ func (t *TransformTarget) ExecuteTransform(path string, cType ChangeType, value 
 
 		// Set the node back into the target
 		if len(pathSlice) == 0 {
-			t.RootNode = node
+			rootNodeCopy = node
 		} else {
-			if err := SetNodeAtPath(t.RootNode, node, filters, pathSlice); err != nil {
+			if err := SetNodeAtPath(rootNodeCopy, node, filters, pathSlice); err != nil {
 				return nil, fmt.Errorf("error setting merged node back into target: %v", err)
 			}
 		}
@@ -205,10 +205,19 @@ func CalcPath(path string, cType ChangeType) ([]string, string, error) {
 	return pathSlice, lastSegment, nil
 }
 
+// cleanPath cleans the path slice
 func cleanPath(pathSlice []string) []string {
 	for i, p := range pathSlice {
+		// Remove escaped double quotes
 		p = strings.ReplaceAll(p, "\"", "")
 		pathSlice[i] = p
+
+		if isFilter(p) {
+			// If there's no equal, assume item is a key, NOT a filter
+			if !strings.Contains(p, "=") {
+				pathSlice[i] = strings.TrimPrefix(strings.TrimSuffix(p, "]"), "[")
+			}
+		}
 	}
 	return pathSlice
 }
