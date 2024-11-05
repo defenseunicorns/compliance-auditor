@@ -11,6 +11,11 @@ domain:
           version: v1
           resource: pods
           namespaces: [validation-test]
+      - name: empty
+        resource-rule:
+          version: v1
+          resource: pods
+          namespaces: [doesnotexist]
 provider:
   type: opa
   opa-spec:
@@ -20,6 +25,8 @@ provider:
       import future.keywords.every
 
       validate {
+        count(input.podsvt) > 0
+        count(input.empty) == 0
         every pod in input.podsvt {
           podLabel := pod.metadata.labels.foo
           podLabel == "bar"

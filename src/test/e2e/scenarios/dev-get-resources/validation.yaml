@@ -17,6 +17,11 @@ domain:
           version: v1
           resource: configmaps
           namespaces: [validation-test]
+      - name: empty
+        resource-rule:
+          version: v1
+          resource: pods
+          namespaces: [doesnotexist]
 provider:
   type: opa
   opa-spec:
