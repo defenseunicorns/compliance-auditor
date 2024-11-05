@@ -76,8 +76,7 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	// get a list of all the files we just downloaded in the temporary directory
 	files, err := listFiles(dst)
 	if err != nil {
-		errs = errors.Join(errs, fmt.Errorf("error walking downloaded file tree: %w", err))
-		return tmpDRs, errs
+		return tmpDRs, errors.Join(errs, fmt.Errorf("error walking downloaded file tree: %w", err))
 	}
 
 	// conftest's parser returns a map[string]interface where the filenames are
@@ -112,7 +111,7 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		// make a sub directory by parser name
 		parserDir, err := os.MkdirTemp(dst, parserName)
 		if err != nil {
-			return nil, err
+			return drs, err
 		}
 
 		for _, fi := range filesByParser {
@@ -130,13 +129,12 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		// get a list of all the files we just downloaded in the temporary directory
 		files, err := listFiles(parserDir)
 		if err != nil {
-			errs = errors.Join(errs, fmt.Errorf("error walking downloaded file tree: %w", err))
-			return drs, errs
+			return drs, errors.Join(errs, fmt.Errorf("error walking downloaded file tree: %w", err))
 		}
 
 		parsedConfig, err := parser.ParseConfigurationsAs(files, parserName)
 		if err != nil {
-			return nil, err
+			return drs, err
 		}
 
 		for k, v := range parsedConfig {
