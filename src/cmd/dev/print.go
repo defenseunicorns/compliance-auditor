@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -71,17 +72,18 @@ func PrintCommand() *cobra.Command {
 					return fmt.Errorf("error printing resources: %v", err)
 				}
 			} else if validation {
-				componentData, err := common.ReadFileToBytes(component)
+				// Compose the component definition
+				composer, err := composition.New(composition.WithModelFromLocalPath(component))
 				if err != nil {
-					return fmt.Errorf("invalid component file: %v", err)
+					return fmt.Errorf("error creating new composer: %v", err)
+				}
+				oscalModel, err := composer.ComposeFromPath(cmd.Context(), component)
+				if err != nil {
+					return fmt.Errorf("error composing model: %v", err)
 				}
 
-				oscalComponent, err := oscal.NewOscalComponentDefinition(componentData)
-				if err != nil {
-					return fmt.Errorf("error creating oscal component definition model: %v", err)
-				}
-
-				err = PrintValidation(oscalComponent, oscalAssessment, observationUuid, outputFile)
+				// Print the validation
+				err = PrintValidation(oscalModel.ComponentDefinition, oscalAssessment, observationUuid, outputFile)
 				if err != nil {
 					return fmt.Errorf("error printing validation: %v", err)
 				}
