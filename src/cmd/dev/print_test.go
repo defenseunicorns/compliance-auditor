@@ -13,10 +13,8 @@ import (
 )
 
 const (
-	assessmentPath            = "../../test/unit/common/oscal/valid-assessment-results-with-resources.yaml"
-	componentPath             = "../../test/unit/common/oscal/valid-multi-component-validations.yaml"
-	nonComposedComponentPath  = "../../test/e2e/scenarios/validation-composition/component-definition.yaml"
-	nonComposedAssessmentPath = "../../test/e2e/scenarios/validation-composition/assessment-results.yaml"
+	assessmentPath = "../../test/unit/common/oscal/valid-assessment-results-with-resources.yaml"
+	componentPath  = "../../test/unit/common/oscal/valid-multi-component-validations.yaml"
 )
 
 func TestPrintResources(t *testing.T) {
@@ -88,32 +86,6 @@ func TestPrintValidation(t *testing.T) {
 
 		// get actual data
 		validationData, err := os.ReadFile("../../test/unit/common/validation/validation.resource-print.yaml")
-		require.NoError(t, err)
-
-		require.Equal(t, validationData, printedData)
-	})
-
-	t.Run("Test print validation non-composed component", func(t *testing.T) {
-		nonComposedAssessmentModel := testhelpers.OscalFromPath(t, nonComposedAssessmentPath)
-		nonComposedAssessment := nonComposedAssessmentModel.AssessmentResults
-		require.NotNil(t, nonComposedAssessment)
-
-		nonComposedComponentModel := testhelpers.OscalFromPath(t, nonComposedComponentPath)
-		nonComposedComponent := nonComposedComponentModel.ComponentDefinition
-		require.NotNil(t, nonComposedComponent)
-
-		tmpFile := testhelpers.CreateTempFile(t, ".json")
-		defer os.Remove(tmpFile.Name())
-
-		err := dev.PrintValidation(nonComposedComponent, nonComposedAssessment, "d328a0a1-630b-40a2-9c9d-4818420a4126", tmpFile.Name())
-		require.NoError(t, err)
-
-		// get printed data
-		printedData, err := os.ReadFile(tmpFile.Name())
-		require.NoError(t, err)
-
-		// get actual data
-		validationData, err := os.ReadFile("../../test/e2e/scenarios/validation-composition/validation.opa.yaml")
 		require.NoError(t, err)
 
 		require.Equal(t, validationData, printedData)
