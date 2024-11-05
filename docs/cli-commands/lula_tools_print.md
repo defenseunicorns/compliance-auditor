@@ -1,22 +1,22 @@
 ---
-title: lula dev print
-description: Lula CLI command reference for <code>lula dev print</code>.
+title: lula tools print
+description: Lula CLI command reference for <code>lula tools print</code>.
 type: docs
 ---
-## lula dev print
+## lula tools print
 
 Print Resources or Lula Validation from an Assessment Observation
 
 ### Synopsis
 
 
-Print out data about an Observation. 
+Prints out data about an OSCAL Observation from the OSCAL Assessment Results model. 
 Given "--resources", the command will print the JSON resources input that were provided to a Lula Validation, as identified by a given observation and assessment results file. 
 Given "--validation", the command will print the Lula Validation that generated a given observation, as identified by a given observation, assessment results file, and component definition file.
 
 
 ```
-lula dev print [flags]
+lula tools print [flags]
 ```
 
 ### Examples
@@ -24,13 +24,13 @@ lula dev print [flags]
 ```
 
 To print resources from lula validation manifest:
-	lula dev print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
+	lula tools print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
 
 To print resources from lula validation manifest to output file:
-	lula dev print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid> --output-file /path/to/output.json
+	lula tools print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid> --output-file /path/to/output.json
 
 To print the lula validation that generated a given observation:
-	lula dev print --validation --component /path/to/component.yaml --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
+	lula tools print --validation --component /path/to/component.yaml --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
 
 ```
 
@@ -54,5 +54,5 @@ To print the lula validation that generated a given observation:
 
 ### SEE ALSO
 
-* [lula dev](./lula_dev.md)	 - Collection of dev commands to make dev life easier
+* [lula tools](./lula_tools.md)	 - Collection of additional commands to make OSCAL easier
 

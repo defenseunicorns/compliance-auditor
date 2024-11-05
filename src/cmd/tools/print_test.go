@@ -1,4 +1,4 @@
-package dev_test
+package tools_test
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -28,7 +28,7 @@ func TestPrintResources(t *testing.T) {
 		tmpFile := testhelpers.CreateTempFile(t, ".json")
 		defer os.Remove(tmpFile.Name())
 
-		err := dev.PrintResources(assessment, "92cb3cad-bbcd-431a-aaa9-cd47275a3982", "../../test/unit/common/oscal", tmpFile.Name())
+		err := tools.PrintResources(assessment, "92cb3cad-bbcd-431a-aaa9-cd47275a3982", "../../test/unit/common/oscal", tmpFile.Name())
 		require.NoError(t, err)
 
 		// get printed resources
@@ -51,12 +51,12 @@ func TestPrintResources(t *testing.T) {
 	})
 
 	t.Run("Test print resources with invalid resources", func(t *testing.T) {
-		err := dev.PrintResources(assessment, "e1ca2968-8652-41be-a19f-c32bc0b3086c", "../../test/unit/common/oscal", "")
+		err := tools.PrintResources(assessment, "e1ca2968-8652-41be-a19f-c32bc0b3086c", "../../test/unit/common/oscal", "")
 		require.ErrorContains(t, err, "error unmarshalling resource")
 	})
 
 	t.Run("Test print resources with no resources", func(t *testing.T) {
-		err := dev.PrintResources(assessment, "af060637-2899-4f26-ae9d-2c1bbbddc4b0", "../../test/unit/common/oscal", "")
+		err := tools.PrintResources(assessment, "af060637-2899-4f26-ae9d-2c1bbbddc4b0", "../../test/unit/common/oscal", "")
 		require.ErrorContains(t, err, "observation does not contain a remote reference")
 	})
 
@@ -77,7 +77,7 @@ func TestPrintValidation(t *testing.T) {
 		tmpFile := testhelpers.CreateTempFile(t, ".json")
 		defer os.Remove(tmpFile.Name())
 
-		err := dev.PrintValidation(component, assessment, "92cb3cad-bbcd-431a-aaa9-cd47275a3982", tmpFile.Name())
+		err := tools.PrintValidation(component, assessment, "92cb3cad-bbcd-431a-aaa9-cd47275a3982", tmpFile.Name())
 		require.NoError(t, err)
 
 		// get printed data
@@ -92,12 +92,12 @@ func TestPrintValidation(t *testing.T) {
 	})
 
 	t.Run("Test print validation with no validation prop", func(t *testing.T) {
-		err := dev.PrintValidation(component, assessment, "e1ca2968-8652-41be-a19f-c32bc0b3086c", "")
+		err := tools.PrintValidation(component, assessment, "e1ca2968-8652-41be-a19f-c32bc0b3086c", "")
 		require.ErrorContains(t, err, "no validation linked to observation")
 	})
 
 	t.Run("Test print resources with validation not in backmatter", func(t *testing.T) {
-		err := dev.PrintValidation(component, assessment, "af060637-2899-4f26-ae9d-2c1bbbddc4b0", "")
+		err := tools.PrintValidation(component, assessment, "af060637-2899-4f26-ae9d-2c1bbbddc4b0", "")
 		require.ErrorContains(t, err, "validation not found in component definition")
 	})
 

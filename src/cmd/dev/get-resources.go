@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
 )
 
 var getResourcesOpts = &flags{}
@@ -52,7 +53,7 @@ var getResourcesCmd = &cobra.Command{
 			message.Fatalf(err, "error running dev get-resources: %v", err)
 		}
 
-		err = writeResources(collection, getResourcesOpts.OutputFile)
+		err = common.WriteResources(collection, getResourcesOpts.OutputFile)
 		if err != nil {
 			message.Fatalf(err, "error writing resources: %v", err)
 		}

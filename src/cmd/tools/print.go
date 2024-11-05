@@ -1,4 +1,4 @@
-package dev
+package tools
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/spf13/cobra"
 
+	cmdcommon "github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -19,17 +20,17 @@ import (
 
 var printHelp = `
 To print resources from lula validation manifest:
-	lula dev print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
+	lula tools print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
 
 To print resources from lula validation manifest to output file:
-	lula dev print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid> --output-file /path/to/output.json
+	lula tools print --resources --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid> --output-file /path/to/output.json
 
 To print the lula validation that generated a given observation:
-	lula dev print --validation --component /path/to/component.yaml --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
+	lula tools print --validation --component /path/to/component.yaml --assessment /path/to/assessment.yaml --observation-uuid <observation-uuid>
 `
 
 var printCmdLong = `
-Print out data about an Observation. 
+Prints out data about an OSCAL Observation from the OSCAL Assessment Results model. 
 Given "--resources", the command will print the JSON resources input that were provided to a Lula Validation, as identified by a given observation and assessment results file. 
 Given "--validation", the command will print the Lula Validation that generated a given observation, as identified by a given observation, assessment results file, and component definition file.
 `
@@ -118,7 +119,7 @@ func PrintCommand() *cobra.Command {
 }
 
 func init() {
-	devCmd.AddCommand(PrintCommand())
+	toolsCmd.AddCommand(PrintCommand())
 }
 
 func PrintResources(assessment *oscalTypes_1_1_2.AssessmentResults, observationUuid, assessmentDir, outputFile string) error {
@@ -126,7 +127,7 @@ func PrintResources(assessment *oscalTypes_1_1_2.AssessmentResults, observationU
 		return fmt.Errorf("assessment is nil")
 	}
 
-	observation, err := GetObservationByUuid(assessment, observationUuid)
+	observation, err := oscal.GetObservationByUuid(assessment, observationUuid)
 	if err != nil {
 		return err
 	}
@@ -160,7 +161,7 @@ func PrintResources(assessment *oscalTypes_1_1_2.AssessmentResults, observationU
 	}
 
 	// Write the resources to a file if found
-	err = writeResources(resource, outputFile)
+	err = cmdcommon.WriteResources(resource, outputFile)
 	if err != nil {
 		return err
 	}
@@ -178,7 +179,7 @@ func PrintValidation(component *oscalTypes_1_1_2.ComponentDefinition, assessment
 	}
 
 	// Get the observation
-	observation, err := GetObservationByUuid(assessment, observationUuid)
+	observation, err := oscal.GetObservationByUuid(assessment, observationUuid)
 	if err != nil {
 		return err
 	}

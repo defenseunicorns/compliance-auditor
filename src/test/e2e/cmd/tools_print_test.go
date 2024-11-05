@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
@@ -16,15 +16,15 @@ func TestDevPrintResourcesCommand(t *testing.T) {
 	message.NoProgress = true
 
 	test := func(t *testing.T, args ...string) error {
-		rootCmd := dev.PrintCommand()
+		rootCmd := tools.PrintCommand()
 
 		return runCmdTest(t, rootCmd, args...)
 	}
 
 	testAgainstGolden := func(t *testing.T, goldenFileName string, args ...string) error {
-		rootCmd := dev.PrintCommand()
+		rootCmd := tools.PrintCommand()
 
-		return runCmdTestWithGolden(t, "dev/print/", goldenFileName, rootCmd, args...)
+		return runCmdTestWithGolden(t, "tools/print/", goldenFileName, rootCmd, args...)
 	}
 
 	t.Run("Print Resources", func(t *testing.T) {

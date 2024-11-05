@@ -7,6 +7,10 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
@@ -638,4 +642,25 @@ func TestCreateResult(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetObservationByUuid(t *testing.T) {
+	t.Parallel()
+
+	oscalModel := testhelpers.OscalFromPath(t, "../../../test/unit/common/oscal/valid-assessment-results-with-resources.yaml")
+	assessment := oscalModel.AssessmentResults
+	require.NotNil(t, assessment)
+
+	t.Run("Test get observation by uuid - found", func(t *testing.T) {
+		observation, err := oscal.GetObservationByUuid(assessment, "92cb3cad-bbcd-431a-aaa9-cd47275a3982")
+		require.NoError(t, err)
+		require.NotNil(t, observation)
+	})
+
+	t.Run("Test get observation by uuid - not found", func(t *testing.T) {
+		observation, err := oscal.GetObservationByUuid(assessment, "invalid-uuid")
+		assert.Nil(t, observation)
+		require.ErrorContains(t, err, "observation with uuid invalid-uuid not found")
+	})
+
 }
