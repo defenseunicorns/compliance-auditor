@@ -442,7 +442,7 @@ func validaPodResourceData(data map[string]interface{}) bool {
 			}
 		}
 		if k == "empty" {
-			if len(v.([]map[string]interface{})) == 0 {
+			if len(v.([]interface{})) == 0 {
 				return true
 			}
 		}
