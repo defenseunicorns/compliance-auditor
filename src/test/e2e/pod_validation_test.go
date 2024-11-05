@@ -345,9 +345,13 @@ func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (
 
 	for _, finding := range *result.Findings {
 		state := finding.Target.Status.State
-		if state != "not-satisfied" {
-			t.Fatal("State should be not-satisfied, but got :", state)
+		if finding.Target.TargetId != "ID-3" {
+			// This validation is an empty test that should always pass unless the underlying API changes
+			if state != "not-satisfied" {
+				t.Fatal("State should be not-satisfied, but got :", state)
+			}
 		}
+
 	}
 	return result.Findings, result.Observations
 }
