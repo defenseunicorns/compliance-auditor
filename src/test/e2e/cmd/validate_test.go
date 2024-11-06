@@ -37,7 +37,7 @@ func TestValidateCommand(t *testing.T) {
 		tempDir := t.TempDir()
 		outputFile := filepath.Join(tempDir, "output.yaml")
 
-		err := test(t, "-f", validInputFile, "-o", outputFile)
+		err := test(t, "-f", validInputFile, "-o", outputFile, "--save-resources")
 
 		require.NoError(t, err)
 

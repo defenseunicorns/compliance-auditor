@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -20,28 +21,35 @@ func QueryCluster(ctx context.Context, cluster *Cluster, resources []Resource) (
 		return nil, fmt.Errorf("cluster is nil")
 	}
 
-	// We may need a new type here to hold groups of resources
-
 	collections := make(map[string]interface{}, 0)
+	var errs error
 
 	for _, resource := range resources {
 		collection, err := GetResourcesDynamically(ctx, cluster, resource.ResourceRule)
-		// log error but continue with other resources
+		// capture error but continue with other resources
 		if err != nil {
-			return nil, err
+			errs = errors.Join(errs, err)
 		}
 
-		if len(collection) > 0 {
-			// Append to collections if not empty collection
-			// convert to object if named resource
-			if resource.ResourceRule.Name != "" {
+		if resource.ResourceRule.Name != "" {
+			if len(collection) > 0 {
 				collections[resource.Name] = collection[0]
 			} else {
+				// This request returned no resources
+				collections[resource.Name] = map[string]interface{}{}
+			}
+
+		} else {
+			if len(collection) > 0 {
 				collections[resource.Name] = collection
+			} else {
+				// This request returned no resources
+				collections[resource.Name] = []map[string]interface{}{}
 			}
 		}
 	}
-	return collections, nil
+
+	return collections, errs
 }
 
 // GetResourcesDynamically() requires a dynamic interface and processes GVR to return []map[string]interface{}

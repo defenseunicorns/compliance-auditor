@@ -198,3 +198,9 @@ And the following validation will confirm if the server is configured for https:
 
 ## Note on Compose
 While the file domain is capable of referencing relative file paths in the `file-spec`, Lula does not de-reference those paths during composition. If you are composing multiple files together, you must either use absolute filepaths (including network filepaths), or ensure that all referenced filepaths are relative to the output directory of the compose command. 
+
+## Evidence Collection
+
+The use of `lula dev get-resources` and `lula validate --save-resources` will produce evidence in the form of `json` files. These files provide point-in-time evidence for auditing and review purposes.
+
+Evidence collection occurs for each file specified and - in association with any error will produce an empty representation of the target file(s) data to be collected.

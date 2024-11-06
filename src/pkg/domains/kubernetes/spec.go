@@ -95,14 +95,14 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (types.DomainResourc
 
 	cluster, err := GetCluster()
 	if err != nil {
-		return nil, err
+		return resources, err
 	}
 
 	// Evaluate the create-resources parameter
 	if k.Spec.CreateResources != nil {
 		createdResources, namespaces, err = CreateAllResources(ctx, cluster, k.Spec.CreateResources)
 		if err != nil {
-			return nil, fmt.Errorf("error in create: %v", err)
+			return resources, fmt.Errorf("error in create: %v", err)
 		}
 		// Destroy the resources after everything else has been evaluated
 		defer func() {
@@ -118,7 +118,7 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (types.DomainResourc
 	if k.Spec.Wait != nil {
 		err := EvaluateWait(ctx, cluster, *k.Spec.Wait)
 		if err != nil {
-			return nil, fmt.Errorf("error in wait: %v", err)
+			return resources, fmt.Errorf("error in wait: %v", err)
 		}
 	}
 
@@ -126,12 +126,13 @@ func (k KubernetesDomain) GetResources(ctx context.Context) (types.DomainResourc
 	if k.Spec.Resources != nil {
 		resources, err = QueryCluster(ctx, cluster, k.Spec.Resources)
 		if err != nil {
-			return nil, fmt.Errorf("error in query: %v", err)
+			return resources, fmt.Errorf("error in query: %v", err)
 		}
 	}
 
 	// Join the resources and createdResources
 	// Note - resource keys must be unique
+	// TODO revisit the provenance of this activity
 	if len(resources) == 0 {
 		return createdResources, nil
 	} else {
