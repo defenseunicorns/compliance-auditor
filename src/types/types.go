@@ -259,6 +259,7 @@ type Test struct {
 type TestReport struct {
 	TestName string            `json:"test-name"`
 	Pass     bool              `json:"pass"`
+	Result   string            `json:"result"`
 	Remarks  map[string]string `json:"remarks"`
 }
 
@@ -310,7 +311,14 @@ func (t *Test) run(ctx context.Context, validation *LulaValidation, resources ma
 	}
 
 	// Update test report
-	testReport.Pass = (t.ExpectedResult == "satisfied" && validation.Result.Passing > 0) || (t.ExpectedResult == "not-satisfied" && validation.Result.Failing > 0)
+	var result string
+	if validation.Result.Passing > 0 {
+		result = "satisfied"
+	} else if validation.Result.Failing > 0 {
+		result = "not-satisfied"
+	}
+	testReport.Result = result
+	testReport.Pass = t.ExpectedResult == result
 	testReport.Remarks = validation.Result.Observations
 
 	return testReport

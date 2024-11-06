@@ -118,11 +118,19 @@ var validateCmd = &cobra.Command{
 			} else {
 				message.HeaderInfof("Test results:")
 				for _, testReport := range *testReports {
-					message.Infof("Test: %s", testReport.TestName)
 					if testReport.Pass {
-						message.Success("Pass")
+						message.Successf("Pass: %s", testReport.TestName)
 					} else {
-						message.Warn("Fail")
+						var failMsg string
+						if testReport.Result == "" {
+							failMsg = "No Result"
+						} else {
+							failMsg = "Expected Result =/= Actual Result"
+						}
+						message.Failf("Fail: %s - %s", testReport.TestName, failMsg)
+					}
+					if testReport.Result != "" {
+						message.Infof("Result: %s", testReport.Result)
 					}
 					for remark, value := range testReport.Remarks {
 						message.Infof("--> %s: %s", remark, value)
