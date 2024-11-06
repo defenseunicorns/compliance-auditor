@@ -4,7 +4,7 @@ Testing is a key part of Lula Validation development. Since the results of the L
 
 ## Validation Testing
 
-In the Lula Validation, a `tests` property is used to specify the each test that should be performed against the validation. Each test is a map of the following properties:
+In the Lula Validation, a `tests` property is used to specify each test that should be performed against the validation. Each test is a map of the following properties:
 
 - `name`: The name of the test
 - `changes`: An array of changes or transformations to be applied to the resources used in the test validation
