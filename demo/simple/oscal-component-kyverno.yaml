@@ -67,6 +67,7 @@ component-definition:
                   assert:
                     all:
                     - check:
+                        (length(podsvt) > `0`): true
                         ~.podsvt:
                           metadata:
                             labels:

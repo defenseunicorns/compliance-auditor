@@ -79,6 +79,10 @@ func TestGetResources(t *testing.T) {
 				t.Fatal("The nginx-conf resource was not found in the collection")
 			}
 
+			if len(collection["empty"].([]map[string]interface{})) != 0 {
+				t.Fatalf("expected 0 length items in the empty payload - got %v\n", len(collection["empty"].([]map[string]interface{})))
+			}
+
 			message.Info("Successfully validated dev get-resources command")
 
 			return ctx

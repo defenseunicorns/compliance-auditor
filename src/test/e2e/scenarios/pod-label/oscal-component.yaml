@@ -48,6 +48,15 @@ component-definition:
               links:
                 - href: "#01e21994-2cfc-45fb-ac84-d00f2e5912b0"
                   rel: lula
+            - uuid: cdb0be98-abba-420d-80ab-ec595aff27b9
+              control-id: ID-3
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#82bb70bb-224d-4bbd-ae05-ef1923d8321a"
+                  rel: lula
   back-matter:
     resources:
       - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
@@ -70,6 +79,7 @@ component-definition:
                 import future.keywords.every
 
                 validate {
+                  count(input.podsvt) > 0
                   every pod in input.podsvt {
                     podLabel := pod.metadata.labels.foo
                     podLabel == "bar"
@@ -96,4 +106,26 @@ component-definition:
                 validate {
                   podLabel := input.podvt.metadata.labels.foo
                   podLabel == "bar"
+                }
+      - uuid: 82bb70bb-224d-4bbd-ae05-ef1923d8321a
+        description: >-
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: empty
+                  resource-rule:
+                    version: v1
+                    resource: pods
+                    namespaces: [doesnotexist]
+          provider:
+            type: opa
+            opa-spec:
+              rego: |
+                package validate
+
+                import future.keywords.every
+
+                validate {
+                  count(input.empty) == 0
                 }

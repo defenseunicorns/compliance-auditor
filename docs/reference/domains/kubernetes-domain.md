@@ -258,3 +258,11 @@ domain:
           type: json
           base64: true
 ```
+
+## Evidence Collection
+
+The use of `lula dev get-resources` and `lula validate --save-resources` will produce evidence in the form of `json` files. These files provide point-in-time evidence for auditing and review purposes.
+
+The Kubernetes domain requires connectivity to a cluster in order to perform data collection. The inability to connect to a cluster during the evaluation of a validation with `--save-resources` will result in an empty payload in the associated observation evidence file. 
+
+Evidence collection occurs for each resource specified and - in association with any error will produce an empty representation of the target resource(s) to be collected.
