@@ -120,6 +120,7 @@ func TestRunTests(t *testing.T) {
 			want: []types.TestReport{
 				{
 					TestName: "test-modify-name",
+					Result:   "not-satisfied",
 					Pass:     true,
 					Remarks:  map[string]string{},
 				},
@@ -169,11 +170,13 @@ func TestRunTests(t *testing.T) {
 				{
 					TestName: "test-modify-name",
 					Pass:     true,
+					Result:   "not-satisfied",
 					Remarks:  map[string]string{},
 				},
 				{
 					TestName: "test-add-another-field",
 					Pass:     true,
+					Result:   "satisfied",
 					Remarks:  map[string]string{},
 				},
 			},
@@ -213,6 +216,7 @@ func TestRunTests(t *testing.T) {
 				{
 					TestName: "test-modify-name",
 					Pass:     true,
+					Result:   "not-satisfied",
 					Remarks: map[string]string{
 						"validate.msg": "another-resource",
 					},
