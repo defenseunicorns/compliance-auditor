@@ -42,18 +42,11 @@ func DevCommand() *cobra.Command {
 
 	cmd.PersistentFlags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
 
-	cmd.AddCommand(lintCmd)
-	cmd.AddCommand(validateCmd)
-	cmd.AddCommand(getResourcesCmd)
+	cmd.AddCommand(DevLintCommand())
+	cmd.AddCommand(DevValidateCommand())
+	cmd.AddCommand(DevGetResourcesCommand())
 
 	return cmd
-}
-
-type flags struct {
-	InputFile        string // -f --input-file
-	OutputFile       string // -o --output-file
-	Timeout          int    // -t --timeout
-	ConfirmExecution bool   // --confirm-execution
 }
 
 var RunInteractively bool = true // default to run dev command interactively

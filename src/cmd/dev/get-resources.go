@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
 	"github.com/spf13/cobra"
 )
-
-var getResourcesOpts = &flags{}
 
 var getResourcesHelp = `
 To get resources from lula validation manifest:
@@ -28,67 +25,74 @@ To hang for timeout of 5 seconds:
 	lula get-resources -t 5
 `
 
-var getResourcesCmd = &cobra.Command{
-	Use:     "get-resources",
-	Short:   "Get Resources from a Lula Validation Manifest",
-	Long:    "Get the JSON resources specified in a Lula Validation Manifest",
-	Example: getResourcesHelp,
-	RunE: func(cmd *cobra.Command, args []string) error {
+func DevGetResourcesCommand() *cobra.Command {
 
-		spinnerMessage := fmt.Sprintf("Getting Resources from %s", getResourcesOpts.InputFile)
-		spinner := message.NewProgressSpinner("%s", spinnerMessage)
-		defer spinner.Stop()
+	var (
+		InputFile        string // -f --input-file
+		OutputFile       string // -o --output-file
+		Timeout          int    // -t --timeout
+		ConfirmExecution bool   // --confirm-execution
+	)
 
-		ctx := context.Background()
+	cmd := &cobra.Command{
+		Use:     "get-resources",
+		Short:   "Get Resources from a Lula Validation Manifest",
+		Long:    "Get the JSON resources specified in a Lula Validation Manifest",
+		Example: getResourcesHelp,
+		RunE: func(cmd *cobra.Command, args []string) error {
 
-		// Read the validation data from STDIN or provided file
-		validationBytes, err := ReadValidation(cmd, spinner, getResourcesOpts.InputFile, getResourcesOpts.Timeout)
-		if err != nil {
-			return fmt.Errorf("error reading validation: %v", err)
-		}
+			spinnerMessage := fmt.Sprintf("Getting Resources from %s", InputFile)
+			spinner := message.NewProgressSpinner("%s", spinnerMessage)
+			defer spinner.Stop()
 
-		config, _ := cmd.Flags().GetStringSlice("set")
-		message.Debug("command line 'set' flags: %s", config)
+			ctx := context.Background()
 
-		output, err := DevTemplate(validationBytes, config)
-		if err != nil {
-			return fmt.Errorf("error templating validation: %v", err)
-		}
+			// Read the validation data from STDIN or provided file
+			validationBytes, err := ReadValidation(cmd, spinner, InputFile, Timeout)
+			if err != nil {
+				return fmt.Errorf("error reading validation: %v", err)
+			}
 
-		// add to debug logs accepting that this will print sensitive information?
-		message.Debug(string(output))
+			config, _ := cmd.Flags().GetStringSlice("set")
+			message.Debug("command line 'set' flags: %s", config)
 
-		collection, err := DevGetResources(ctx, output, spinner)
+			output, err := DevTemplate(validationBytes, config)
+			if err != nil {
+				return fmt.Errorf("error templating validation: %v", err)
+			}
 
-		// do not perform the write if there is nothing to write (likely error)
-		if collection != nil {
-			writeResources(collection, getResourcesOpts.OutputFile)
-		}
+			// add to debug logs accepting that this will print sensitive information?
+			message.Debug(string(output))
 
-		if err != nil {
-			return fmt.Errorf("error running dev get-resources: %v", err)
-		}
+			collection, err := DevGetResources(ctx, output, ConfirmExecution, spinner)
 
-		spinner.Success()
+			// do not perform the write if there is nothing to write (likely error)
+			if collection != nil {
+				writeResources(collection, OutputFile)
+			}
 
-		return nil
-	},
+			if err != nil {
+				return fmt.Errorf("error running dev get-resources: %v", err)
+			}
+
+			spinner.Success()
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVarP(&InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
+	cmd.Flags().StringVarP(&OutputFile, "output-file", "o", "", "the path to write the resources json")
+	cmd.Flags().IntVarP(&Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
+	cmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
+
+	return cmd
 }
 
-func init() {
-
-	common.InitViper()
-
-	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
-	getResourcesCmd.Flags().StringVarP(&getResourcesOpts.OutputFile, "output-file", "o", "", "the path to write the resources json")
-	getResourcesCmd.Flags().IntVarP(&getResourcesOpts.Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
-	getResourcesCmd.Flags().BoolVar(&getResourcesOpts.ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
-}
-
-func DevGetResources(ctx context.Context, validationBytes []byte, spinner *message.Spinner) (types.DomainResources, error) {
+func DevGetResources(ctx context.Context, validationBytes []byte, confirmExecution bool, spinner *message.Spinner) (types.DomainResources, error) {
 	lulaValidation, err := RunSingleValidation(ctx,
 		validationBytes,
-		types.ExecutionAllowed(getResourcesOpts.ConfirmExecution),
+		types.ExecutionAllowed(confirmExecution),
 		types.Interactive(RunInteractively),
 		types.WithSpinner(spinner),
 		types.GetResourcesOnly(true),
