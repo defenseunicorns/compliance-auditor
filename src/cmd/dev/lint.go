@@ -28,9 +28,9 @@ func DevLintCommand() *cobra.Command {
 		Short:   "Lint validation files against schema",
 		Long:    "Validate validation files are properly configured against the schema, file paths can be local or URLs (https://)",
 		Example: lintHelp,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(InputFiles) == 0 {
-				message.Fatalf(nil, "No input files specified")
+				return fmt.Errorf("no input files specified")
 			}
 
 			config, _ := cmd.Flags().GetStringSlice("set")
@@ -50,7 +50,7 @@ func DevLintCommand() *cobra.Command {
 				}
 			}
 			if err != nil {
-				message.Fatal(err, "Error writing validation results")
+				return fmt.Errorf("error writing validation results: %v", err)
 			}
 
 			// If there is at least one validation result that is not valid, exit with a fatal error
@@ -61,8 +61,9 @@ func DevLintCommand() *cobra.Command {
 				}
 			}
 			if len(failedFiles) > 0 {
-				message.Fatal(nil, fmt.Sprintf("The following files failed linting: %s", strings.Join(failedFiles, ", ")))
+				return fmt.Errorf("the following files failed linting: %s", strings.Join(failedFiles, ", "))
 			}
+			return nil
 		},
 	}
 	cmd.Flags().StringSliceVarP(&InputFiles, "input-files", "f", []string{}, "the paths to validation files (comma-separated)")

@@ -45,7 +45,7 @@ func DevValidateCommand() *cobra.Command {
 		Short:   "Run an individual Lula validation.",
 		Long:    "Run an individual Lula validation for quick testing and debugging of a Lula Validation. This command is intended for development purposes only.",
 		Example: validateHelp,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			spinnerMessage := fmt.Sprintf("Validating %s", InputFile)
 			spinner := message.NewProgressSpinner("%s", spinnerMessage)
 			defer spinner.Stop()
@@ -58,7 +58,7 @@ func DevValidateCommand() *cobra.Command {
 			// Read the validation data from STDIN or provided file
 			validationBytes, err = ReadValidation(cmd, spinner, InputFile, Timeout)
 			if err != nil {
-				message.Fatalf(err, "error reading validation: %v", err)
+				return fmt.Errorf("error reading validation: %v", err)
 			}
 
 			// Reset the spinner message
@@ -67,12 +67,12 @@ func DevValidateCommand() *cobra.Command {
 			// If a resources file is provided, read the resources file
 			if ResourcesFile != "" {
 				if !strings.HasSuffix(ResourcesFile, ".json") {
-					message.Fatalf(fmt.Errorf("resource file must be a json file"), "resource file must be a json file")
+					return fmt.Errorf("resource file must be a json file")
 				} else {
 					// Read the resources data
 					resourcesBytes, err = pkgCommon.ReadFileToBytes(ResourcesFile)
 					if err != nil {
-						message.Fatalf(err, "error reading file: %v", err)
+						return fmt.Errorf("error reading file: %v", err)
 					}
 				}
 			}
@@ -82,7 +82,7 @@ func DevValidateCommand() *cobra.Command {
 
 			output, err := DevTemplate(validationBytes, config)
 			if err != nil {
-				message.Fatalf(err, "error templating validation: %v", err)
+				return fmt.Errorf("error templating validation: %v", err)
 			}
 
 			// add to debug logs accepting that this will print sensitive information?
@@ -90,14 +90,14 @@ func DevValidateCommand() *cobra.Command {
 
 			validation, err := DevValidate(ctx, output, resourcesBytes, ConfirmExecution, spinner)
 			if err != nil {
-				message.Fatalf(err, "error running dev validate: %v", err)
+				return fmt.Errorf("error running dev validate: %v", err)
 			}
 
 			// Write the validation result to a file if an output file is provided
 			// Otherwise, print the result to the debug console
 			err = writeValidation(validation, OutputFile)
 			if err != nil {
-				message.Fatalf(err, "error writing result: %v", err)
+				return fmt.Errorf("error writing result: %v", err)
 			}
 
 			// Print observations if there are any
@@ -111,10 +111,11 @@ func DevValidateCommand() *cobra.Command {
 			result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
 			// If the expected result is not equal to the actual result, return an error
 			if ExpectedResult != result {
-				message.Fatalf(fmt.Errorf("validation failed"), "expected result to be %t got %t", ExpectedResult, result)
+				return fmt.Errorf("expected result to be %t got %t", ExpectedResult, result)
 			}
 			// Print the number of passing and failing results
 			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
+			return nil
 		},
 	}
 
