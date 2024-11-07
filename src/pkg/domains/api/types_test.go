@@ -72,7 +72,7 @@ func TestCreateApiDomain(t *testing.T) {
 	}
 }
 
-func TestApiDomain(t *testing.T) {
+func TestGetResources(t *testing.T) {
 	respBytes := []byte(`{"healthcheck": "ok"}`)
 	// unmarshal the response
 	var resp map[string]interface{}
@@ -131,6 +131,10 @@ func TestApiDomain(t *testing.T) {
 		require.NoError(t, err) // the spec is correct
 		drs, err := api.GetResources(context.Background())
 		require.Error(t, err)
-		require.Empty(t, drs)
+		require.Equal(t, drs, types.DomainResources{
+			apiReqName: types.DomainResources{
+				"status": 400,
+			},
+		})
 	})
 }

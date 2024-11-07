@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/defenseunicorns/lula/src/types"
@@ -29,7 +30,7 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		// configure the default HTTP client using any top-level Options. Individual
 		// requests with overrides will get bespoke clients.
 		defaultClient := clientFromOpts(defaultOpts)
-
+		var errs error
 		for _, request := range a.Spec.Requests {
 			var responseType map[string]interface{}
 			var err error
@@ -41,11 +42,16 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 				responseType, status, err = doHTTPReq(ctx, client, *request.reqURL, request.Options.Headers, request.reqParameters, responseType)
 			}
 			if err != nil {
-				return collection, err
+				errs = errors.Join(errs, err)
 			}
-			responseType["status"] = status
-			collection[request.Name] = responseType
+			// Check if the response object is empty and manually add a DR with the status response if so. This is more likely to happen in tests than reality.
+			if responseType != nil {
+				responseType["status"] = status
+				collection[request.Name] = responseType
+			} else {
+				collection[request.Name] = types.DomainResources{"status": status}
+			}
 		}
-		return collection, nil
+		return collection, errs
 	}
 }

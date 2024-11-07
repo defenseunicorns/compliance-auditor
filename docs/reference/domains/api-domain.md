@@ -45,4 +45,13 @@ domain:
 
 ## API Domain Resources
 
-The API response body is serialized into a json object with the request Name as the top-level key. The API status code is included in the output domain resources.
+The API response body is serialized into a json object with the Request's Name as the top-level key. The API status code is included in the output domain resources.
+
+Example output:
+
+```json
+"healthcheck": {
+  "status": 200,
+  "healthy": "ok"
+}
+```
