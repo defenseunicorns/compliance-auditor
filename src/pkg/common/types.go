@@ -10,6 +10,8 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
@@ -18,7 +20,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
-	"sigs.k8s.io/yaml"
 )
 
 // Define base errors for validations
@@ -153,7 +154,8 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	domain, err := GetDomain(validation.Domain)
 	if domain == nil {
 		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidDomain, validation.Domain.Type)
-	} else if err != nil {
+	}
+	if err != nil {
 		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidDomain, err)
 	}
 	lulaValidation.Domain = &domain

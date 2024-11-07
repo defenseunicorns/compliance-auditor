@@ -194,8 +194,6 @@ func (val *LulaValidation) GetDomainResourcesAsJSON() []byte {
 	return jsonData
 }
 
-type DomainResources map[string]interface{}
-
 type Domain interface {
 	GetResources(context.Context) (DomainResources, error)
 	IsExecutable() bool

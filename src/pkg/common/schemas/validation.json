@@ -362,9 +362,36 @@
                             "url": {
                                 "type": "string",
                                 "format": "uri"
+                            },
+                            "parameters": {
+                                "type": "object",
+                                "additionalProperties": { "type": "string"}
+                            },
+                            "options": {
+                                "$ref": "#/definitions/api-options"
                             }
                         }
-                    }
+                    },
+                    "required": ["name", "url"]
+                },
+                "options": {
+                    "$ref": "#/definitions/api-options"
+                }
+            },
+            "required": ["requests"]
+        },
+        "api-options": {
+            "type": "object",
+            "properties": {
+                "timeout": {
+                    "type": "string"
+                },
+                "proxy": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string"}
                 }
             }
         },

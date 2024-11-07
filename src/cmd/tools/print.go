@@ -9,7 +9,6 @@ import (
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/spf13/cobra"
 
-	cmdcommon "github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -161,7 +160,7 @@ func PrintResources(assessment *oscalTypes_1_1_2.AssessmentResults, observationU
 	}
 
 	// Write the resources to a file if found
-	err = cmdcommon.WriteResources(resource, outputFile)
+	err = types.WriteResources(resource, outputFile)
 	if err != nil {
 		return err
 	}

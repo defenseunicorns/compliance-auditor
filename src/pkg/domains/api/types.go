@@ -2,7 +2,8 @@ package api
 
 import (
 	"context"
-	"fmt"
+	"net/url"
+	"time"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -15,20 +16,9 @@ type ApiDomain struct {
 
 func CreateApiDomain(spec *ApiSpec) (types.Domain, error) {
 	// Check validity of spec
-	if spec == nil {
-		return nil, fmt.Errorf("spec is nil")
-	}
-
-	if len(spec.Requests) == 0 {
-		return nil, fmt.Errorf("some requests must be specified")
-	}
-	for _, request := range spec.Requests {
-		if request.Name == "" {
-			return nil, fmt.Errorf("request name cannot be empty")
-		}
-		if request.URL == "" {
-			return nil, fmt.Errorf("request url cannot be empty")
-		}
+	err := validateAndMutateSpec(spec)
+	if err != nil {
+		return nil, err
 	}
 
 	return ApiDomain{
@@ -36,8 +26,8 @@ func CreateApiDomain(spec *ApiSpec) (types.Domain, error) {
 	}, nil
 }
 
-func (a ApiDomain) GetResources(_ context.Context) (types.DomainResources, error) {
-	return MakeRequests(a.Spec.Requests)
+func (a ApiDomain) GetResources(ctx context.Context) (types.DomainResources, error) {
+	return a.makeRequests(ctx)
 }
 
 func (a ApiDomain) IsExecutable() bool {
@@ -48,10 +38,32 @@ func (a ApiDomain) IsExecutable() bool {
 // ApiSpec contains a list of API requests
 type ApiSpec struct {
 	Requests []Request `mapstructure:"requests" json:"requests" yaml:"requests"`
+	// Opts will be applied to all requests, except those which have their own
+	// specified ApiOpts
+	Options *ApiOpts `mapstructure:"options" json:"options,omitempty" yaml:"options,omitempty"`
 }
 
 // Request is a single API request
 type Request struct {
-	Name string `json:"name" yaml:"name"`
-	URL  string `json:"url" yaml:"url"`
+	Name   string            `json:"name" yaml:"name"`
+	URL    string            `json:"url" yaml:"url"`
+	Params map[string]string `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	// ApiOpts specific to this request. If ApiOpts is present, values in the
+	// ApiSpec-level Options are ignored for this request.
+	Options *ApiOpts `json:"options,omitempty" yaml:"options,omitempty"`
+
+	// internally-managed options
+	reqURL        *url.URL
+	reqParameters url.Values
+}
+
+type ApiOpts struct {
+	// Timeout in seconds
+	Timeout string            `json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	Proxy   string            `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+	Headers map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
+
+	// internally-managed options
+	timeout  *time.Duration
+	proxyURL *url.URL
 }
