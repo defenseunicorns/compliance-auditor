@@ -8,13 +8,14 @@ import (
 	"time"
 
 	cmdCommon "github.com/defenseunicorns/lula/src/cmd/common"
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 )
 
 const STDIN = "0"

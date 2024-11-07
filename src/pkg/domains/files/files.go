@@ -2,6 +2,7 @@ package files
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -20,6 +21,8 @@ type Domain struct {
 func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error) {
 	var workDir string
 	var ok bool
+	var errs error
+	tmpDRs := make(map[string]interface{})
 	if workDir, ok = ctx.Value(types.LulaValidationWorkDir).(string); !ok {
 		// if unset, assume lula is working in the same directory the inputFile is in
 		workDir = "."
@@ -28,6 +31,7 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	// see TODO below: maybe this is a REAL directory?
 	dst, err := os.MkdirTemp("", "lula-files")
 	if err != nil {
+		// allow returning on error here?
 		return nil, err
 	}
 
@@ -58,7 +62,11 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		file := filepath.Join(workDir, fi.Path)
 		relname, err := copyFile(dst, file)
 		if err != nil {
-			return nil, fmt.Errorf("error writing local files: %w", err)
+			// Assign empty data value for reporting purposes
+			tmpDRs[fi.Name] = map[string]interface{}{}
+			filenames[file] = fi.Name
+			errs = errors.Join(errs, fmt.Errorf("error writing local files: %w", err))
+			continue
 		}
 
 		// and save this info for later
@@ -68,23 +76,31 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	// get a list of all the files we just downloaded in the temporary directory
 	files, err := listFiles(dst)
 	if err != nil {
-		return nil, fmt.Errorf("error walking downloaded file tree: %w", err)
+		return tmpDRs, errors.Join(errs, fmt.Errorf("error walking downloaded file tree: %w", err))
 	}
 
 	// conftest's parser returns a map[string]interface where the filenames are
 	// the primary map keys.
+	// need to test this to understand the outcomes on a single file error on the return values
 	config, err := parser.ParseConfigurations(files)
+	// Copy values over to the temporary domain resources
+	for k, v := range config {
+		tmpDRs[k] = v
+	}
 	if err != nil {
-		return nil, err
+		errs = errors.Join(errs, err)
+		return tmpDRs, errs
 	}
 
 	// clean up the resources so it's using the filepath.Name as the map key,
 	// instead of the file path.
-	drs := make(types.DomainResources, len(config)+len(unstructuredFiles)+len(filesWithParsers))
-	for k, v := range config {
+	drs := make(types.DomainResources, len(tmpDRs)+len(unstructuredFiles)+len(filesWithParsers))
+	for k, v := range tmpDRs {
 		rel, err := filepath.Rel(dst, k)
 		if err != nil {
-			return nil, fmt.Errorf("error determining relative file path: %w", err)
+			errs = errors.Join(errs, fmt.Errorf("error determining relative file path: %w", err))
+			drs[k] = v
+			continue
 		}
 		drs[filenames[rel]] = v
 	}
@@ -95,14 +111,15 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		// make a sub directory by parser name
 		parserDir, err := os.MkdirTemp(dst, parserName)
 		if err != nil {
-			return nil, err
+			return drs, err
 		}
 
 		for _, fi := range filesByParser {
 			file := filepath.Join(workDir, fi.Path)
 			relname, err := copyFile(parserDir, file)
 			if err != nil {
-				return nil, fmt.Errorf("error writing local files: %w", err)
+				drs[fi.Name] = map[string]interface{}{}
+				errs = errors.Join(errs, fmt.Errorf("error writing local files: %w", err))
 			}
 
 			// and save this info for later
@@ -112,18 +129,20 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		// get a list of all the files we just downloaded in the temporary directory
 		files, err := listFiles(parserDir)
 		if err != nil {
-			return nil, fmt.Errorf("error walking downloaded file tree: %w", err)
+			return drs, errors.Join(errs, fmt.Errorf("error walking downloaded file tree: %w", err))
 		}
 
 		parsedConfig, err := parser.ParseConfigurationsAs(files, parserName)
 		if err != nil {
-			return nil, err
+			return drs, err
 		}
 
 		for k, v := range parsedConfig {
 			rel, err := filepath.Rel(parserDir, k)
 			if err != nil {
-				return nil, fmt.Errorf("error determining relative file path: %w", err)
+				errs = errors.Join(errs, fmt.Errorf("error determining relative file path: %w", err))
+				drs[filenames[k]] = v
+				continue
 			}
 			drs[filenames[rel]] = v
 		}
@@ -136,12 +155,14 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		path := filepath.Clean(filepath.Join(workDir, f.Path))
 		b, err := os.ReadFile(path)
 		if err != nil {
-			return nil, fmt.Errorf("error reading source files: %w", err)
+			errs = errors.Join(errs, fmt.Errorf("error reading source files: %w", err))
+			drs[f.Name] = ""
+			continue
 		}
 		drs[f.Name] = string(b)
 	}
 
-	return drs, nil
+	return drs, errs
 }
 
 // IsExecutable returns false; the file domain is read-only.

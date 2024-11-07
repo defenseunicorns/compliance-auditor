@@ -4,6 +4,7 @@ Domains, generically, are the areas or categories from which data is collected t
 
 * Kubernetes
 * API
+* File
 
 The domain block of a `Lula Validation` is given as follows, where the sample is indicating a Kubernetes domain is in use:
 ```yaml

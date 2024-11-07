@@ -1,0 +1,132 @@
+assessment-results:
+  import-ap:
+    href: ""
+  metadata:
+    last-modified: 2024-11-05T09:29:21.807114-05:00
+    oscal-version: 1.1.2
+    published: 2024-11-05T09:29:21.807114-05:00
+    remarks: Assessment Results generated from Lula
+    title: '[System Name] Security Assessment Results (SAR)'
+    version: 0.0.1
+  results:
+    - description: Assessment results for performing Validations with Lula version v0.10.0-15-g2b1bad8
+      findings:
+        - description: |
+            Control Implementation: A584FEDC-8CEA-4B0C-9F07-85C2C4AE751A / Implemented Requirement: 42C2FFDC-5F05-44DF-A67F-EEC8660AEFFD
+            This control validates that the demo-pod pod in the validation-test namespace contains the required pod label foo=bar in order to establish compliance.
+          related-observations:
+            - observation-uuid: 672025f8-a7c5-4e97-bd32-07fde6ae1fd4
+            - observation-uuid: 52d10fa5-0b87-45f5-9b50-58c8fef64211
+            - observation-uuid: 352e5f99-a5dc-4c9e-ba40-c143e4191ebd
+            - observation-uuid: d328a0a1-630b-40a2-9c9d-4818420a4126
+            - observation-uuid: 88c0ebae-f715-4c68-b3c8-460493a902ae
+            - observation-uuid: 88c0ebae-f715-4c68-b3c8-460493a902ae
+            - observation-uuid: c6bbc490-a3c8-464c-a929-9022219872a8
+          target:
+            status:
+              state: satisfied
+            target-id: ID-1
+            type: objective-id
+          title: 'Validation Result - Control: ID-1'
+          uuid: 21c82470-a762-49b5-b404-4e5a22604217
+      observations:
+        - collected: 2024-11-05T09:29:21.782807-05:00
+          description: |
+            [TEST]: 2d9858bc-fb54-42e7-a928-43f840ac0ae6 - Kyverno validate pods with label foo=bar
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#2d9858bc-fb54-42e7-a928-43f840ac0ae6'
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                labels,foo-label-exists-0,0: PASS
+          uuid: 352e5f99-a5dc-4c9e-ba40-c143e4191ebd
+        - collected: 2024-11-05T09:29:21.792788-05:00
+          description: |
+            [TEST]: 7f4c3b2a-1c3d-4a2b-8b64-3b1f76a8e36f - Validate pods with label foo=bar
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#7f4c3b2a-1c3d-4a2b-8b64-3b1f76a8e36f'
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: d328a0a1-630b-40a2-9c9d-4818420a4126
+        - collected: 2024-11-05T09:29:21.797056-05:00
+          description: |
+            [TEST]: 9d09b4fc-1a82-4434-9fbe-392935347a84 - Validate pods with label foo=bar
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#9d09b4fc-1a82-4434-9fbe-392935347a84'
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: 88c0ebae-f715-4c68-b3c8-460493a902ae
+        - collected: 2024-11-05T09:29:21.800271-05:00
+          description: |
+            [TEST]: 88ea1e4c-c1a6-4e55-87c0-ba17c1b7c288 - Kyverno validate pods with label foo=bar
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#88ea1e4c-c1a6-4e55-87c0-ba17c1b7c288'
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+              remarks: |
+                labels,foo-label-exists-0,0: PASS
+          uuid: c6bbc490-a3c8-464c-a929-9022219872a8
+        - collected: 2024-11-05T09:29:21.803334-05:00
+          description: |
+            [TEST]: 6c00ae8d-7187-42ab-8d89-f383447a0824 - Validate pods with label foo=bar
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#6c00ae8d-7187-42ab-8d89-f383447a0824'
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: 672025f8-a7c5-4e97-bd32-07fde6ae1fd4
+        - collected: 2024-11-05T09:29:21.806843-05:00
+          description: |
+            [TEST]: 7f4b12a9-3b8f-4a8e-9f6e-8c8f506c851e - Validate pods with label foo=bar
+          methods:
+            - TEST
+          props:
+            - name: validation
+              ns: https://docs.lula.dev/oscal/ns
+              value: '#7f4b12a9-3b8f-4a8e-9f6e-8c8f506c851e'
+          relevant-evidence:
+            - description: |
+                Result: satisfied
+          uuid: 52d10fa5-0b87-45f5-9b50-58c8fef64211
+      props:
+        - name: threshold
+          ns: https://docs.lula.dev/oscal/ns
+          value: "false"
+        - name: target
+          ns: https://docs.lula.dev/oscal/ns
+          value: https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+      reviewed-controls:
+        control-selections:
+          - description: Controls Assessed by Lula
+            include-controls:
+              - control-id: ID-1
+        description: Controls validated
+        remarks: Validation performed may indicate full or partial satisfaction
+      start: 2024-11-05T09:29:21.80711-05:00
+      title: Lula Validation Result
+      uuid: 9d54c104-0792-4fbd-9226-faafd36645f3
+  uuid: 5f611677-0466-4e50-9a54-765f71381bfd

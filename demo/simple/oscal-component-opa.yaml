@@ -62,6 +62,7 @@ component-definition:
               import future.keywords.every
 
               validate {
+                count(input.podsvt) > 0
                 every pod in input.podsvt {
                   podLabel := pod.metadata.labels.foo
                   podLabel == "bar"

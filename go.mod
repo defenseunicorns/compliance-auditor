@@ -2,7 +2,7 @@ module github.com/defenseunicorns/lula
 
 go 1.23
 
-toolchain go1.23.2
+toolchain go1.23.3
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
@@ -12,7 +12,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/defenseunicorns/go-oscal v0.6.0
 	github.com/defenseunicorns/pkg/kubernetes v0.3.0
-	github.com/evertras/bubble-table v0.17.0
+	github.com/evertras/bubble-table v0.17.1
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kyverno/kyverno-json v0.0.3
