@@ -109,34 +109,12 @@ var validateCmd = &cobra.Command{
 
 		// Run tests if requested
 		if validateOpts.RunTests {
-			testReports, err := validation.RunTests(ctx, validateOpts.PrintTestResources)
+			testReport, err := validation.RunTests(ctx, validateOpts.PrintTestResources)
 			if err != nil {
 				message.Fatalf(err, "error running tests")
 			}
-			if testReports == nil {
-				message.HeaderInfof("No tests found")
-			} else {
-				message.HeaderInfof("Test results:")
-				for _, testReport := range *testReports {
-					if testReport.Pass {
-						message.Successf("Pass: %s", testReport.TestName)
-					} else {
-						var failMsg string
-						if testReport.Result == "" {
-							failMsg = "No Result"
-						} else {
-							failMsg = "Expected Result =/= Actual Result"
-						}
-						message.Failf("Fail: %s - %s", testReport.TestName, failMsg)
-					}
-					if testReport.Result != "" {
-						message.Infof("Result: %s", testReport.Result)
-					}
-					for remark, value := range testReport.Remarks {
-						message.Infof("--> %s: %s", remark, value)
-					}
-				}
-			}
+			// Print the test report using messages
+			testReport.PrintReport()
 		}
 	},
 }

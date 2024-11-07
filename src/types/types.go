@@ -5,10 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 
-	"github.com/defenseunicorns/lula/src/internal/transform"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -48,8 +45,8 @@ type LulaValidation struct {
 	// Evaluated is a boolean that represents if the validation has been evaluated
 	Evaluated bool
 
-	// Tests is a slice of tests that are defined for the validation
-	Tests *[]Test `json:"tests" yaml:"tests"`
+	// ValidationTests is a slice of tests that are defined for the validation
+	ValidationTests *[]LulaValidationTest
 
 	// Result is the result of the validation
 	Result *Result
@@ -123,16 +120,16 @@ func GetResourcesOnly(onlyResources bool) LulaValidationOption {
 }
 
 // Perform the validation, and store the result in the LulaValidation struct
-func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOption) error {
-	if !val.Evaluated {
+func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOption) error {
+	if !v.Evaluated {
 		var result Result
 		var err error
 		var resources DomainResources
 
 		// Update the validation
-		val.DomainResources = &resources
-		val.Result = &result
-		val.Evaluated = true
+		v.DomainResources = &resources
+		v.Result = &result
+		v.Evaluated = true
 
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
@@ -148,7 +145,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 
 		// Check if confirmation needed before execution
 		if config.staticResources == nil {
-			if (*val.Domain).IsExecutable() && !config.executionAllowed {
+			if (*v.Domain).IsExecutable() && !config.executionAllowed {
 				if config.isInteractive {
 					// Run confirmation user prompt
 					if confirm := message.PromptForConfirmation(config.spinner); !confirm {
@@ -164,7 +161,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 		if config.staticResources != nil {
 			resources = config.staticResources
 		} else {
-			resources, err = (*val.Domain).GetResources(ctx)
+			resources, err = (*v.Domain).GetResources(ctx)
 			if err != nil {
 				return fmt.Errorf("%w: %v", ErrDomainGetResources, err)
 			}
@@ -174,7 +171,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 		}
 
 		// Perform the evaluation using the provider
-		result, err = (*val.Provider).Evaluate(resources)
+		result, err = (*v.Provider).Evaluate(resources)
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrProviderEvaluate, err)
 		}
@@ -183,25 +180,26 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 }
 
 // RunTests executes any tests defined in the validation
-// TODO: how to capture the test results? Want to execute all so don't want to return an error if one fails
-func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*[]TestReport, error) {
+func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*LulaValidationTestReport, error) {
 	if v.DomainResources == nil {
-		return nil, fmt.Errorf("domain resources are nil, tests cannot be run") // actually this probably isn't true...
+		return nil, fmt.Errorf("domain resources are nil, tests cannot be run")
 	}
 
 	// For each test, apply the transforms to the domain resources and run validate using those resources
-	if v.Tests != nil {
-		testReports := make([]TestReport, 0)
-		for _, test := range *v.Tests {
+	if v.ValidationTests != nil {
+		var testResult *LulaValidationTestResult
+		testReport := NewLulaValidationTestReport(v.Name)
+		for _, test := range *v.ValidationTests {
 			// Create a fresh copy of the resources and validation to run each test on
 			testResources := deepCopyMap(*v.DomainResources)
 			testValidation := &LulaValidation{
 				Provider: v.Provider,
 			}
 
-			testReports = append(testReports, test.run(ctx, testValidation, testResources, printResources))
+			testResult = test.ExecuteTest(ctx, testValidation, testResources, printResources)
+			testReport.AddTestResult(testResult)
 		}
-		return &testReports, nil
+		return testReport, nil
 	} else {
 		message.Debugf("No tests defined for validation %s", v.Name)
 	}
@@ -210,16 +208,16 @@ func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*[]
 }
 
 // Check if the validation requires confirmation before possible execution code is run
-func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
-	return !(*val.Domain).IsExecutable()
+func (v *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
+	return !(*v.Domain).IsExecutable()
 }
 
 // Return domain resources as a json []byte
-func (val *LulaValidation) GetDomainResourcesAsJSON() []byte {
-	if val.DomainResources == nil {
+func (v *LulaValidation) GetDomainResourcesAsJSON() []byte {
+	if v.DomainResources == nil {
 		return []byte("{}")
 	}
-	jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
+	jsonData, err := json.MarshalIndent(v.DomainResources, "", "  ")
 	if err != nil {
 		message.Debugf("Error marshalling domain resources to JSON: %v", err)
 		jsonData = []byte(`{"Error": "Error marshalling to JSON"}`)
@@ -247,119 +245,6 @@ type Result struct {
 	Failing      int               `json:"failing" yaml:"failing"`
 	State        string            `json:"state" yaml:"state"`
 	Observations map[string]string `json:"observations" yaml:"observations"`
-}
-
-// Test is a struct that contains the name of the test, the permutations, and the expected result
-type Test struct {
-	Name           string   `json:"name" yaml:"name"`
-	Changes        []Change `json:"changes" yaml:"changes"`
-	ExpectedResult string   `json:"expected-result" yaml:"expected-result"`
-}
-
-type TestReport struct {
-	TestName string            `json:"test-name"`
-	Pass     bool              `json:"pass"`
-	Result   string            `json:"result"`
-	Remarks  map[string]string `json:"remarks"`
-}
-
-func (t *Test) run(ctx context.Context, validation *LulaValidation, resources map[string]interface{}, print bool) TestReport {
-	testReport := TestReport{
-		TestName: t.Name,
-	}
-
-	tt, err := transform.CreateTransformTarget(resources)
-	if err != nil {
-		testReport.Pass = false
-		testReport.Remarks = map[string]string{
-			"error creating transform target": err.Error(),
-		}
-		return testReport
-	}
-
-	for _, c := range t.Changes {
-		resources, err = tt.ExecuteTransform(c.Path, c.Type, c.Value, c.ValueMap)
-		if err != nil {
-			testReport.Pass = false
-			testReport.Remarks = map[string]string{
-				"error executing transform": err.Error(),
-			}
-			return testReport
-		}
-	}
-
-	// Print resources to validation directory
-	if print {
-		workDir, ok := ctx.Value(LulaValidationWorkDir).(string)
-		if !ok {
-			workDir = "."
-		}
-		jsonData := message.JSONValue(resources)
-		err = os.WriteFile(filepath.Join(workDir, fmt.Sprintf("%s.json", t.Name)), []byte(jsonData), 0600)
-		if err != nil {
-			message.Debugf("Error writing resource data to file: %v", err)
-		}
-	}
-
-	err = validation.Validate(ctx, WithStaticResources(resources))
-	if err != nil {
-		testReport.Pass = false
-		testReport.Remarks = map[string]string{
-			"error running validation": err.Error(),
-		}
-		return testReport
-	}
-
-	// Update test report
-	var result string
-	if validation.Result.Passing > 0 {
-		result = "satisfied"
-	} else if validation.Result.Failing > 0 {
-		result = "not-satisfied"
-	}
-	testReport.Result = result
-	testReport.Pass = t.ExpectedResult == result
-	testReport.Remarks = validation.Result.Observations
-
-	return testReport
-}
-
-func (c *Test) Validate() error {
-	if c.Name == "" {
-		return fmt.Errorf("name is empty")
-	}
-
-	if c.ExpectedResult != "satisfied" && c.ExpectedResult != "not-satisfied" {
-		return fmt.Errorf("expected-result must be satisfied or not-satisfied")
-	}
-
-	for _, change := range c.Changes {
-		if err := change.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-type Change struct {
-	Path     string                 `json:"path" yaml:"path"`
-	Type     transform.ChangeType   `json:"type" yaml:"type"`
-	Value    string                 `json:"value" yaml:"value"`
-	ValueMap map[string]interface{} `json:"value-map" yaml:"value-map"`
-}
-
-func (c *Change) Validate() error {
-	if c.Path == "" {
-		return fmt.Errorf("path is empty")
-	}
-	switch c.Type {
-	case transform.ChangeTypeAdd, transform.ChangeTypeUpdate, transform.ChangeTypeDelete:
-	default:
-		return fmt.Errorf("invalid type")
-	}
-
-	return nil
 }
 
 func deepCopyMap(input map[string]interface{}) map[string]interface{} {

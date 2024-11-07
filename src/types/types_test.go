@@ -68,26 +68,27 @@ func TestGetDomainResourcesAsJSON(t *testing.T) {
 	}
 }
 
+// TestRunTests checks the execution of many tests on a single LulaValidation
 func TestRunTests(t *testing.T) {
 	t.Parallel()
 
-	runTest := func(t *testing.T, opaSpec opa.OpaSpec, validation types.LulaValidation, expectedTestReport []types.TestReport) {
+	runTest := func(t *testing.T, opaSpec opa.OpaSpec, validation types.LulaValidation, expectedTestReport *types.LulaValidationTestReport) {
 		opaProvider, err := opa.CreateOpaProvider(context.Background(), &opaSpec)
 		require.NoError(t, err)
 
 		validation.Provider = &opaProvider
 
-		testReports, err := validation.RunTests(context.Background(), false)
+		testReport, err := validation.RunTests(context.Background(), false)
 		require.NoError(t, err)
 
-		require.Equal(t, expectedTestReport, *testReports)
+		require.Equal(t, expectedTestReport, testReport)
 	}
 
 	tests := []struct {
 		name       string
 		opaSpec    opa.OpaSpec
 		validation types.LulaValidation
-		want       []types.TestReport
+		want       *types.LulaValidationTestReport
 	}{
 		{
 			name: "valid tests",
