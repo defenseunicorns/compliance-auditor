@@ -68,7 +68,6 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		if err != nil {
 			// Assign empty data value for reporting purposes
 			tmpDRs[fi.Name] = map[string]interface{}{}
-			filenames[file] = fi.Name
 			errs = errors.Join(errs, fmt.Errorf("error writing local files: %w", err))
 			continue
 		}
