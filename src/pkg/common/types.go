@@ -179,12 +179,16 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 
 	// Add tests if they exist
 	if validation.Tests != nil {
+		validationTestData := make([]*types.LulaValidationTestData, 0)
 		for _, test := range *validation.Tests {
 			if err := test.ValidateData(); err != nil {
 				return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidTest, err)
 			}
+			validationTestData = append(validationTestData, &types.LulaValidationTestData{
+				Test: &test,
+			})
 		}
-		lulaValidation.ValidationTests = validation.Tests
+		lulaValidation.ValidationTestData = validationTestData
 	}
 
 	return lulaValidation, nil

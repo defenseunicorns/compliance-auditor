@@ -103,27 +103,32 @@ func TestRunTests(t *testing.T) {
 						},
 					},
 				},
-				Tests: &[]types.Test{
+				ValidationTestData: []*types.LulaValidationTestData{
 					{
-						Name: "test-modify-name",
-						Changes: []types.Change{
-							{
-								Path:     "test.metadata.name",
-								Type:     transform.ChangeTypeUpdate,
-								Value:    "another-resource",
-								ValueMap: nil,
+						Test: &types.LulaValidationTest{
+							Name: "test-modify-name",
+							Changes: []types.LulaValidationTestChange{
+								{
+									Path:     "test.metadata.name",
+									Type:     transform.ChangeTypeUpdate,
+									Value:    "another-resource",
+									ValueMap: nil,
+								},
 							},
+							ExpectedResult: "not-satisfied",
 						},
-						ExpectedResult: "not-satisfied",
 					},
 				},
 			},
-			want: []types.TestReport{
-				{
-					TestName: "test-modify-name",
-					Result:   "not-satisfied",
-					Pass:     true,
-					Remarks:  map[string]string{},
+			want: &types.LulaValidationTestReport{
+				Name: "test-modify-name",
+				TestResults: []*types.LulaValidationTestResult{
+					{
+						TestName: "test-modify-name",
+						Result:   "not-satisfied",
+						Pass:     true,
+						Remarks:  map[string]string{},
+					},
 				},
 			},
 		},

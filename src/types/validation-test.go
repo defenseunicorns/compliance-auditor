@@ -3,12 +3,18 @@ package types
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/defenseunicorns/lula/src/internal/transform"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
+
+// LulaValidationTestData is a struct that contains the details of the test performed on the LulaValidation
+// as well as the result of the test
+type LulaValidationTestData struct {
+	Test   *LulaValidationTest
+	Result *LulaValidationTestResult
+}
 
 // LulaValidationTest is a struct that contains the details of the test performed on the LulaValidation
 // The 'test' is an evaluation of the Provider, comparing the actual result against expected,
@@ -30,77 +36,12 @@ func (l *LulaValidationTest) ValidateData() error {
 	}
 
 	for _, change := range l.Changes {
-		if err := change.ValidateData(); err != nil {
+		if err := change.validateData(); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// ExecuteTest executes a single LulaValidationTest
-func (l *LulaValidationTest) ExecuteTest(ctx context.Context, validation *LulaValidation, resources map[string]interface{}, print bool) *LulaValidationTestResult {
-	testResult := &LulaValidationTestResult{
-		TestName: l.Name,
-	}
-
-	tt, err := transform.CreateTransformTarget(resources)
-	if err != nil {
-		testResult.Pass = false
-		testResult.Remarks = map[string]string{
-			"error creating transform target": err.Error(),
-		}
-		return testResult
-	}
-
-	for _, c := range l.Changes {
-		resources, err = tt.ExecuteTransform(c.Path, c.Type, c.Value, c.ValueMap)
-		if err != nil {
-			testResult.Pass = false
-			testResult.Remarks = map[string]string{
-				"error executing transform": err.Error(),
-			}
-			return testResult
-		}
-	}
-
-	// Print resources to validation directory
-	if print {
-		workDir, ok := ctx.Value(LulaValidationWorkDir).(string)
-		if !ok {
-			workDir = "."
-		}
-		jsonData := message.JSONValue(resources)
-		resourcesPath := filepath.Join(workDir, fmt.Sprintf("%s.json", l.Name))
-		err = os.WriteFile(resourcesPath, []byte(jsonData), 0600)
-		if err != nil {
-			message.Debugf("Error writing resource data to file: %v", err)
-		} else {
-			testResult.TestResourcesPath = resourcesPath
-		}
-	}
-
-	err = validation.Validate(ctx, WithStaticResources(resources))
-	if err != nil {
-		testResult.Pass = false
-		testResult.Remarks = map[string]string{
-			"error running validation": err.Error(),
-		}
-		return testResult
-	}
-
-	// Update test report
-	var result string
-	if validation.Result.Passing > 0 {
-		result = "satisfied"
-	} else if validation.Result.Failing > 0 {
-		result = "not-satisfied"
-	}
-	testResult.Result = result
-	testResult.Pass = l.ExpectedResult == result
-	testResult.Remarks = validation.Result.Observations
-
-	return testResult
 }
 
 // LulaValidationTestChange is a struct that contains the details of the changes that are to be made to the resources
@@ -113,7 +54,7 @@ type LulaValidationTestChange struct {
 }
 
 // ValidateData validates the data in the LulaValidationTestChange struct
-func (c *LulaValidationTestChange) ValidateData() error {
+func (c *LulaValidationTestChange) validateData() error {
 	if c.Path == "" {
 		return fmt.Errorf("path is empty")
 	}
@@ -124,6 +65,76 @@ func (c *LulaValidationTestChange) ValidateData() error {
 	}
 
 	return nil
+}
+
+// ExecuteTest executes a single LulaValidationTest
+func (d *LulaValidationTestData) ExecuteTest(ctx context.Context, validation *LulaValidation, resources map[string]interface{}, print bool) (*LulaValidationTestResult, error) {
+	if d.Test == nil {
+		return nil, fmt.Errorf("test is nil")
+	}
+
+	d.Result = &LulaValidationTestResult{
+		TestName: d.Test.Name,
+	}
+
+	tt, err := transform.CreateTransformTarget(resources)
+	if err != nil {
+		d.Result.Pass = false
+		d.Result.Remarks = map[string]string{
+			"error creating transform target": err.Error(),
+		}
+		return d.Result, nil
+	}
+
+	for _, c := range d.Test.Changes {
+		resources, err = tt.ExecuteTransform(c.Path, c.Type, c.Value, c.ValueMap)
+		if err != nil {
+			d.Result.Pass = false
+			d.Result.Remarks = map[string]string{
+				"error executing transform": err.Error(),
+			}
+			return d.Result, nil
+		}
+	}
+
+	// Print resources to validation directory
+	if print {
+		workDir, ok := ctx.Value(LulaValidationWorkDir).(string)
+		if !ok {
+			workDir = "."
+		}
+
+		resourcesPath := filepath.Join(workDir, fmt.Sprintf("%s.json", d.Test.Name))
+
+		err := WriteResources(resources, resourcesPath)
+		if err != nil {
+			message.Debugf("Error writing resource data to file: %v", err)
+		} else {
+			d.Result.TestResourcesPath = resourcesPath
+		}
+	}
+
+	err = validation.Validate(ctx, WithStaticResources(resources))
+	if err != nil {
+		d.Result.Pass = false
+		d.Result.Remarks = map[string]string{
+			"error running validation": err.Error(),
+		}
+		return d.Result, nil
+	}
+
+	// Update test report
+	var result string
+	if validation.Result.Passing > 0 {
+		result = "satisfied"
+	} else if validation.Result.Failing > 0 {
+		result = "not-satisfied"
+	}
+	d.Result.Result = result
+	d.Result.Pass = d.Test.ExpectedResult == result
+	d.Result.Remarks = validation.Result.Observations
+
+	return d.Result, nil
 }
 
 // LulaValidationTestResult is a struct that contains the details of the results of the test performed

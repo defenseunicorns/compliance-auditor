@@ -45,8 +45,8 @@ type LulaValidation struct {
 	// Evaluated is a boolean that represents if the validation has been evaluated
 	Evaluated bool
 
-	// ValidationTests is a slice of tests that are defined for the validation
-	ValidationTests *[]LulaValidationTest
+	// ValidationTestData is a slice of test data corresponding to the lula validation
+	ValidationTestData []*LulaValidationTestData
 
 	// Result is the result of the validation
 	Result *Result
@@ -179,25 +179,32 @@ func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOpt
 	return nil
 }
 
-// RunTests executes any tests defined in the validation
+// RunTests executes any tests defined in the validation and returns a report of the results
 func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*LulaValidationTestReport, error) {
 	if v.DomainResources == nil {
 		return nil, fmt.Errorf("domain resources are nil, tests cannot be run")
 	}
 
 	// For each test, apply the transforms to the domain resources and run validate using those resources
-	if v.ValidationTests != nil {
-		var testResult *LulaValidationTestResult
+	if len(v.ValidationTestData) != 0 {
 		testReport := NewLulaValidationTestReport(v.Name)
-		for _, test := range *v.ValidationTests {
-			// Create a fresh copy of the resources and validation to run each test on
-			testResources := deepCopyMap(*v.DomainResources)
-			testValidation := &LulaValidation{
-				Provider: v.Provider,
+		for _, d := range v.ValidationTestData {
+			// Only execute test if it has not been executed yet
+			if d.Test != nil && d.Result == nil {
+				// Create a fresh copy of the resources and validation to run each test on
+				testResources := deepCopyMap(*v.DomainResources)
+				testValidation := &LulaValidation{
+					Provider: v.Provider,
+				}
+
+				// Execute the test
+				testResult, err := d.ExecuteTest(ctx, testValidation, testResources, printResources)
+				if err != nil {
+					return nil, err
+				}
+				testReport.AddTestResult(testResult)
 			}
 
-			testResult = test.ExecuteTest(ctx, testValidation, testResources, printResources)
-			testReport.AddTestResult(testResult)
 		}
 		return testReport, nil
 	} else {
@@ -224,8 +231,6 @@ func (v *LulaValidation) GetDomainResourcesAsJSON() []byte {
 	}
 	return jsonData
 }
-
-type DomainResources map[string]interface{}
 
 type Domain interface {
 	GetResources(context.Context) (DomainResources, error)
