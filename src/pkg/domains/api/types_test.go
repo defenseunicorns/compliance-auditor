@@ -72,14 +72,14 @@ func TestCreateApiDomain(t *testing.T) {
 	}
 }
 
-func TestApiDomain(t *testing.T) {
-	respBytes := []byte(`{"status":"ok"}`)
+func TestGetResources(t *testing.T) {
+	respBytes := []byte(`{"healthcheck": "ok"}`)
 	// unmarshal the response
 	var resp map[string]interface{}
 	err := json.Unmarshal(respBytes, &resp)
 	require.NoError(t, err)
 
-	name := "test"
+	apiReqName := "test"
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Accept") != "application/json" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -97,7 +97,7 @@ func TestApiDomain(t *testing.T) {
 		api, err := CreateApiDomain(&ApiSpec{
 			Requests: []Request{
 				{
-					Name:   name,
+					Name:   apiReqName,
 					URL:    svr.URL,
 					Params: map[string]string{"label": "test"},
 					Options: &ApiOpts{
@@ -110,14 +110,19 @@ func TestApiDomain(t *testing.T) {
 		require.NoError(t, err)
 		drs, err := api.GetResources(context.Background())
 		require.NoError(t, err)
-		require.Equal(t, drs, types.DomainResources{name: resp})
+		require.Equal(t, drs, types.DomainResources{
+			apiReqName: map[string]interface{}{
+				"healthcheck": "ok",
+				"status":      200,
+			},
+		})
 	})
 
 	t.Run("fail", func(t *testing.T) {
 		api, err := CreateApiDomain(&ApiSpec{
 			Requests: []Request{
 				{
-					Name: name,
+					Name: apiReqName,
 					URL:  svr.URL,
 				},
 			},
@@ -126,6 +131,10 @@ func TestApiDomain(t *testing.T) {
 		require.NoError(t, err) // the spec is correct
 		drs, err := api.GetResources(context.Background())
 		require.Error(t, err)
-		require.Empty(t, drs)
+		require.Equal(t, drs, types.DomainResources{
+			apiReqName: types.DomainResources{
+				"status": 400,
+			},
+		})
 	})
 }

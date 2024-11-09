@@ -2,7 +2,7 @@
 
 The API Domain allows for collection of data (via HTTP Get Requests) generically from API endpoints. 
 
-# Specification
+## Specification
 The API domain Specification accepts a list of `Requests` and an `Options` block. `Options` can be configured at the top-level and will apply to all requests except those which have embedded `Options`. `Request`-level options will *override* top-level `Options`.
 
 
@@ -41,4 +41,17 @@ domain:
             my-customer-header: "my-custom-value"
       - name: "readycheck"
       # etc ...
+```
+
+## API Domain Resources
+
+The API response body is serialized into a json object with the Request's Name as the top-level key. The API status code is included in the output domain resources.
+
+Example output:
+
+```json
+"healthcheck": {
+  "status": 200,
+  "healthy": "ok"
+}
 ```

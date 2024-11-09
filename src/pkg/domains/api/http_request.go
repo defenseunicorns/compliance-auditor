@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func doHTTPReq[T any](ctx context.Context, client http.Client, url url.URL, headers map[string]string, queryParameters url.Values, respTy T) (T, error) {
+func doHTTPReq[T any](ctx context.Context, client http.Client, url url.URL, headers map[string]string, queryParameters url.Values, respTy T) (T, int, error) {
 	// append any query parameters.
 	q := url.Query()
 
@@ -23,7 +23,7 @@ func doHTTPReq[T any](ctx context.Context, client http.Client, url url.URL, head
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 	if err != nil {
-		return respTy, err
+		return respTy, 0, err
 	}
 	// add each header to the request
 	for k, v := range headers {
@@ -33,31 +33,21 @@ func doHTTPReq[T any](ctx context.Context, client http.Client, url url.URL, head
 	// do the thing
 	res, err := client.Do(req)
 	if err != nil {
-		return respTy, err
+		return respTy, 0, err
 	}
-
 	if res == nil {
-		return respTy, fmt.Errorf("error: calling %s returned empty response", url.Redacted())
+		return respTy, 0, fmt.Errorf("error: calling %s returned empty response", url.Redacted())
 	}
 	defer res.Body.Close()
 
 	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
-		return respTy, err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		return respTy, fmt.Errorf("expected status code 200 but got %d", res.StatusCode)
+		return respTy, 0, err
 	}
 
 	var responseObject T
 	err = json.Unmarshal(responseData, &responseObject)
-
-	if err != nil {
-		return respTy, fmt.Errorf("error unmarshaling response: %w", err)
-	}
-
-	return responseObject, nil
+	return responseObject, res.StatusCode, err
 }
 
 func clientFromOpts(opts *ApiOpts) http.Client {

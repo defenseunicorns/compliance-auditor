@@ -8,9 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/open-policy-agent/conftest/parser"
+
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/open-policy-agent/conftest/parser"
 )
 
 type Domain struct {
@@ -24,30 +25,33 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	var errs error
 	tmpDRs := make(map[string]interface{})
 	if workDir, ok = ctx.Value(types.LulaValidationWorkDir).(string); !ok {
-		// if unset, assume lula is working in the same directory the inputFile is in
+		// if unset, assume lula is already working in the same directory the inputFile is in
 		workDir = "."
 	}
 
-	// see TODO below: maybe this is a REAL directory?
-	dst, err := os.MkdirTemp("", "lula-files")
+	dst, err := os.MkdirTemp("", "lula-files-")
 	if err != nil {
 		// allow returning on error here?
 		return nil, err
 	}
 
-	// TODO? this might be a nice configurable option (for debugging) - store
-	// the files into a local .lula directory that doesn't necessarily get
-	// removed.
+	// (potential) TODO: this could be a nice configurable option (for
+	// debugging) - store the files into a local .lula directory that doesn't
+	// get removed.
 	defer os.RemoveAll(dst)
 
-	// make a map of rel filepaths to the user-supplied name, so we can re-key the DomainResources later on.
+	// filenames stores a map of relative filenames to the user-supplied Name,
+	// so we can re-key the DomainResources later on.
 	filenames := make(map[string]string, 0)
-
-	// unstructuredFiles is used to store a list of files that Lula needs to parse.
+	// unstructuredFiles is used to store a list of files that Lula needs to
+	// parse as strings.
 	unstructuredFiles := make([]FileInfo, 0)
+	// filesWithParsers stores files with user-specified parsers to pass to
+	// conftest.
 	filesWithParsers := make(map[string][]FileInfo, 0)
 
-	// Copy files to a temporary location
+	// Copy files to a temporary location. In this loop we only grab files that
+	// don't have configured parsers.
 	for _, fi := range d.Spec.Filepaths {
 		if fi.Parser != "" {
 			if fi.Parser == "string" {
@@ -59,18 +63,17 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 			}
 		}
 
-		file := filepath.Join(workDir, fi.Path)
-		relname, err := copyFile(dst, file)
+		realdst := filepath.Join(dst, filepath.Base(fi.Path))
+		filename, err := copyFile(ctx, realdst, fi.Path, workDir)
 		if err != nil {
 			// Assign empty data value for reporting purposes
 			tmpDRs[fi.Name] = map[string]interface{}{}
-			filenames[file] = fi.Name
 			errs = errors.Join(errs, fmt.Errorf("error writing local files: %w", err))
 			continue
 		}
 
 		// and save this info for later
-		filenames[relname] = fi.Name
+		filenames[filename] = fi.Name
 	}
 
 	// get a list of all the files we just downloaded in the temporary directory
@@ -106,7 +109,6 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 	}
 
 	// Now for the custom parsing: user-specified parsers and string files.
-
 	for parserName, filesByParser := range filesWithParsers {
 		// make a sub directory by parser name
 		parserDir, err := os.MkdirTemp(dst, parserName)
@@ -115,8 +117,8 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 		}
 
 		for _, fi := range filesByParser {
-			file := filepath.Join(workDir, fi.Path)
-			relname, err := copyFile(parserDir, file)
+			dst := filepath.Join(parserDir, filepath.Base(fi.Path))
+			relname, err := copyFile(ctx, dst, fi.Path, workDir)
 			if err != nil {
 				drs[fi.Name] = map[string]interface{}{}
 				errs = errors.Join(errs, fmt.Errorf("error writing local files: %w", err))
@@ -150,15 +152,24 @@ func (d Domain) GetResources(ctx context.Context) (types.DomainResources, error)
 
 	// add the string form of the unstructured files
 	for _, f := range unstructuredFiles {
-		// we don't need to copy these files, we'll just slurp the contents into
-		// a string and append that as one big DomainResource
-		path := filepath.Clean(filepath.Join(workDir, f.Path))
-		b, err := os.ReadFile(path)
+		stringdir, err := os.MkdirTemp(dst, "string")
 		if err != nil {
 			errs = errors.Join(errs, fmt.Errorf("error reading source files: %w", err))
 			drs[f.Name] = ""
 			continue
 		}
+
+		dst := filepath.Clean(filepath.Join(stringdir, f.Path))
+		_, err = copyFile(ctx, dst, f.Path, workDir)
+		if err != nil {
+			return nil, fmt.Errorf("error writing local files: %w", err)
+		}
+
+		b, err := os.ReadFile(dst)
+		if err != nil {
+			return nil, fmt.Errorf("error reading local file: %w", err)
+		}
+
 		drs[f.Name] = string(b)
 	}
 
@@ -179,17 +190,14 @@ func CreateDomain(spec *Spec) (types.Domain, error) {
 	return Domain{spec}, nil
 }
 
-// copyFile is a helper function that copies a file from source to dst, and returns the relative file path between the two.
-func copyFile(dst string, src string) (string, error) {
-	bytes, err := network.Fetch(src)
+// copyFile is a helper function that copies a file from source to dst, and
+// returns the base filename.
+func copyFile(ctx context.Context, dst, src, wd string) (string, error) {
+	realdst, err := network.DownloadFile(ctx, dst, src, wd)
 	if err != nil {
 		return "", fmt.Errorf("error getting source files: %w", err)
 	}
-
-	// We'll use the filename when writing the file so it's easier to reference later
-	relname := filepath.Base(src)
-
-	return relname, os.WriteFile(filepath.Join(dst, relname), bytes, 0600) // G306
+	return filepath.Base(realdst), nil
 }
 
 func listFiles(dir string) ([]string, error) {
