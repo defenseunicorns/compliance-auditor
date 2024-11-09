@@ -1,6 +1,9 @@
 package cmd_test
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/cmd/dev"
@@ -9,12 +12,12 @@ import (
 
 func TestDevGetResourcesCommand(t *testing.T) {
 
-	// test := func(t *testing.T, args ...string) error {
-	// 	t.Helper()
-	// 	rootCmd := dev.DevGetResourcesCommand()
+	test := func(t *testing.T, args ...string) error {
+		t.Helper()
+		rootCmd := dev.DevGetResourcesCommand()
 
-	// 	return runCmdTest(t, rootCmd, args...)
-	// }
+		return runCmdTest(t, rootCmd, args...)
+	}
 
 	testAgainstGolden := func(t *testing.T, goldenFileName string, args ...string) error {
 		rootCmd := dev.DevGetResourcesCommand()
@@ -22,84 +25,58 @@ func TestDevGetResourcesCommand(t *testing.T) {
 		return runCmdTestWithGolden(t, "dev/get-resources/", goldenFileName, rootCmd, args...)
 	}
 
-	// t.Run("Valid multi validation file", func(t *testing.T) {
-	// 	tempDir := t.TempDir()
-	// 	outputFile := filepath.Join(tempDir, "output.json")
+	parseOutput := func(t *testing.T, filePath string) (map[string]interface{}, error) {
+		t.Helper()
+		result := make(map[string]interface{})
 
-	// 	args := []string{
-	// 		"--input-files", "./testdata/dev/lint/multi.validation.yaml",
-	// 		"--result-file", outputFile,
-	// 	}
+		bytes, err := os.ReadFile(filePath)
+		if err != nil {
+			return result, err
+		}
 
-	// 	err := test(t, args...)
-	// 	require.NoError(t, err)
-	// })
+		err = json.Unmarshal(bytes, &result)
+		if err != nil {
+			return result, err
+		}
 
-	// t.Run("Valid OPA validation file", func(t *testing.T) {
-	// 	tempDir := t.TempDir()
-	// 	outputFile := filepath.Join(tempDir, "output.json")
+		return result, err
+	}
 
-	// 	args := []string{
-	// 		"--input-files", "./testdata/dev/lint/opa.validation.yaml",
-	// 		"--result-file", outputFile,
-	// 	}
+	t.Run("Valid validation file", func(t *testing.T) {
+		tempDir := t.TempDir()
+		outputFile := filepath.Join(tempDir, "output.json")
 
-	// 	err := test(t, args...)
-	// 	require.NoError(t, err)
-	// })
+		args := []string{
+			"--input-file", "./testdata/dev/get-resources/opa.validation.yaml",
+			"--output-file", outputFile,
+		}
 
-	// t.Run("Valid Kyverno validation file", func(t *testing.T) {
-	// 	tempDir := t.TempDir()
-	// 	outputFile := filepath.Join(tempDir, "output.json")
+		err := test(t, args...)
+		require.NoError(t, err)
 
-	// 	args := []string{
-	// 		"--input-files", "./testdata/dev/lint/validation.kyverno.yaml",
-	// 		"--result-file", outputFile,
-	// 	}
+		result, err := parseOutput(t, outputFile)
+		require.NoError(t, err)
+		name := result["pod"].(map[string]interface{})["metadata"].(map[string]interface{})["name"]
+		require.Equal(t, name, "test-pod-name")
+	})
 
-	// 	err := test(t, args...)
-	// 	require.NoError(t, err)
-	// })
+	t.Run("Valid validation file - template", func(t *testing.T) {
+		tempDir := t.TempDir()
+		outputFile := filepath.Join(tempDir, "output.json")
 
-	// t.Run("Invalid OPA validation file", func(t *testing.T) {
-	// 	tempDir := t.TempDir()
-	// 	outputFile := filepath.Join(tempDir, "output.json")
+		args := []string{
+			"--input-file", "./testdata/dev/get-resources/opa.validation.tpl.yaml",
+			"--output-file", outputFile,
+		}
 
-	// 	args := []string{
-	// 		"--input-files", "./testdata/dev/lint/invalid.opa.validation.yaml",
-	// 		"--result-file", outputFile,
-	// 	}
+		err := test(t, args...)
+		require.NoError(t, err)
 
-	// 	err := test(t, args...)
-	// 	require.ErrorContains(t, err, "the following files failed linting")
-	// })
-
-	// t.Run("valid template OPA validation file", func(t *testing.T) {
-	// 	tempDir := t.TempDir()
-	// 	outputFile := filepath.Join(tempDir, "output.json")
-
-	// 	args := []string{
-	// 		"--input-files", "./testdata/dev/lint/opa.validation.tpl.yaml",
-	// 		"--result-file", outputFile,
-	// 	}
-
-	// 	err := test(t, args...)
-	// 	require.NoError(t, err)
-	// })
-
-	// t.Run("Multiple files", func(t *testing.T) {
-	// 	tempDir := t.TempDir()
-	// 	outputFile := filepath.Join(tempDir, "output.json")
-
-	// 	args := []string{
-	// 		"--input-files", "./testdata/dev/lint/validation.kyverno.yaml",
-	// 		"--input-files", "./testdata/dev/lint/opa.validation.yaml",
-	// 		"--result-file", outputFile,
-	// 	}
-
-	// 	err := test(t, args...)
-	// 	require.NoError(t, err)
-	// })
+		result, err := parseOutput(t, outputFile)
+		require.NoError(t, err)
+		name := result["pod"].(map[string]interface{})["metadata"].(map[string]interface{})["name"]
+		require.Equal(t, name, "test-pod-name")
+	})
 
 	t.Run("Test help", func(t *testing.T) {
 		err := testAgainstGolden(t, "help", "--help")
