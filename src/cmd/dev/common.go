@@ -23,7 +23,6 @@ const NO_TIMEOUT = -1
 const DEFAULT_TIMEOUT = 1
 
 func DevCommand() *cobra.Command {
-
 	var (
 		setOpts []string
 	)
