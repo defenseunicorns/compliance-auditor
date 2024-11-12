@@ -68,7 +68,7 @@ func (c *LulaValidationTestChange) validateData() error {
 }
 
 // ExecuteTest executes a single LulaValidationTest
-func (d *LulaValidationTestData) ExecuteTest(ctx context.Context, validation *LulaValidation, resources map[string]interface{}, print bool) (*LulaValidationTestResult, error) {
+func (d *LulaValidationTestData) ExecuteTest(ctx context.Context, validation *LulaValidation, resources map[string]interface{}, saveResources bool) (*LulaValidationTestResult, error) {
 	if d.Test == nil {
 		return nil, fmt.Errorf("test is nil")
 	}
@@ -97,8 +97,8 @@ func (d *LulaValidationTestData) ExecuteTest(ctx context.Context, validation *Lu
 		}
 	}
 
-	// Print resources to validation directory
-	if print {
+	// save resources to validation directory
+	if saveResources {
 		workDir, ok := ctx.Value(LulaValidationWorkDir).(string)
 		if !ok {
 			workDir = "."

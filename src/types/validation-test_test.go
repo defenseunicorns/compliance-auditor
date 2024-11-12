@@ -22,7 +22,7 @@ func TestExecuteTest(t *testing.T) {
 	require.NoError(t, err)
 	lulaValidation := types.LulaValidation{Provider: &opaProvider}
 
-	t.Run("Execute test - success", func(t *testing.T) {
+	t.Run("Execute test - pass", func(t *testing.T) {
 		resources := map[string]interface{}{
 			"test": map[string]interface{}{
 				"metadata": map[string]interface{}{
@@ -49,13 +49,14 @@ func TestExecuteTest(t *testing.T) {
 		_, err := validationTestData.ExecuteTest(context.Background(), &lulaValidation, resources, false)
 		require.NoError(t, err)
 
-		require.Equal(t, validationTestData.Result.Pass, true)
-		require.Equal(t, validationTestData.Result.Result, "not-satisfied")
+		require.NotNil(t, validationTestData.Result)
+		require.Equal(t, true, validationTestData.Result.Pass)
+		require.Equal(t, "not-satisfied", validationTestData.Result.Result)
 	})
 
 	t.Run("Execute test - fail", func(t *testing.T) {
 		resources := map[string]interface{}{
-			"different-root": map[string]interface{}{
+			"test": map[string]interface{}{
 				"metadata": map[string]interface{}{
 					"name": "test-resource",
 				},
@@ -67,7 +68,7 @@ func TestExecuteTest(t *testing.T) {
 				Name: "test-modify-name",
 				Changes: []types.LulaValidationTestChange{
 					{
-						Path:     "test.metadata.name",
+						Path:     "different.metadata.name",
 						Type:     transform.ChangeTypeUpdate,
 						Value:    "another-resource",
 						ValueMap: nil,
@@ -80,8 +81,9 @@ func TestExecuteTest(t *testing.T) {
 		_, err := validationTestData.ExecuteTest(context.Background(), &lulaValidation, resources, false)
 		require.NoError(t, err)
 
-		require.Equal(t, validationTestData.Result.Pass, false)
-		require.Equal(t, validationTestData.Result.Result, "satisfied")
+		require.NotNil(t, validationTestData.Result)
+		require.Equal(t, false, validationTestData.Result.Pass)
+		require.Equal(t, "satisfied", validationTestData.Result.Result)
 	})
 
 	t.Run("Execute test - print resources", func(t *testing.T) {
@@ -112,6 +114,8 @@ func TestExecuteTest(t *testing.T) {
 		}
 
 		validationTestData.ExecuteTest(ctx, &lulaValidation, resources, true)
+
+		require.NotNil(t, validationTestData.Result)
 
 		expectedFilePath := filepath.Join(tmpDir, "test-modify-name.json")
 		require.Equal(t, expectedFilePath, validationTestData.Result.TestResourcesPath)

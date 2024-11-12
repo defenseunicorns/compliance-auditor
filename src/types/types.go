@@ -180,7 +180,7 @@ func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOpt
 }
 
 // RunTests executes any tests defined in the validation and returns a report of the results
-func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*LulaValidationTestReport, error) {
+func (v *LulaValidation) RunTests(ctx context.Context, saveResources bool) (*LulaValidationTestReport, error) {
 	if v.DomainResources == nil {
 		return nil, fmt.Errorf("domain resources are nil, tests cannot be run")
 	}
@@ -198,7 +198,7 @@ func (v *LulaValidation) RunTests(ctx context.Context, printResources bool) (*Lu
 				}
 
 				// Execute the test
-				testResult, err := d.ExecuteTest(ctx, testValidation, testResources, printResources)
+				testResult, err := d.ExecuteTest(ctx, testValidation, testResources, saveResources)
 				if err != nil {
 					return nil, err
 				}
