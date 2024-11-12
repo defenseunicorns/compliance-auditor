@@ -28,10 +28,10 @@ To hang for timeout of 5 seconds:
 func DevGetResourcesCommand() *cobra.Command {
 
 	var (
-		InputFile        string // -f --input-file
-		OutputFile       string // -o --output-file
-		Timeout          int    // -t --timeout
-		ConfirmExecution bool   // --confirm-execution
+		inputFile        string // -f --input-file
+		outputFile       string // -o --output-file
+		timeout          int    // -t --timeout
+		confirmExecution bool   // --confirm-execution
 	)
 
 	cmd := &cobra.Command{
@@ -41,14 +41,14 @@ func DevGetResourcesCommand() *cobra.Command {
 		Example: getResourcesHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			spinnerMessage := fmt.Sprintf("Getting Resources from %s", InputFile)
+			spinnerMessage := fmt.Sprintf("Getting Resources from %s", inputFile)
 			spinner := message.NewProgressSpinner("%s", spinnerMessage)
 			defer spinner.Stop()
 
 			ctx := context.Background()
 
 			// Read the validation data from STDIN or provided file
-			validationBytes, err := ReadValidation(cmd, spinner, InputFile, Timeout)
+			validationBytes, err := ReadValidation(cmd, spinner, inputFile, timeout)
 			if err != nil {
 				return fmt.Errorf("error reading validation: %v", err)
 			}
@@ -64,11 +64,11 @@ func DevGetResourcesCommand() *cobra.Command {
 			// add to debug logs accepting that this will print sensitive information?
 			message.Debug(string(output))
 
-			collection, err := DevGetResources(ctx, output, ConfirmExecution, spinner)
+			collection, err := DevGetResources(ctx, output, confirmExecution, spinner)
 
 			// do not perform the write if there is nothing to write (likely error)
 			if collection != nil {
-				errWrite := types.WriteResources(collection, OutputFile)
+				errWrite := types.WriteResources(collection, outputFile)
 				if errWrite != nil {
 					message.Fatalf(errWrite, "error writing resources: %v", err)
 				}
@@ -84,10 +84,10 @@ func DevGetResourcesCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
-	cmd.Flags().StringVarP(&OutputFile, "output-file", "o", "", "the path to write the resources json")
-	cmd.Flags().IntVarP(&Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
-	cmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
+	cmd.Flags().StringVarP(&inputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
+	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to write the resources json")
+	cmd.Flags().IntVarP(&timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
+	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of getting resources")
 
 	return cmd
 

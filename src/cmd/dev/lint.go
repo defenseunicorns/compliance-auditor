@@ -19,8 +19,8 @@ To lint existing validation files:
 func DevLintCommand() *cobra.Command {
 
 	var (
-		InputFiles []string // -f --input-files
-		ResultFile string   // -r --result-file
+		inputFiles []string // -f --input-files
+		resultFile string   // -r --result-file
 	)
 
 	cmd := &cobra.Command{
@@ -29,24 +29,24 @@ func DevLintCommand() *cobra.Command {
 		Long:    "Validate validation files are properly configured against the schema, file paths can be local or URLs (https://)",
 		Example: lintHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(InputFiles) == 0 {
+			if len(inputFiles) == 0 {
 				return fmt.Errorf("no input files specified")
 			}
 
 			config, _ := cmd.Flags().GetStringSlice("set")
 			message.Debug("command line 'set' flags: %s", config)
 
-			validationResults := DevLint(InputFiles, config)
+			validationResults := DevLint(inputFiles, config)
 
 			// If result file is specified, write the validation results to the file
 			var err error
-			if ResultFile != "" {
+			if resultFile != "" {
 				// If there is only one validation result, write it to the file
 				if len(validationResults) == 1 {
-					err = oscalValidation.WriteValidationResult(validationResults[0], ResultFile)
+					err = oscalValidation.WriteValidationResult(validationResults[0], resultFile)
 				} else {
 					// If there are multiple validation results, write them to the file
-					err = oscalValidation.WriteValidationResults(validationResults, ResultFile)
+					err = oscalValidation.WriteValidationResults(validationResults, resultFile)
 				}
 			}
 			if err != nil {
@@ -66,8 +66,8 @@ func DevLintCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringSliceVarP(&InputFiles, "input-files", "f", []string{}, "the paths to validation files (comma-separated)")
-	cmd.Flags().StringVarP(&ResultFile, "result-file", "r", "", "the path to write the validation result")
+	cmd.Flags().StringSliceVarP(&inputFiles, "input-files", "f", []string{}, "the paths to validation files (comma-separated)")
+	cmd.Flags().StringVarP(&resultFile, "result-file", "r", "", "the path to write the validation result")
 
 	return cmd
 }

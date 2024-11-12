@@ -32,12 +32,12 @@ To hang for timeout of 5 seconds:
 func DevValidateCommand() *cobra.Command {
 
 	var (
-		InputFile        string // -f --input-file
-		OutputFile       string // -o --output-file
-		Timeout          int    // -t --timeout
-		ConfirmExecution bool   // --confirm-execution
-		ExpectedResult   bool   // -e --expected-result
-		ResourcesFile    string // -r --resources-file
+		inputFile        string // -f --input-file
+		outputFile       string // -o --output-file
+		timeout          int    // -t --timeout
+		confirmExecution bool   // --confirm-execution
+		expectedResult   bool   // -e --expected-result
+		resourcesFile    string // -r --resources-file
 	)
 
 	cmd := &cobra.Command{
@@ -46,7 +46,7 @@ func DevValidateCommand() *cobra.Command {
 		Long:    "Run an individual Lula validation for quick testing and debugging of a Lula Validation. This command is intended for development purposes only.",
 		Example: validateHelp,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			spinnerMessage := fmt.Sprintf("Validating %s", InputFile)
+			spinnerMessage := fmt.Sprintf("Validating %s", inputFile)
 			spinner := message.NewProgressSpinner("%s", spinnerMessage)
 			defer spinner.Stop()
 
@@ -56,7 +56,7 @@ func DevValidateCommand() *cobra.Command {
 			var err error
 
 			// Read the validation data from STDIN or provided file
-			validationBytes, err = ReadValidation(cmd, spinner, InputFile, Timeout)
+			validationBytes, err = ReadValidation(cmd, spinner, inputFile, timeout)
 			if err != nil {
 				return fmt.Errorf("error reading validation: %v", err)
 			}
@@ -65,12 +65,12 @@ func DevValidateCommand() *cobra.Command {
 			spinner.Updatef("%s", spinnerMessage)
 
 			// If a resources file is provided, read the resources file
-			if ResourcesFile != "" {
-				if !strings.HasSuffix(ResourcesFile, ".json") {
+			if resourcesFile != "" {
+				if !strings.HasSuffix(resourcesFile, ".json") {
 					return fmt.Errorf("resource file must be a json file")
 				} else {
 					// Read the resources data
-					resourcesBytes, err = pkgCommon.ReadFileToBytes(ResourcesFile)
+					resourcesBytes, err = pkgCommon.ReadFileToBytes(resourcesFile)
 					if err != nil {
 						return fmt.Errorf("error reading file: %v", err)
 					}
@@ -88,14 +88,14 @@ func DevValidateCommand() *cobra.Command {
 			// add to debug logs accepting that this will print sensitive information?
 			message.Debug(string(output))
 
-			validation, err := DevValidate(ctx, output, resourcesBytes, ConfirmExecution, spinner)
+			validation, err := DevValidate(ctx, output, resourcesBytes, confirmExecution, spinner)
 			if err != nil {
 				return fmt.Errorf("error running dev validate: %v", err)
 			}
 
 			// Write the validation result to a file if an output file is provided
 			// Otherwise, print the result to the debug console
-			err = writeValidation(validation, OutputFile)
+			err = writeValidation(validation, outputFile)
 			if err != nil {
 				return fmt.Errorf("error writing result: %v", err)
 			}
@@ -110,8 +110,8 @@ func DevValidateCommand() *cobra.Command {
 
 			result := validation.Result.Passing > 0 && validation.Result.Failing <= 0
 			// If the expected result is not equal to the actual result, return an error
-			if ExpectedResult != result {
-				return fmt.Errorf("expected result to be %t got %t", ExpectedResult, result)
+			if expectedResult != result {
+				return fmt.Errorf("expected result to be %t got %t", expectedResult, result)
 			}
 			// Print the number of passing and failing results
 			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
@@ -119,12 +119,12 @@ func DevValidateCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&InputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
-	cmd.Flags().StringVarP(&ResourcesFile, "resources-file", "r", "", "the path to an optional resources file")
-	cmd.Flags().StringVarP(&OutputFile, "output-file", "o", "", "the path to write the validation with results")
-	cmd.Flags().IntVarP(&Timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
-	cmd.Flags().BoolVarP(&ExpectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
-	cmd.Flags().BoolVar(&ConfirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
+	cmd.Flags().StringVarP(&inputFile, "input-file", "f", STDIN, "the path to a validation manifest file")
+	cmd.Flags().StringVarP(&resourcesFile, "resources-file", "r", "", "the path to an optional resources file")
+	cmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to write the validation with results")
+	cmd.Flags().IntVarP(&timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
+	cmd.Flags().BoolVarP(&expectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
+	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 
 	return cmd
 }
