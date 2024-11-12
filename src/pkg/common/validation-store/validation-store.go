@@ -17,7 +17,7 @@ import (
 
 type ValidationStore struct {
 	backMatterMap  map[string]string
-	validationMap  types.LulaValidationMap
+	validationMap  map[string]*types.LulaValidation
 	observationMap map[string]*oscalTypes_1_1_2.Observation
 }
 
@@ -25,7 +25,7 @@ type ValidationStore struct {
 func NewValidationStore() *ValidationStore {
 	return &ValidationStore{
 		backMatterMap:  make(map[string]string),
-		validationMap:  make(types.LulaValidationMap),
+		validationMap:  make(map[string]*types.LulaValidation),
 		observationMap: make(map[string]*oscalTypes_1_1_2.Observation),
 	}
 }
@@ -34,7 +34,7 @@ func NewValidationStore() *ValidationStore {
 func NewValidationStoreFromBackMatter(backMatter oscalTypes_1_1_2.BackMatter) *ValidationStore {
 	return &ValidationStore{
 		backMatterMap:  oscal.BackMatterToMap(backMatter),
-		validationMap:  make(types.LulaValidationMap),
+		validationMap:  make(map[string]*types.LulaValidation),
 		observationMap: make(map[string]*oscalTypes_1_1_2.Observation),
 	}
 }
@@ -54,7 +54,8 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 		validation.Metadata.UUID = uuid.NewUUID()
 	}
 
-	v.validationMap[validation.Metadata.UUID], err = validation.ToLulaValidation(validation.Metadata.UUID)
+	lulaValidation, err := validation.ToLulaValidation(validation.Metadata.UUID)
+	v.validationMap[validation.Metadata.UUID] = &lulaValidation
 
 	if err != nil {
 		return "", err
@@ -66,7 +67,7 @@ func (v *ValidationStore) AddValidation(validation *common.Validation) (id strin
 // AddLulaValidation adds a LulaValidation to the store
 func (v *ValidationStore) AddLulaValidation(validation *types.LulaValidation, id string) {
 	trimmedId := common.TrimIdPrefix(id)
-	v.validationMap[trimmedId] = *validation
+	v.validationMap[trimmedId] = validation
 }
 
 // GetLulaValidation gets the LulaValidation from the store
@@ -74,7 +75,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 	trimmedId := common.TrimIdPrefix(id)
 
 	if validation, ok := v.validationMap[trimmedId]; ok {
-		return &validation, nil
+		return validation, nil
 	}
 
 	if validationString, ok := v.backMatterMap[trimmedId]; ok {
@@ -82,7 +83,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 		if err != nil {
 			return &lulaValidation, err
 		}
-		v.validationMap[trimmedId] = lulaValidation
+		v.validationMap[trimmedId] = &lulaValidation
 		return &lulaValidation, nil
 	}
 
@@ -93,7 +94,7 @@ func (v *ValidationStore) GetLulaValidation(id string) (validation *types.LulaVa
 func (v *ValidationStore) DryRun() (executable bool, msg string) {
 	executableValidations := make([]string, 0)
 	for k, val := range v.validationMap {
-		if val.Domain != nil {
+		if val != nil && val.Domain != nil {
 			if (*val.Domain).IsExecutable() {
 				executableValidations = append(executableValidations, k)
 			}
@@ -110,67 +111,70 @@ func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, 
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
 
 	for k, val := range v.validationMap {
-		completedText := "evaluated"
-		spinnerMessage := fmt.Sprintf("Running validation %s", k)
-		spinner := message.NewProgressSpinner("%s", spinnerMessage)
-		defer spinner.Stop()
-		err := val.Validate(ctx, types.ExecutionAllowed(confirmExecution))
-		if err != nil {
-			message.Debugf("Error running validation %s: %v", k, err)
-			// Update validation with failed results
-			val.Result.State = "not-satisfied"
-			val.Result.Observations = map[string]string{
-				"Error running validation": err.Error(),
-			}
-			completedText = "NOT evaluated"
-		}
-
-		// Update individual result state
-		if val.Result.Passing > 0 && val.Result.Failing <= 0 {
-			val.Result.State = "satisfied"
-		} else {
-			val.Result.State = "not-satisfied"
-		}
-
-		// Add the observation to the observation map
-		var remarks string
-		if len(val.Result.Observations) > 0 {
-			for k, v := range val.Result.Observations {
-				remarks += fmt.Sprintf("%s: %s\n", k, v)
-			}
-		}
-
-		// Save Resources if specified
-		var resourceHref string
-		if saveResources {
-			resourceUuid := uuid.NewUUID()
-			// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
-			filename := fmt.Sprintf("%s.json", resourceUuid)
-			resourceFile := filepath.Join(resourcesDir, "resources", filename)
-			err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm) // #nosec G301
+		if val != nil {
+			// Create observation for each non-nil validation
+			completedText := "evaluated"
+			spinnerMessage := fmt.Sprintf("Running validation %s", k)
+			spinner := message.NewProgressSpinner("%s", spinnerMessage)
+			defer spinner.Stop()
+			err := val.Validate(ctx, types.ExecutionAllowed(confirmExecution))
 			if err != nil {
-				message.Debugf("Error creating directory for remote resource: %v", err)
+				message.Debugf("Error running validation %s: %v", k, err)
+				// Update validation with failed results
+				val.Result.State = "not-satisfied"
+				val.Result.Observations = map[string]string{
+					"Error running validation": err.Error(),
+				}
+				completedText = "NOT evaluated"
 			}
-			jsonData := val.GetDomainResourcesAsJSON()
-			err = files.WriteOutput(jsonData, resourceFile)
-			if err != nil {
-				message.Debugf("Error writing remote resource file: %v", err)
+
+			// Update individual result state
+			if val.Result.Passing > 0 && val.Result.Failing <= 0 {
+				val.Result.State = "satisfied"
+			} else {
+				val.Result.State = "not-satisfied"
 			}
-			resourceHref = fmt.Sprintf("file://./resources/%s", filename)
-		}
 
-		// Create an observation
-		relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
-			{
-				Description: fmt.Sprintf("Result: %s\n", val.Result.State),
-				Remarks:     remarks,
-			},
-		}
-		observation := oscal.CreateObservation("TEST", relevantEvidence, &val, resourceHref, "[TEST]: %s - %s\n", k, val.Name)
-		v.observationMap[k] = &observation
-		observations = append(observations, observation)
+			// Add the observation to the observation map
+			var remarks string
+			if len(val.Result.Observations) > 0 {
+				for k, v := range val.Result.Observations {
+					remarks += fmt.Sprintf("%s: %s\n", k, v)
+				}
+			}
 
-		spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
+			// Save Resources if specified
+			var resourceHref string
+			if saveResources {
+				resourceUuid := uuid.NewUUID()
+				// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
+				filename := fmt.Sprintf("%s.json", resourceUuid)
+				resourceFile := filepath.Join(resourcesDir, "resources", filename)
+				err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm) // #nosec G301
+				if err != nil {
+					message.Debugf("Error creating directory for remote resource: %v", err)
+				}
+				jsonData := val.GetDomainResourcesAsJSON()
+				err = files.WriteOutput(jsonData, resourceFile)
+				if err != nil {
+					message.Debugf("Error writing remote resource file: %v", err)
+				}
+				resourceHref = fmt.Sprintf("file://./resources/%s", filename)
+			}
+
+			// Create an observation
+			relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
+				{
+					Description: fmt.Sprintf("Result: %s\n", val.Result.State),
+					Remarks:     remarks,
+				},
+			}
+			observation := oscal.CreateObservation("TEST", relevantEvidence, val, resourceHref, "[TEST]: %s - %s\n", k, val.Name)
+			v.observationMap[k] = &observation
+			observations = append(observations, observation)
+
+			spinner.Successf("%s -> %s -> %s", spinnerMessage, completedText, val.Result.State)
+		}
 	}
 	return observations
 }
