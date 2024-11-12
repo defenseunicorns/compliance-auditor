@@ -124,11 +124,9 @@ func (d *LulaValidationTestData) ExecuteTest(ctx context.Context, validation *Lu
 	}
 
 	// Update test report
-	var result string
+	result := "not-satisfied"
 	if validation.Result.Passing > 0 {
 		result = "satisfied"
-	} else if validation.Result.Failing > 0 {
-		result = "not-satisfied"
 	}
 	d.Result.Result = result
 	d.Result.Pass = d.Test.ExpectedResult == result

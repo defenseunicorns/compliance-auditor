@@ -113,7 +113,8 @@ func TestExecuteTest(t *testing.T) {
 			},
 		}
 
-		validationTestData.ExecuteTest(ctx, &lulaValidation, resources, true)
+		_, err := validationTestData.ExecuteTest(ctx, &lulaValidation, resources, true)
+		require.NoError(t, err)
 
 		require.NotNil(t, validationTestData.Result)
 
