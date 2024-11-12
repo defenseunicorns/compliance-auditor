@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 )
 
 const STDIN = "0"

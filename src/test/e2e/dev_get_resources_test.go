@@ -5,15 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
-	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestGetResources(t *testing.T) {
@@ -82,9 +83,6 @@ func TestGetResources(t *testing.T) {
 			if len(collection["empty"].([]map[string]interface{})) != 0 {
 				t.Fatalf("expected 0 length items in the empty payload - got %v\n", len(collection["empty"].([]map[string]interface{})))
 			}
-
-			message.Info("Successfully validated dev get-resources command")
-
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {

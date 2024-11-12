@@ -7,7 +7,7 @@ The Kubernetes domain provides Lula access to data collection of Kubernetes reso
 
 ## Specification
 
-The Kubernetes specification can be used to return Kubernetes resources as JSON data to the providers. The specification allows for both manifest and resource field data to be retreived.
+The Kubernetes specification can be used to return Kubernetes resources as JSON data to the providers. The specification allows for both manifest and resource field data to be retrieved.
 
 The following sample `kubernetes-spec` yields a list of all pods in the `validation-test` namespace.
 

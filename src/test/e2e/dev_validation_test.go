@@ -5,15 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
-	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestDevValidation(t *testing.T) {
@@ -63,8 +64,6 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Validation failed")
 			}
 
-			message.Infof("Successfully validated dev validate command with OPA")
-
 			return ctx
 		}).
 		Assess("Validate DevValidate kyverno", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -90,8 +89,6 @@ func TestDevValidation(t *testing.T) {
 			if validation.Result.Failing > 0 {
 				t.Errorf("Validation failed")
 			}
-
-			message.Infof("Successfully validated dev validate command with kyverno")
 
 			return ctx
 		}).
@@ -125,8 +122,6 @@ func TestDevValidation(t *testing.T) {
 			if expectedResult != result {
 				t.Errorf("expected result to be %t got %t", expectedResult, result)
 			}
-
-			message.Infof("Successfully validated dev validate command with resources")
 
 			return ctx
 		}).

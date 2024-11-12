@@ -3,12 +3,12 @@ package dev
 import (
 	"context"
 	"fmt"
-	"os"
+
+	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
 )
 
 var getResourcesOpts = &flags{}
@@ -52,7 +52,10 @@ var getResourcesCmd = &cobra.Command{
 
 		// do not perform the write if there is nothing to write (likely error)
 		if collection != nil {
-			writeResources(collection, getResourcesOpts.OutputFile)
+			errWrite := types.WriteResources(collection, getResourcesOpts.OutputFile)
+			if errWrite != nil {
+				message.Fatalf(errWrite, "error writing resources: %v", err)
+			}
 		}
 
 		if err != nil {
@@ -91,19 +94,4 @@ func DevGetResources(ctx context.Context, validationBytes []byte, spinner *messa
 	}
 
 	return *lulaValidation.DomainResources, nil
-}
-
-func writeResources(data types.DomainResources, filepath string) {
-	jsonData := message.JSONValue(data)
-
-	// If a filepath is provided, write the JSON data to the file.
-	if filepath != "" {
-		err := os.WriteFile(filepath, []byte(jsonData), 0600) // G306
-		if err != nil {
-			message.Fatalf(err, "error writing resource JSON to file: %v", err)
-		}
-	} else {
-		// Else print to stdout
-		fmt.Println(jsonData)
-	}
 }

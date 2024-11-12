@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestFileValidation(t *testing.T) {
@@ -23,16 +23,14 @@ func TestFileValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		assessment, err := validator.ValidateOnPath(ctx, passDir+oscalFile, "")
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		if len(assessment.Results) == 0 {
 			t.Fatal("Expected greater than zero results")
 		}
 
 		result := assessment.Results[0]
-		assert.NotNil(t, result, "Expected findings to be not nil")
+		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
 			state := finding.Target.Status.State
@@ -47,33 +45,31 @@ func TestFileValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		assessment, err := validator.ValidateOnPath(ctx, passDir+kyvernoFile, "")
-		assert.NoError(t, err)
-		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		require.NoError(t, err)
+		require.NotEmpty(t, assessment.Results, "Expected greater than zero results")
 
 		result := assessment.Results[0]
-		assert.NotNil(t, result, "Expected findings to be not nil")
+		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
 			state := finding.Target.Status.State
-			assert.Equal(t, "satisfied", state, fmt.Sprintf("State should be satisfied, but got %s", state))
+			require.Equal(t, "satisfied", state, fmt.Sprintf("State should be satisfied, but got %s", state))
 		}
 	})
-	t.Run("success - arbitrary file contexnts", func(t *testing.T) {
+	t.Run("success - arbitrary file contents", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
 		validator, err := validation.New()
-		if err != nil {
-			t.Errorf("error creating validator: %v", err)
-		}
+		require.NoError(t, err)
 		assessment, err := validator.ValidateOnPath(ctx, passDir+"/component-definition-string-file.yaml", "")
-		assert.NoError(t, err)
-		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		require.NoError(t, err)
+		require.NotEmpty(t, assessment.Results, "Expected greater than zero results")
 
 		result := assessment.Results[0]
-		assert.NotNil(t, result, "Expected findings to be not nil")
+		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
 			state := finding.Target.Status.State
-			assert.Equal(t, "satisfied", state, fmt.Sprintf("State should be satisfied, but got %s", state))
+			require.Equal(t, "satisfied", state, fmt.Sprintf("State should be satisfied, but got %s", state))
 		}
 	})
 	t.Run("fail - opa", func(t *testing.T) {
@@ -82,15 +78,15 @@ func TestFileValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		assessment, err := validator.ValidateOnPath(ctx, failDir+oscalFile, "")
-		assert.NoError(t, err)
-		assert.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		require.NoError(t, err)
+		require.NotEmpty(t, assessment.Results, "Expected greater than zero results")
 
 		result := assessment.Results[0]
-		assert.NotNil(t, result, "Expected findings to be not nil")
+		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
 			state := finding.Target.Status.State
-			assert.Equal(t, "not-satisfied", state, fmt.Sprintf("State should not be satisfied, but got %s", state))
+			require.Equal(t, "not-satisfied", state, fmt.Sprintf("State should not be satisfied, but got %s", state))
 		}
 	})
 	t.Run("fail - kyverno", func(t *testing.T) {
@@ -98,20 +94,18 @@ func TestFileValidation(t *testing.T) {
 		validator, err := validation.New()
 		require.NoError(t, err)
 		assessment, err := validator.ValidateOnPath(ctx, failDir+kyvernoFile, "")
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		if len(assessment.Results) == 0 {
 			t.Fatal("Expected greater than zero results")
 		}
 
 		result := assessment.Results[0]
-		assert.NotNil(t, result, "Expected findings to be not nil")
+		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
 			state := finding.Target.Status.State
-			assert.Equal(t, "not-satisfied", state, fmt.Sprintf("State should not be satisfied, but got %s", state))
+			require.Equal(t, "not-satisfied", state, fmt.Sprintf("State should not be satisfied, but got %s", state))
 		}
 	})
 
@@ -120,8 +114,23 @@ func TestFileValidation(t *testing.T) {
 		validator, err := validation.New()
 		require.NoError(t, err)
 		_, err = validator.ValidateOnPath(ctx, "scenarios/file-validations/invalid/oscal-component.yaml", "")
-		if err == nil {
-			t.Fatal("expected error, got success")
+		require.Error(t, err)
+	})
+
+	// This test fixture is referencing a file on GIT, so if you're moving
+	// things around here you should probably check that, too
+	t.Run("remote file download", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), types.LulaValidationWorkDir, passDir)
+		validator, err := validation.New()
+		require.NoError(t, err)
+		assessment, err := validator.ValidateOnPath(ctx, "scenarios/file-validations/pass/component-definition-remote-files.yaml", "")
+		require.NoError(t, err)
+		require.Len(t, assessment.Results, 1)
+		result := assessment.Results[0]
+		require.NotNil(t, result, "Expected findings to be not nil")
+		for _, finding := range *result.Findings {
+			state := finding.Target.Status.State
+			require.Equal(t, "satisfied", state, fmt.Sprintf("State should be satisfied, but got %s", state))
 		}
 	})
 }

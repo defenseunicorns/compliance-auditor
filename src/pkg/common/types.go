@@ -156,7 +156,8 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	domain, err := GetDomain(validation.Domain)
 	if domain == nil {
 		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidDomain, validation.Domain.Type)
-	} else if err != nil {
+	}
+	if err != nil {
 		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidDomain, err)
 	}
 	lulaValidation.Domain = &domain

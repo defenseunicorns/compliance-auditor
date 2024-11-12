@@ -365,3 +365,21 @@ func CreateResult(findingMap map[string]oscalTypes_1_1_2.Finding, observations [
 
 	return result, nil
 }
+
+// GetObservationByUuid returns the observation with the given UUID
+func GetObservationByUuid(assessmentResults *oscalTypes_1_1_2.AssessmentResults, observationUuid string) (*oscalTypes_1_1_2.Observation, error) {
+	if assessmentResults == nil {
+		return nil, fmt.Errorf("assessment results is nil")
+	}
+
+	for _, result := range assessmentResults.Results {
+		if result.Observations != nil {
+			for _, observation := range *result.Observations {
+				if observation.UUID == observationUuid {
+					return &observation, nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("observation with uuid %s not found", observationUuid)
+}

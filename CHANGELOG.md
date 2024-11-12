@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.11.0](https://github.com/defenseunicorns/lula/compare/v0.10.0...v0.11.0) (2024-11-08)
+
+
+### Features
+
+* **api domain:** accept any API response and include reponse status code in domain resources ([#788](https://github.com/defenseunicorns/lula/issues/788)) ([6c6fcb3](https://github.com/defenseunicorns/lula/commit/6c6fcb3398349577efb3106a046bbbc6e158f8cc))
+* **api domain:** extend options for Get requests ([#766](https://github.com/defenseunicorns/lula/issues/766)) ([a480235](https://github.com/defenseunicorns/lula/commit/a4802350e626e9aaf5200106e7afd5fb492c9cb9))
+* **dev:** observation print commands ([#762](https://github.com/defenseunicorns/lula/issues/762)) ([0e9337e](https://github.com/defenseunicorns/lula/commit/0e9337e18f72db4b1545994006159bf1bf8f1b13))
+
+
+### Bug Fixes
+
+* **generate:** template nested prose with params ([#780](https://github.com/defenseunicorns/lula/issues/780)) ([cd0fc1f](https://github.com/defenseunicorns/lula/commit/cd0fc1fc78bdcf2d0deff259b9f11169fe0f972f))
+* **validate:** support returning empty resources object/slice ([#704](https://github.com/defenseunicorns/lula/issues/704)) ([9f29146](https://github.com/defenseunicorns/lula/commit/9f29146a642c6b3114049bc2a8ee175f67eb258c))
+
+
+### Miscellaneous
+
+* **deps:** update actions/github-script digest to 4020e46 ([#778](https://github.com/defenseunicorns/lula/issues/778)) ([7c85ec9](https://github.com/defenseunicorns/lula/commit/7c85ec9977d2f8a60f4b3548879ae6d27530c7f1))
+* **deps:** update anchore/sbom-action action to v0.17.6 ([#768](https://github.com/defenseunicorns/lula/issues/768)) ([f55c890](https://github.com/defenseunicorns/lula/commit/f55c890a8713403d122deb11b263eaaea8852774))
+* **deps:** update anchore/sbom-action action to v0.17.7 ([#781](https://github.com/defenseunicorns/lula/issues/781)) ([28247ea](https://github.com/defenseunicorns/lula/commit/28247ea4e26c7fb33e390cb51cb2791957d66064))
+* **deps:** update dependency go to v1.23.3 ([#785](https://github.com/defenseunicorns/lula/issues/785)) ([70de474](https://github.com/defenseunicorns/lula/commit/70de4744d38f907e11af8403eb462b449836b6f9))
+* **deps:** update github.com/charmbracelet/x/exp/teatest digest to 317c90d ([#791](https://github.com/defenseunicorns/lula/issues/791)) ([1d0ebff](https://github.com/defenseunicorns/lula/commit/1d0ebffc000226d5f898f2c730ad29957e47aa2b))
+* **deps:** update github.com/charmbracelet/x/exp/teatest digest to eee4c46 ([#705](https://github.com/defenseunicorns/lula/issues/705)) ([2ecc6ce](https://github.com/defenseunicorns/lula/commit/2ecc6ce82fa79b719673f79548212c39fa9cf896))
+* **deps:** update github/codeql-action action to v3.27.1 ([#790](https://github.com/defenseunicorns/lula/issues/790)) ([c86e426](https://github.com/defenseunicorns/lula/commit/c86e4267d1894b329e79bf6cd0453a905886c6fc))
+* **deps:** update goreleaser/goreleaser-action action to v6.1.0 ([#786](https://github.com/defenseunicorns/lula/issues/786)) ([fae5e4c](https://github.com/defenseunicorns/lula/commit/fae5e4ccb0ffc3d93542f485c1ad46ae821528c3))
+* **deps:** update module github.com/charmbracelet/bubbletea to v1.2.1 ([#783](https://github.com/defenseunicorns/lula/issues/783)) ([73690be](https://github.com/defenseunicorns/lula/commit/73690be5fc5aba16de7184bdd9ea76c4caba426c))
+* **deps:** update module github.com/charmbracelet/lipgloss to v1 ([#774](https://github.com/defenseunicorns/lula/issues/774)) ([0213f3d](https://github.com/defenseunicorns/lula/commit/0213f3d40179aa0c784451eaf5f382d5e2741e01))
+* **deps:** update module github.com/evertras/bubble-table to v0.17.1 ([#773](https://github.com/defenseunicorns/lula/issues/773)) ([8dc2196](https://github.com/defenseunicorns/lula/commit/8dc21964438e46c558cd718e80832c2b82ee1040))
+* **deps:** update module github.com/open-policy-agent/opa to v0.70.0 ([#775](https://github.com/defenseunicorns/lula/issues/775)) ([63bf029](https://github.com/defenseunicorns/lula/commit/63bf02930834a2c6f8e0ab69d7fedbab0cc73760))
+* **file domain:** add network.DownloadFile and use go-getter to download files ([#760](https://github.com/defenseunicorns/lula/issues/760)) ([9654993](https://github.com/defenseunicorns/lula/commit/9654993bb87dd2a717fefc5c19dd038248bf2658))
+
 ## [0.10.0](https://github.com/defenseunicorns/lula/compare/v0.9.1...v0.10.0) (2024-10-25)
 
 
