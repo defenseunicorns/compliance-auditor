@@ -20,7 +20,6 @@ func TestExecuteTest(t *testing.T) {
 		Rego: "package validate\n\nvalidate {input.test.metadata.name == \"test-resource\"}",
 	})
 	require.NoError(t, err)
-	lulaValidation := types.LulaValidation{Provider: &opaProvider}
 
 	t.Run("Execute test - pass", func(t *testing.T) {
 		resources := map[string]interface{}{
@@ -30,6 +29,8 @@ func TestExecuteTest(t *testing.T) {
 				},
 			},
 		}
+
+		lulaValidation := types.LulaValidation{Provider: &opaProvider}
 
 		validationTestData := &types.LulaValidationTestData{
 			Test: &types.LulaValidationTest{
@@ -62,6 +63,8 @@ func TestExecuteTest(t *testing.T) {
 				},
 			},
 		}
+
+		lulaValidation := types.LulaValidation{Provider: &opaProvider}
 
 		validationTestData := &types.LulaValidationTestData{
 			Test: &types.LulaValidationTest{
@@ -97,6 +100,8 @@ func TestExecuteTest(t *testing.T) {
 				},
 			},
 		}
+
+		lulaValidation := types.LulaValidation{Provider: &opaProvider}
 
 		validationTestData := &types.LulaValidationTestData{
 			Test: &types.LulaValidationTest{
