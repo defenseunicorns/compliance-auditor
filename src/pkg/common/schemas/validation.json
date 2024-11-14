@@ -374,6 +374,17 @@
                                 "type": "object",
                                 "additionalProperties": { "type": "string"}
                             },
+                            "body": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string",
+                                "enum": [
+                                    "post", "POST", "Post",
+                                    "get", "GET", "Get"
+                                ],
+                                "default": "get"
+                            },
                             "options": {
                                 "$ref": "#/definitions/api-options"
                             }

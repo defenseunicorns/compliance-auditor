@@ -1,9 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -28,19 +31,29 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		}
 
 		// configure the default HTTP client using any top-level Options. Individual
-		// requests with overrides will get bespoke clients.
+		// requests with overrides (in request.Options.Headers) will get bespoke clients.
 		defaultClient := clientFromOpts(defaultOpts)
 		var errs error
 		for _, request := range a.Spec.Requests {
 			var responseType map[string]interface{}
-			var err error
-			var status int
-			if request.Options == nil {
-				responseType, status, err = doHTTPReq(ctx, defaultClient, *request.reqURL, defaultOpts.Headers, request.reqParameters, responseType)
-			} else {
-				client := clientFromOpts(request.Options)
-				responseType, status, err = doHTTPReq(ctx, client, *request.reqURL, request.Options.Headers, request.reqParameters, responseType)
+
+			var r io.Reader
+			if request.Body != "" {
+				r = bytes.NewBufferString(request.Body)
 			}
+
+			var headers map[string]string
+			var client http.Client
+
+			if request.Options == nil {
+				headers = defaultOpts.Headers
+				client = defaultClient
+			} else {
+				headers = request.Options.Headers
+				client = clientFromOpts(request.Options)
+			}
+
+			responseType, status, err := doHTTPReq(ctx, client, request.Method, *request.reqURL, r, headers, request.reqParameters, responseType)
 			if err != nil {
 				errs = errors.Join(errs, err)
 			}
