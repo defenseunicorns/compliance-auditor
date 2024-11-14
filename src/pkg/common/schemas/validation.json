@@ -385,6 +385,10 @@
                                 ],
                                 "default": "get"
                             },
+                            "executable": {
+                                "type": "boolean",
+                                "description": "indicates if the request is executable"
+                            },
                             "options": {
                                 "$ref": "#/definitions/api-options"
                             }

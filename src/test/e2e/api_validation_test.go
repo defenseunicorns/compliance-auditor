@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -298,11 +297,8 @@ func TestApiValidation_templatedPost(t *testing.T) {
 		require.NotEmpty(t, wantResp)
 
 		passRsp := false
-
 		if string(wantResp) == "true\n" { //am I reading this badly? Or sending it badly? either way this is annoying.
 			passRsp = true
-		} else {
-			fmt.Println(string(wantResp))
 		}
 		resp := struct {
 			Pass bool `json:"pass"`
@@ -343,7 +339,10 @@ func TestApiValidation_templatedPost(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			validator, err := validation.New(validation.WithComposition(composer, tmpl))
+			// The request is marked "executable" so lula asks for validation;
+			// this test fails if validation.WithAllowExecution is not set. I'm
+			// not sure if there's a clearer way to test this from here.
+			validator, err := validation.New(validation.WithComposition(composer, tmpl), validation.WithAllowExecution(true, true))
 			require.NoError(t, err)
 
 			assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")

@@ -54,6 +54,7 @@ component-definition:
               requests:
               - name: healthcheck
                 method: "POST"
+                executable: true
                 url: {{ .var.reqUrl }}
                 body: |
                   {{ .var.body }}
