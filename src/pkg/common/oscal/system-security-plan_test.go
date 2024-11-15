@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,17 +50,11 @@ func createSystemComponentMap(t *testing.T, ssp *oscal.SystemSecurityPlan) map[s
 
 // Tests that the SSP was generated, checking the control-implmentation.implemented-requirements and system-implementation.components links
 func TestGenerateSystemSecurityPlan(t *testing.T) {
-	users := []oscalTypes.SystemUser{
-		{
-			UUID:    uuid.NewUUID(),
-			Title:   "Generated User",
-			Remarks: "<TODO: Update generated user>",
-		},
-	}
+
 	t.Run("Simple generation of SSP", func(t *testing.T) {
 		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponentPerControl)
 
-		ssp, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", source, validComponentDefn, users)
+		ssp, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", source, validComponentDefn)
 		require.NoError(t, err)
 
 		validateSSP(t, ssp)
@@ -83,7 +76,7 @@ func TestGenerateSystemSecurityPlan(t *testing.T) {
 	t.Run("Generation of SSP with mis-matched catalog source", func(t *testing.T) {
 		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
 
-		_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn, users)
+		_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn)
 		require.Error(t, err)
 	})
 }

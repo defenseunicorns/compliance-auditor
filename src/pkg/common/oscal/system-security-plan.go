@@ -116,11 +116,12 @@ func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
 
 // GenerateSystemSecurityPlan generates an OSCALModel System Security Plan.
 // Command is the command that was used to generate the SSP.
-// Source is the catalog source url that should be extracted from the component definition(?).
-// (TODO: source support for target?).
+// Source is the catalog source url that should be extracted from the component definition.
 // Compdef is the partially* composed component definition and all merged component-definitions.
-// (TODO: implement *partially = just imported component-definitions, remapped validation links.)
-func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTypes.ComponentDefinition, users []oscalTypes.SystemUser) (*SystemSecurityPlan, error) {
+// TODOs: implement *partially = just imported component-definitions, remapped validation links;
+// implement system-characteristics, parties->users->components, component status, (probably more);
+// support for target instead of source?
+func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
 	if compdef == nil {
 		return nil, fmt.Errorf("component definition is nil")
 	}
@@ -202,7 +203,13 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 		}
 		model.SystemImplementation = oscalTypes.SystemImplementation{
 			Components: make([]oscalTypes.SystemComponent, 0),
-			Users:      users,
+			Users: []oscalTypes.SystemUser{
+				{
+					UUID:    uuid.NewUUID(),
+					Title:   "Generated User",
+					Remarks: "<TODO: Update generated user>",
+				},
+			},
 		}
 		componentsAdded := make([]string, 0)
 
