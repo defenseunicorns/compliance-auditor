@@ -339,10 +339,21 @@ func TestApiValidation_templatedPost(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			// The request is marked "executable" so lula asks for validation;
-			// this test fails if validation.WithAllowExecution is not set. I'm
-			// not sure if there's a clearer way to test this from here.
-			validator, err := validation.New(validation.WithComposition(composer, tmpl), validation.WithAllowExecution(true, true))
+			// Let's prove that the API DOmain is picking up the `executable`
+			// flag from the request in the test fixture by forcing
+			// AllowExecution to false.
+			validator, err := validation.New(validation.WithComposition(composer, tmpl), validation.WithAllowExecution(false, true))
+			require.NoError(t, err)
+
+			_, err = validator.ValidateOnPath(context.Background(), tmpl, "")
+			// we don't return an error when the validation doesn't run, so the best we can do is check that there was no error.
+			require.NoError(t, err)
+
+			// if we refactor to return the validation error when execution is not allowed, we can check for this error - but a number of other tests fail
+			//require.ErrorIs(t, err, types.ErrExecutionNotAllowed) // Validations requiring execution will NOT be run
+
+			// ok, now that's failed as expected:
+			validator, err = validation.New(validation.WithComposition(composer, tmpl), validation.WithAllowExecution(true, true))
 			require.NoError(t, err)
 
 			assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
