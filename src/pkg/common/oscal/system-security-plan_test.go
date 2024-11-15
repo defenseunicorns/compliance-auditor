@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,6 +18,7 @@ var (
 	compdefValidMultiComponent           = "../../../test/unit/common/oscal/valid-multi-component.yaml"
 	compdefValidMultiComponentPerControl = "../../../test/unit/common/oscal/valid-multi-component-per-control.yaml"
 	source                               = "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml"
+	validSSP                             = "../../../test/unit/common/oscal/valid-ssp.yaml"
 )
 
 func getComponentDefinition(t *testing.T, path string) *oscalTypes.ComponentDefinition {
@@ -36,12 +38,6 @@ func validateSSP(t *testing.T, ssp *oscal.SystemSecurityPlan) {
 
 	err := oscal.WriteOscalModelNew(modelPath, ssp)
 	require.NoError(t, err)
-
-	sspBytes, err := os.ReadFile(modelPath)
-	require.NoError(t, err)
-
-	_, err = oscal.NewOscalModel(sspBytes)
-	require.NoError(t, err)
 }
 
 func createSystemComponentMap(t *testing.T, ssp *oscal.SystemSecurityPlan) map[string]oscalTypes.SystemComponent {
@@ -55,10 +51,17 @@ func createSystemComponentMap(t *testing.T, ssp *oscal.SystemSecurityPlan) map[s
 
 // Tests that the SSP was generated, checking the control-implmentation.implemented-requirements and system-implementation.components links
 func TestGenerateSystemSecurityPlan(t *testing.T) {
+	users := []oscalTypes.SystemUser{
+		{
+			UUID:    uuid.NewUUID(),
+			Title:   "Generated User",
+			Remarks: "<TODO: Update generated user>",
+		},
+	}
 	t.Run("Simple generation of SSP", func(t *testing.T) {
 		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponentPerControl)
 
-		ssp, err := oscal.GenerateSystemSecurityPlan("", source, validComponentDefn)
+		ssp, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", source, validComponentDefn, users)
 		require.NoError(t, err)
 
 		validateSSP(t, ssp)
@@ -71,7 +74,7 @@ func TestGenerateSystemSecurityPlan(t *testing.T) {
 			assert.Len(t, *ir.ByComponents, 2)
 			for _, byComponent := range *ir.ByComponents {
 				// Check that the component exists in the system-implementation.components
-				_, ok := systemComponentMap[byComponent.UUID]
+				_, ok := systemComponentMap[byComponent.ComponentUuid]
 				assert.True(t, ok)
 			}
 		}
@@ -80,8 +83,32 @@ func TestGenerateSystemSecurityPlan(t *testing.T) {
 	t.Run("Generation of SSP with mis-matched catalog source", func(t *testing.T) {
 		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
 
-		_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn)
+		_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn, users)
 		require.Error(t, err)
+	})
+}
+
+func TestMakeSSPDeterministic(t *testing.T) {
+	t.Run("Make example SSP deterministic", func(t *testing.T) {
+		validSSPBytes := loadTestData(t, validSSP)
+
+		var validSSP oscalTypes.OscalCompleteSchema
+		err := yaml.Unmarshal(validSSPBytes, &validSSP)
+		require.NoError(t, err)
+
+		ssp := oscal.SystemSecurityPlan{
+			Model: validSSP.SystemSecurityPlan,
+		}
+
+		err = ssp.MakeDeterministic()
+		require.NoError(t, err)
+
+		// Check that system-implementation.components is sorted (by title)
+		firstThreeComponents := ssp.Model.SystemImplementation.Components[0:3]
+		expectedFirstThreeComponentsUuids := []string{"4938767c-dd8b-4ea4-b74a-fafffd48ac99", "795533ab-9427-4abe-820f-0b571bacfe6d", "fa39eb84-3014-46b4-b6bc-7da10527c262"}
+		for i, component := range firstThreeComponents {
+			assert.Equal(t, expectedFirstThreeComponentsUuids[i], component.UUID)
+		}
 	})
 }
 
@@ -120,10 +147,5 @@ func TestCreateImplementedRequirementsByFramework(t *testing.T) {
 		ac_1, ok := implmentedReqtSource["ac-1"]
 		require.True(t, ok)
 		assert.Len(t, *ac_1.ByComponents, 2)
-	})
-}
-
-func TestMergeSystemSecurityPlanModels(t *testing.T) {
-	t.Run("Merge two SSPs", func(t *testing.T) {
 	})
 }

@@ -40,7 +40,7 @@ func (ssp *SystemSecurityPlan) MakeDeterministic() error {
 	if ssp.Model == nil {
 		return fmt.Errorf("cannot make nil model deterministic")
 	} else {
-		// Sort the SystemImplementation.Components by name
+		// Sort the SystemImplementation.Components by title
 		slices.SortStableFunc(ssp.Model.SystemImplementation.Components, func(a, b oscalTypes.SystemComponent) int {
 			return strings.Compare(a.Title, b.Title)
 		})
@@ -49,6 +49,15 @@ func (ssp *SystemSecurityPlan) MakeDeterministic() error {
 		slices.SortStableFunc(ssp.Model.ControlImplementation.ImplementedRequirements, func(a, b oscalTypes.ImplementedRequirement) int {
 			return CompareControlsInt(a.ControlId, b.ControlId)
 		})
+
+		// Sort the ControlImplementation.ImplementedRequirements.ByComponent by title
+		for _, implementedRequirement := range ssp.Model.ControlImplementation.ImplementedRequirements {
+			if implementedRequirement.ByComponents != nil {
+				slices.SortStableFunc(*implementedRequirement.ByComponents, func(a, b oscalTypes.ByComponent) int {
+					return strings.Compare(a.ComponentUuid, b.ComponentUuid)
+				})
+			}
+		}
 
 		// sort backmatter
 		if ssp.Model.BackMatter != nil {
@@ -105,13 +114,13 @@ func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
 	return nil
 }
 
-// GenerateSystemSecurityPlan generates an OSCALModel System Security Plan
-// command is the command that was used to generate the SSP
-// source is the catalog source url that should be extracted from the component definition(?)
-// TODO: ^^ support for target?
-// compdef is the partially* composed component definition and all merged component-definitions
-// TODO: implement *partially = just imported component-definitions, remapped validation links
-func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
+// GenerateSystemSecurityPlan generates an OSCALModel System Security Plan.
+// Command is the command that was used to generate the SSP.
+// Source is the catalog source url that should be extracted from the component definition(?).
+// (TODO: source support for target?).
+// Compdef is the partially* composed component definition and all merged component-definitions.
+// (TODO: implement *partially = just imported component-definitions, remapped validation links.)
+func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTypes.ComponentDefinition, users []oscalTypes.SystemUser) (*SystemSecurityPlan, error) {
 	if compdef == nil {
 		return nil, fmt.Errorf("component definition is nil")
 	}
@@ -149,11 +158,35 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 		Published:    &rfc3339Time,
 		LastModified: rfc3339Time,
 		Props:        &props,
+		Parties:      compdef.Metadata.Parties, // TODO: Should these be handled on compdef merge?
 	}
 
 	// Update the import-profile
 	model.ImportProfile = oscalTypes.ImportProfile{
 		Href: source,
+	}
+
+	// Add system characteristics
+	model.SystemCharacteristics = oscalTypes.SystemCharacteristics{
+		SystemName: "Generated System",
+		Status: oscalTypes.Status{
+			State:   "operational", // Defaulting to operational, will need to revisit how this should be set
+			Remarks: "<TODO: Validate state and remove this remark>",
+		},
+		SystemIds: []oscalTypes.SystemId{
+			{
+				ID: "generated-system",
+			},
+		},
+		SystemInformation: oscalTypes.SystemInformation{
+			InformationTypes: []oscalTypes.InformationType{
+				{
+					UUID:        uuid.NewUUID(),
+					Title:       "Generated System Information",
+					Description: "<TODO: Update information types>",
+				},
+			},
+		},
 	}
 
 	// Decompose the component defn and add to the right sections of the SSP
@@ -169,6 +202,7 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 		}
 		model.SystemImplementation = oscalTypes.SystemImplementation{
 			Components: make([]oscalTypes.SystemComponent, 0),
+			Users:      users,
 		}
 		componentsAdded := make([]string, 0)
 
@@ -178,8 +212,8 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 
 			// Append to the system-implementation.components
 			for _, byComponent := range *implementedRequirement.ByComponents {
-				if !slices.Contains(componentsAdded, byComponent.UUID) {
-					if component, ok := componentsMap[byComponent.UUID]; ok {
+				if !slices.Contains(componentsAdded, byComponent.ComponentUuid) {
+					if component, ok := componentsMap[byComponent.ComponentUuid]; ok {
 						model.SystemImplementation.Components = append(model.SystemImplementation.Components, oscalTypes.SystemComponent{
 							UUID:             component.UUID,
 							Type:             component.Type,
@@ -189,10 +223,14 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 							Links:            component.Links,
 							ResponsibleRoles: component.ResponsibleRoles,
 							Protocols:        component.Protocols,
+							Status: oscalTypes.SystemComponentStatus{
+								State:   "operational", // Defaulting to operational, will need to revisit how this should be set
+								Remarks: "<TODO: Validate state and remove this remark>",
+							},
 						})
 					}
 
-					componentsAdded = append(componentsAdded, byComponent.UUID)
+					componentsAdded = append(componentsAdded, byComponent.ComponentUuid)
 				}
 			}
 		}
@@ -271,25 +309,26 @@ func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefin
 
 						// For each implemented requirement, add it to the map
 						for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
-							existingIr, ok := frameworkImplementedRequirementsMap[controlImplementation.Source][implementedRequirement.ControlId]
+							existingIr, ok := frameworkImplementedRequirementsMap[framework][implementedRequirement.ControlId]
 							if ok {
 								// If found, update the existing implemented requirement
 								// TODO: add other "ByComponents" fields?
 								*existingIr.ByComponents = append(*existingIr.ByComponents, oscalTypes.ByComponent{
-									ComponentUuid: uuid.NewUUID(),
-									UUID:          component.UUID,
+									ComponentUuid: component.UUID,
+									UUID:          uuid.NewUUID(),
 									Description:   implementedRequirement.Description,
 									Links:         implementedRequirement.Links,
 								})
 							} else {
 								// Otherwise create a new implemented-requirement
-								frameworkImplementedRequirementsMap[controlImplementation.Source][implementedRequirement.ControlId] = oscalTypes.ImplementedRequirement{
+								frameworkImplementedRequirementsMap[framework][implementedRequirement.ControlId] = oscalTypes.ImplementedRequirement{
+									UUID:      uuid.NewUUID(),
 									ControlId: implementedRequirement.ControlId,
 									Remarks:   implementedRequirement.Remarks,
 									ByComponents: &[]oscalTypes.ByComponent{
 										{
-											ComponentUuid: uuid.NewUUID(),
-											UUID:          component.UUID,
+											ComponentUuid: component.UUID,
+											UUID:          uuid.NewUUID(),
 											Description:   implementedRequirement.Description,
 											Links:         implementedRequirement.Links,
 										},

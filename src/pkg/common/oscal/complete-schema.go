@@ -10,10 +10,11 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/internal/inject"
-	"github.com/defenseunicorns/lula/src/pkg/message"
 	yamlV3 "gopkg.in/yaml.v3"
 	"sigs.k8s.io/yaml"
+
+	"github.com/defenseunicorns/lula/src/internal/inject"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type OSCALModel interface {
@@ -69,6 +70,12 @@ func WriteOscalModelNew(filePath string, model OSCALModel) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// Validate the model adheres to the OSCAL schema before writing
+	err = multiModelValidate(b.Bytes())
+	if err != nil {
+		return err
 	}
 
 	err = files.WriteOutput(b.Bytes(), filePath)
