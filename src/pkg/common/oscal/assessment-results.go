@@ -8,11 +8,12 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"gopkg.in/yaml.v3"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"github.com/defenseunicorns/lula/src/types"
-	"gopkg.in/yaml.v3"
 )
 
 const OSCAL_VERSION = "1.1.2"
@@ -295,12 +296,14 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
-	observation.Props = &[]oscalTypes_1_1_2.Property{
-		{
-			Name:  "validation",
-			Ns:    "https://docs.lula.dev/oscal/ns",
-			Value: common.AddIdPrefix(validation.UUID),
-		},
+	if validation != nil {
+		observation.Props = &[]oscalTypes_1_1_2.Property{
+			{
+				Name:  "validation",
+				Ns:    "https://docs.lula.dev/oscal/ns",
+				Value: common.AddIdPrefix(validation.UUID),
+			},
+		}
 	}
 	if resourcesHref != "" {
 		observation.Links = &[]oscalTypes_1_1_2.Link{

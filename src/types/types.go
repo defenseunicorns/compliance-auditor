@@ -67,9 +67,6 @@ func CreatePassingLulaValidation(name string) *LulaValidation {
 	}
 }
 
-// LulaValidationMap is a map of LulaValidation objects
-type LulaValidationMap = map[string]LulaValidation
-
 // Lula Validation Options settings
 type lulaValidationOptions struct {
 	staticResources  DomainResources
@@ -117,16 +114,16 @@ func GetResourcesOnly(onlyResources bool) LulaValidationOption {
 }
 
 // Perform the validation, and store the result in the LulaValidation struct
-func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOption) error {
-	if !val.Evaluated {
+func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOption) error {
+	if !v.Evaluated {
 		var result Result
 		var err error
 		var resources DomainResources
 
 		// Update the validation
-		val.DomainResources = &resources
-		val.Result = &result
-		val.Evaluated = true
+		v.DomainResources = &resources
+		v.Result = &result
+		v.Evaluated = true
 
 		// Set Validation config from options passed
 		config := &lulaValidationOptions{
@@ -141,7 +138,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 		}
 
 		// Check if confirmation needed before execution
-		if (*val.Domain).IsExecutable() && config.staticResources == nil {
+		if (*v.Domain).IsExecutable() && config.staticResources == nil {
 			if !config.executionAllowed {
 				if config.isInteractive {
 					// Run confirmation user prompt
@@ -158,7 +155,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 		if config.staticResources != nil {
 			resources = config.staticResources
 		} else {
-			resources, err = (*val.Domain).GetResources(ctx)
+			resources, err = (*v.Domain).GetResources(ctx)
 			if err != nil {
 				return fmt.Errorf("%w: %v", ErrDomainGetResources, err)
 			}
@@ -168,7 +165,7 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 		}
 
 		// Perform the evaluation using the provider
-		result, err = (*val.Provider).Evaluate(resources)
+		result, err = (*v.Provider).Evaluate(resources)
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrProviderEvaluate, err)
 		}
@@ -177,16 +174,16 @@ func (val *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationO
 }
 
 // Check if the validation requires confirmation before possible execution code is run
-func (val *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
-	return !(*val.Domain).IsExecutable()
+func (v *LulaValidation) RequireExecutionConfirmation() (confirm bool) {
+	return !(*v.Domain).IsExecutable()
 }
 
 // Return domain resources as a json []byte
-func (val *LulaValidation) GetDomainResourcesAsJSON() []byte {
-	if val.DomainResources == nil {
+func (v *LulaValidation) GetDomainResourcesAsJSON() []byte {
+	if v.DomainResources == nil {
 		return []byte("{}")
 	}
-	jsonData, err := json.MarshalIndent(val.DomainResources, "", "  ")
+	jsonData, err := json.MarshalIndent(v.DomainResources, "", "  ")
 	if err != nil {
 		message.Debugf("Error marshalling domain resources to JSON: %v", err)
 		jsonData = []byte(`{"Error": "Error marshalling to JSON"}`)
