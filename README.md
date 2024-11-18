@@ -47,3 +47,11 @@ Lula operates on a framework of proof by adding custom overlays mapped to the th
 ## Getting Started
 
 [Install Lula](./docs/getting-started/README.md) and check out the [Simple Demo](./docs/getting-started/simple-demo.md) to get familiar with Lula's `validate` and `evaluate` workflow to assess system compliance and establish thresholds. See the other tutorials for more advanced Lula use cases and information on how to develop your own `Lula Validations`! 
+
+## Communication
+
+For more information on how to get involved in the community, mailing lists and
+meetings, please refer to our [community page](./docs/community-and-contribution/README.md)
+
+For security issues or code of conduct concerns, an e-mail should be sent to
+[lula@defenseunicorns.com](mailto:lula@defenseunicorns.com).
