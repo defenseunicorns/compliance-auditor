@@ -34,6 +34,8 @@ domain:
         # Body (optional): a json-compatible string to pass into the request as the request body.
         body: |
 stringjsondata
+        # executable (optional): Lula will request user verification before performing API actions if *any* API request is flagged "executable".
+        executable: true
         # options (optional): Request-level options have the same specification as the api-spec-level options at the top. These options apply only to this request.
         options:
           # timeout (optional): configures the request timeout. The default timeout is 30 seconds (30s). The timeout string is a number followed by a unit suffix (ms, s, m, h, d), such as 30s or 1m.
