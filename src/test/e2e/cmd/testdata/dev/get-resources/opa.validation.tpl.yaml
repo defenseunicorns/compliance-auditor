@@ -1,0 +1,23 @@
+lula-version: ">=v0.2.0"
+metadata:
+  name: Validate pod contents
+  uuid: 1e443856-8e74-4107-8f2a-ebe765c2d54d
+domain:
+  type: file
+  file-spec:
+    filepaths:
+    - name: {{ .const.get_resources.file.name }}
+      path: testdata/dev/get-resources/pod.yaml
+      
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+
+      import future.keywords.every
+
+      validate {
+        name := input.pod.metadata.name
+        name == "test-pod-name"
+      }

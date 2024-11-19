@@ -36,6 +36,7 @@ To lint existing validation files:
 
 ```
   -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")
+  -s, --set strings        set a value in the template data
 ```
 
 ### SEE ALSO

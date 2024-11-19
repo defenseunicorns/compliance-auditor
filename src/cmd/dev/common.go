@@ -7,10 +7,12 @@ import (
 	"strings"
 	"time"
 
+	cmdCommon "github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/config"
+	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
@@ -20,32 +22,34 @@ const STDIN = "0"
 const NO_TIMEOUT = -1
 const DEFAULT_TIMEOUT = 1
 
-var devCmd = &cobra.Command{
-	Use:     "dev",
-	Aliases: []string{"d"},
-	Short:   "Collection of dev commands to make dev life easier",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.SkipLogFile = true
-		// Call the parent's (root) PersistentPreRun
-		if parentPreRun := cmd.Parent().PersistentPreRun; parentPreRun != nil {
-			parentPreRun(cmd.Parent(), args)
-		}
-	},
-}
+func DevCommand() *cobra.Command {
+	var (
+		setOpts []string
+	)
 
-type flags struct {
-	InputFile        string // -f --input-file
-	OutputFile       string // -o --output-file
-	Timeout          int    // -t --timeout
-	ConfirmExecution bool   // --confirm-execution
+	cmd := &cobra.Command{
+		Use:     "dev",
+		Aliases: []string{"d"},
+		Short:   "Collection of dev commands to make dev life easier",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			config.SkipLogFile = true
+			// Call the parent's (root) PersistentPreRun
+			if parentPreRun := cmd.Parent().PersistentPreRun; parentPreRun != nil {
+				parentPreRun(cmd.Parent(), args)
+			}
+		},
+	}
+
+	cmd.PersistentFlags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
+
+	cmd.AddCommand(DevLintCommand())
+	cmd.AddCommand(DevValidateCommand())
+	cmd.AddCommand(DevGetResourcesCommand())
+
+	return cmd
 }
 
 var RunInteractively bool = true // default to run dev command interactively
-
-// Include adds the tools command to the root command.
-func Include(rootCmd *cobra.Command) {
-	rootCmd.AddCommand(devCmd)
-}
 
 // ReadValidation reads the validation yaml file and returns the validation bytes
 func ReadValidation(cmd *cobra.Command, spinner *message.Spinner, path string, timeout int) ([]byte, error) {
@@ -104,4 +108,28 @@ func RunSingleValidation(ctx context.Context, validationBytes []byte, opts ...ty
 	}
 
 	return lulaValidation, nil
+}
+
+// Provides basic templating wrapper for "all" render type
+func DevTemplate(validationBytes []byte, setOpts []string) ([]byte, error) {
+	// Get overrides from --set flag
+	overrides, err := cmdCommon.ParseTemplateOverrides(setOpts)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing template overrides: %v", err)
+	}
+
+	// Handles merging viper config file data + environment variables
+	// Throws an error if config keys are invalid for templating
+	templateData, err := template.CollectTemplatingData(cmdCommon.TemplateConstants, cmdCommon.TemplateVariables, overrides)
+	if err != nil {
+		return nil, fmt.Errorf("error collecting templating data: %v", err)
+	}
+
+	templateRenderer := template.NewTemplateRenderer(templateData)
+	output, err := templateRenderer.Render(string(validationBytes), "all")
+	if err != nil {
+		return nil, fmt.Errorf("error rendering template: %v", err)
+	}
+
+	return output, nil
 }
