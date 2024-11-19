@@ -9,10 +9,9 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/pkg/message"
-
-	"sigs.k8s.io/yaml"
 )
 
 type Requirement struct {
