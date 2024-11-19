@@ -192,3 +192,12 @@ func (r *LulaValidationTestReport) PrintReport() {
 		}
 	}
 }
+
+func (r *LulaValidationTestReport) TestFailed() bool {
+	for _, testResult := range r.TestResults {
+		if !testResult.Pass {
+			return true
+		}
+	}
+	return false
+}

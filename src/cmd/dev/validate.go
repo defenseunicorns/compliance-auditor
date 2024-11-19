@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
-	"github.com/defenseunicorns/lula/src/cmd/common"
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
@@ -123,13 +122,19 @@ func DevValidateCommand() *cobra.Command {
 			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
 
 			// Run tests if requested
+			// Note - this runs tests strictly, e.g., returns an error if any test fails
 			if runTests {
 				testReport, err := validation.RunTests(ctx, printTestResources)
 				if err != nil {
-					message.Fatalf(err, "error running tests")
+					return fmt.Errorf("error running tests")
 				}
 				// Print the test report using messages
 				testReport.PrintReport()
+
+				// Return error if test failed
+				if testReport.TestFailed() {
+					return fmt.Errorf("some tests failed")
+				}
 			}
 			return nil
 		},
