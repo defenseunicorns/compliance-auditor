@@ -70,9 +70,6 @@ func CreatePassingLulaValidation(name string) *LulaValidation {
 	}
 }
 
-// LulaValidationMap is a map of LulaValidation objects
-type LulaValidationMap = map[string]LulaValidation
-
 // Lula Validation Options settings
 type lulaValidationOptions struct {
 	staticResources  DomainResources

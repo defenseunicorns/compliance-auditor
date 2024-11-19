@@ -6,11 +6,12 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/stretchr/testify/require"
+
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -173,6 +174,24 @@ func TestRunValidations(t *testing.T) {
 			}
 		})
 	}
+
+	// Test that validations are stored as pointers -> store data across accesses
+	t.Run("Validations store data", func(t *testing.T) {
+		// Create a new validation store, add the validation
+		validationUuid := uuid.NewUUID()
+		v := validationstore.NewValidationStore()
+		v.AddLulaValidation(validation, validationUuid)
+
+		// Run the validations on the store
+		_ = v.RunValidations(context.Background(), true, false, "")
+
+		// Check that the validation data has been stored in v, state should be satisfied
+		val, err := v.GetLulaValidation(validationUuid)
+		require.NoError(t, err)
+		require.NotNil(t, val)
+		require.NotNil(t, val.Result)
+		require.Equal(t, "satisfied", val.Result.State)
+	})
 }
 
 func TestGetRelatedObservation(t *testing.T) {
