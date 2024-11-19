@@ -1,23 +1,9 @@
----
-title: lula dev get-resources
-description: Lula CLI command reference for <code>lula dev get-resources</code>.
-type: docs
----
-## lula dev get-resources
-
-Get Resources from a Lula Validation Manifest
-
-### Synopsis
-
 Get the JSON resources specified in a Lula Validation Manifest
 
-```
-lula dev get-resources [flags]
-```
+Usage:
+  get-resources [flags]
 
-### Examples
-
-```
+Examples:
 
 To get resources from lula validation manifest:
 	lula dev get-resources -f /path/to/validation.yaml
@@ -32,26 +18,10 @@ To hang indefinitely for stdin:
 To hang for timeout of 5 seconds:
 	lula get-resources -t 5
 
-```
 
-### Options
-
-```
+Flags:
       --confirm-execution    confirm execution scripts run as part of getting resources
   -h, --help                 help for get-resources
   -f, --input-file string    the path to a validation manifest file (default "0")
   -o, --output-file string   the path to write the resources json
   -t, --timeout int          the timeout for stdin (in seconds, -1 for no timeout) (default 1)
-```
-
-### Options inherited from parent commands
-
-```
-  -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")
-  -s, --set strings        set a value in the template data
-```
-
-### SEE ALSO
-
-* [lula dev](./lula_dev.md)	 - Collection of dev commands to make dev life easier
-

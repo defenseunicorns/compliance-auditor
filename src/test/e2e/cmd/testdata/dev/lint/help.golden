@@ -1,0 +1,15 @@
+Validate validation files are properly configured against the schema, file paths can be local or URLs (https://)
+
+Usage:
+  lint [flags]
+
+Examples:
+
+To lint existing validation files:
+	lula dev lint -f <path1>,<path2>,<path3> [-r <result-file>]
+
+
+Flags:
+  -h, --help                  help for lint
+  -f, --input-files strings   the paths to validation files (comma-separated)
+  -r, --result-file string    the path to write the validation result

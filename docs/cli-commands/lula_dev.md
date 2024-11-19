@@ -10,7 +10,8 @@ Collection of dev commands to make dev life easier
 ### Options
 
 ```
-  -h, --help   help for dev
+  -h, --help          help for dev
+  -s, --set strings   set a value in the template data
 ```
 
 ### Options inherited from parent commands

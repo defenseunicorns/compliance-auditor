@@ -3,6 +3,10 @@ constants:
   title: lula
   templated_comp_def: component-definition-template.yaml
 
+  get_resources:
+    file:
+      name: pod
+
   resources:
     name: test-pod-label
     namespace: validation-test

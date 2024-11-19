@@ -60,7 +60,7 @@ func TestGetResources(t *testing.T) {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			collection, err := dev.DevGetResources(ctx, validationBytes, nil)
+			collection, err := dev.DevGetResources(ctx, validationBytes, false, nil)
 			if err != nil {
 				t.Fatalf("error testing dev get-resources: %v", err)
 			}
