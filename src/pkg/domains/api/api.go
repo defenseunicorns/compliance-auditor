@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,12 @@ import (
 
 	"github.com/defenseunicorns/lula/src/types"
 )
+
+type APIResponse struct {
+	Status   int
+	Raw      json.RawMessage
+	Response any
+}
 
 func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, error) {
 	select {
@@ -35,8 +42,6 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		defaultClient := clientFromOpts(defaultOpts)
 		var errs error
 		for _, request := range a.Spec.Requests {
-			var responseType map[string]interface{}
-
 			var r io.Reader
 			if request.Body != "" {
 				r = bytes.NewBufferString(request.Body)
@@ -53,16 +58,19 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 				client = clientFromOpts(request.Options)
 			}
 
-			responseType, status, err := doHTTPReq(ctx, client, request.Method, *request.reqURL, r, headers, request.reqParameters, responseType)
+			response, err := doHTTPReq(ctx, client, request.Method, *request.reqURL, r, headers, request.reqParameters)
 			if err != nil {
 				errs = errors.Join(errs, err)
 			}
-			// Check if the response object is empty and manually add a DR with the status response if so. This is more likely to happen in tests than reality.
-			if responseType != nil {
-				responseType["status"] = status
-				collection[request.Name] = responseType
+			if response != nil {
+				collection[request.Name] = types.DomainResources{
+					"status":   response.Status,
+					"raw":      response.Raw,
+					"response": response.Response,
+				}
 			} else {
-				collection[request.Name] = types.DomainResources{"status": status}
+				// If the entire response is empty, return a validly empty resource
+				collection[request.Name] = types.DomainResources{"status": 0}
 			}
 		}
 		return collection, errs

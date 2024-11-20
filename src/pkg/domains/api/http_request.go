@@ -12,7 +12,7 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
-func doHTTPReq[T any](ctx context.Context, client http.Client, method string, url url.URL, body io.Reader, headers map[string]string, queryParameters url.Values, respTy T) (T, int, error) {
+func doHTTPReq(ctx context.Context, client http.Client, method string, url url.URL, body io.Reader, headers map[string]string, queryParameters url.Values) (*APIResponse, error) {
 	// append any query parameters
 	q := url.Query()
 	for k, v := range queryParameters {
@@ -24,7 +24,7 @@ func doHTTPReq[T any](ctx context.Context, client http.Client, method string, ur
 
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), body)
 	if err != nil {
-		return respTy, 0, err
+		return nil, err
 	}
 	// add each header to the request
 	for k, v := range headers {
@@ -37,21 +37,23 @@ func doHTTPReq[T any](ctx context.Context, client http.Client, method string, ur
 	// do the thing
 	res, err := client.Do(req)
 	if err != nil {
-		return respTy, 0, err
+		return nil, err
 	}
 	if res == nil {
-		return respTy, 0, fmt.Errorf("error: calling %s returned empty response", url.Redacted())
+		return nil, fmt.Errorf("error: calling %s returned empty response", url.Redacted())
 	}
 	defer res.Body.Close()
 
 	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
-		return respTy, 0, err
+		return nil, err
 	}
 
-	var responseObject T
-	err = json.Unmarshal(responseData, &responseObject)
-	return responseObject, res.StatusCode, err
+	var respObj APIResponse
+	respObj.Raw = responseData
+	respObj.Status = res.StatusCode
+	err = json.Unmarshal(responseData, &respObj.Response)
+	return &respObj, err
 }
 
 func clientFromOpts(opts *ApiOpts) http.Client {
