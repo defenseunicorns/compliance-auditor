@@ -9,9 +9,9 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-
 	"sigs.k8s.io/yaml"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type Requirement struct {
@@ -500,6 +500,17 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	}
 
 	return controlMap
+}
+
+func ComponentsToMap(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]*oscalTypes_1_1_2.DefinedComponent {
+	components := make(map[string]*oscalTypes_1_1_2.DefinedComponent)
+
+	if componentDefinition != nil && componentDefinition.Components != nil {
+		for _, component := range *componentDefinition.Components {
+			components[component.UUID] = &component
+		}
+	}
+	return components
 }
 
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {

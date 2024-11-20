@@ -72,6 +72,12 @@ func WriteOscalModelNew(filePath string, model OSCALModel) error {
 		}
 	}
 
+	// Validate the model adheres to the OSCAL schema before writing
+	err = multiModelValidate(b.Bytes())
+	if err != nil {
+		return err
+	}
+
 	err = files.WriteOutput(b.Bytes(), filePath)
 	if err != nil {
 		return err
