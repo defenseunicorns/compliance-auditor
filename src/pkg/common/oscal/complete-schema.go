@@ -42,13 +42,14 @@ func NewOscalModel(data []byte) (*oscalTypes.OscalModels, error) {
 
 // This will replace WriteOscalModel() if/when all models are implemented
 func WriteOscalModelNew(filePath string, model OSCALModel) error {
-	// Ensure model is deterministic
-	err := model.MakeDeterministic()
+	// Handle any existing file at path
+	err := model.HandleExisting(filePath)
 	if err != nil {
 		return err
 	}
 
-	err = model.HandleExisting(filePath)
+	// Ensure model is deterministic
+	err = model.MakeDeterministic()
 	if err != nil {
 		return err
 	}

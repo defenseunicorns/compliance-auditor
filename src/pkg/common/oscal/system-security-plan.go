@@ -121,9 +121,14 @@ func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
 // TODOs: implement *partially = just imported component-definitions, remapped validation links;
 // implement system-characteristics, parties->users->components, component status, (probably more);
 // support for target instead of source?
-func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
+func GenerateSystemSecurityPlan(command string, source string, compdefs ...*oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
+	compdef, err := MergeVariadicComponentDefinition(compdefs...)
+	if err != nil {
+		return nil, err
+	}
+
 	if compdef == nil {
-		return nil, fmt.Errorf("component definition is nil")
+		return nil, fmt.Errorf("component definition(s) are nil")
 	}
 
 	// Create the OSCAL SSP model for use and later assignment to the oscal.SystemSecurityPlan implementation
