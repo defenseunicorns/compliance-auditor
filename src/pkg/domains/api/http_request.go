@@ -13,16 +13,14 @@ import (
 )
 
 func doHTTPReq[T any](ctx context.Context, client http.Client, method string, url url.URL, body io.Reader, headers map[string]string, queryParameters url.Values, respTy T) (T, int, error) {
-	if method == HTTPMethodGet {
-		// append any query parameters
-		q := url.Query()
-		for k, v := range queryParameters {
-			// using Add instead of set in case the input URL already had a query encoded
-			q.Add(k, strings.Join(v, ","))
-		}
-		// set the query to the encoded parameters
-		url.RawQuery = q.Encode()
+	// append any query parameters
+	q := url.Query()
+	for k, v := range queryParameters {
+		// using Add instead of set in case the input URL already had a query encoded
+		q.Add(k, strings.Join(v, ","))
 	}
+	// set the query to the encoded parameters
+	url.RawQuery = q.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), body)
 	if err != nil {
