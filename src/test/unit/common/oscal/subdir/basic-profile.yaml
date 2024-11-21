@@ -1,0 +1,21 @@
+profile:
+  imports:
+    - href: basic-catalog.yaml
+      include-controls:
+        - with-ids:
+            - s1.1.1
+            - s2.1.1
+  merge:
+    as-is: true
+  metadata:
+    last-modified: 2024-11-21T12:55:51.315228-05:00
+    oscal-version: 1.1.2
+    props:
+      - name: generation
+        ns: https://docs.lula.dev/oscal/ns
+        value: lula generate profile --source basic-catalog.yaml --include s1.1.1,s2.1.1
+    published: 2024-11-21T12:55:51.315228-05:00
+    remarks: Profile generated from Lula
+    title: Profile
+    version: 0.0.1
+  uuid: f254dd27-287c-4cfc-b04e-a275a0baf162
