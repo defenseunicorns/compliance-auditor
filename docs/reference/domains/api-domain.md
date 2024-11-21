@@ -52,13 +52,30 @@ stringjsondata
 
 ## API Domain Resources
 
-The API response body is serialized into a json object with the Request's Name as the top-level key. The API status code is included in the output domain resources.
+The API response body is serialized into a json object with the Request's `Name` as the top-level key. The API status code is included in the output domain resources.
 
 Example output:
 
 ```json
 "healthcheck": {
   "status": 200,
-  "healthy": "ok"
+  "reponse": {
+    "healthy": true,
+  },
+  "raw": 
 }
+```
+
+The following example validation verifies that the request named "healthcheck" returns `"healthy": true` 
+
+```
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+
+      validate {
+        input.healthcheck.response.healthy == true
+      }
 ```
