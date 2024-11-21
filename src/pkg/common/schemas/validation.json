@@ -24,6 +24,13 @@
         },
         "provider": {
             "$ref": "#/definitions/provider"
+        },
+        "tests": {
+            "type": ["array", "null"],
+            "items": {
+                "$ref": "#/definitions/test"
+            },
+            "description": "Optional: Tests to run against the validation"
         }
     },
     "definitions": {
@@ -694,6 +701,64 @@
             },
             "required": [
                 "check"
+            ]
+        },
+        "test": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the test"
+                },
+                "changes": {
+                    "type": ["array", "null"],
+                    "items": {
+                        "$ref": "#/definitions/change"
+                    },
+                    "description": "Changes to apply to the resources"
+                },
+                "expected-result": {
+                    "type": "string",
+                    "enum": [
+                        "satisfied",
+                        "not-satisfied"
+                    ],
+                    "description": "Expected result of the test"
+                }
+            },
+            "required": [
+                "name",
+                "expected-result"
+            ]
+        },
+        "change": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Path to the resource to be modified"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "add",
+                        "update",
+                        "delete"
+                    ],
+                    "description": "Type of change to be made"
+                },
+                "value": {
+                    "type": "string",
+                    "description": "Value to be used for the operation (string)"
+                },
+                "value-map": {
+                    "type": ["object", "null"],
+                    "description": "Value to be used for the operation (map[string]interface{})"
+                }
+            },
+            "required": [
+                "path",
+                "type"
             ]
         }
     },

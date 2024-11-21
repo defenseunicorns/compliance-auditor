@@ -6,8 +6,8 @@ domain:
   type: file
   file-spec:
     filepaths:
-    - name: {{ .const.get_resources.file.name }}
-      path: pod.yaml
+    - name: pod
+      path: ../get-resources/pod.yaml
       
 provider:
   type: opa
@@ -21,3 +21,10 @@ provider:
         name := input.pod.metadata.name
         name == "test-pod-name"
       }
+tests:
+  - name: change-pod-name
+    changes:
+      - path: pod.metadata.name
+        type: update
+        value: new-pod-name
+    expected-result: not-satisfied

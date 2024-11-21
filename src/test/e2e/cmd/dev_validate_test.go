@@ -3,8 +3,9 @@ package cmd_test
 import (
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
 	"github.com/stretchr/testify/require"
+
+	"github.com/defenseunicorns/lula/src/cmd/dev"
 )
 
 func TestDevValidateCommand(t *testing.T) {
@@ -39,6 +40,28 @@ func TestDevValidateCommand(t *testing.T) {
 
 		err := test(t, args...)
 		require.NoError(t, err)
+	})
+
+	t.Run("Valid validation file with passing tests", func(t *testing.T) {
+
+		args := []string{
+			"--input-file", "./testdata/dev/validate/opa.validation-passing-test.yaml",
+			"--run-tests",
+		}
+
+		err := test(t, args...)
+		require.NoError(t, err)
+	})
+
+	t.Run("Valid validation file with failing tests", func(t *testing.T) {
+
+		args := []string{
+			"--input-file", "./testdata/dev/validate/opa.validation-failing-test.yaml",
+			"--run-tests",
+		}
+
+		err := test(t, args...)
+		require.Error(t, err)
 	})
 
 	t.Run("Test help", func(t *testing.T) {

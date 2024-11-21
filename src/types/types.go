@@ -45,6 +45,9 @@ type LulaValidation struct {
 	// Evaluated is a boolean that represents if the validation has been evaluated
 	Evaluated bool
 
+	// ValidationTestData is a slice of test data corresponding to the lula validation
+	ValidationTestData []*LulaValidationTestData
+
 	// Result is the result of the validation
 	Result *Result
 }
@@ -138,8 +141,8 @@ func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOpt
 		}
 
 		// Check if confirmation needed before execution
-		if (*v.Domain).IsExecutable() && config.staticResources == nil {
-			if !config.executionAllowed {
+		if config.staticResources == nil {
+			if (*v.Domain).IsExecutable() && !config.executionAllowed {
 				if config.isInteractive {
 					// Run confirmation user prompt
 					if confirm := message.PromptForConfirmation(config.spinner); !confirm {
@@ -171,6 +174,41 @@ func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOpt
 		}
 	}
 	return nil
+}
+
+// RunTests executes any tests defined in the validation and returns a report of the results
+func (v *LulaValidation) RunTests(ctx context.Context, saveResources bool) (*LulaValidationTestReport, error) {
+	if v.DomainResources == nil {
+		return nil, fmt.Errorf("domain resources are nil, tests cannot be run")
+	}
+
+	// For each test, apply the transforms to the domain resources and run validate using those resources
+	if len(v.ValidationTestData) != 0 {
+		testReport := NewLulaValidationTestReport(v.Name)
+		for _, d := range v.ValidationTestData {
+			// Only execute test if it has not been executed yet
+			if d.Test != nil && d.Result == nil {
+				// Create a fresh copy of the resources and validation to run each test on
+				testResources := deepCopyMap(*v.DomainResources)
+				testValidation := &LulaValidation{
+					Provider: v.Provider,
+				}
+
+				// Execute the test
+				testResult, err := d.ExecuteTest(ctx, testValidation, testResources, saveResources)
+				if err != nil {
+					return nil, err
+				}
+				testReport.AddTestResult(testResult)
+			}
+
+		}
+		return testReport, nil
+	} else {
+		message.Debugf("No tests defined for validation %s", v.Name)
+	}
+
+	return nil, nil
 }
 
 // Check if the validation requires confirmation before possible execution code is run
@@ -209,4 +247,57 @@ type Result struct {
 	Failing      int               `json:"failing" yaml:"failing"`
 	State        string            `json:"state" yaml:"state"`
 	Observations map[string]string `json:"observations" yaml:"observations"`
+}
+
+func deepCopyMap(input map[string]interface{}) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new map to hold the copy
+	copy := make(map[string]interface{})
+
+	for key, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[key] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[key] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[key] = v
+		}
+	}
+
+	return copy
+}
+
+// Helper function to deep copy a slice of interface{}
+func deepCopySlice(input []interface{}) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	// Create a new slice to hold the copy
+	copy := make([]interface{}, len(input))
+
+	for i, value := range input {
+		// Check the type of the value and copy accordingly
+		switch v := value.(type) {
+		case map[string]interface{}:
+			// If the value is a map, recursively deep copy it
+			copy[i] = deepCopyMap(v)
+		case []interface{}:
+			// If the value is a slice, deep copy each element
+			copy[i] = deepCopySlice(v)
+		default:
+			// For other types (e.g., strings, ints), just assign directly
+			copy[i] = v
+		}
+	}
+
+	return copy
 }

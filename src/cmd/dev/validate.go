@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
+	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
+
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 )
 
 var validateHelp = `
@@ -32,12 +34,14 @@ To hang for timeout of 5 seconds:
 func DevValidateCommand() *cobra.Command {
 
 	var (
-		inputFile        string // -f --input-file
-		outputFile       string // -o --output-file
-		timeout          int    // -t --timeout
-		confirmExecution bool   // --confirm-execution
-		expectedResult   bool   // -e --expected-result
-		resourcesFile    string // -r --resources-file
+		inputFile          string // -f --input-file
+		outputFile         string // -o --output-file
+		timeout            int    // -t --timeout
+		confirmExecution   bool   // --confirm-execution
+		expectedResult     bool   // -e --expected-result
+		resourcesFile      string // -r --resources-file
+		runTests           bool   // --run-tests
+		printTestResources bool   // --print-test-resources
 	)
 
 	cmd := &cobra.Command{
@@ -50,7 +54,7 @@ func DevValidateCommand() *cobra.Command {
 			spinner := message.NewProgressSpinner("%s", spinnerMessage)
 			defer spinner.Stop()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 			var validationBytes []byte
 			var resourcesBytes []byte
 			var err error
@@ -88,6 +92,7 @@ func DevValidateCommand() *cobra.Command {
 			// add to debug logs accepting that this will print sensitive information?
 			message.Debug(string(output))
 
+			ctx = context.WithValue(ctx, types.LulaValidationWorkDir, filepath.Dir(inputFile))
 			validation, err := DevValidate(ctx, output, resourcesBytes, confirmExecution, spinner)
 			if err != nil {
 				return fmt.Errorf("error running dev validate: %v", err)
@@ -115,6 +120,22 @@ func DevValidateCommand() *cobra.Command {
 			}
 			// Print the number of passing and failing results
 			message.Infof("Validation completed with %d passing and %d failing results", validation.Result.Passing, validation.Result.Failing)
+
+			// Run tests if requested
+			// Note - this runs tests strictly, e.g., returns an error if any test fails
+			if runTests {
+				testReport, err := validation.RunTests(ctx, printTestResources)
+				if err != nil {
+					return fmt.Errorf("error running tests")
+				}
+				// Print the test report using messages
+				testReport.PrintReport()
+
+				// Return error if test failed
+				if testReport.TestFailed() {
+					return fmt.Errorf("some tests failed")
+				}
+			}
 			return nil
 		},
 	}
@@ -125,6 +146,8 @@ func DevValidateCommand() *cobra.Command {
 	cmd.Flags().IntVarP(&timeout, "timeout", "t", DEFAULT_TIMEOUT, "the timeout for stdin (in seconds, -1 for no timeout)")
 	cmd.Flags().BoolVarP(&expectedResult, "expected-result", "e", true, "the expected result of the validation (-e=false for failing result)")
 	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
+	cmd.Flags().BoolVar(&runTests, "run-tests", false, "run tests specified in the validation")
+	cmd.Flags().BoolVar(&printTestResources, "print-test-resources", false, "whether to print resources used for tests; prints <test-name>.json to the validation directory")
 
 	return cmd
 }

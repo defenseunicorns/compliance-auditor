@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -45,7 +46,7 @@ func DevGetResourcesCommand() *cobra.Command {
 			spinner := message.NewProgressSpinner("%s", spinnerMessage)
 			defer spinner.Stop()
 
-			ctx := context.Background()
+			ctx := cmd.Context()
 
 			// Read the validation data from STDIN or provided file
 			validationBytes, err := ReadValidation(cmd, spinner, inputFile, timeout)
@@ -64,6 +65,7 @@ func DevGetResourcesCommand() *cobra.Command {
 			// add to debug logs accepting that this will print sensitive information?
 			message.Debug(string(output))
 
+			ctx = context.WithValue(ctx, types.LulaValidationWorkDir, filepath.Dir(inputFile))
 			collection, err := DevGetResources(ctx, output, confirmExecution, spinner)
 
 			// do not perform the write if there is nothing to write (likely error)

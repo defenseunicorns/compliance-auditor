@@ -7,7 +7,7 @@ domain:
   file-spec:
     filepaths:
     - name: pod
-      path: testdata/dev/get-resources/pod.yaml
+      path: pod.yaml
       
 provider:
   type: opa

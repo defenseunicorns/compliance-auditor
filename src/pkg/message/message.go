@@ -52,6 +52,9 @@ var logFile *os.File
 // useLogFile controls whether to use the log file or not
 var useLogFile bool
 
+// failOutput is a prefix printer for fail messages
+var failOutput pterm.PrefixPrinter
+
 // DebugWriter represents a writer interface that writes to message.Debug
 type DebugWriter struct{}
 
@@ -73,6 +76,14 @@ func init() {
 	}
 	pterm.Info.Prefix = pterm.Prefix{
 		Text: " •",
+	}
+
+	failOutput = pterm.PrefixPrinter{
+		MessageStyle: pterm.NewStyle(pterm.FgRed),
+		Prefix: pterm.Prefix{
+			Style: pterm.NewStyle(pterm.FgRed),
+			Text:  " ✗",
+		},
 	}
 
 	pterm.SetDefaultOutput(os.Stderr)
@@ -218,6 +229,17 @@ func Success(message string) {
 func Successf(format string, a ...any) {
 	message := Paragraph(format, a...)
 	pterm.Success.Println(message)
+}
+
+// Fail prints a fail message.
+func Fail(message string) {
+	Failf("%s", message)
+}
+
+// Failf prints a fail message with a given format.
+func Failf(format string, a ...any) {
+	message := Paragraph(format, a...)
+	failOutput.Println(message)
 }
 
 // Question prints a user prompt description message.
