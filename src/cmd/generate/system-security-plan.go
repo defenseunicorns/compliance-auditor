@@ -3,6 +3,7 @@ package generate
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/spf13/cobra"
@@ -12,19 +13,19 @@ import (
 )
 
 var sspExample = `
-To generate a system security plan from source and component definition:
-	lula generate system-security-plan -s <catalog/profile source> -c <path/to/component-definition>
+To generate a system security plan from profile and component definition:
+	lula generate system-security-plan -p <path/to/profile> -c <path/to/component-definition>
 
 To specify the name and filetype of the generated artifact:
-	lula generate system-security-plan -s <catalog/profile source> -c <path/to/component-definition> -o my_ssp.yaml
+	lula generate system-security-plan -p <path/to/profile> -c <path/to/component-definition> -o my_ssp.yaml
 `
 
-var sspLong = `Generation of a System Security Plan OSCAL artifact from a source catalog/profile and a component definition.`
+var sspLong = `Generation of a System Security Plan OSCAL artifact from a source profile along with an optional list of component definitions.`
 
 func GenerateSSPCommand() *cobra.Command {
 	var (
 		component  []string
-		source     string
+		profile    string
 		outputFile string
 	)
 
@@ -47,11 +48,12 @@ func GenerateSSPCommand() *cobra.Command {
 				return fmt.Errorf("invalid OSCAL model at output: %v", err)
 			}
 
-			command := fmt.Sprintf("%s --source %s", cmd.CommandPath(), source)
+			command := fmt.Sprintf("%s --profile %s", cmd.CommandPath(), profile)
 
 			// Get component definitions from file(s)
 			var componentDefs []*oscalTypes.ComponentDefinition
 			for _, componentPath := range component {
+				componentPath = filepath.Clean(componentPath)
 				componentBytes, err := os.ReadFile(componentPath)
 				if err != nil {
 					return err
@@ -64,16 +66,12 @@ func GenerateSSPCommand() *cobra.Command {
 					return fmt.Errorf("component definition at %s is nil", componentPath)
 				}
 
-				// TODO: Compose component definition
-				// Add option: compose to path (remap validation links)
-				// Add option: partial compose(?) just imported component-definitions
-
 				componentDefs = append(componentDefs, componentDef)
 				command += fmt.Sprintf(" --component %s", componentPath)
 			}
 
 			// Generate the system security plan
-			ssp, err := oscal.GenerateSystemSecurityPlan(command, source, componentDefs...)
+			ssp, err := oscal.GenerateSystemSecurityPlan(command, profile, componentDefs...)
 			if err != nil {
 				return err
 			}
@@ -88,10 +86,10 @@ func GenerateSSPCommand() *cobra.Command {
 		},
 	}
 
-	sspCmd.Flags().StringVarP(&source, "source", "s", "", "the path to the source catalog/profile")
-	err := sspCmd.MarkFlagRequired("source")
+	sspCmd.Flags().StringVarP(&profile, "profile", "p", "", "the path to the imported profile")
+	err := sspCmd.MarkFlagRequired("profile")
 	if err != nil {
-		message.Fatal(err, "error initializing source command flags")
+		message.Fatal(err, "error initializing profile command flags")
 	}
 	sspCmd.Flags().StringSliceVarP(&component, "component", "c", []string{}, "comma delimited list the paths to the component definitions to include for the SSP")
 	err = sspCmd.MarkFlagRequired("component")

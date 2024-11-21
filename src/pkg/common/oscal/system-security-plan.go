@@ -122,13 +122,13 @@ func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
 // implement system-characteristics, parties->users->components, component status, (probably more);
 // support for target instead of source?
 func GenerateSystemSecurityPlan(command string, source string, compdefs ...*oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
+	// TODO: Recursively import all `import-component-definitions`
+	// May be an update to compose functionality
+	// ^ Add option: partial compose(?) just imported component-definitions + remap validation links
+
 	compdef, err := MergeVariadicComponentDefinition(compdefs...)
 	if err != nil {
 		return nil, err
-	}
-
-	if compdef == nil {
-		return nil, fmt.Errorf("component definition(s) are nil")
 	}
 
 	// Create the OSCAL SSP model for use and later assignment to the oscal.SystemSecurityPlan implementation
@@ -164,7 +164,12 @@ func GenerateSystemSecurityPlan(command string, source string, compdefs ...*osca
 		Published:    &rfc3339Time,
 		LastModified: rfc3339Time,
 		Props:        &props,
-		Parties:      compdef.Metadata.Parties, // TODO: Should these be handled on compdef merge?
+	}
+
+	// Update parties from component definition if not nil
+	// TODO: Handle parties on component definition merge op
+	if compdef != nil {
+		model.Metadata.Parties = compdef.Metadata.Parties
 	}
 
 	// Update the import-profile
@@ -195,28 +200,41 @@ func GenerateSystemSecurityPlan(command string, source string, compdefs ...*osca
 		},
 	}
 
+	// Update the control-implementation.implemented-requirements & system-implementation.components
+	model.ControlImplementation = oscalTypes.ControlImplementation{
+		ImplementedRequirements: make([]oscalTypes.ImplementedRequirement, 0),
+	}
+	model.SystemImplementation = oscalTypes.SystemImplementation{
+		Components: []oscalTypes.SystemComponent{
+			{
+				UUID:    uuid.NewUUID(),
+				Title:   "Generated Component",
+				Remarks: "<TODO: Update generated component>",
+			},
+		},
+		Users: []oscalTypes.SystemUser{
+			{
+				UUID:    uuid.NewUUID(),
+				Title:   "Generated User",
+				Remarks: "<TODO: Update generated user>",
+			},
+		},
+	}
+
+	// TODO: Add all profile controls to the implemented-requirements -> Then will need to deconflict with data in component-definitions...
+	// Get the profile (was it passed in? or catalog? and just grab all controls...)
+
 	// Decompose the component defn and add to the right sections of the SSP
 	// TODO: external mapping of status? users? etc
 	// only pull components from the selected source...
+
 	implementedRequirementMap := CreateImplementedRequirementsByFramework(compdef)
 	componentsMap := ComponentsToMap(compdef)
 
 	if implementedRequirements, ok := implementedRequirementMap[source]; ok {
-		// Update the control-implementation.implemented-requirements & system-implementation.components
-		model.ControlImplementation = oscalTypes.ControlImplementation{
-			ImplementedRequirements: make([]oscalTypes.ImplementedRequirement, 0),
-		}
-		model.SystemImplementation = oscalTypes.SystemImplementation{
-			Components: make([]oscalTypes.SystemComponent, 0),
-			Users: []oscalTypes.SystemUser{
-				{
-					UUID:    uuid.NewUUID(),
-					Title:   "Generated User",
-					Remarks: "<TODO: Update generated user>",
-				},
-			},
-		}
+
 		componentsAdded := make([]string, 0)
+		componentsFound := make([]oscalTypes.SystemComponent, 0)
 
 		for _, implementedRequirement := range implementedRequirements {
 			// Append to the control-implementation.implemented-requirements
@@ -226,7 +244,7 @@ func GenerateSystemSecurityPlan(command string, source string, compdefs ...*osca
 			for _, byComponent := range *implementedRequirement.ByComponents {
 				if !slices.Contains(componentsAdded, byComponent.ComponentUuid) {
 					if component, ok := componentsMap[byComponent.ComponentUuid]; ok {
-						model.SystemImplementation.Components = append(model.SystemImplementation.Components, oscalTypes.SystemComponent{
+						componentsFound = append(componentsFound, oscalTypes.SystemComponent{
 							UUID:             component.UUID,
 							Type:             component.Type,
 							Title:            component.Title,
@@ -250,9 +268,13 @@ func GenerateSystemSecurityPlan(command string, source string, compdefs ...*osca
 		return nil, fmt.Errorf("no implemented requirements found for source %s", source)
 	}
 
-	return &SystemSecurityPlan{
+	ssp := &SystemSecurityPlan{
 		Model: &model,
-	}, nil
+	}
+
+	// TODO: Perform a model merge of anything in oscal-parameters (ssp.MergeConfigurationData) overwrites anything as a "placeholder" or from the component-definition
+
+	return ssp, nil
 
 }
 
