@@ -117,8 +117,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/defenseunicorns/go-oscal v0.6.0 h1:eflEKfk7edu4L4kWf6aNQpS94ljfGP8lgWpsPYNtE1Q=
-github.com/defenseunicorns/go-oscal v0.6.0/go.mod h1:UHp2yK9ty2mYJDun7oNhbstCq6SAAwP4YGbw9n7uG6o=
+github.com/defenseunicorns/go-oscal v0.6.1 h1:wk8psLKTOHTFKFqykVO1BPl9+WjfdCAzWGTLZgJkwn8=
+github.com/defenseunicorns/go-oscal v0.6.1/go.mod h1:UHp2yK9ty2mYJDun7oNhbstCq6SAAwP4YGbw9n7uG6o=
 github.com/defenseunicorns/pkg/kubernetes v0.3.0 h1:f4VSIaUdvn87/dhiZvRbUfHhcHa8bKia6aU0WcvPbYg=
 github.com/defenseunicorns/pkg/kubernetes v0.3.0/go.mod h1:FsuKQGpPZOnZWifBse7v787+avtIu2lte5LTsaojDkY=
 github.com/dgraph-io/badger/v3 v3.2103.5 h1:ylPa6qzbjYRQMU6jokoj4wzcaweHylt//CH0AKt0akg=
