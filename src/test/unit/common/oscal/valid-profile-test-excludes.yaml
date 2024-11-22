@@ -1,6 +1,6 @@
 profile:
   imports:
-    - href: ./subdir/profile.yaml
+    - href: ./subdir/basic-profile.yaml
       exclude-controls:
         - with-ids:
             - s1.1.1

@@ -200,6 +200,13 @@ func TestResolveProfileControls(t *testing.T) {
 				"s2.1.1",
 			},
 		},
+		{
+			name:             "valid-profile-exclude-all",
+			profilePath:      "../../../test/unit/common/oscal/valid-profile-test-excludes.yaml",
+			include:          []string{},
+			exclude:          []string{},
+			expectedControls: []string{},
+		},
 	}
 
 	for _, tt := range tests {
