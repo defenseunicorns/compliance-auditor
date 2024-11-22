@@ -52,17 +52,17 @@ stringjsondata
 
 ## API Domain Resources
 
-The API response body is serialized into a json object with the Request's `Name` as the top-level key. The API status code is included in the output domain resources.
+The API response body is serialized into a json object with the Request's `Name` as the top-level key. The API status code is included in the output domain resources under `status`. `raw` contains the entire API repsonse in an unmarshalled (`json.RawMessage`) format.
 
 Example output:
 
 ```json
 "healthcheck": {
   "status": 200,
-  "reponse": {
+  "response": {
     "healthy": true,
   },
-  "raw": 
+  "raw": {"healthy": true}
 }
 ```
 
