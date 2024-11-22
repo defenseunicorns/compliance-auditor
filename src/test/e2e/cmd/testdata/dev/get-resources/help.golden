@@ -1,0 +1,27 @@
+Get the JSON resources specified in a Lula Validation Manifest
+
+Usage:
+  get-resources [flags]
+
+Examples:
+
+To get resources from lula validation manifest:
+	lula dev get-resources -f /path/to/validation.yaml
+To get resources from lula validation manifest and write to file:
+	lula dev get-resources -f /path/to/validation.yaml -o /path/to/output.json
+To get resources from lula validation and automatically confirm execution
+	lula dev get-resources -f /path/to/validation.yaml --confirm-execution
+To run validations using stdin:
+	cat /path/to/validation.yaml | lula dev get-resources
+To hang indefinitely for stdin:
+	lula get-resources -t -1
+To hang for timeout of 5 seconds:
+	lula get-resources -t 5
+
+
+Flags:
+      --confirm-execution    confirm execution scripts run as part of getting resources
+  -h, --help                 help for get-resources
+  -f, --input-file string    the path to a validation manifest file (default "0")
+  -o, --output-file string   the path to write the resources json
+  -t, --timeout int          the timeout for stdin (in seconds, -1 for no timeout) (default 1)

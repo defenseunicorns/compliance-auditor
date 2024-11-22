@@ -9,9 +9,9 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-
 	"sigs.k8s.io/yaml"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type Requirement struct {
@@ -209,34 +209,6 @@ func mergeControlImplementations(original *oscalTypes_1_1_2.ControlImplementatio
 	}
 	original.ImplementedRequirements = tempItems
 	return original
-}
-
-// Merges two arrays of resources into a single array
-func mergeResources(orig *[]oscalTypes_1_1_2.Resource, latest *[]oscalTypes_1_1_2.Resource) *[]oscalTypes_1_1_2.Resource {
-	if orig == nil {
-		return latest
-	}
-
-	if latest == nil {
-		return orig
-	}
-
-	result := make([]oscalTypes_1_1_2.Resource, 0)
-
-	tempResource := make(map[string]oscalTypes_1_1_2.Resource)
-	for _, resource := range *orig {
-		tempResource[resource.UUID] = resource
-		result = append(result, resource)
-	}
-
-	for _, resource := range *latest {
-		// Only append if does not exist
-		if _, ok := tempResource[resource.UUID]; !ok {
-			result = append(result, resource)
-		}
-	}
-
-	return &result
 }
 
 // Merges two arrays of links into a single array
@@ -452,7 +424,7 @@ func ControlToImplementedRequirement(control *oscalTypes_1_1_2.Control, targetRe
 			if contains(targetRemarks, part.Name) {
 				controlDescription += fmt.Sprintf("%s:\n", strings.ToTitle(part.Name))
 				if part.Prose != "" && strings.Contains(part.Prose, "{{ insert: param,") {
-					controlDescription += replaceParams(part.Prose, paramMap)
+					controlDescription += replaceParams(part.Prose, paramMap, false)
 				} else {
 					controlDescription += part.Prose
 				}
@@ -530,6 +502,17 @@ func FilterControlImplementations(componentDefinition *oscalTypes_1_1_2.Componen
 	return controlMap
 }
 
+func ComponentsToMap(componentDefinition *oscalTypes_1_1_2.ComponentDefinition) map[string]*oscalTypes_1_1_2.DefinedComponent {
+	components := make(map[string]*oscalTypes_1_1_2.DefinedComponent)
+
+	if componentDefinition != nil && componentDefinition.Components != nil {
+		for _, component := range *componentDefinition.Components {
+			components[component.UUID] = &component
+		}
+	}
+	return components
+}
+
 func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) {
 	// sort components by title
 
@@ -590,20 +573,9 @@ func MakeComponentDeterminstic(component *oscalTypes_1_1_2.ComponentDefinition) 
 	// sort backmatter
 	if component.BackMatter != nil {
 		backmatter := *component.BackMatter
-		if backmatter.Resources != nil {
-			resources := *backmatter.Resources
-			if len(resources) == 0 {
-				backmatter.Resources = nil
-			} else {
-				sort.Slice(resources, func(i, j int) bool {
-					return resources[i].Title < resources[j].Title
-				})
-				backmatter.Resources = &resources
-			}
-		}
+		sortBackMatter(&backmatter)
 		component.BackMatter = &backmatter
 	}
-
 }
 
 func contains(s []string, e string) bool {
@@ -641,7 +613,7 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 			if prose == "" {
 				result += fmt.Sprintf("%s%s\n", tabs, label)
 			} else if strings.Contains(prose, "{{ insert: param,") {
-				result += fmt.Sprintf("%s%s %s\n", tabs, label, replaceParams(prose, paramMap))
+				result += fmt.Sprintf("%s%s %s\n", tabs, label, replaceParams(prose, paramMap, false))
 			} else {
 				result += fmt.Sprintf("%s%s %s\n", tabs, label, prose)
 			}
@@ -655,15 +627,30 @@ func addPart(part *[]oscalTypes_1_1_2.Part, paramMap map[string]parameter, level
 	return result
 }
 
-func replaceParams(input string, params map[string]parameter) string {
+func replaceParams(input string, params map[string]parameter, nested bool) string {
 	re := regexp.MustCompile(`{{\s*insert:\s*param,\s*([^}\s]+)\s*}}`)
 	result := re.ReplaceAllStringFunc(input, func(match string) string {
 		paramName := strings.TrimSpace(re.FindStringSubmatch(match)[1])
 		if param, ok := params[paramName]; ok {
-			if param.Select == nil {
+			if nested {
+				// If we know there is no information that requires prepending
+				return param.Label
+			} else if param.Select == nil {
+				// Standard assignment given a label
 				return fmt.Sprintf("[Assignment: organization-defined %s]", param.Label)
 			} else {
-				return fmt.Sprintf("[Selection: (%s) organization-defined %s]", param.Select.HowMany, strings.Join(param.Select.Choice, "; "))
+				// Join many choices into a single item of prose
+				prose := fmt.Sprintf("[Selection: (%s) organization-defined", param.Select.HowMany)
+				for _, choice := range param.Select.Choice {
+					// Handle potential nested parameter use
+					if strings.Contains(choice, "{{ insert: param,") {
+						replaced := replaceParams(choice, params, true)
+						prose += fmt.Sprintf(" %s;", replaced)
+					} else {
+						prose += fmt.Sprintf(" %s;", choice)
+					}
+				}
+				return fmt.Sprintf("%s]", prose)
 			}
 		}
 		return match

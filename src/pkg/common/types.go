@@ -10,6 +10,8 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common/schemas"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
@@ -18,7 +20,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
-	"sigs.k8s.io/yaml"
 )
 
 // Define base errors for validations
@@ -28,14 +29,16 @@ var (
 	ErrInvalidVersion  = errors.New("version is invalid")
 	ErrInvalidDomain   = errors.New("domain is invalid")
 	ErrInvalidProvider = errors.New("provider is invalid")
+	ErrInvalidTest     = errors.New("test is invalid")
 )
 
 // Data structures for ingesting validation data
 type Validation struct {
-	LulaVersion string    `json:"lula-version" yaml:"lula-version"`
-	Metadata    *Metadata `json:"metadata,omitempty" yaml:"metadata,omitempty"`
-	Provider    *Provider `json:"provider,omitempty" yaml:"provider,omitempty"`
-	Domain      *Domain   `json:"domain,omitempty" yaml:"domain,omitempty"`
+	LulaVersion string                      `json:"lula-version" yaml:"lula-version"`
+	Metadata    *Metadata                   `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	Provider    *Provider                   `json:"provider,omitempty" yaml:"provider,omitempty"`
+	Domain      *Domain                     `json:"domain,omitempty" yaml:"domain,omitempty"`
+	Tests       *[]types.LulaValidationTest `json:"tests,omitempty" yaml:"tests,omitempty"`
 }
 
 // UnmarshalYaml is a convenience method to unmarshal a Validation object from a YAML byte array
@@ -153,7 +156,8 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 	domain, err := GetDomain(validation.Domain)
 	if domain == nil {
 		return lulaValidation, fmt.Errorf("%w: %s", ErrInvalidDomain, validation.Domain.Type)
-	} else if err != nil {
+	}
+	if err != nil {
 		return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidDomain, err)
 	}
 	lulaValidation.Domain = &domain
@@ -172,6 +176,20 @@ func (validation *Validation) ToLulaValidation(uuid string) (lulaValidation type
 		lulaValidation.Name = "lula-validation"
 	} else {
 		lulaValidation.Name = validation.Metadata.Name
+	}
+
+	// Add tests if they exist
+	if validation.Tests != nil {
+		validationTestData := make([]*types.LulaValidationTestData, 0)
+		for _, test := range *validation.Tests {
+			if err := test.ValidateData(); err != nil {
+				return lulaValidation, fmt.Errorf("%w: %v", ErrInvalidTest, err)
+			}
+			validationTestData = append(validationTestData, &types.LulaValidationTestData{
+				Test: &test,
+			})
+		}
+		lulaValidation.ValidationTestData = validationTestData
 	}
 
 	return lulaValidation, nil

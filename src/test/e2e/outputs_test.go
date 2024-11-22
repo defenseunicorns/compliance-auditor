@@ -7,19 +7,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestOutputs(t *testing.T) {
+	const ckTestPodOutputs contextKey = "test-pod-outputs"
 	featureTrueOutputs := features.New("Check Outputs").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/outputs/pod.yaml")
@@ -33,7 +35,7 @@ func TestOutputs(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			return context.WithValue(ctx, "test-pod-outputs", pod)
+			return context.WithValue(ctx, ckTestPodOutputs, pod)
 		}).
 		Assess("Validate Outputs", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/outputs/oscal-component.yaml"
@@ -57,7 +59,12 @@ func TestOutputs(t *testing.T) {
 			components := *compDef.Components
 			validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-			findingMap, observations, err := validate.ValidateOnControlImplementations(ctx, components[0].ControlImplementations, validationStore, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			findingMap, observations, err := validator.ValidateOnControlImplementations(context.Background(), components[0].ControlImplementations, validationStore, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -85,13 +92,10 @@ func TestOutputs(t *testing.T) {
 					}
 				}
 			}
-
-			message.Infof("Successfully validated payload.output structure")
-
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("test-pod-outputs").(*corev1.Pod)
+			pod := ctx.Value(ckTestPodOutputs).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

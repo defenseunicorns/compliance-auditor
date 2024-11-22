@@ -8,9 +8,9 @@ import (
 	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
@@ -71,7 +71,12 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		t.Error(err)
 	}
 
-	assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+	validator, err := validation.New(validation.WithComposition(nil, oscalPath))
+	if err != nil {
+		t.Errorf("error creating validation context: %v", err)
+	}
+
+	assessment, err := validator.ValidateOnPath(ctx, oscalPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,13 +106,13 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 
 	compDef := oscalModel.ComponentDefinition
 
-	compositionCtx, err := composition.New(composition.WithModelFromLocalPath(oscalPath))
+	composer, err := composition.New(composition.WithModelFromLocalPath(oscalPath))
 	if err != nil {
 		t.Errorf("error creating composition context: %v", err)
 	}
 
 	baseDir := filepath.Dir(oscalPath)
-	err = compositionCtx.ComposeComponentValidations(ctx, compDef, baseDir)
+	err = composer.ComposeComponentValidations(ctx, compDef, baseDir)
 	if err != nil {
 		t.Error(err)
 	}
@@ -117,7 +122,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 	// Create a validation store from the back-matter if it exists
 	validationStore := validationstore.NewValidationStoreFromBackMatter(*compDef.BackMatter)
 
-	findingMap, observations, err := validate.ValidateOnControlImplementations(ctx, components[0].ControlImplementations, validationStore, "")
+	findingMap, observations, err := validator.ValidateOnControlImplementations(ctx, components[0].ControlImplementations, validationStore, "")
 	if err != nil {
 		t.Fatalf("Error with validateOnControlImplementations: %v", err)
 	}

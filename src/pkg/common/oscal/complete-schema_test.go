@@ -124,7 +124,7 @@ func TestInjectIntoOSCALModel(t *testing.T) {
 			if err != nil {
 				t.Errorf("InjectIntoOSCALModel() error = %v", err)
 			}
-			assert.Equal(t, *result, expectedModel, "The OSCAL models should be equal")
+			assert.Equal(t, expectedModel, *result, "The OSCAL models should be equal")
 		})
 	}
 }

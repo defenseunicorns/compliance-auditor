@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -51,6 +52,7 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	if os.IsNotExist(err) {
 		return data, fmt.Errorf("Path: %v does not exist - unable to digest document", path)
 	}
+	path = filepath.Clean(path)
 	data, err = os.ReadFile(path)
 	if err != nil {
 		return data, err
@@ -188,6 +190,18 @@ func ValidationFromString(raw, uuid string) (validation types.LulaValidation, er
 	}
 
 	return validation, nil
+}
+
+func CheckFileExists(filepath string) (bool, error) {
+	if _, err := os.Stat(filepath); err == nil {
+		return true, nil
+
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+
+	} else {
+		return false, err
+	}
 }
 
 // CleanMultilineString removes leading and trailing whitespace from a multiline string

@@ -3,6 +3,7 @@ package oscal_test
 import (
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
@@ -152,10 +153,10 @@ func TestComponentFromCatalog(t *testing.T) {
 			name:         "Valid test of component from Catalog",
 			data:         *catalog,
 			title:        "Component Title",
-			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4"},
+			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "ac-4.4"},
 			remarks:      []string{"statement"},
 			source:       "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
-			wantReqLen:   4,
+			wantReqLen:   5,
 			wantErr:      false,
 		},
 		{
@@ -208,6 +209,9 @@ func TestComponentFromCatalog(t *testing.T) {
 
 			implementedRequirements := make([]string, 0)
 			for _, requirement := range controlImplementation.ImplementedRequirements {
+				if strings.Contains(requirement.Remarks, "{{ insert: param,") {
+					t.Errorf("Expected all parameters to be rendered - found: %s/n", requirement.Remarks)
+				}
 				implementedRequirements = append(implementedRequirements, requirement.ControlId)
 			}
 

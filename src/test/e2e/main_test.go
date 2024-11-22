@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 		envfuncs.CreateClusterWithConfig(
 			kind.NewProvider(),
 			kindClusterName,
-			"kind-config.yaml"),
+			"./testdata/kind-config.yaml"),
 
 		envfuncs.CreateNamespace(namespace),
 	)

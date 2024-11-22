@@ -5,18 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/cmd/dev"
-	"github.com/defenseunicorns/lula/src/pkg/common"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestDevValidation(t *testing.T) {
+	const ckPodDevValidate contextKey = "pod-dev-validate"
+
 	featureTrueDevValidate := features.New("Check dev validate").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the pod
@@ -31,7 +34,7 @@ func TestDevValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "pod-dev-validate", pod)
+			ctx = context.WithValue(ctx, ckPodDevValidate, pod)
 
 			return ctx
 		}).
@@ -47,7 +50,7 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("Error reading file: %v", err)
 			}
 
-			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, nil)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, false, nil)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -60,8 +63,6 @@ func TestDevValidation(t *testing.T) {
 			if validation.Result.Failing > 0 {
 				t.Errorf("Validation failed")
 			}
-
-			message.Infof("Successfully validated dev validate command with OPA")
 
 			return ctx
 		}).
@@ -75,7 +76,7 @@ func TestDevValidation(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error reading file: %v", err)
 			}
-			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, nil)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, false, nil)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -88,8 +89,6 @@ func TestDevValidation(t *testing.T) {
 			if validation.Result.Failing > 0 {
 				t.Errorf("Validation failed")
 			}
-
-			message.Infof("Successfully validated dev validate command with kyverno")
 
 			return ctx
 		}).
@@ -108,7 +107,7 @@ func TestDevValidation(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error reading file: %v", err)
 			}
-			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, nil)
+			validation, err := dev.DevValidate(ctx, validationBytes, resourcesBytes, false, nil)
 			if err != nil {
 				t.Errorf("Error testing dev validate: %v", err)
 			}
@@ -124,14 +123,12 @@ func TestDevValidation(t *testing.T) {
 				t.Errorf("expected result to be %t got %t", expectedResult, result)
 			}
 
-			message.Infof("Successfully validated dev validate command with resources")
-
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 
 			// Delete the pod
-			pod := ctx.Value("pod-dev-validate").(*corev1.Pod)
+			pod := ctx.Value(ckPodDevValidate).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}

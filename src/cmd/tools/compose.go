@@ -64,12 +64,12 @@ func ComposeCommand() *cobra.Command {
 			}
 
 			// Compose the OSCAL model
-			compositionCtx, err := composition.New(opts...)
+			composer, err := composition.New(opts...)
 			if err != nil {
-				return fmt.Errorf("error creating composition context: %v", err)
+				return fmt.Errorf("error creating new composer: %v", err)
 			}
 
-			model, err := compositionCtx.ComposeFromPath(cmd.Context(), inputFile)
+			model, err := composer.ComposeFromPath(cmd.Context(), inputFile)
 			if err != nil {
 				return fmt.Errorf("error composing model from path: %v", err)
 			}
@@ -87,7 +87,10 @@ func ComposeCommand() *cobra.Command {
 		},
 	}
 	composeCmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "the path to the target OSCAL component definition")
-	composeCmd.MarkFlagRequired("input-file")
+	err := composeCmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing evaluate flags")
+	}
 	composeCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will be the original filename with `-composed` appended")
 	composeCmd.Flags().StringVarP(&renderTypeString, "render", "r", "", "values to render the template with, options are: masked, constants, non-sensitive, all")
 	composeCmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set value overrides for templated data")

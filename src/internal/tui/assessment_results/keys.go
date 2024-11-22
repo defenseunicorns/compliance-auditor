@@ -9,55 +9,57 @@ type keys struct {
 	Validate      key.Binding
 	Evaluate      key.Binding
 	Confirm       key.Binding
+	Select        key.Binding
 	Cancel        key.Binding
 	Navigation    key.Binding
 	NavigateLeft  key.Binding
 	NavigateRight key.Binding
 	SwitchModels  key.Binding
-	Up            key.Binding
-	Down          key.Binding
+	Detail        key.Binding
+	Filter        key.Binding
 	Help          key.Binding
 	Quit          key.Binding
 }
 
-var assessmentHotkeys = keys{
-	Quit: common.CommonKeys.Quit,
-	Help: common.CommonKeys.Help,
-	Validate: key.NewBinding(
-		key.WithKeys("v"),
-		key.WithHelp("v", "validate"),
-	),
-	Evaluate: key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "evaluate"),
-	),
+var assessmentKeys = keys{
+	Quit:          common.CommonKeys.Quit,
+	Help:          common.CommonKeys.Help,
 	Confirm:       common.CommonKeys.Confirm,
+	Select:        common.CommonKeys.Select,
 	Cancel:        common.CommonKeys.Cancel,
 	Navigation:    common.CommonKeys.Navigation,
 	NavigateLeft:  common.CommonKeys.NavigateLeft,
 	NavigateRight: common.CommonKeys.NavigateRight,
 	SwitchModels:  common.CommonKeys.NavigateModels,
-	Up:            common.PickerKeys.Up,
-	Down:          common.PickerKeys.Down,
+	Detail:        common.CommonKeys.Detail,
+	Filter:        common.TableKeys.Filter,
 }
 
-func (k keys) ShortHelp() []key.Binding {
-	return []key.Binding{k.Validate, k.Evaluate, k.Help}
+var assessmentKeysInFilter = keys{
+	Confirm: common.CommonKeys.Confirm,
+	Cancel:  common.CommonKeys.Cancel,
 }
 
-func (k keys) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Evaluate}, {k.Confirm}, {k.Navigation}, {k.SwitchModels}, {k.Help}, {k.Quit},
+var (
+	// No focus
+	shortHelpNoFocus = []key.Binding{
+		assessmentKeys.Navigation, assessmentKeys.SwitchModels, assessmentKeys.Help,
 	}
-}
-
-func (m *Model) updateKeyBindings() {
-	m.findings.KeyMap = common.UnfocusedListKeyMap()
-	m.findings.SetDelegate(common.NewUnfocusedDelegate())
-
-	switch m.focus {
-	case focusFindings:
-		m.findings.KeyMap = common.FocusedListKeyMap()
-		m.findings.SetDelegate(common.NewFocusedDelegate())
+	fullHelpNoFocusOneLine = []key.Binding{
+		assessmentKeys.Navigation, assessmentKeys.SwitchModels, assessmentKeys.Help,
 	}
-}
+	fullHelpNoFocus = [][]key.Binding{
+		{assessmentKeys.Navigation}, {assessmentKeys.SwitchModels}, {assessmentKeys.Help},
+	}
+
+	// focus dialog box
+	shortHelpDialogBox = []key.Binding{
+		assessmentKeys.Select, assessmentKeys.Navigation, assessmentKeys.SwitchModels, assessmentKeys.Help,
+	}
+	fullHelpDialogBoxOneLine = []key.Binding{
+		assessmentKeys.Select, assessmentKeys.Navigation, assessmentKeys.SwitchModels, assessmentKeys.Help,
+	}
+	fullHelpDialogBox = [][]key.Binding{
+		{assessmentKeys.Select}, {assessmentKeys.Navigation}, {assessmentKeys.SwitchModels}, {assessmentKeys.Help},
+	}
+)

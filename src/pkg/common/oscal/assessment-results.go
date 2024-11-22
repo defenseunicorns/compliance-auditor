@@ -8,11 +8,12 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"gopkg.in/yaml.v3"
+
 	"github.com/defenseunicorns/lula/src/config"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"github.com/defenseunicorns/lula/src/types"
-	"gopkg.in/yaml.v3"
 )
 
 const OSCAL_VERSION = "1.1.2"
@@ -212,33 +213,6 @@ func MakeAssessmentResultsDeterministic(assessment *oscalTypes_1_1_2.AssessmentR
 
 }
 
-// findAndSortResults takes a map of results and returns a list of thresholds and a sorted list of results in order of time
-func findAndSortResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) ([]*oscalTypes_1_1_2.Result, []*oscalTypes_1_1_2.Result) {
-
-	thresholds := make([]*oscalTypes_1_1_2.Result, 0)
-	sortedResults := make([]*oscalTypes_1_1_2.Result, 0)
-
-	for _, assessment := range resultMap {
-		for _, result := range assessment.Results {
-			if result.Props != nil {
-				for _, prop := range *result.Props {
-					if prop.Name == "threshold" && prop.Value == "true" {
-						thresholds = append(thresholds, &result)
-					}
-				}
-			}
-			// Store all results in a non-sorted list
-			sortedResults = append(sortedResults, &result)
-		}
-	}
-
-	// Sort the results by start time
-	slices.SortFunc(sortedResults, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
-	slices.SortFunc(thresholds, func(a, b *oscalTypes_1_1_2.Result) int { return a.Start.Compare(b.Start) })
-
-	return thresholds, sortedResults
-}
-
 // filterResults consumes many assessment-results objects and builds out a map of EvalResults filtered by target
 // this function looks at the target prop as the key in the map
 func FilterResults(resultMap map[string]*oscalTypes_1_1_2.AssessmentResults) map[string]EvalResult {
@@ -322,8 +296,7 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 		Description:      fmt.Sprintf(descriptionPattern, descriptionArgs...),
 		RelevantEvidence: relevantEvidence,
 	}
-	// TODO: should the props be added regardless?
-	if resourcesHref != "" {
+	if validation != nil {
 		observation.Props = &[]oscalTypes_1_1_2.Property{
 			{
 				Name:  "validation",
@@ -331,6 +304,8 @@ func CreateObservation(method string, relevantEvidence *[]oscalTypes_1_1_2.Relev
 				Value: common.AddIdPrefix(validation.UUID),
 			},
 		}
+	}
+	if resourcesHref != "" {
 		observation.Links = &[]oscalTypes_1_1_2.Link{
 			{
 				Href: resourcesHref,
@@ -392,4 +367,22 @@ func CreateResult(findingMap map[string]oscalTypes_1_1_2.Finding, observations [
 	}
 
 	return result, nil
+}
+
+// GetObservationByUuid returns the observation with the given UUID
+func GetObservationByUuid(assessmentResults *oscalTypes_1_1_2.AssessmentResults, observationUuid string) (*oscalTypes_1_1_2.Observation, error) {
+	if assessmentResults == nil {
+		return nil, fmt.Errorf("assessment results is nil")
+	}
+
+	for _, result := range assessmentResults.Results {
+		if result.Observations != nil {
+			for _, observation := range *result.Observations {
+				if observation.UUID == observationUuid {
+					return &observation, nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("observation with uuid %s not found", observationUuid)
 }

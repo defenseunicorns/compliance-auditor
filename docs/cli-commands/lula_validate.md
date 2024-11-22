@@ -41,6 +41,7 @@ To run validations non-interactively (no execution)
       --non-interactive      run the command non-interactively
   -o, --output-file string   the path to write assessment results. Creates a new file or appends to existing files
       --save-resources       saves the resources to 'resources' directory at assessment-results level
+  -s, --set strings          set a value in the template data
   -t, --target string        the specific control implementations or framework to validate against
 ```
 

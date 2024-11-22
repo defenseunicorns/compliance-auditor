@@ -42,7 +42,9 @@ To hang for timeout of 5 seconds:
   -h, --help                    help for validate
   -f, --input-file string       the path to a validation manifest file (default "0")
   -o, --output-file string      the path to write the validation with results
+      --print-test-resources    whether to print resources used for tests; prints <test-name>.json to the validation directory
   -r, --resources-file string   the path to an optional resources file
+      --run-tests               run tests specified in the validation
   -t, --timeout int             the timeout for stdin (in seconds, -1 for no timeout) (default 1)
 ```
 
@@ -50,6 +52,7 @@ To hang for timeout of 5 seconds:
 
 ```
   -l, --log-level string   Log level when running Lula. Valid options are: warn, info, debug, trace (default "info")
+  -s, --set strings        set a value in the template data
 ```
 
 ### SEE ALSO

@@ -2,24 +2,32 @@ package test
 
 import (
 	"context"
-
-	"github.com/defenseunicorns/lula/src/cmd/validate"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
-	corev1 "k8s.io/api/core/v1"
-
-	// netv1 "k8s.io/api/networking/v1"
-	// "sigs.k8s.io/e2e-framework/klient/k8s"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/cmd/dev"
+	"github.com/defenseunicorns/lula/src/internal/template"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestApiValidation(t *testing.T) {
+	const (
+		ckAPIFieldConfigMap contextKey = "api-field-configmap"
+		ckApiFieldPod       contextKey = "api-field-pod"
+	)
 	featureTrueValidation := features.New("Check API Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			// Create the configmap
@@ -30,7 +38,7 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-configmap", configMap)
+			ctx = context.WithValue(ctx, ckAPIFieldConfigMap, configMap)
 
 			// Create the pod
 			pod, err := util.GetPod("./scenarios/api-field/pod.yaml")
@@ -47,7 +55,7 @@ func TestApiValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-pod", pod)
+			ctx = context.WithValue(ctx, ckApiFieldPod, pod)
 
 			return ctx
 		}).
@@ -55,7 +63,12 @@ func TestApiValidation(t *testing.T) {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -80,7 +93,7 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("api-field-pod").(*corev1.Pod)
+			pod := ctx.Value(ckApiFieldPod).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -92,7 +105,7 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			configMap := ctx.Value("api-field-configmap").(*corev1.ConfigMap)
+			configMap := ctx.Value(ckAPIFieldConfigMap).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
@@ -116,7 +129,7 @@ func TestApiValidation(t *testing.T) {
 			if err = config.Client().Resources().Create(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-configmap", configMap)
+			ctx = context.WithValue(ctx, ckAPIFieldConfigMap, configMap)
 
 			pod, err := util.GetPod("./scenarios/api-field/pod.yaml")
 			if err != nil {
@@ -132,14 +145,19 @@ func TestApiValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			ctx = context.WithValue(ctx, "api-field-pod", pod)
+			ctx = context.WithValue(ctx, ckApiFieldPod, pod)
 			return ctx
 		}).
 		Assess("Validate API response field", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/api-field/oscal-component.yaml"
 			message.NoProgress = true
 
-			assessment, err := validate.ValidateOnPath(context.Background(), oscalPath, "")
+			validator, err := validation.New()
+			if err != nil {
+				t.Errorf("error creating validation context: %v", err)
+			}
+
+			assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -164,7 +182,7 @@ func TestApiValidation(t *testing.T) {
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
-			pod := ctx.Value("api-field-pod").(*corev1.Pod)
+			pod := ctx.Value(ckApiFieldPod).(*corev1.Pod)
 			if err := config.Client().Resources().Delete(ctx, pod); err != nil {
 				t.Fatal(err)
 			}
@@ -176,7 +194,7 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			configMap := ctx.Value("api-field-configmap").(*corev1.ConfigMap)
+			configMap := ctx.Value(ckAPIFieldConfigMap).(*corev1.ConfigMap)
 			if err := config.Client().Resources().Delete(ctx, configMap); err != nil {
 				t.Fatal(err)
 			}
@@ -192,4 +210,74 @@ func TestApiValidation(t *testing.T) {
 		}).Feature()
 
 	testEnv.Test(t, featureTrueValidation, featureFalseValidation)
+}
+
+// TestApiValidation_templated uses a URL parameter to control the return response from the API.
+func TestApiValidation_templated(t *testing.T) {
+	message.NoProgress = true
+	dev.RunInteractively = false
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		wantResp := r.URL.Query().Get("response")
+		require.NotEmpty(t, wantResp)
+		passRsp := false
+		if wantResp == "true" {
+			passRsp = true
+		}
+		resp := struct {
+			Pass bool `json:"pass"`
+		}{
+			passRsp,
+		}
+		err := json.NewEncoder(w).Encode(resp)
+		require.NoError(t, err)
+	}))
+	defer svr.Close()
+
+	tmpl := "scenarios/api-validations/component-definition.yaml.tmpl"
+
+	// since it's just the two tests I'm using the name to check the assessment result.
+	tests := map[string]struct {
+		response string
+	}{
+		"satisfied":     {"true"},
+		"not-satisfied": {"false"},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+
+			composer, err := composition.New(
+				composition.WithModelFromLocalPath(tmpl),
+				composition.WithRenderSettings("all", true),
+				composition.WithTemplateRenderer("all", nil, []template.VariableConfig{
+					{
+						Key:     "reqUrl",
+						Default: svr.URL,
+					},
+					{
+						Key:     "response",
+						Default: test.response,
+					},
+				}, []string{}),
+			)
+			require.NoError(t, err)
+
+			validator, err := validation.New(validation.WithComposition(composer, tmpl))
+			require.NoError(t, err)
+
+			assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
+			require.NoError(t, err)
+			require.GreaterOrEqual(t, len(assessment.Results), 1)
+
+			result := assessment.Results[0]
+			require.NotNil(t, result.Findings)
+			for _, finding := range *result.Findings {
+				state := finding.Target.Status.State
+				if state != name {
+					t.Fatalf("State should be %s, but got :%s", name, state)
+				}
+			}
+		})
+	}
 }

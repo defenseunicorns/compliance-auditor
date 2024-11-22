@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -200,7 +201,10 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 	templateData.SensitiveVariables = mergeStringMaps(templateData.SensitiveVariables, envMap)
 
 	// Apply overrides
-	overrideTemplateValues(templateData, overrides)
+	err = overrideTemplateValues(templateData, overrides)
+	if err != nil {
+		return templateData, err
+	}
 
 	// Validate that all env vars have values - currently debug prints missing env vars (do we want to return an error?)
 	var variablesMissing strings.Builder
@@ -214,7 +218,7 @@ func CollectTemplatingData(constants map[string]interface{}, variables []Variabl
 			variablesMissing.WriteString(fmt.Sprintf("sensitive variable %s is missing a value;\n", k))
 		}
 	}
-	message.Debugf(variablesMissing.String())
+	message.Debug(variablesMissing.String())
 
 	return templateData, nil
 }
@@ -343,14 +347,14 @@ func returnUniqueMatches(matches [][]string, captures int) map[string][]string {
 // checkForInvalidKeys checks for invalid characters in keys for go text/template
 // cannot contain '-' or '.'
 func checkForInvalidKeys(constants map[string]interface{}, variables []VariableConfig) error {
-	var errors strings.Builder
+	var errs strings.Builder
 
 	containsInvalidChars := func(key string) {
 		if strings.Contains(key, "-") {
-			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
+			errs.WriteString(fmt.Sprintf("invalid key %s - cannot contain '-';", key))
 		}
 		if strings.Contains(key, ".") {
-			errors.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
+			errs.WriteString(fmt.Sprintf("invalid key %s - cannot contain '.';", key))
 		}
 	}
 
@@ -372,15 +376,15 @@ func checkForInvalidKeys(constants map[string]interface{}, variables []VariableC
 		containsInvalidChars(variable.Key)
 	}
 
-	if errors.Len() > 0 {
-		return fmt.Errorf(errors.String()[:len(errors.String())-1])
+	if errs.Len() > 0 {
+		return errors.New(errs.String()[:len(errs.String())-1])
 	}
 
 	return nil
 }
 
 // overrideTemplateValues overrides values in the templateData object with values from the overrides map
-func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) {
+func overrideTemplateValues(templateData *TemplateData, overrides map[string]string) error {
 	for path, value := range overrides {
 		// for each key, check if .var or .const
 		// if .var, set the value in the templateData.Variables or templateData.SensitiveVariables
@@ -396,9 +400,13 @@ func overrideTemplateValues(templateData *TemplateData, overrides map[string]str
 		} else if strings.HasPrefix(path, "."+CONST+".") {
 			// Set the value in the templateData.Constants
 			key := strings.TrimPrefix(path, "."+CONST+".")
-			setNestedValue(templateData.Constants, key, value)
+			err := setNestedValue(templateData.Constants, key, value)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 // Helper function to set a value in a map based on a JSON-like key path

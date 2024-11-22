@@ -2,6 +2,7 @@
 package message
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,6 +52,9 @@ var logFile *os.File
 // useLogFile controls whether to use the log file or not
 var useLogFile bool
 
+// failOutput is a prefix printer for fail messages
+var failOutput pterm.PrefixPrinter
+
 // DebugWriter represents a writer interface that writes to message.Debug
 type DebugWriter struct{}
 
@@ -74,18 +78,26 @@ func init() {
 		Text: " •",
 	}
 
+	failOutput = pterm.PrefixPrinter{
+		MessageStyle: pterm.NewStyle(pterm.FgRed),
+		Prefix: pterm.Prefix{
+			Style: pterm.NewStyle(pterm.FgRed),
+			Text:  " ✗",
+		},
+	}
+
 	pterm.SetDefaultOutput(os.Stderr)
 }
 
 // UseLogFile writes output to stderr and a logFile.
-func UseLogFile() {
+func UseLogFile(inputLogFile *os.File) {
 	// Prepend the log filename with a timestamp.
 	ts := time.Now().Format("2006-01-02-15-04-05")
 
 	var err error
-	if logFile != nil {
+	if inputLogFile != nil {
 		// Use the existing log file if logFile is set
-		LogWriter = io.MultiWriter(os.Stderr, logFile)
+		LogWriter = io.MultiWriter(inputLogFile)
 		pterm.SetDefaultOutput(LogWriter)
 	} else {
 		// Try to create a temp log file if one hasn't been made already
@@ -99,6 +111,12 @@ func UseLogFile() {
 			Note(message)
 		}
 	}
+}
+
+// UseBuffer writes output to a buffer
+func UseBuffer(buf *bytes.Buffer) {
+	LogWriter = io.MultiWriter(buf)
+	pterm.SetDefaultOutput(LogWriter)
 }
 
 // SetLogLevel sets the log level.
@@ -153,7 +171,7 @@ func Warnf(format string, a ...any) {
 // WarnErr prints an error message as a warning.
 func WarnErr(err any, message string) {
 	debugPrinter(2, err)
-	Warnf(message)
+	Warnf("%s", message)
 }
 
 // WarnErrf prints an error message as a warning with a given format.
@@ -213,6 +231,17 @@ func Successf(format string, a ...any) {
 	pterm.Success.Println(message)
 }
 
+// Fail prints a fail message.
+func Fail(message string) {
+	Failf("%s", message)
+}
+
+// Failf prints a fail message with a given format.
+func Failf(format string, a ...any) {
+	message := Paragraph(format, a...)
+	failOutput.Println(message)
+}
+
 // Question prints a user prompt description message.
 func Question(text string) {
 	Questionf("%s", text)
@@ -261,7 +290,7 @@ func HeaderInfof(format string, a ...any) {
 		WithBackgroundStyle(pterm.NewStyle(pterm.BgDarkGray)).
 		WithTextStyle(pterm.NewStyle(pterm.FgLightWhite)).
 		WithMargin(2).
-		Printfln(message + strings.Repeat(" ", padding))
+		Printfln("%s", message+strings.Repeat(" ", padding))
 }
 
 // HorizontalRule prints a white horizontal rule to separate the terminal
@@ -277,6 +306,10 @@ func JSONValue(value any) string {
 		debugPrinter(2, fmt.Sprintf("ERROR marshalling json: %s", err.Error()))
 	}
 	return string(bytes)
+}
+
+func Printf(format string, a ...any) {
+	pterm.Printf(format, a...)
 }
 
 // Paragraph formats text into a paragraph matching the TermWidth
@@ -319,7 +352,7 @@ func Truncate(text string, length int, invert bool) string {
 
 // Table prints a padded table containing the specified header and data
 // Note - columnSize should be an array of ints that add up to 100
-func Table(header []string, data [][]string, columnSize []int) {
+func Table(header []string, data [][]string, columnSize []int) error {
 	pterm.Println()
 	termWidth := pterm.GetTerminalWidth() - 10 // Subtract 10 for padding
 
@@ -342,7 +375,7 @@ func Table(header []string, data [][]string, columnSize []int) {
 		table = append(table, pterm.TableData{row}...)
 	}
 
-	pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render()
+	return pterm.DefaultTable.WithHasHeader().WithData(table).WithRowSeparator("-").Render()
 }
 
 // Add line breaks for table

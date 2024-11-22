@@ -1,5 +1,112 @@
 # Changelog
 
+## [0.11.0](https://github.com/defenseunicorns/lula/compare/v0.10.0...v0.11.0) (2024-11-08)
+
+
+### Features
+
+* **api domain:** accept any API response and include reponse status code in domain resources ([#788](https://github.com/defenseunicorns/lula/issues/788)) ([6c6fcb3](https://github.com/defenseunicorns/lula/commit/6c6fcb3398349577efb3106a046bbbc6e158f8cc))
+* **api domain:** extend options for Get requests ([#766](https://github.com/defenseunicorns/lula/issues/766)) ([a480235](https://github.com/defenseunicorns/lula/commit/a4802350e626e9aaf5200106e7afd5fb492c9cb9))
+* **dev:** observation print commands ([#762](https://github.com/defenseunicorns/lula/issues/762)) ([0e9337e](https://github.com/defenseunicorns/lula/commit/0e9337e18f72db4b1545994006159bf1bf8f1b13))
+
+
+### Bug Fixes
+
+* **generate:** template nested prose with params ([#780](https://github.com/defenseunicorns/lula/issues/780)) ([cd0fc1f](https://github.com/defenseunicorns/lula/commit/cd0fc1fc78bdcf2d0deff259b9f11169fe0f972f))
+* **validate:** support returning empty resources object/slice ([#704](https://github.com/defenseunicorns/lula/issues/704)) ([9f29146](https://github.com/defenseunicorns/lula/commit/9f29146a642c6b3114049bc2a8ee175f67eb258c))
+
+
+### Miscellaneous
+
+* **deps:** update actions/github-script digest to 4020e46 ([#778](https://github.com/defenseunicorns/lula/issues/778)) ([7c85ec9](https://github.com/defenseunicorns/lula/commit/7c85ec9977d2f8a60f4b3548879ae6d27530c7f1))
+* **deps:** update anchore/sbom-action action to v0.17.6 ([#768](https://github.com/defenseunicorns/lula/issues/768)) ([f55c890](https://github.com/defenseunicorns/lula/commit/f55c890a8713403d122deb11b263eaaea8852774))
+* **deps:** update anchore/sbom-action action to v0.17.7 ([#781](https://github.com/defenseunicorns/lula/issues/781)) ([28247ea](https://github.com/defenseunicorns/lula/commit/28247ea4e26c7fb33e390cb51cb2791957d66064))
+* **deps:** update dependency go to v1.23.3 ([#785](https://github.com/defenseunicorns/lula/issues/785)) ([70de474](https://github.com/defenseunicorns/lula/commit/70de4744d38f907e11af8403eb462b449836b6f9))
+* **deps:** update github.com/charmbracelet/x/exp/teatest digest to 317c90d ([#791](https://github.com/defenseunicorns/lula/issues/791)) ([1d0ebff](https://github.com/defenseunicorns/lula/commit/1d0ebffc000226d5f898f2c730ad29957e47aa2b))
+* **deps:** update github.com/charmbracelet/x/exp/teatest digest to eee4c46 ([#705](https://github.com/defenseunicorns/lula/issues/705)) ([2ecc6ce](https://github.com/defenseunicorns/lula/commit/2ecc6ce82fa79b719673f79548212c39fa9cf896))
+* **deps:** update github/codeql-action action to v3.27.1 ([#790](https://github.com/defenseunicorns/lula/issues/790)) ([c86e426](https://github.com/defenseunicorns/lula/commit/c86e4267d1894b329e79bf6cd0453a905886c6fc))
+* **deps:** update goreleaser/goreleaser-action action to v6.1.0 ([#786](https://github.com/defenseunicorns/lula/issues/786)) ([fae5e4c](https://github.com/defenseunicorns/lula/commit/fae5e4ccb0ffc3d93542f485c1ad46ae821528c3))
+* **deps:** update module github.com/charmbracelet/bubbletea to v1.2.1 ([#783](https://github.com/defenseunicorns/lula/issues/783)) ([73690be](https://github.com/defenseunicorns/lula/commit/73690be5fc5aba16de7184bdd9ea76c4caba426c))
+* **deps:** update module github.com/charmbracelet/lipgloss to v1 ([#774](https://github.com/defenseunicorns/lula/issues/774)) ([0213f3d](https://github.com/defenseunicorns/lula/commit/0213f3d40179aa0c784451eaf5f382d5e2741e01))
+* **deps:** update module github.com/evertras/bubble-table to v0.17.1 ([#773](https://github.com/defenseunicorns/lula/issues/773)) ([8dc2196](https://github.com/defenseunicorns/lula/commit/8dc21964438e46c558cd718e80832c2b82ee1040))
+* **deps:** update module github.com/open-policy-agent/opa to v0.70.0 ([#775](https://github.com/defenseunicorns/lula/issues/775)) ([63bf029](https://github.com/defenseunicorns/lula/commit/63bf02930834a2c6f8e0ab69d7fedbab0cc73760))
+* **file domain:** add network.DownloadFile and use go-getter to download files ([#760](https://github.com/defenseunicorns/lula/issues/760)) ([9654993](https://github.com/defenseunicorns/lula/commit/9654993bb87dd2a717fefc5c19dd038248bf2658))
+
+## [0.10.0](https://github.com/defenseunicorns/lula/compare/v0.9.1...v0.10.0) (2024-10-25)
+
+
+### Features
+
+* **console:** add support for multiple input files ([#729](https://github.com/defenseunicorns/lula/issues/729)) ([103ca0d](https://github.com/defenseunicorns/lula/commit/103ca0deabbb5db7fc90512c82817cb91bdd4c3f))
+* **console:** assessment results generation ([#744](https://github.com/defenseunicorns/lula/issues/744)) ([6cb5933](https://github.com/defenseunicorns/lula/commit/6cb5933828f137d2ee024427f76885d12f5ad4bc))
+* **console:** lula validation view ([#727](https://github.com/defenseunicorns/lula/issues/727)) ([481648f](https://github.com/defenseunicorns/lula/commit/481648fb366da9abf19441d39b81173935424704))
+* **generate:** support for profile model and basic generation ([#694](https://github.com/defenseunicorns/lula/issues/694)) ([cb4fc6f](https://github.com/defenseunicorns/lula/commit/cb4fc6f2282547352c0a3a88ddd135c5a86e58eb))
+
+
+### Miscellaneous
+
+* address linter report - swallowed errors and minor test cleanup of nil checks ([#740](https://github.com/defenseunicorns/lula/issues/740)) ([05a7f6e](https://github.com/defenseunicorns/lula/commit/05a7f6e075adafeb2b3c635803cc12083f12c01d))
+* **build:** add golangci-lint to the pipeline as a non-blocking step ([#742](https://github.com/defenseunicorns/lula/issues/742)) ([fedb0c9](https://github.com/defenseunicorns/lula/commit/fedb0c9731656941b24c9d2cf6fb85bdc4604002))
+* **deps:** update actions/checkout action to v4.2.2 ([#756](https://github.com/defenseunicorns/lula/issues/756)) ([7e1a193](https://github.com/defenseunicorns/lula/commit/7e1a1937bc69b99de67c50185b5c3c3a87cb4395))
+* **deps:** update actions/setup-go action to v5.1.0 ([#761](https://github.com/defenseunicorns/lula/issues/761)) ([e464cd0](https://github.com/defenseunicorns/lula/commit/e464cd04092ce78b50c750933edcc85c7f4fecdc))
+* **deps:** update actions/setup-node action to v4.1.0 ([#759](https://github.com/defenseunicorns/lula/issues/759)) ([2fd7f86](https://github.com/defenseunicorns/lula/commit/2fd7f86fc4f4723e34a3818fdd4e6282ee4cfed5))
+* **deps:** update anchore/sbom-action action to v0.17.4 ([#731](https://github.com/defenseunicorns/lula/issues/731)) ([36ef42a](https://github.com/defenseunicorns/lula/commit/36ef42aefb9fa5d48997a7f4b7d342c6a0d92cd3))
+* **deps:** update anchore/sbom-action action to v0.17.5 ([#753](https://github.com/defenseunicorns/lula/issues/753)) ([521452c](https://github.com/defenseunicorns/lula/commit/521452cf57370bcc4521020736b52438a5df797d))
+* **deps:** update github/codeql-action action to v3.26.13 ([#737](https://github.com/defenseunicorns/lula/issues/737)) ([86c9376](https://github.com/defenseunicorns/lula/commit/86c93762fcfc9eb819989dd0e376a798a6add4b2))
+* **deps:** update github/codeql-action action to v3.27.0 ([#745](https://github.com/defenseunicorns/lula/issues/745)) ([c87621e](https://github.com/defenseunicorns/lula/commit/c87621e40c2203cac8b4273d2291beab8765d8b2))
+* **deps:** update kubernetes packages to v0.31.2 ([#757](https://github.com/defenseunicorns/lula/issues/757)) ([259b180](https://github.com/defenseunicorns/lula/commit/259b18071651db2efd574cfa791d14b1f81628f3))
+* **deps:** update module github.com/charmbracelet/bubbletea to v1.1.2 ([#763](https://github.com/defenseunicorns/lula/issues/763)) ([83c9c3a](https://github.com/defenseunicorns/lula/commit/83c9c3aa841534ff785c138a9247b867995dbc98))
+* **deps:** update module github.com/charmbracelet/lipgloss to v0.13.1 ([#755](https://github.com/defenseunicorns/lula/issues/755)) ([821643d](https://github.com/defenseunicorns/lula/commit/821643d005b8c5480ef6bbb36d8961b8e6d4a352))
+* **deps:** update module github.com/open-policy-agent/conftest to v0.56.0 ([#743](https://github.com/defenseunicorns/lula/issues/743)) ([c8b2293](https://github.com/defenseunicorns/lula/commit/c8b2293eaa3594acf6b867252020a2a513d820e3))
+* **deps:** update module sigs.k8s.io/e2e-framework to v0.5.0 ([#754](https://github.com/defenseunicorns/lula/issues/754)) ([1f7f3c7](https://github.com/defenseunicorns/lula/commit/1f7f3c72d06acd6cb394e565abd69760dffba93d))
+* **lint:** appease the linter ([#746](https://github.com/defenseunicorns/lula/issues/746)) ([bcb2ab0](https://github.com/defenseunicorns/lula/commit/bcb2ab0b7d150e2d908fe2a9d674663f3c040489))
+* **scan:** integrate KICS scanning into PR pipelines ([#751](https://github.com/defenseunicorns/lula/issues/751)) ([0112462](https://github.com/defenseunicorns/lula/commit/0112462ec52cec8150b559f2745f2974bbd18de6))
+* **scanning:** create gosec integration in pipelines ([#739](https://github.com/defenseunicorns/lula/issues/739)) ([41bce03](https://github.com/defenseunicorns/lula/commit/41bce03649ce3cbb578c0bcb2d223884348c86d5))
+
+## [0.9.1](https://github.com/defenseunicorns/lula/compare/v0.9.0...v0.9.1) (2024-10-12)
+
+
+### Bug Fixes
+
+* **release:** add environment to push job ([#735](https://github.com/defenseunicorns/lula/issues/735)) ([1ed52f1](https://github.com/defenseunicorns/lula/commit/1ed52f1cf36214ef20ac5a95cee5d5f266232192))
+
+## [0.9.0](https://github.com/defenseunicorns/lula/compare/v0.8.0...v0.9.0) (2024-10-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **kubernetes:** wait logic kubernetes version support ([#718](https://github.com/defenseunicorns/lula/issues/718))
+
+### Features
+
+* **compose:** template files during compose operations ([#686](https://github.com/defenseunicorns/lula/issues/686)) ([c1745a4](https://github.com/defenseunicorns/lula/commit/c1745a41ff15b9cf8d6f5c4bf459be88bc84cbf9))
+* **domains:** file domain ([#703](https://github.com/defenseunicorns/lula/issues/703)) ([bd4f577](https://github.com/defenseunicorns/lula/commit/bd4f57778c5e5bac539d14955e594ee15312c39c))
+* **file domain:** add support for reading arbitrary files as strings ([#726](https://github.com/defenseunicorns/lula/issues/726)) ([0b1c0c8](https://github.com/defenseunicorns/lula/commit/0b1c0c8ddf7c0f5de8e23a0b42ca2348efaaef78))
+* **kubernetes:** support running both create resources and resources in the kubernetes spec ([#714](https://github.com/defenseunicorns/lula/issues/714)) ([6839d20](https://github.com/defenseunicorns/lula/commit/6839d205ea0f4434d6af2071f3f3ed444b131944))
+* **kubernetes:** wait logic kubernetes version support ([#718](https://github.com/defenseunicorns/lula/issues/718)) ([cc06251](https://github.com/defenseunicorns/lula/commit/cc06251e75facf6f321ad4ca2f8609f782dcfb29))
+* **release:** add brew install for lula ([#707](https://github.com/defenseunicorns/lula/issues/707)) ([fd1d3e0](https://github.com/defenseunicorns/lula/commit/fd1d3e08754a845e25c849b280ed6390a377e138))
+* **validate:** template oscal during runtime ([#708](https://github.com/defenseunicorns/lula/issues/708)) ([3f5a110](https://github.com/defenseunicorns/lula/commit/3f5a110ecf692d99e1511ac82b737d82764321c2))
+
+
+### Bug Fixes
+
+* add goreleaser pin version annotate ([#712](https://github.com/defenseunicorns/lula/issues/712)) ([68bc101](https://github.com/defenseunicorns/lula/commit/68bc1014edb701da12ddde6ae83ba90c8e19e774))
+* **composition:** nil pointer in composition ([#733](https://github.com/defenseunicorns/lula/issues/733)) ([8ad4209](https://github.com/defenseunicorns/lula/commit/8ad420970cd6bd72ee0c18e6c25a4578e9db4432))
+* **console:** refactor, retries, sleep to address flaky tests ([#698](https://github.com/defenseunicorns/lula/issues/698)) ([02101a5](https://github.com/defenseunicorns/lula/commit/02101a5633c009ff46083651745b6aa40ac62448))
+* **console:** reset compdef when editing ([#701](https://github.com/defenseunicorns/lula/issues/701)) ([4e25f01](https://github.com/defenseunicorns/lula/commit/4e25f014d8ba9bd88df3317ec51ce3fa783203d0))
+* **read:** error checking prior to file writes ([#687](https://github.com/defenseunicorns/lula/issues/687)) ([1ab0eef](https://github.com/defenseunicorns/lula/commit/1ab0eefdeeb1d59f16f33249b1a6fce141ef5942))
+
+
+### Miscellaneous
+
+* add global command context for program cancelation and everything else ([#696](https://github.com/defenseunicorns/lula/issues/696)) ([df81cf7](https://github.com/defenseunicorns/lula/commit/df81cf7a74e6f78c27055b82c20375f53976cea8))
+* **deps:** update actions/checkout action to v4.2.1 ([#713](https://github.com/defenseunicorns/lula/issues/713)) ([802601a](https://github.com/defenseunicorns/lula/commit/802601a70fadfc142a47cc6e8528478a6aac3291))
+* **deps:** update actions/upload-artifact action to v4.4.3 ([#711](https://github.com/defenseunicorns/lula/issues/711)) ([a954664](https://github.com/defenseunicorns/lula/commit/a954664d0b2e25d58097425dfbeac193a200b6c5))
+* **deps:** update github/codeql-action action to v3.26.12 ([#691](https://github.com/defenseunicorns/lula/issues/691)) ([0efb120](https://github.com/defenseunicorns/lula/commit/0efb120a6f50e650a5e2962125a7495a21236fb8))
+* **deps:** update module github.com/open-policy-agent/opa to v0.69.0 ([#692](https://github.com/defenseunicorns/lula/issues/692)) ([e08d695](https://github.com/defenseunicorns/lula/commit/e08d695ea6629e2c60a33ae85edf076bbb49ee68))
+* **deps:** update module sigs.k8s.io/cli-utils to v0.37.2 ([#721](https://github.com/defenseunicorns/lula/issues/721)) ([5fd0f32](https://github.com/defenseunicorns/lula/commit/5fd0f3244e5543e5302fce2ea4a42afc87026217))
+* update getting started doc to include brew install ([#720](https://github.com/defenseunicorns/lula/issues/720)) ([26c3f8d](https://github.com/defenseunicorns/lula/commit/26c3f8dd1d9a5e31d7bf3936b453a3e0edfd2755))
+
 ## [0.8.0](https://github.com/defenseunicorns/lula/compare/v0.7.0...v0.8.0) (2024-09-27)
 
 
