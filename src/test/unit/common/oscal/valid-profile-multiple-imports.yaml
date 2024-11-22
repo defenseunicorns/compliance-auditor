@@ -1,0 +1,24 @@
+profile:
+  imports:
+    - href: https://raw.githubusercontent.com/usnistgov/oscal-content/refs/heads/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_MODERATE-baseline-resolved-profile_catalog.yaml
+      include-controls:
+        - with-ids:
+            - ac-2
+            - ac-3
+    - href: catalog.yaml
+      include-controls:
+        - with-ids:
+            - ac-1
+            - ac-2
+    - href: subdir/basic-profile.yaml
+      include-all: {}
+  merge:
+    as-is: true
+  metadata:
+    last-modified: 2024-10-09T22:11:59.770494477Z
+    oscal-version: 1.1.2
+    published: 2024-10-09T22:11:59.770494477Z
+    remarks: Profile generated from Lula
+    title: Profile
+    version: 0.0.1
+  uuid: d1d8899f-dcf9-4c60-9a88-07632ccc47db

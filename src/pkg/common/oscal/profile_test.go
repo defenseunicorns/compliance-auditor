@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
+
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
@@ -133,4 +136,135 @@ func TestMakeDeterministic(t *testing.T) {
 
 		test(t, profile, []string{}, []string{}, true)
 	})
+}
+
+func TestResolveProfileControls(t *testing.T) {
+	runTest := func(t *testing.T, profilePath string, include, exclude, expectedControls []string) {
+		validProfileBytes := loadTestData(t, profilePath)
+
+		var validProfile oscalTypes.OscalCompleteSchema
+		if err := yaml.Unmarshal(validProfileBytes, &validProfile); err != nil {
+			t.Fatalf("yaml.Unmarshal failed: %v", err)
+		}
+
+		require.NotNil(t, validProfile.Profile)
+
+		controlMap, err := oscal.ResolveProfileControls(validProfile.Profile, profilePath, "", include, exclude)
+		require.NoError(t, err)
+
+		foundControls := make([]string, 0)
+		for id := range controlMap {
+			foundControls = append(foundControls, id)
+		}
+		require.ElementsMatch(t, expectedControls, foundControls)
+	}
+
+	tests := []struct {
+		name             string
+		profilePath      string
+		include          []string
+		exclude          []string
+		expectedControls []string
+	}{
+		{
+			name:        "valid-profile",
+			profilePath: "../../../test/unit/common/oscal/valid-profile.yaml",
+			include:     []string{},
+			exclude:     []string{},
+			expectedControls: []string{
+				"ac-1",
+				"ac-2",
+				"ac-3",
+			},
+		},
+		{
+			name:        "valid-profile-with-exclude",
+			profilePath: "../../../test/unit/common/oscal/valid-profile.yaml",
+			include:     []string{},
+			exclude:     []string{"ac-3"},
+			expectedControls: []string{
+				"ac-1",
+				"ac-2",
+			},
+		},
+		{
+			name:        "valid-profile-multiple-imports",
+			profilePath: "../../../test/unit/common/oscal/valid-profile-multiple-imports.yaml",
+			include:     []string{},
+			exclude:     []string{},
+			expectedControls: []string{
+				"ac-1",
+				"ac-2",
+				"ac-3",
+				"s1.1.1",
+				"s2.1.1",
+			},
+		},
+		{
+			name:             "valid-profile-exclude-all",
+			profilePath:      "../../../test/unit/common/oscal/valid-profile-test-excludes.yaml",
+			include:          []string{},
+			exclude:          []string{},
+			expectedControls: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runTest(t, tt.profilePath, tt.include, tt.exclude, tt.expectedControls)
+		})
+	}
+}
+
+func TestAddControl(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		control  string
+		include  []string
+		exclude  []string
+		expected bool
+	}{
+		{
+			name:     "control-include-add-true",
+			control:  "ac-1",
+			include:  []string{"ac-1"},
+			exclude:  []string{},
+			expected: true,
+		},
+		{
+			name:     "control-include-all-add-true",
+			control:  "ac-1",
+			include:  []string{},
+			exclude:  []string{},
+			expected: true,
+		},
+		{
+			name:     "control-include-add-false",
+			control:  "ac-2",
+			include:  []string{"ac-1"},
+			exclude:  []string{},
+			expected: false,
+		},
+		{
+			name:     "control-exclude-add-false",
+			control:  "ac-1",
+			include:  []string{},
+			exclude:  []string{"ac-1"},
+			expected: false,
+		},
+		{
+			name:     "control-exclude-add-true",
+			control:  "ac-2",
+			include:  []string{},
+			exclude:  []string{"ac-1"},
+			expected: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, oscal.AddControl(tt.control, tt.include, tt.exclude))
+		})
+	}
 }
