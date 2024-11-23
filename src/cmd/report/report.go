@@ -2,7 +2,6 @@ package report
 
 import (
 	"fmt"
-
 	"github.com/defenseunicorns/lula/src/internal/reporting"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +30,7 @@ func ReportCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := reporting.GenerateReport(inputFile, fileFormat)
 			if err != nil {
-				return fmt.Errorf("error running report: %w", err)
+				return fmt.Errorf("error generating report: %w", err)
 			}
 			return nil
 		},

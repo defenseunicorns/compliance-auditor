@@ -1,17 +1,14 @@
-  •  Log level set to info
-  •  Fetching or reading file ../../unit/common/oscal/valid-multi-component-validations.yaml
-  •  Fetching or reading file ../../unit/common/oscal/valid-multi-component-validations.yaml
-  •  Fetching or reading file ../../unit/common/oscal/valid-multi-component-validations.yaml
-  •  Reading OSCAL model from file
-  •  Reading OSCAL model from file
-  •  Determining OSCAL model type
-  •  Determining OSCAL model type
-  •  Generating report...
-  •  Generating report in JSON format...
-  •  { "componentDefinition": { "title": "Component Title", "control ID mapped": {
-       "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml":
-       6,
-       "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml":
-       6, "rev4": 6, "rev5": 6 }, "controlIDFramework": {} } }
-  •  Determining OSCAL model type
-  •  Successfully processed OSCAL model: component
+  •  [96m[96mFetching or reading file ../../unit/common/oscal/valid-multi-component-validations.yaml[0m[0m
+  •  [96m[96mFetching or reading file ../../unit/common/oscal/valid-multi-component-validations.yaml[0m[0m
+  •  [96m[96mReading OSCAL model from file[0m[0m
+  •  [96m[96mReading OSCAL model from file[0m[0m
+  •  [96m[96mDetermining OSCAL model type[0m[0m
+  •  [96m[96mGenerating report...[0m[0m
+  •  [96m[96mGenerating report in JSON format...[0m[0m
+  •  [96m[96m{ "componentDefinition": { "title": "Component Title", "control ID mapped": {[0m[0m
+       [96m[96m"https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml":[0m[0m
+       [96m[96m6,[0m[0m
+       [96m[96m"https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml":[0m[0m
+       [96m[96m6 }, "controlIDFramework": { "rev4": 6, "rev5": 6 } } }[0m[0m
+  •  [96m[96mDetermining OSCAL model type[0m[0m
+  •  [96m[96mSuccessfully processed OSCAL model: component[0m[0m
