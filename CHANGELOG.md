@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.12.0](https://github.com/defenseunicorns/lula/compare/v0.11.0...v0.12.0) (2024-11-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* **validation:** validation testing framework ([#667](https://github.com/defenseunicorns/lula/issues/667))
+
+### Features
+
+* **api domain:** add support for Post ([#801](https://github.com/defenseunicorns/lula/issues/801)) ([24f02ea](https://github.com/defenseunicorns/lula/commit/24f02ea94f4973ad5d1b2b849025dcead5c9fcc4))
+* **dev:** allow templating validations in dev workflows ([#777](https://github.com/defenseunicorns/lula/issues/777)) ([5f23595](https://github.com/defenseunicorns/lula/commit/5f235955a180f14f545a395d94520ae47e6a9347))
+* **system-security-plan:** initial creation of SSP Model ([#802](https://github.com/defenseunicorns/lula/issues/802)) ([44d067e](https://github.com/defenseunicorns/lula/commit/44d067eeb7ea0493e1611eecd9c2749ba1c8a4ab))
+* **validation:** validation testing framework ([#667](https://github.com/defenseunicorns/lula/issues/667)) ([57aae78](https://github.com/defenseunicorns/lula/commit/57aae781eb95236082c196ae9759e6c985c83522))
+
+
+### Bug Fixes
+
+* lula validations in store don't persist validation state ([#795](https://github.com/defenseunicorns/lula/issues/795)) ([04f07ce](https://github.com/defenseunicorns/lula/commit/04f07ced3d5ad2e17e96ceabc94a074a2ca0df0b))
+
+
+### Miscellaneous
+
+* **deps:** update anchore/sbom-action action to v0.17.8 ([#817](https://github.com/defenseunicorns/lula/issues/817)) ([350afe5](https://github.com/defenseunicorns/lula/commit/350afe5d3a9730acaeaa27694c5d2ef65c733b76))
+* **deps:** update commitlint monorepo to v19.6.0 ([#806](https://github.com/defenseunicorns/lula/issues/806)) ([fae7bef](https://github.com/defenseunicorns/lula/commit/fae7bef554fb7f559136a04a56f19e5a42d6f706))
+* **deps:** update github/codeql-action action to v3.27.3 ([#794](https://github.com/defenseunicorns/lula/issues/794)) ([2aa9268](https://github.com/defenseunicorns/lula/commit/2aa926865ee4dd81e5602d503d72085745ef4120))
+* **deps:** update github/codeql-action action to v3.27.4 ([#799](https://github.com/defenseunicorns/lula/issues/799)) ([9610789](https://github.com/defenseunicorns/lula/commit/9610789113b77fcf3dece723748cdb4fcf256e78))
+* **deps:** update github/codeql-action action to v3.27.5 ([#809](https://github.com/defenseunicorns/lula/issues/809)) ([7a56e8c](https://github.com/defenseunicorns/lula/commit/7a56e8c23f579fd1a05736f494153c62ac8bf0fb))
+* **deps:** update kubernetes packages to v0.31.3 ([#814](https://github.com/defenseunicorns/lula/issues/814)) ([386af3f](https://github.com/defenseunicorns/lula/commit/386af3ff48a305f75331eb3a26c65af43a29ba3c))
+* **deps:** update module github.com/charmbracelet/bubbletea to v1.2.3 ([#796](https://github.com/defenseunicorns/lula/issues/796)) ([bb2c54b](https://github.com/defenseunicorns/lula/commit/bb2c54bf6f276fab8345755ebffcdb90c4d23962))
+* **deps:** update module github.com/defenseunicorns/go-oscal to v0.6.1 ([#815](https://github.com/defenseunicorns/lula/issues/815)) ([4a4a25c](https://github.com/defenseunicorns/lula/commit/4a4a25c0e41f4194ff65f34b949c32444728f475))
+* **docs:** add community meeting information ([#805](https://github.com/defenseunicorns/lula/issues/805)) ([4c6d040](https://github.com/defenseunicorns/lula/commit/4c6d04090bcc2effdea0eb43f11157002f6e0cc6))
+
 ## [0.11.0](https://github.com/defenseunicorns/lula/compare/v0.10.0...v0.11.0) (2024-11-08)
 
 
