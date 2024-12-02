@@ -374,6 +374,21 @@
                                 "type": "object",
                                 "additionalProperties": { "type": "string"}
                             },
+                            "body": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string",
+                                "enum": [
+                                    "post", "POST", "Post",
+                                    "get", "GET", "Get"
+                                ],
+                                "default": "get"
+                            },
+                            "executable": {
+                                "type": "boolean",
+                                "description": "indicates if the request is executable"
+                            },
                             "options": {
                                 "$ref": "#/definitions/api-options"
                             }

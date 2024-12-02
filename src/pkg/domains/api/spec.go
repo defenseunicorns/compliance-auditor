@@ -4,10 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 )
 
 var defaultTimeout = 30 * time.Second
+
+const (
+	HTTPMethodGet  string = "GET"
+	HTTPMethodPost string = "POST"
+)
 
 // validateAndMutateSpec validates the spec values and applies any defaults or
 // other mutations or normalizations necessary. The original values are not modified.
@@ -55,6 +61,21 @@ func validateAndMutateSpec(spec *ApiSpec) (errs error) {
 				errs = errors.Join(errs, err)
 			}
 		}
+
+		switch m := spec.Requests[i].Method; strings.ToLower(m) {
+		case "post":
+			spec.Requests[i].Method = HTTPMethodPost
+		case "get", "":
+			fallthrough
+		default:
+			spec.Requests[i].Method = HTTPMethodGet
+		}
+
+		if !spec.executable { // we only need to set this once
+			if spec.Requests[i].Executable {
+				spec.executable = true
+			}
+		}
 	}
 
 	return errs
@@ -80,8 +101,7 @@ func validateAndMutateOptions(opts *ApiOpts) (errs error) {
 	if opts.Proxy != "" {
 		proxyURL, err := url.Parse(opts.Proxy)
 		if err != nil {
-			// not logging the input URL in case it has embedded credentials
-			errs = errors.Join(errs, errors.New("invalid proxy string"))
+			errs = errors.Join(errs, fmt.Errorf("invalid proxy string %s", proxyURL.Redacted()))
 		}
 		opts.proxyURL = proxyURL
 	}

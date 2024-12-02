@@ -108,7 +108,7 @@ func TestValidateAndMutateSpec(t *testing.T) {
 			},
 			1,
 		},
-		"success": {
+		"success (get with params)": {
 			&ApiSpec{
 				Requests: []Request{
 					{
@@ -141,6 +141,43 @@ func TestValidateAndMutateSpec(t *testing.T) {
 							},
 							timeout: &defaultTimeout,
 						},
+						Method: "GET",
+					},
+				},
+				Options: &ApiOpts{timeout: &defaultTimeout},
+			},
+			0,
+		},
+		"success (post with body)": {
+			&ApiSpec{
+				Requests: []Request{
+					{
+						Name: "healthcheck",
+						URL:  "http://example.com/health",
+						Body: `{"some":"thing"}`,
+						Options: &ApiOpts{
+							Headers: map[string]string{
+								"cache-control": "no-hit",
+							},
+						},
+						Method: "POST",
+					},
+				},
+			},
+			&ApiSpec{
+				Requests: []Request{
+					{
+						Name:   "healthcheck",
+						URL:    "http://example.com/health",
+						Body:   `{"some":"thing"}`,
+						reqURL: healthcheckUrl,
+						Options: &ApiOpts{
+							Headers: map[string]string{
+								"cache-control": "no-hit",
+							},
+							timeout: &defaultTimeout,
+						},
+						Method: "POST",
 					},
 				},
 				Options: &ApiOpts{timeout: &defaultTimeout},
