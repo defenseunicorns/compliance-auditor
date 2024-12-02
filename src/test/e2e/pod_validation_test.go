@@ -328,7 +328,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	return ctx
 }
 
-func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes.Finding, *[]oscalTypes.Observation) {
+func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (*[]oscalTypes.Finding, *[]oscalTypes.Observation) {
 	message.NoProgress = true
 
 	validator, err := validation.New(validation.WithAllowExecution(false, true))

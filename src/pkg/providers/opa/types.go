@@ -80,7 +80,7 @@ func loadModules(ctx context.Context, modulePaths map[string]string) (map[string
 		if err != nil {
 			return nil, fmt.Errorf("%w %s: %w", ErrDownloadModule, name, err)
 		}
-		content, err := os.ReadFile(tmp)
+		content, err := os.ReadFile(filepath.Clean(tmp))
 		if err != nil {
 			return nil, fmt.Errorf("%w %s: %w", ErrReadModule, name, err)
 		}
