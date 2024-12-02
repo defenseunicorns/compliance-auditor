@@ -57,6 +57,15 @@ component-definition:
               links:
                 - href: "#82bb70bb-224d-4bbd-ae05-ef1923d8321a"
                   rel: lula
+            - uuid: cc367e06-3596-454d-b2e6-96a2314e6ce4
+              control-id: ID-4
+              description: >-
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              links:
+                - href: "#95d2cf05-736a-41b6-9be8-f6484a388177"
+                  rel: lula
   back-matter:
     resources:
       - uuid: 88AB3470-B96B-4D7C-BC36-02BF9563C46C
@@ -128,4 +137,29 @@ component-definition:
 
                 validate {
                   count(input.empty) == 0
+                }
+      - uuid: 95d2cf05-736a-41b6-9be8-f6484a388177
+        description: >-
+          domain:
+            type: kubernetes
+            kubernetes-spec:
+              resources:
+                - name: podvt
+                  resource-rule:
+                    name: test-pod-label
+                    version: v1
+                    resource: pods
+                    namespaces: [validation-test]
+          provider:
+            type: opa
+            opa-spec:
+              modules:
+                lula.labels: labels.rego
+              rego: |
+                package validate
+
+                import data.lula.labels as lula_labels
+
+                validate {
+                  lula_labels.has_lula_label(input.podvt)
                 }

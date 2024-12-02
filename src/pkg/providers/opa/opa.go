@@ -11,8 +11,13 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 )
 
+var (
+	ErrCompileRego  = fmt.Errorf("failed to compile rego policy")
+	ErrEvaluateRego = fmt.Errorf("failed to evaluate rego policy")
+)
+
 // GetValidatedAssets performs the validation of the dataset against the given rego policy
-func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[string]interface{}, output *OpaOutput) (types.Result, error) {
+func GetValidatedAssets(ctx context.Context, regoPolicy string, regoModules map[string]string, dataset map[string]interface{}, output *OpaOutput) (types.Result, error) {
 	var matchResult types.Result
 
 	if len(dataset) == 0 {
@@ -23,12 +28,15 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 		output = &OpaOutput{}
 	}
 
-	compiler, err := ast.CompileModules(map[string]string{
-		"validate.rego": regoPolicy,
-	})
+	modules := map[string]string{"validate.rego": regoPolicy}
+	for k, v := range regoModules {
+		modules[k] = v
+	}
+
+	compiler, err := ast.CompileModules(modules)
 	if err != nil {
 		message.Debugf("failed to compile rego policy: %s", err.Error())
-		return matchResult, fmt.Errorf("failed to compile rego policy: %w", err)
+		return matchResult, fmt.Errorf("%w: %w", ErrCompileRego, err)
 	}
 
 	// Get validation decision
@@ -45,7 +53,7 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 
 	resultValid, err := regoCalcValid.Eval(ctx)
 	if err != nil {
-		return matchResult, fmt.Errorf("failed to evaluate rego policy: %w", err)
+		return matchResult, fmt.Errorf("%w: %w", ErrEvaluateRego, err)
 	}
 	// Checking result length is non-zero: will be zero if validation returns false
 	if len(resultValid) != 0 {
@@ -73,7 +81,7 @@ func GetValidatedAssets(ctx context.Context, regoPolicy string, dataset map[stri
 
 		resultObv, err := regoCalcObv.Eval(ctx)
 		if err != nil {
-			return matchResult, fmt.Errorf("failed to evaluate rego policy: %w", err)
+			return matchResult, fmt.Errorf("%w: %w", ErrEvaluateRego, err)
 		}
 		// To do: check if resultObv is empty - basically some extra error handling if a user defines an output but it's not coming out of the rego
 		if len(resultObv) != 0 {
