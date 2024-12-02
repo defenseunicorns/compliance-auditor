@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
@@ -139,7 +140,7 @@ func TestMakeDeterministic(t *testing.T) {
 }
 
 func TestResolveProfileControls(t *testing.T) {
-	runTest := func(t *testing.T, profilePath string, include, exclude, expectedControls []string) {
+	runTest := func(t *testing.T, profilePath string, include, exclude []string, expectedMap map[string][]string) {
 		validProfileBytes := loadTestData(t, profilePath)
 
 		var validProfile oscalTypes.OscalCompleteSchema
@@ -149,32 +150,50 @@ func TestResolveProfileControls(t *testing.T) {
 
 		require.NotNil(t, validProfile.Profile)
 
-		controlMap, err := oscal.ResolveProfileControls(validProfile.Profile, profilePath, "", include, exclude)
+		sourceControlMap, err := oscal.ResolveProfileControls(validProfile.Profile, profilePath, "", include, exclude)
 		require.NoError(t, err)
 
-		foundControls := make([]string, 0)
-		for id := range controlMap {
-			foundControls = append(foundControls, id)
+		foundMap := make(map[string][]string)
+		for source, controlMap := range sourceControlMap {
+			foundControls := make([]string, 0)
+			for id := range controlMap {
+				foundControls = append(foundControls, id)
+			}
+			foundMap[source] = foundControls
 		}
-		require.ElementsMatch(t, expectedControls, foundControls)
+
+		// Compare all controls in each expected source to found source
+		for source, expectedControlList := range expectedMap {
+			foundControlList, ok := foundMap[source]
+			require.True(t, ok)
+
+			assert.ElementsMatch(t, expectedControlList, foundControlList)
+		}
 	}
 
 	tests := []struct {
-		name             string
-		profilePath      string
-		include          []string
-		exclude          []string
-		expectedControls []string
+		name               string
+		profilePath        string
+		include            []string
+		exclude            []string
+		expectedControlMap map[string][]string
 	}{
 		{
 			name:        "valid-profile",
 			profilePath: "../../../test/unit/common/oscal/valid-profile.yaml",
 			include:     []string{},
 			exclude:     []string{},
-			expectedControls: []string{
-				"ac-1",
-				"ac-2",
-				"ac-3",
+			expectedControlMap: map[string][]string{
+				"9a24dfc0-077a-4afa-964b-81ed099d2e09": {
+					"ac-1",
+					"ac-2",
+					"ac-3",
+				},
+				"9b0c9c43-2722-4bbb-b132-13d34fb94d45": {
+					"ac-1",
+					"ac-2",
+					"ac-3",
+				},
 			},
 		},
 		{
@@ -182,9 +201,15 @@ func TestResolveProfileControls(t *testing.T) {
 			profilePath: "../../../test/unit/common/oscal/valid-profile.yaml",
 			include:     []string{},
 			exclude:     []string{"ac-3"},
-			expectedControls: []string{
-				"ac-1",
-				"ac-2",
+			expectedControlMap: map[string][]string{
+				"9a24dfc0-077a-4afa-964b-81ed099d2e09": {
+					"ac-1",
+					"ac-2",
+				},
+				"9b0c9c43-2722-4bbb-b132-13d34fb94d45": {
+					"ac-1",
+					"ac-2",
+				},
 			},
 		},
 		{
@@ -192,26 +217,47 @@ func TestResolveProfileControls(t *testing.T) {
 			profilePath: "../../../test/unit/common/oscal/valid-profile-multiple-imports.yaml",
 			include:     []string{},
 			exclude:     []string{},
-			expectedControls: []string{
-				"ac-1",
-				"ac-2",
-				"ac-3",
-				"s1.1.1",
-				"s2.1.1",
+			expectedControlMap: map[string][]string{
+				"d1d8899f-dcf9-4c60-9a88-07632ccc47db": {
+					"ac-1",
+					"ac-2",
+					"ac-3",
+					"s1.1.1",
+					"s2.1.1",
+				},
+				"4b12cf47-447b-47bb-8653-0a9cf544b744": {
+					"ac-2",
+					"ac-3",
+				},
+				"9b0c9c43-2722-4bbb-b132-13d34fb94d45": {
+					"ac-1",
+					"ac-2",
+				},
+				"f254dd27-287c-4cfc-b04e-a275a0baf162": {
+					"s1.1.1",
+					"s2.1.1",
+				},
+				"74c8ba1e-5cd4-4ad1-bbfd-d888e2f6c724": {
+					"s1.1.1",
+					"s2.1.1",
+				},
 			},
 		},
 		{
-			name:             "valid-profile-exclude-all",
-			profilePath:      "../../../test/unit/common/oscal/valid-profile-test-excludes.yaml",
-			include:          []string{},
-			exclude:          []string{},
-			expectedControls: []string{},
+			name:        "valid-profile-exclude-all",
+			profilePath: "../../../test/unit/common/oscal/valid-profile-test-excludes.yaml",
+			include:     []string{},
+			exclude:     []string{},
+			expectedControlMap: map[string][]string{
+				"11a8a440-0ddf-4c80-9989-9427581ccf65": {},
+				"f254dd27-287c-4cfc-b04e-a275a0baf162": {},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			runTest(t, tt.profilePath, tt.include, tt.exclude, tt.expectedControls)
+			runTest(t, tt.profilePath, tt.include, tt.exclude, tt.expectedControlMap)
 		})
 	}
 }
