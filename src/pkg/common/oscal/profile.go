@@ -273,14 +273,17 @@ func MergeProfileModels(original *oscalTypes.Profile, latest *oscalTypes.Profile
 	return original, nil
 }
 
+type ControlMap map[string]oscalTypes.Control
+
 // ResolveProfileControls resolves all controls in the profile by checking any imported profiles or catalogs
-// NOTE: Profiles that contain Hrefs as references to internal identifiers (e.g., "#<UUID>") will not be resolved
-func ResolveProfileControls(profile *oscalTypes.Profile, profilePath, rootDir string, include, exclude []string) (map[string]oscalTypes.Control, error) {
+// Returns a map[string]ControlMap where the key is the import href
+// NOTE: Profiles that contain Hrefs as references to internal identifiers (e.g., "#<UUID>") cannot currently be resolved
+func ResolveProfileControls(profile *oscalTypes.Profile, profilePath, rootDir string, include, exclude []string) (map[string]ControlMap, error) {
 	if profile == nil {
 		return nil, fmt.Errorf("profile is nil")
 	}
 
-	controlMap := make(map[string]oscalTypes.Control)
+	sourceControlMap := make(map[string]ControlMap)
 
 	// Resolve the directory for imports
 	importDir := network.GetLocalFileDir(profilePath, rootDir)
@@ -292,14 +295,19 @@ func ResolveProfileControls(profile *oscalTypes.Profile, profilePath, rootDir st
 		}
 
 		// Drop any excluded controls; include only included controls
-		for id, control := range importedControls {
+		for source, controlMap := range importedControls {
 			if !AddControl(id, include, exclude) {
 				continue
 			}
-			// If the control is not already in the map, add it
-			if _, ok := controlMap[id]; !ok {
-				controlMap[id] = control
+			// If the source/control is not already in the map, add it
+			if _, ok := sourceControlMap[profilePath]; !ok {
+				sourceControlMap[profilePath][id] = control
+			} else {
+				if _, ok := sourceControlMap[profilePath][id]; !ok {
+					sourceControlMap[profilePath][id] = control
+				}
 			}
+
 		}
 	}
 
@@ -308,7 +316,7 @@ func ResolveProfileControls(profile *oscalTypes.Profile, profilePath, rootDir st
 
 // Recursive function that resolves all controls in the provided profile and any imported profiles or catalogs
 // rootDir is needed to resolve relative paths for imports
-func controlsFromImport(importItem oscalTypes.Import, rootDir string) (controlMap map[string]oscalTypes.Control, err error) {
+func controlsFromImport(importItem oscalTypes.Import, rootDir string) (controlMap map[string]ControlMap, err error) {
 	// Fetch the import item
 	var dataBytes []byte
 	var fetchOpts []network.FetchOption

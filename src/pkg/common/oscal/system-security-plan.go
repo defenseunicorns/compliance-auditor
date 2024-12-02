@@ -116,12 +116,10 @@ func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
 
 // GenerateSystemSecurityPlan generates an OSCALModel System Security Plan.
 // Command is the command that was used to generate the SSP.
-// Source is the catalog source url that should be extracted from the component definition.
-// Compdef is the partially* composed component definition and all merged component-definitions.
-// TODOs: implement *partially = just imported component-definitions, remapped validation links;
-// implement system-characteristics, parties->users->components, component status, (probably more);
-// support for target instead of source?
-func GenerateSystemSecurityPlan(command string, source string, compdefs ...*oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
+// Source is the profile source url that should be used to pull implemented-requirements from the component definition. Could this be a target too?
+// Profile is the profile that should be used to populate the SSP.
+// Compdefs are all component definitions that should be merged into the SSP.
+func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, profile *oscalTypes.Profile, compdefs ...*oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
 	// TODO: Recursively import all `import-component-definitions`
 	// May be an update to compose functionality
 	// ^ Add option: partial compose(?) just imported component-definitions + remap validation links
@@ -222,7 +220,19 @@ func GenerateSystemSecurityPlan(command string, source string, compdefs ...*osca
 	}
 
 	// TODO: Add all profile controls to the implemented-requirements -> Then will need to deconflict with data in component-definitions...
-	// Get the profile (was it passed in? or catalog? and just grab all controls...)
+	// func that returns map[string][]string of profile/catalog sources -> control-ids
+	// Get controls from comp-def that use any of the profile/catalog sources ^ map[string][]SystemComponent
+
+	// Get all controls from profile -> implemented-requirements
+	controls, err := ResolveProfileControls(profile, source, "", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	for id, control := range controls {
+		// Find relevant components to the source(?)
+	}
+
+	// Get all source-specific implemented-requirements from the compdef
 
 	// Decompose the component defn and add to the right sections of the SSP
 	// TODO: external mapping of status? users? etc
@@ -316,11 +326,13 @@ func MergeSystemSecurityPlanModels(original *oscalTypes.SystemSecurityPlan, late
 	return original, nil
 }
 
-type ImplementedRequirementMap map[string]oscalTypes.ImplementedRequirement
+// Get Components -> ImplementedRequirements map[string]ComponentsIRs
 
-// CreateImplementedRequirementsByFramework sorts the implemented requirements for each framework
-func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefinition) map[string]ImplementedRequirementMap {
-	frameworkImplementedRequirementsMap := make(map[string]ImplementedRequirementMap)
+type ByComponentsMap map[string][]oscalTypes.ByComponent
+
+// CreateSourceByComponentMap maps the source/framework -> control-id -> component
+func CreateSourceByComponentMap(compdef *oscalTypes.ComponentDefinition) map[string]ByComponentsMap {
+	sourceByComponentMap := make(map[string]ByComponentsMap)
 
 	// Sort components by framework
 	if compdef != nil && compdef.Components != nil {
@@ -336,36 +348,31 @@ func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefin
 
 					for _, framework := range frameworks {
 						// Initialize the map for the source and framework if it doesn't exist
-						_, ok := frameworkImplementedRequirementsMap[framework]
+						_, ok := sourceByComponentMap[framework]
 						if !ok {
-							frameworkImplementedRequirementsMap[framework] = make(map[string]oscalTypes.ImplementedRequirement)
+							sourceByComponentMap[framework] = make(map[string][]oscalTypes.ByComponent)
 						}
 
 						// For each implemented requirement, add it to the map
 						for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
-							existingIr, ok := frameworkImplementedRequirementsMap[framework][implementedRequirement.ControlId]
+							existingByComponents, ok := sourceByComponentMap[framework][implementedRequirement.ControlId]
 							if ok {
 								// If found, update the existing implemented requirement
 								// TODO: add other "ByComponents" fields?
-								*existingIr.ByComponents = append(*existingIr.ByComponents, oscalTypes.ByComponent{
+								existingByComponents = append(existingByComponents, oscalTypes.ByComponent{
 									ComponentUuid: component.UUID,
 									UUID:          uuid.NewUUID(),
 									Description:   implementedRequirement.Description,
 									Links:         implementedRequirement.Links,
 								})
 							} else {
-								// Otherwise create a new implemented-requirement
-								frameworkImplementedRequirementsMap[framework][implementedRequirement.ControlId] = oscalTypes.ImplementedRequirement{
-									UUID:      uuid.NewUUID(),
-									ControlId: implementedRequirement.ControlId,
-									Remarks:   implementedRequirement.Remarks,
-									ByComponents: &[]oscalTypes.ByComponent{
-										{
-											ComponentUuid: component.UUID,
-											UUID:          uuid.NewUUID(),
-											Description:   implementedRequirement.Description,
-											Links:         implementedRequirement.Links,
-										},
+								// Otherwise create a new by-components slice
+								sourceByComponentMap[framework][implementedRequirement.ControlId] = []oscalTypes.ByComponent{
+									{
+										ComponentUuid: component.UUID,
+										UUID:          uuid.NewUUID(),
+										Description:   implementedRequirement.Description,
+										Links:         implementedRequirement.Links,
 									},
 								}
 							}
@@ -375,7 +382,16 @@ func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefin
 			}
 		}
 	}
-	return frameworkImplementedRequirementsMap
+
+	return sourceByComponentMap
+}
+
+func createImplementedRequirement(control *oscalTypes.Control, targetRemarks []string) (implementedRequirement oscalTypes.ImplementedRequirement, err error) {
+	remarks, err := getControlRemarks(control, targetRemarks)
+	if err != nil {
+		return implementedRequirement, err
+	}
+
 }
 
 func mergeSystemComponents(original []oscalTypes.SystemComponent, latest []oscalTypes.SystemComponent) []oscalTypes.SystemComponent {
