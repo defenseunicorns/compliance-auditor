@@ -4,3 +4,8 @@ linters:
     - gofmt
     - goimports
     - prealloc
+linters-settings:
+  linters-settings:
+    errcheck:
+      without_tests: true
+  
