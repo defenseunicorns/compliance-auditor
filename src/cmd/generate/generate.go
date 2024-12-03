@@ -5,11 +5,12 @@ import (
 	"strings"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/spf13/cobra"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/spf13/cobra"
 )
 
 type flags struct {
@@ -187,8 +188,8 @@ func init() {
 
 	generateCmd.AddCommand(generateComponentCmd)
 	generateCmd.AddCommand(GenerateProfileCommand())
+	generateCmd.AddCommand(GenerateSSPCommand())
 	// generateCmd.AddCommand(generateAssessmentPlanCmd)
-	// generateCmd.AddCommand(generateSystemSecurityPlanCmd)
 	// generateCmd.AddCommand(generatePOAMCmd)
 
 	bindGenerateFlags()
