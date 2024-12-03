@@ -2,12 +2,13 @@ package generate
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
+	"strings"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"github.com/spf13/cobra"
 
+	"github.com/defenseunicorns/lula/src/cmd/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
@@ -27,6 +28,7 @@ func GenerateSSPCommand() *cobra.Command {
 		component  []string
 		profile    string
 		outputFile string
+		remarks    []string
 	)
 
 	sspCmd := &cobra.Command{
@@ -48,30 +50,45 @@ func GenerateSSPCommand() *cobra.Command {
 				return fmt.Errorf("invalid OSCAL model at output: %v", err)
 			}
 
-			command := fmt.Sprintf("%s --profile %s", cmd.CommandPath(), profile)
+			// Get profile model from file
+			profileModel, modelType, err := oscal.FetchOSCALModel(profile, "")
+			if err != nil {
+				return err
+			}
+			if modelType != "profile" {
+				return fmt.Errorf("profile must be a valid OSCAL profile")
+			}
+
+			command := fmt.Sprintf("%s --profile %s --remarks %s", cmd.CommandPath(), profile, strings.Join(remarks, ","))
 
 			// Get component definitions from file(s)
-			var componentDefs []*oscalTypes.ComponentDefinition
+			componentDefs := make([]*oscalTypes.ComponentDefinition, 0, len(component))
 			for _, componentPath := range component {
-				componentPath = filepath.Clean(componentPath)
-				componentBytes, err := os.ReadFile(componentPath)
-				if err != nil {
-					return err
-				}
-				componentDef, err := oscal.NewOscalComponentDefinition(componentBytes)
-				if err != nil {
-					return err
-				}
-				if componentDef == nil {
-					return fmt.Errorf("component definition at %s is nil", componentPath)
+				// Compose component definition
+				// TODO: Partial Compose (just imported component-definitions) and remap links (validation links + source links)
+				opts := []composition.Option{
+					composition.WithModelFromLocalPath(componentPath),
+					composition.WithRenderSettings("all", false),
+					composition.WithTemplateRenderer("all", common.TemplateConstants, common.TemplateVariables, []string{}),
 				}
 
-				componentDefs = append(componentDefs, componentDef)
+				// Compose the OSCAL model
+				composer, err := composition.New(opts...)
+				if err != nil {
+					return fmt.Errorf("error creating new composer: %v", err)
+				}
+
+				model, err := composer.ComposeFromPath(cmd.Context(), componentPath)
+				if err != nil {
+					return fmt.Errorf("error composing model from path: %v", err)
+				}
+
+				componentDefs = append(componentDefs, model.ComponentDefinition)
 				command += fmt.Sprintf(" --component %s", componentPath)
 			}
 
 			// Generate the system security plan
-			ssp, err := oscal.GenerateSystemSecurityPlan(command, profile, componentDefs...)
+			ssp, err := oscal.GenerateSystemSecurityPlan(command, profile, remarks, profileModel.Profile, componentDefs...)
 			if err != nil {
 				return err
 			}
@@ -96,6 +113,7 @@ func GenerateSSPCommand() *cobra.Command {
 	if err != nil {
 		message.Fatal(err, "error initializing component command flags")
 	}
+	sspCmd.Flags().StringSliceVar(&componentOpts.Remarks, "remarks", []string{"statement"}, "Target for remarks population (default = statement)")
 	sspCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will default to `system-security-plan.yaml`")
 
 	return sspCmd

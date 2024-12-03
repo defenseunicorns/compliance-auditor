@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/internal/transform"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -291,6 +292,31 @@ func ValidOSCALModelAtPath(path string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// FetchOSCALModel takes a URI and returns an oscalTypes.OscalModels object and the type of the model
+func FetchOSCALModel(uri, rootDir string) (*oscalTypes.OscalModels, string, error) {
+	opts := []network.FetchOption{}
+	if rootDir != "" {
+		opts = append(opts, network.WithBaseDir(rootDir))
+	}
+
+	data, err := network.Fetch(uri, opts...)
+	if err != nil {
+		return nil, "", err
+	}
+
+	oscalModel, err := NewOscalModel(data)
+	if err != nil {
+		return nil, "", err
+	}
+
+	modelType, err := GetOscalModel(oscalModel)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return oscalModel, modelType, nil
 }
 
 // InjectIntoOSCALModel takes a model target and a map[string]interface{} of values to inject into the model

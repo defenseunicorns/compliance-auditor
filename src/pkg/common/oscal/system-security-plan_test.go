@@ -17,6 +17,8 @@ var (
 	compdefValidMultiComponent           = "../../../test/unit/common/oscal/valid-multi-component.yaml"
 	compdefValidMultiComponentPerControl = "../../../test/unit/common/oscal/valid-multi-component-per-control.yaml"
 	source                               = "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml"
+	validProfileLocalCatalog             = "../../../test/unit/common/oscal/valid-profile.yaml"
+	validProfileRemoteRev4               = "../../../test/unit/common/oscal/valid-profile-remote-rev4.yaml"
 	validSSP                             = "../../../test/unit/common/oscal/valid-ssp.yaml"
 )
 
@@ -27,6 +29,15 @@ func getComponentDefinition(t *testing.T, path string) *oscalTypes.ComponentDefi
 	err := yaml.Unmarshal(validComponentBytes, &validComponent)
 	require.NoError(t, err)
 	return validComponent.ComponentDefinition
+}
+
+func getProfile(t *testing.T, path string) *oscalTypes.Profile {
+	t.Helper()
+	validProfileBytes := loadTestData(t, path)
+	var validProfile oscalTypes.OscalCompleteSchema
+	err := yaml.Unmarshal(validProfileBytes, &validProfile)
+	require.NoError(t, err)
+	return validProfile.Profile
 }
 
 func validateSSP(t *testing.T, ssp *oscal.SystemSecurityPlan) {
@@ -51,34 +62,64 @@ func createSystemComponentMap(t *testing.T, ssp *oscal.SystemSecurityPlan) map[s
 // Tests that the SSP was generated, checking the control-implmentation.implemented-requirements and system-implementation.components links
 func TestGenerateSystemSecurityPlan(t *testing.T) {
 
-	t.Run("Simple generation of SSP", func(t *testing.T) {
-		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponentPerControl)
+	t.Run("Simple generation of SSP - no components", func(t *testing.T) {
+		validProfile := getProfile(t, validProfileLocalCatalog)
 
-		ssp, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", source, validComponentDefn)
+		ssp, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", validProfileLocalCatalog, []string{"statement"}, validProfile)
 		require.NoError(t, err)
+		require.NotNil(t, ssp.Model)
+
+		validateSSP(t, ssp)
+
+		// Check the control-implementation.implemented-requirements links
+		expectedControls := []string{"ac-1", "ac-2", "ac-3"}
+		foundControls := make([]string, 0)
+		for _, ir := range ssp.Model.ControlImplementation.ImplementedRequirements {
+			foundControls = append(foundControls, ir.ControlId)
+		}
+
+		// All controls should be in the expectedControls list
+		assert.ElementsMatch(t, expectedControls, foundControls)
+	})
+
+	t.Run("Simple generation of SSP - with component defn", func(t *testing.T) {
+		validProfile := getProfile(t, validProfileRemoteRev4)
+		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
+
+		ssp, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", validProfileRemoteRev4, []string{"statement"}, validProfile, validComponentDefn)
+		require.NoError(t, err)
+		require.NotNil(t, ssp.Model)
 
 		validateSSP(t, ssp)
 
 		// Check the control-implementation.implemented-requirements and system-implementation.components links
+		expectedControls := []string{"ac-1", "ac-2", "ac-3"}
+		foundControls := make([]string, 0)
 		systemComponentMap := createSystemComponentMap(t, ssp)
-		require.NotNil(t, ssp.Model)
 		for _, ir := range ssp.Model.ControlImplementation.ImplementedRequirements {
-			// All controls should have 2 components linked
-			assert.Len(t, *ir.ByComponents, 2)
+			foundControls = append(foundControls, ir.ControlId)
+			// All controls should have 1 component linked
+			require.NotNil(t, ir.ByComponents)
+			assert.Len(t, *ir.ByComponents, 1)
 			for _, byComponent := range *ir.ByComponents {
 				// Check that the component exists in the system-implementation.components
 				_, ok := systemComponentMap[byComponent.ComponentUuid]
 				assert.True(t, ok)
 			}
 		}
+
+		// All controls should be in the expectedControls list
+		assert.ElementsMatch(t, expectedControls, foundControls)
 	})
 
-	t.Run("Generation of SSP with mis-matched catalog source", func(t *testing.T) {
-		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
+	// Multiple component definitions?
 
-		_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn)
-		require.Error(t, err)
-	})
+	// t.Run("Generation of SSP with mis-matched catalog source", func(t *testing.T) {
+	// 	validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
+
+	// 	_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn)
+	// 	require.Error(t, err)
+	// })
 }
 
 func TestMakeSSPDeterministic(t *testing.T) {
@@ -105,40 +146,40 @@ func TestMakeSSPDeterministic(t *testing.T) {
 	})
 }
 
-func TestCreateImplementedRequirementsByFramework(t *testing.T) {
+func TestCreateSourceControlsMap(t *testing.T) {
 	t.Parallel()
 
 	t.Run("Multiple control frameworks", func(t *testing.T) {
 		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
 
-		implementedRequirementMap := oscal.CreateImplementedRequirementsByFramework(validComponentDefn)
-		assert.Len(t, implementedRequirementMap, 4) // Should return 4 frameworks
+		sourceControlsMap := oscal.CreateSourceControlsMap(validComponentDefn)
+		assert.Len(t, sourceControlsMap, 4) // Should return 4 frameworks
 
 		// Check source values
-		implmentedReqtSource, ok := implementedRequirementMap[source]
+		controlMap, ok := sourceControlsMap[source]
 		require.True(t, ok)
-		assert.Len(t, implmentedReqtSource, 6) // source has 6 implemented requirements
+		assert.Len(t, controlMap, 6) // source has 6 implemented requirements
 
 		// Check only one component specifies ac-1
-		ac_1, ok := implmentedReqtSource["ac-1"]
+		ac_1, ok := controlMap["ac-1"]
 		require.True(t, ok)
-		assert.Len(t, *ac_1.ByComponents, 1)
+		assert.Len(t, ac_1, 1)
 	})
 
 	t.Run("Multiple Components per control", func(t *testing.T) {
 		validComponentDefn := getComponentDefinition(t, compdefValidMultiComponentPerControl)
 
-		implementedRequirementMap := oscal.CreateImplementedRequirementsByFramework(validComponentDefn)
-		assert.Len(t, implementedRequirementMap, 1) // Should return 1 framework
+		sourceControlsMap := oscal.CreateSourceControlsMap(validComponentDefn)
+		assert.Len(t, sourceControlsMap, 1) // Should return 1 framework
 
 		// Check source values
-		implmentedReqtSource, ok := implementedRequirementMap[source]
+		controlMap, ok := sourceControlsMap[source]
 		require.True(t, ok)
-		assert.Len(t, implmentedReqtSource, 3) // source has 3 implemented requirements
+		assert.Len(t, controlMap, 3) // source has 3 implemented requirements
 
 		// Check 2 components specify ac-1
-		ac_1, ok := implmentedReqtSource["ac-1"]
+		ac_1, ok := controlMap["ac-1"]
 		require.True(t, ok)
-		assert.Len(t, *ac_1.ByComponents, 2)
+		assert.Len(t, ac_1, 2)
 	})
 }
