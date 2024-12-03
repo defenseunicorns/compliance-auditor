@@ -1,8 +1,7 @@
 name: Publish Lula Packages on Tag
 
-permissions:
-  contents: read
-  packages: read
+# Permissions are granted per-job when write access is needed
+permissions: read-all
 
 on:
   push:
