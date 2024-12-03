@@ -5,8 +5,8 @@ on:
     branches:
       - main
 
-# Permissions are granted per-job when write access is needed
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   tag-new-version:
