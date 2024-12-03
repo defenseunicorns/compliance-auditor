@@ -5,7 +5,6 @@ linters:
     - goimports
     - prealloc
 linters-settings:
-  linters-settings:
-    errcheck:
-      without_tests: true
+  errcheck:
+    without-tests: true
   
