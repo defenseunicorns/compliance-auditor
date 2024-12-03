@@ -1,6 +1,7 @@
 package oscal_test
 
 import (
+	"os"
 	"slices"
 	"testing"
 	"time"
@@ -662,5 +663,19 @@ func TestGetObservationByUuid(t *testing.T) {
 		assert.Nil(t, observation)
 		require.ErrorContains(t, err, "observation with uuid invalid-uuid not found")
 	})
+}
 
+func FuzzNewAssessmentResults(f *testing.F) {
+	for _, tc := range []string{"../../../test/unit/common/oscal/valid-assessment-results-multi.yaml",
+		"../../../test/unit/common/oscal/valid-assessment-results-with-resources.yaml"} {
+
+		b, err := os.ReadFile(tc)
+		require.NoError(f, err)
+		f.Add(b)
+	}
+
+	f.Fuzz(func(t *testing.T, a []byte) {
+		// errors are ok, just watching for panics.
+		oscal.NewAssessmentResults(a)
+	})
 }
