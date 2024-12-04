@@ -2,7 +2,9 @@ package report
 
 import (
 	"fmt"
+
 	"github.com/defenseunicorns/lula/src/internal/reporting"
+	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +40,10 @@ func ReportCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(&inputFile, "input-file", "f", "", "Path to an OSCAL file")
 	cmd.Flags().StringVar(&fileFormat, "file-format", "table", "File format of the report")
-	cmd.MarkFlagRequired("input-file")
+	err := cmd.MarkFlagRequired("input-file")
+	if err != nil {
+		message.Fatal(err, "error initializing upgrade command flags")
+	}
 
 	return cmd
 }

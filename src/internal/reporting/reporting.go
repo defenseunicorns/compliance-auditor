@@ -153,7 +153,10 @@ func PrintReport(data ReportData, format string) error {
 			sourceData = append(sourceData, []string{source, fmt.Sprintf("%d", count)})
 		}
 		// Print Control ID By Source using the Table function
-		message.Table(sourceHeaders, sourceData, []int{70, 30})
+		if err := message.Table(sourceHeaders, sourceData, []int{70, 30}); err != nil {
+			// Handle the error, e.g., log or return
+			return err
+		}
 
 		// Prepare headers and data for Control ID By Framework table
 		frameworkHeaders := []string{"Framework", "Number of Controls"}
@@ -162,7 +165,10 @@ func PrintReport(data ReportData, format string) error {
 			frameworkData = append(frameworkData, []string{framework, fmt.Sprintf("%d", count)})
 		}
 		// Print Control ID By Framework using the Table function
-		message.Table(frameworkHeaders, frameworkData, []int{70, 30})
+		if err := message.Table(frameworkHeaders, frameworkData, []int{70, 30}); err != nil {
+			// Handle the error, e.g., log or return
+			return err
+		}
 
 	} else {
 		var err error
