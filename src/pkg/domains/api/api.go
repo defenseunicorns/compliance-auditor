@@ -1,12 +1,22 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
+
+type APIResponse struct {
+	Status   int
+	Raw      json.RawMessage
+	Response any
+}
 
 func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, error) {
 	select {
@@ -28,28 +38,39 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		}
 
 		// configure the default HTTP client using any top-level Options. Individual
-		// requests with overrides will get bespoke clients.
+		// requests with overrides (in request.Options.Headers) will get bespoke clients.
 		defaultClient := clientFromOpts(defaultOpts)
 		var errs error
 		for _, request := range a.Spec.Requests {
-			var responseType map[string]interface{}
-			var err error
-			var status int
-			if request.Options == nil {
-				responseType, status, err = doHTTPReq(ctx, defaultClient, *request.reqURL, defaultOpts.Headers, request.reqParameters, responseType)
-			} else {
-				client := clientFromOpts(request.Options)
-				responseType, status, err = doHTTPReq(ctx, client, *request.reqURL, request.Options.Headers, request.reqParameters, responseType)
+			var r io.Reader
+			if request.Body != "" {
+				r = bytes.NewBufferString(request.Body)
 			}
+
+			var headers map[string]string
+			var client http.Client
+
+			if request.Options == nil {
+				headers = defaultOpts.Headers
+				client = defaultClient
+			} else {
+				headers = request.Options.Headers
+				client = clientFromOpts(request.Options)
+			}
+
+			response, err := doHTTPReq(ctx, client, request.Method, *request.reqURL, r, headers, request.reqParameters)
 			if err != nil {
 				errs = errors.Join(errs, err)
 			}
-			// Check if the response object is empty and manually add a DR with the status response if so. This is more likely to happen in tests than reality.
-			if responseType != nil {
-				responseType["status"] = status
-				collection[request.Name] = responseType
+			if response != nil {
+				collection[request.Name] = types.DomainResources{
+					"status":   response.Status,
+					"raw":      response.Raw,
+					"response": response.Response,
+				}
 			} else {
-				collection[request.Name] = types.DomainResources{"status": status}
+				// If the entire response is empty, return a validly empty resource
+				collection[request.Name] = types.DomainResources{"status": 0}
 			}
 		}
 		return collection, errs

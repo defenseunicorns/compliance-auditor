@@ -260,11 +260,6 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 		return componentDefinition, fmt.Errorf("no controls identified for generation")
 	}
 
-	controlMap := make(map[string]bool)
-	for _, control := range targetControls {
-		controlMap[control] = false
-	}
-
 	controlsToImplement, err := ResolveCatalogControls(catalog, targetControls, nil)
 	if err != nil {
 		return componentDefinition, err
@@ -282,8 +277,8 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes_1_1
 		implementedRequirements = append(implementedRequirements, ir)
 	}
 
-	for id, found := range controlMap {
-		if !found {
+	for _, id := range targetControls {
+		if _, ok := controlsToImplement[id]; !ok {
 			message.Debugf("Control %s not found", id)
 		}
 	}

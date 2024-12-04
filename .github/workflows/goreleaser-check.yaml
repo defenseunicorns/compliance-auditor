@@ -8,6 +8,9 @@ on:
     paths:
       - '.goreleaser.yaml'
 
+# Permissions are granted per-job when write access is needed
+permissions: read-all
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest

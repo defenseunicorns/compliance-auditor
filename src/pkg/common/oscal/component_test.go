@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"gopkg.in/yaml.v3"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 const validComponentPath = "../../../test/unit/common/oscal/valid-component.yaml"
@@ -153,10 +154,10 @@ func TestComponentFromCatalog(t *testing.T) {
 			name:         "Valid test of component from Catalog",
 			data:         *catalog,
 			title:        "Component Title",
-			requirements: []string{"ac-1", "ac-3", "ac-3.2", "ac-4", "ac-4.4"},
+			requirements: []string{"ac-1", "ac-2.1", "ac-3", "ac-3.2", "ac-4", "ac-4.4"},
 			remarks:      []string{"statement"},
 			source:       "https://raw.githubusercontent.com/usnistgov/oscal-content/master/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json",
-			wantReqLen:   5,
+			wantReqLen:   6,
 			wantErr:      false,
 		},
 		{
