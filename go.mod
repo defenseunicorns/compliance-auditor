@@ -10,7 +10,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/charmbracelet/x/exp/teatest v0.0.0-20241108191800-317c90dc73b2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/defenseunicorns/go-oscal v0.6.1
+	github.com/defenseunicorns/go-oscal v0.6.2
 	github.com/defenseunicorns/pkg/kubernetes v0.3.0
 	github.com/evertras/bubble-table v0.17.1
 	github.com/google/go-cmp v0.6.0
