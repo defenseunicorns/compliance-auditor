@@ -96,7 +96,7 @@ func GenerateSSPCommand() *cobra.Command {
 			// Write the system security plan to file
 			err = oscal.WriteOscalModelNew(outputFile, ssp)
 			if err != nil {
-				message.Fatalf(err, "error writing component to file")
+				message.Fatalf(err, "error writing ssp to file: %v", err)
 			}
 
 			// Informs user that some fields in SSP need to be manually updated
@@ -112,11 +112,7 @@ func GenerateSSPCommand() *cobra.Command {
 		message.Fatal(err, "error initializing profile command flags")
 	}
 	sspCmd.Flags().StringSliceVarP(&component, "component", "c", []string{}, "comma delimited list the paths to the component definitions to include for the SSP")
-	err = sspCmd.MarkFlagRequired("component")
-	if err != nil {
-		message.Fatal(err, "error initializing component command flags")
-	}
-	sspCmd.Flags().StringSliceVar(&componentOpts.Remarks, "remarks", []string{"statement"}, "Target for remarks population (default = statement)")
+	sspCmd.Flags().StringSliceVar(&remarks, "remarks", []string{"statement"}, "Target for remarks population (default = statement)")
 	sspCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will default to `system-security-plan.yaml`")
 
 	return sspCmd

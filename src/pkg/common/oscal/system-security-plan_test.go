@@ -19,6 +19,7 @@ var (
 	source                               = "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_HIGH-baseline-resolved-profile_catalog.yaml"
 	validProfileLocalCatalog             = "../../../test/unit/common/oscal/valid-profile.yaml"
 	validProfileRemoteRev4               = "../../../test/unit/common/oscal/valid-profile-remote-rev4.yaml"
+	validProfileNoControls               = "../../../test/unit/common/oscal/valid-profile-test-excludes.yaml"
 	validSSP                             = "../../../test/unit/common/oscal/valid-ssp.yaml"
 )
 
@@ -108,18 +109,19 @@ func TestGenerateSystemSecurityPlan(t *testing.T) {
 			}
 		}
 
+		// Check that only one component is specified in system-implementation.components
+		require.Equal(t, 1, len(ssp.Model.SystemImplementation.Components))
+
 		// All controls should be in the expectedControls list
 		assert.ElementsMatch(t, expectedControls, foundControls)
 	})
 
-	// Multiple component definitions?
+	t.Run("Generation of SSP using a profile with no controls", func(t *testing.T) {
+		validProfile := getProfile(t, validProfileNoControls)
 
-	// t.Run("Generation of SSP with mis-matched catalog source", func(t *testing.T) {
-	// 	validComponentDefn := getComponentDefinition(t, compdefValidMultiComponent)
-
-	// 	_, err := oscal.GenerateSystemSecurityPlan("", "foo", validComponentDefn)
-	// 	require.Error(t, err)
-	// })
+		_, err := oscal.GenerateSystemSecurityPlan("lula generate ssp <flags>", validProfileNoControls, []string{"statement"}, validProfile)
+		require.Error(t, err)
+	})
 }
 
 func TestMakeSSPDeterministic(t *testing.T) {
@@ -182,4 +184,19 @@ func TestCreateSourceControlsMap(t *testing.T) {
 		require.True(t, ok)
 		assert.Len(t, ac_1, 2)
 	})
+}
+
+func TestRemapSourceToUUID(t *testing.T) {
+	sourceMap := map[string]string{
+		"https://raw.githubusercontent.com/GSA/fedramp-automation/refs/tags/fedramp-2.0.0-oscal-1.0.4/dist/content/rev5/baselines/json/FedRAMP_rev5_MODERATE-baseline-resolved-profile_catalog.json": "foo",
+		"https://raw.githubusercontent.com/defenseunicorns/lula/refs/heads/main/src/test/unit/common/validation/validation.opa.yaml":                                                                 "not-oscal",
+		"not-a-link": "bar",
+	}
+
+	outMap := oscal.RemapSourceToUUID(sourceMap)
+
+	assert.Equal(t, 1, len(outMap))
+	v, ok := outMap["bc413ad0-23d7-4ff0-a7af-b48a03294873"]
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
 }
