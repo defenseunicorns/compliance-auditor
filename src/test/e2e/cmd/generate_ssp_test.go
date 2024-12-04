@@ -94,7 +94,7 @@ func TestGenerateSSPCommand(t *testing.T) {
 	})
 
 	t.Run("Test help", func(t *testing.T) {
-		err := testAgainstGolden(t, "help", "--help")
+		err := testAgainstGolden(t, "ssp-help", "--help")
 		require.NoError(t, err, "expected help message")
 	})
 }

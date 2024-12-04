@@ -112,7 +112,7 @@ func GenerateSSPCommand() *cobra.Command {
 		message.Fatal(err, "error initializing profile command flags")
 	}
 	sspCmd.Flags().StringSliceVarP(&component, "component", "c", []string{}, "comma delimited list the paths to the component definitions to include for the SSP")
-	sspCmd.Flags().StringSliceVar(&remarks, "remarks", []string{"statement"}, "Target for remarks population (default = statement)")
+	sspCmd.Flags().StringSliceVar(&remarks, "remarks", []string{"statement"}, "Target for remarks population")
 	sspCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will default to `system-security-plan.yaml`")
 
 	return sspCmd

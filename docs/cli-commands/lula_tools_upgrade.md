@@ -31,7 +31,7 @@ To Upgrade an existing OSCAL file:
   -f, --input-file string          the path to a oscal json schema file
   -o, --output-file string         the path to write the linted oscal json schema file (default is the input file)
   -r, --validation-result string   the path to write the validation result file
-  -v, --version string             the version of the oscal schema to validate against (default is the latest supported version) (default "1.1.2")
+  -v, --version string             the version of the oscal schema to validate against (default is the latest supported version) (default "1.1.3")
 ```
 
 ### Options inherited from parent commands
