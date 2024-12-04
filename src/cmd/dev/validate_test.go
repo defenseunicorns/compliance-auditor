@@ -9,7 +9,8 @@ import (
 )
 
 func FuzzRunSingleValidation(f *testing.F) {
-	for _, tc := range []string{"../../test/unit/common/oscal/valid-component.yaml", "../../test/unit/common/oscal/valid-component-metadata-injected.yaml"} {
+	// including a fully populated valid-component.yaml to exercise a fuzzy version of passing valid-but-wrong-for-this-command oscal data.
+	for _, tc := range []string{"../../test/unit/common/oscal/valid-component.yaml", "../../test/unit/common/validation/multi.validation.yaml"} {
 		bytes, err := os.ReadFile(tc)
 		require.NoError(f, err)
 
@@ -22,7 +23,7 @@ func FuzzRunSingleValidation(f *testing.F) {
 }
 
 func FuzzDevValidate(f *testing.F) {
-	bytes, err := os.ReadFile("../../test/unit/common/oscal/valid-component.yaml")
+	bytes, err := os.ReadFile("../../test/unit/common/validation/multi.validation.yaml")
 	require.NoError(f, err)
 
 	drs, err := os.ReadFile("../../test/unit/common/resources/valid-resources.json")
