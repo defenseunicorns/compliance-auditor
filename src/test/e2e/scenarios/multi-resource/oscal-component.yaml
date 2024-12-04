@@ -95,7 +95,7 @@ component-definition:
                 package validate
 
                 validate {
-                  input.local.pass == true
-                  input.test.pass == true
-                  input.test.test == true
+                  input.local.response.pass == true
+                  input.test.response.pass == true
+                  input.test.response.test == true
                 }

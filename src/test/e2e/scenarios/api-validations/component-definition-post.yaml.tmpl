@@ -53,9 +53,11 @@ component-definition:
                   x-special-header: "lula"
               requests:
               - name: healthcheck
+                method: "POST"
+                executable: true
                 url: {{ .var.reqUrl }}
-                parameters:
-                  response: {{ .var.response }}
+                body: |
+                  {{ .var.body }}
           provider: 
             type: opa
             opa-spec:
