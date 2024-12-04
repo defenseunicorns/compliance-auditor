@@ -3,7 +3,7 @@ package oscal_test
 import (
 	"testing"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 

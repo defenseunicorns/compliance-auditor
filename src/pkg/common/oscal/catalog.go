@@ -1,14 +1,14 @@
 package oscal
 
 import (
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"gopkg.in/yaml.v3"
 )
 
 // NewCatalog creates a new catalog object from the given data.
-func NewCatalog(data []byte) (catalog *oscalTypes_1_1_2.Catalog, err error) {
-	var oscalModels oscalTypes_1_1_2.OscalModels
+func NewCatalog(data []byte) (catalog *oscalTypes.Catalog, err error) {
+	var oscalModels oscalTypes.OscalModels
 
 	// validate the catalog
 	err = multiModelValidate(data)

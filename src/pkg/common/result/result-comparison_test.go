@@ -6,33 +6,33 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
 )
 
-func createTestResult(findingId, observationId, findingState, observationSatisfaction string) oscalTypes_1_1_2.Result {
+func createTestResult(findingId, observationId, findingState, observationSatisfaction string) oscalTypes.Result {
 	observationUuid := uuid.NewUUID()
-	return oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	return oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: findingId,
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: findingState,
 					},
 				},
-				RelatedObservations: &[]oscalTypes_1_1_2.RelatedObservation{
+				RelatedObservations: &[]oscalTypes.RelatedObservation{
 					{
 						ObservationUuid: observationUuid,
 					},
 				},
 			},
 		},
-		Observations: &[]oscalTypes_1_1_2.Observation{
+		Observations: &[]oscalTypes.Observation{
 			{
 				UUID:        observationUuid,
 				Description: observationId,
-				RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
+				RelevantEvidence: &[]oscalTypes.RelevantEvidence{
 					{
 						Description: fmt.Sprintf("Result: %s", observationSatisfaction),
 						Remarks:     "Some remarks about this observation",
@@ -43,17 +43,17 @@ func createTestResult(findingId, observationId, findingState, observationSatisfa
 	}
 }
 
-func createTestResultMultipleObs(findingId, findingState string, observationUuids, observationIds, observationSatisfaction []string) oscalTypes_1_1_2.Result {
-	relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0)
-	observations := make([]oscalTypes_1_1_2.Observation, 0)
+func createTestResultMultipleObs(findingId, findingState string, observationUuids, observationIds, observationSatisfaction []string) oscalTypes.Result {
+	relatedObservations := make([]oscalTypes.RelatedObservation, 0)
+	observations := make([]oscalTypes.Observation, 0)
 	for i, observationUuid := range observationUuids {
-		relatedObservations = append(relatedObservations, oscalTypes_1_1_2.RelatedObservation{
+		relatedObservations = append(relatedObservations, oscalTypes.RelatedObservation{
 			ObservationUuid: observationUuid,
 		})
-		observations = append(observations, oscalTypes_1_1_2.Observation{
+		observations = append(observations, oscalTypes.Observation{
 			UUID:        observationUuid,
 			Description: observationIds[i],
-			RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
+			RelevantEvidence: &[]oscalTypes.RelevantEvidence{
 				{
 					Description: fmt.Sprintf("Result: %s", observationSatisfaction[i]),
 					Remarks:     "Some remarks about this observation",
@@ -62,12 +62,12 @@ func createTestResultMultipleObs(findingId, findingState string, observationUuid
 		})
 	}
 
-	return oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	return oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: findingId,
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: findingState,
 					},
 				},
@@ -78,13 +78,13 @@ func createTestResultMultipleObs(findingId, findingState string, observationUuid
 	}
 }
 
-func createTestResultNoObs(findingId, findingState string) oscalTypes_1_1_2.Result {
-	return oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+func createTestResultNoObs(findingId, findingState string) oscalTypes.Result {
+	return oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: findingId,
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: findingState,
 					},
 				},
@@ -107,8 +107,8 @@ func TestGetResultComparisonMap(t *testing.T) {
 	// Tests both creating a results comparison map and testing getting the right comparisons
 	tests := []struct {
 		name                 string
-		thresholdResult      oscalTypes_1_1_2.Result
-		result               oscalTypes_1_1_2.Result
+		thresholdResult      oscalTypes.Result
+		result               oscalTypes.Result
 		expectedStateChange  result.StateChange
 		expectedSatisfaction bool
 		expectedId           string
@@ -252,8 +252,8 @@ func TestGetMachineFriendlyObservations(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		result          oscalTypes_1_1_2.Result
-		thresholdResult oscalTypes_1_1_2.Result
+		result          oscalTypes.Result
+		thresholdResult oscalTypes.Result
 		expected        map[result.StateChange]interface{}
 	}{
 		{

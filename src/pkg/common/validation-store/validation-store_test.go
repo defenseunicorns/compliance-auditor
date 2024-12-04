@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/stretchr/testify/require"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -41,7 +41,7 @@ func TestNewValidationStore(t *testing.T) {
 }
 
 func TestNewValidationStoreFromBackMatter(t *testing.T) {
-	backMatter := oscalTypes_1_1_2.BackMatter{}
+	backMatter := oscalTypes.BackMatter{}
 	v := validationstore.NewValidationStoreFromBackMatter(backMatter)
 	if v == nil {
 		t.Error("Expected a new ValidationStore from back matter, but got nil")

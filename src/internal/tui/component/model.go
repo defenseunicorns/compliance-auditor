@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 )
 
@@ -25,7 +25,7 @@ type Model struct {
 	help               common.HelpModel
 	keys               keys
 	focus              focus
-	oscalComponent     *oscalTypes_1_1_2.ComponentDefinition
+	oscalComponent     *oscalTypes.ComponentDefinition
 	components         []component
 	selectedComponent  component
 	componentPicker    common.PickerModel
@@ -54,7 +54,7 @@ type ModelOpenMsg struct {
 }
 type ModelCloseMsg struct{}
 
-func NewComponentDefinitionModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) Model {
+func NewComponentDefinitionModel(oscalComponent *oscalTypes.ComponentDefinition) Model {
 	var selectedComponent component
 	var selectedFramework framework
 	viewedControls := make([]blist.Item, 0)
@@ -444,7 +444,7 @@ func (m Model) mainView() string {
 
 // UpdateWithComponentDefinition updates the model data given a component definition
 // Useful when a new component definition is loaded (at init time or if component definition is generated)
-func (m *Model) UpdateWithComponentDefinition(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) {
+func (m *Model) UpdateWithComponentDefinition(oscalComponent *oscalTypes.ComponentDefinition) {
 	var selectedComponent component
 	var selectedFramework framework
 	components := make([]component, 0)
@@ -501,7 +501,7 @@ func (m *Model) GetDimensions() (height, width int) {
 }
 
 // GetComponentDefinition returns the component definition model, used on save events
-func (m *Model) GetComponentDefinition() *oscalTypes_1_1_2.ComponentDefinition {
+func (m *Model) GetComponentDefinition() *oscalTypes.ComponentDefinition {
 	return m.oscalComponent
 }
 

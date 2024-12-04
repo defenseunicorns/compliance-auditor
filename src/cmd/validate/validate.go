@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -98,7 +98,7 @@ func ValidateCommand() *cobra.Command {
 				return fmt.Errorf("assessment results are nil")
 			}
 
-			var model = oscalTypes_1_1_2.OscalModels{
+			var model = oscalTypes.OscalModels{
 				AssessmentResults: assessmentResults,
 			}
 

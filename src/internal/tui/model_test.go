@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/exp/teatest"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/internal/tui"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
@@ -38,7 +38,7 @@ func TestNewOSCALModel(t *testing.T) {
 	oscalComponent := testhelpers.OscalFromPath(t, "../../test/unit/common/oscal/valid-component.yaml")
 	oscalAssessment := testhelpers.OscalFromPath(t, "../../test/unit/common/oscal/valid-assessment-results.yaml")
 	model := tui.NewOSCALModel(
-		map[string]*oscalTypes_1_1_2.OscalCompleteSchema{
+		map[string]*oscalTypes.OscalCompleteSchema{
 			"component":          oscalComponent,
 			"assessment-results": oscalAssessment,
 		},
@@ -62,7 +62,7 @@ func TestNewOSCALModelWithSave(t *testing.T) {
 
 	oscalComponent := testhelpers.OscalFromPath(t, "../../test/unit/common/oscal/valid-generated-component.yaml")
 	model := tui.NewOSCALModel(
-		map[string]*oscalTypes_1_1_2.OscalCompleteSchema{
+		map[string]*oscalTypes.OscalCompleteSchema{
 			"component": oscalComponent,
 		},
 		map[string]string{
@@ -126,7 +126,7 @@ func TestNewOSCALWithValidate(t *testing.T) {
 
 	oscalComponent := testhelpers.OscalFromPath(t, "../../test/unit/common/oscal/valid-multi-component-validations.yaml")
 	model := tui.NewOSCALModel(
-		map[string]*oscalTypes_1_1_2.OscalCompleteSchema{
+		map[string]*oscalTypes.OscalCompleteSchema{
 			"component": oscalComponent,
 		},
 		map[string]string{
