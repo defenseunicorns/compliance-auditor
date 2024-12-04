@@ -99,6 +99,9 @@ func GenerateSSPCommand() *cobra.Command {
 				message.Fatalf(err, "error writing component to file")
 			}
 
+			// Informs user that some fields in SSP need to be manually updated
+			message.Warn("Some data in the SSP will need to be manually updated. Search for `TODO` items.")
+
 			return nil
 		},
 	}

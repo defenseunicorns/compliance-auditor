@@ -143,11 +143,6 @@ func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, 
 			Ns:    LULA_NAMESPACE,
 			Value: command,
 		},
-		{
-			Name:  "framework", // Should this be here? ** Assuming framework:source is 1:1
-			Ns:    LULA_NAMESPACE,
-			Value: source,
-		},
 	}
 
 	// Create metadata object with requires fields and a few extras
@@ -178,7 +173,7 @@ func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, 
 		SystemName: "Generated System",
 		Status: oscalTypes.Status{
 			State:   "operational", // Defaulting to operational, will need to revisit how this should be set
-			Remarks: "<TODO: Validate state and remove this remark>",
+			Remarks: "TODO: Validate state and remove this remark",
 		},
 		SystemIds: []oscalTypes.SystemId{
 			{
@@ -190,7 +185,7 @@ func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, 
 				{
 					UUID:        uuid.NewUUID(),
 					Title:       "Generated System Information",
-					Description: "<TODO: Update information types>",
+					Description: "TODO: Update information types",
 				},
 			},
 		},
@@ -202,11 +197,11 @@ func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, 
 			{
 				UUID:    uuid.NewUUID(),
 				Title:   "Generated Component",
-				Remarks: "<TODO: Update generated component>",
+				Remarks: "TODO: Update generated component",
 				Type:    "software",
 				Status: oscalTypes.SystemComponentStatus{
 					State:   "operational", // Defaulting to operational, will need to revisit how this should be set
-					Remarks: "<TODO: Validate state and remove this remark>",
+					Remarks: "TODO: Validate state and remove this remark",
 				},
 			},
 		},
@@ -214,7 +209,7 @@ func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, 
 			{
 				UUID:    uuid.NewUUID(),
 				Title:   "Generated User",
-				Remarks: "<TODO: Update generated user>",
+				Remarks: "TODO: Update generated user",
 			},
 		},
 	}
@@ -281,25 +276,29 @@ func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, 
 	}
 
 	// Update the system-implementation.components with any components used in the implemented-requirements
-	for _, cUUID := range componentsUsed {
-		component, ok := componentsMap[cUUID]
-		if !ok {
-			continue
+	if len(componentsUsed) > 0 {
+		actualComponents := make([]oscalTypes.SystemComponent, 0, len(componentsUsed))
+		for _, cUUID := range componentsUsed {
+			component, ok := componentsMap[cUUID]
+			if !ok {
+				continue
+			}
+			actualComponents = append(actualComponents, oscalTypes.SystemComponent{
+				UUID:             component.UUID,
+				Type:             component.Type,
+				Title:            component.Title,
+				Description:      component.Description,
+				Props:            component.Props,
+				Links:            component.Links,
+				ResponsibleRoles: component.ResponsibleRoles,
+				Protocols:        component.Protocols,
+				Status: oscalTypes.SystemComponentStatus{
+					State:   "operational", // Defaulting to operational, will need to revisit how this should be set
+					Remarks: "TODO: Validate state and remove this remark",
+				},
+			})
 		}
-		model.SystemImplementation.Components = append(model.SystemImplementation.Components, oscalTypes.SystemComponent{
-			UUID:             component.UUID,
-			Type:             component.Type,
-			Title:            component.Title,
-			Description:      component.Description,
-			Props:            component.Props,
-			Links:            component.Links,
-			ResponsibleRoles: component.ResponsibleRoles,
-			Protocols:        component.Protocols,
-			Status: oscalTypes.SystemComponentStatus{
-				State:   "operational", // Defaulting to operational, will need to revisit how this should be set
-				Remarks: "<TODO: Validate state and remove this remark>",
-			},
-		})
+		model.SystemImplementation.Components = actualComponents
 	}
 
 	ssp := &SystemSecurityPlan{
