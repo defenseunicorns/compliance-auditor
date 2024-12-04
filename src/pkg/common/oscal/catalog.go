@@ -139,15 +139,15 @@ func searchControls(controls *[]oscalTypes.Control, controlMap map[string]oscalT
 	var err error
 
 	for _, control := range *controls {
-		// Break if the control is not included or is excluded
-		if !AddControl(control.ID, include, exclude) {
-			continue
-		}
-		// If the control is not already in the map, add it
-		if _, ok := controlMap[control.ID]; !ok {
-			controlMap[control.ID] = control
+		// Add control if specified
+		if AddControl(control.ID, include, exclude) {
+			// If the control is not already in the map, add it
+			if _, ok := controlMap[control.ID]; !ok {
+				controlMap[control.ID] = control
+			}
 		}
 
+		// Check all child controls
 		if control.Controls != nil {
 			controlMap, err = searchControls(control.Controls, controlMap, include, exclude)
 			if err != nil {
