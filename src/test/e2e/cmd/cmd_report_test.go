@@ -8,24 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func testAgainstGoldenWithErrorCheck(t *testing.T, goldenFileName string, expectedError string, args ...string) error {
-// 	rootCmd := report.ReportCommand()
-// 	_, _, err := util.ExecuteCommand(rootCmd, args...) // Ignore output
-
-// 	// If an error is expected, check if it matches the expected error message
-// 	if expectedError != "" {
-// 		if err == nil {
-// 			t.Fatalf("expected error %q but got none", expectedError)
-// 		} else if !strings.Contains(err.Error(), expectedError) {
-// 			t.Fatalf("expected error %q but got %q", expectedError, err.Error())
-// 		}
-// 		return err // Return early as we are only testing error handling here
-// 	}
-
-// 	// No error is expected, so proceed to compare output with the golden file
-// 	return runCmdTestWithGolden(t, "report", goldenFileName, rootCmd, args...)
-// }
-
 func TestLulaReportValidComponent(t *testing.T) {
 
 	message.NoProgress = true
@@ -53,6 +35,12 @@ func TestLulaReportValidComponent(t *testing.T) {
 		err := test(t, "report_valid-multi-component-validations",
 			"-f", "../../unit/common/oscal/valid-multi-component-validations.yaml", "--file-format", "table")
 		require.NoError(t, err)
+	})
+
+	t.Run("Unsupported OSCAL Report Model", func(t *testing.T) {
+		err := test(t, "report_valid-multi-component-validations",
+			"-f", "../../unit/common/oscal/catalog.yaml", "--file-format", "table")
+		require.Error(t, err)
 	})
 
 	t.Run("invalid - file does not exist", func(t *testing.T) {
