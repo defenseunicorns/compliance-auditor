@@ -28,6 +28,8 @@ To run validations and automatically confirm execution
 	lula dev validate -f ./oscal-component.yaml --confirm-execution
 To run validations non-interactively (no execution)
 	lula dev validate -f ./oscal-component.yaml --non-interactive
+To run validations and their tests, generating a test-results file
+	lula dev validate -f ./oscal-component.yaml --run-tests
 `
 
 var (

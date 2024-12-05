@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
+	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
 	"gopkg.in/yaml.v3"
 
@@ -184,7 +186,7 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 		message.Title("\n🧪 Testing", "")
 		testReportsMap := validationStore.RunTests(ctx)
 		summary, noTestsRun := types.SummarizeTestReport(testReportsMap)
-		message.Infof(summary)
+		message.Info(summary)
 		if !noTestsRun {
 			// Print test results
 			err = writeTestsToYaml(testReportsMap, target, v.outputsDir)
@@ -200,13 +202,11 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 func writeTestsToYaml(testReportsMap map[string]types.LulaValidationTestReport, target, dir string) error {
 	// Create a new markdown file
 	timeStr := time.Now().Format("2006-01-02-15-04-05")
-	targetClean := filepath.Base(target)
+	targetBase := filepath.Base(target)
+	targetClean := cleanString(targetBase)
 
-	file, err := os.Create(filepath.Join(dir, fmt.Sprintf("test-results-%s-%s.md", targetClean, timeStr)))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+	filename := fmt.Sprintf("test-results-%s-%s.md", targetClean, timeStr)
+	filepath := filepath.Join(dir, filename)
 
 	// Convert testReportsMap to yaml
 	reportYaml, err := yaml.Marshal(testReportsMap)
@@ -215,10 +215,17 @@ func writeTestsToYaml(testReportsMap map[string]types.LulaValidationTestReport, 
 	}
 
 	// Write yaml to file
-	_, err = file.Write(reportYaml)
+	err = files.WriteOutput(reportYaml, filepath)
 	if err != nil {
-		return err
+		return fmt.Errorf("error writing test results to file: %v", err)
 	}
 
 	return nil
+}
+
+func cleanString(input string) string {
+	// Define a regex pattern to match allowed characters
+	pattern := regexp.MustCompile(`[^a-zA-Z0-9\-_]+`)
+	// Replace all disallowed characters with an empty string
+	return pattern.ReplaceAllString(input, "")
 }

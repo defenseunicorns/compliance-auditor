@@ -23,6 +23,7 @@ Flags:
   -f, --input-file string    the path to the target OSCAL component definition
       --non-interactive      run the command non-interactively
   -o, --output-file string   the path to write assessment results. Creates a new file or appends to existing files
+      --run-tests            run tests specified in the validation, writes to test-results-<timestamp>.md in output directory
       --save-resources       saves the resources to 'resources' directory at assessment-results level
   -s, --set strings          set a value in the template data
   -t, --target string        the specific control implementations or framework to validate against
