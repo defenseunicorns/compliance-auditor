@@ -245,41 +245,25 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Cat
 		return componentDefinition, fmt.Errorf("no controls identified for generation")
 	}
 
-	controlMap := make(map[string]bool)
-	for _, control := range targetControls {
-		controlMap[control] = false
+	controlsToImplement, err := ResolveCatalogControls(catalog, targetControls, nil)
+	if err != nil {
+		return componentDefinition, err
 	}
 
-	// A catalog has groups and controls
-	// A group has controls and groups (note the nesting of groups)
-	// A control has controls (note the nesting)
-	// Given the nesting of groups/controls we will need to recursively search groups/controls
+	if len(controlsToImplement) == 0 {
+		return componentDefinition, fmt.Errorf("no controls were identified in the catalog from the requirements list: %v\n", targetControls)
+	}
 
-	// Begin Recursive group search
-	if catalog.Groups != nil {
-		newReqs, err := searchGroups(catalog.Groups, controlMap, targetRemarks)
+	for _, control := range controlsToImplement {
+		ir, err := ControlToImplementedRequirement(&control, targetRemarks)
 		if err != nil {
-			return componentDefinition, err
+			return componentDefinition, fmt.Errorf("error creating implemented requirement: %v", err)
 		}
-		implementedRequirements = append(implementedRequirements, newReqs...)
+		implementedRequirements = append(implementedRequirements, ir)
 	}
 
-	// Begin recursive control search
-	if catalog.Controls != nil {
-		newReqs, err := searchControls(catalog.Controls, controlMap, targetRemarks)
-		if err != nil {
-			return componentDefinition, err
-		}
-		implementedRequirements = append(implementedRequirements, newReqs...)
-	}
-
-	// TODO: rework this - a catalog does not require groups
-	if catalog.Groups == nil {
-		return componentDefinition, fmt.Errorf("catalog Groups is nil - no catalog provided")
-	}
-
-	for id, found := range controlMap {
-		if !found {
+	for _, id := range targetControls {
+		if _, ok := controlsToImplement[id]; !ok {
 			message.Debugf("Control %s not found", id)
 		}
 	}
@@ -299,10 +283,6 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Cat
 			Value: framework,
 		}
 		props = append(props, prop)
-	}
-
-	if len(implementedRequirements) == 0 {
-		return componentDefinition, fmt.Errorf("no controls were identified in the catalog from the requirements list: %v\n", targetControls)
 	}
 
 	componentDefinition.Components = &[]oscalTypes.DefinedComponent{
@@ -339,104 +319,15 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Cat
 
 }
 
-func searchGroups(groups *[]oscalTypes.Group, controlMap map[string]bool, remarks []string) ([]oscalTypes.ImplementedRequirementControlImplementation, error) {
-
-	implementedRequirements := make([]oscalTypes.ImplementedRequirementControlImplementation, 0)
-
-	for _, group := range *groups {
-		if group.Groups != nil {
-			newReqs, err := searchGroups(group.Groups, controlMap, remarks)
-			if err != nil {
-				return implementedRequirements, err
-			}
-			implementedRequirements = append(implementedRequirements, newReqs...)
-		}
-		if group.Controls != nil {
-			newReqs, err := searchControls(group.Controls, controlMap, remarks)
-			if err != nil {
-				return implementedRequirements, err
-			}
-			implementedRequirements = append(implementedRequirements, newReqs...)
-		}
-	}
-	return implementedRequirements, nil
-}
-
-func searchControls(controls *[]oscalTypes.Control, controlMap map[string]bool, remarks []string) ([]oscalTypes.ImplementedRequirementControlImplementation, error) {
-
-	implementedRequirements := make([]oscalTypes.ImplementedRequirementControlImplementation, 0)
-
-	for _, control := range *controls {
-		if _, ok := controlMap[control.ID]; ok {
-			newRequirement, err := ControlToImplementedRequirement(&control, remarks)
-			if err != nil {
-				return implementedRequirements, err
-			}
-			implementedRequirements = append(implementedRequirements, newRequirement)
-			controlMap[control.ID] = true
-		}
-
-		if control.Controls != nil {
-			newReqs, err := searchControls(control.Controls, controlMap, remarks)
-			if err != nil {
-				return implementedRequirements, err
-			}
-			implementedRequirements = append(implementedRequirements, newReqs...)
-		}
-	}
-	return implementedRequirements, nil
-}
-
 // Consume a control - Identify statements - iterate through parts in order to create a description
 func ControlToImplementedRequirement(control *oscalTypes.Control, targetRemarks []string) (implementedRequirement oscalTypes.ImplementedRequirementControlImplementation, err error) {
-	var controlDescription string
-	paramMap := make(map[string]parameter)
-
-	if control == nil {
-		return implementedRequirement, fmt.Errorf("control is nil")
-	}
-
-	if control.Params != nil {
-		for _, param := range *control.Params {
-
-			if param.Select == nil {
-				paramMap[param.ID] = parameter{
-					ID:    param.ID,
-					Label: param.Label,
-				}
-			} else {
-				sel := *param.Select
-				paramMap[param.ID] = parameter{
-					ID: param.ID,
-					Select: &selection{
-						HowMany: sel.HowMany,
-						Choice:  *sel.Choice,
-					},
-				}
-			}
-		}
-	} else {
-		message.Debugf("No parameters (control.Params) found for %s", control.ID)
-	}
-
-	if control.Parts != nil {
-		for _, part := range *control.Parts {
-			if contains(targetRemarks, part.Name) {
-				controlDescription += fmt.Sprintf("%s:\n", strings.ToTitle(part.Name))
-				if part.Prose != "" && strings.Contains(part.Prose, "{{ insert: param,") {
-					controlDescription += replaceParams(part.Prose, paramMap, false)
-				} else {
-					controlDescription += part.Prose
-				}
-				if part.Parts != nil {
-					controlDescription += addPart(part.Parts, paramMap, 0)
-				}
-			}
-		}
+	remarks, err := getControlRemarks(control, targetRemarks)
+	if err != nil {
+		return implementedRequirement, err
 	}
 
 	// assemble implemented-requirements object
-	implementedRequirement.Remarks = controlDescription
+	implementedRequirement.Remarks = remarks
 	implementedRequirement.Description = "<how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>"
 	implementedRequirement.ControlId = control.ID
 	implementedRequirement.UUID = uuid.NewUUID()

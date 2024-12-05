@@ -10,8 +10,10 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
-	"github.com/defenseunicorns/lula/src/pkg/common"
 	"gopkg.in/yaml.v3"
+
+	"github.com/defenseunicorns/lula/src/pkg/common"
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 )
 
 type Profile struct {
@@ -269,4 +271,138 @@ func MergeProfileModels(original *oscalTypes.Profile, latest *oscalTypes.Profile
 	original.UUID = uuid.NewUUID()
 
 	return original, nil
+}
+
+type ControlMap map[string]oscalTypes.Control
+
+// ResolveProfileControls resolves all controls in the profile by checking any imported profiles or catalogs
+// Returns a map[string]ControlMap where the key is the UUID of the source that dictates the controls (profile or catalog)
+// NOTE: Profiles that contain Hrefs as references to internal identifiers (e.g., "#<UUID>") cannot currently be resolved
+func ResolveProfileControls(profile *oscalTypes.Profile, profilePath, rootDir string, include, exclude []string) (map[string]ControlMap, error) {
+	if profile == nil {
+		return nil, fmt.Errorf("profile is nil")
+	}
+
+	sourceControlMap := make(map[string]ControlMap)
+
+	// Resolve the directory for imports
+	importDir := network.GetLocalFileDir(profilePath, rootDir)
+
+	for _, importItem := range profile.Imports {
+		importedSourceControlMap, err := controlsFromImport(importItem, importDir)
+		if err != nil {
+			return nil, err
+		}
+
+		// Update sourceControlMap for profile and imports
+		for source, controlMap := range importedSourceControlMap {
+			addedControlMap := make(map[string]oscalTypes.Control)
+
+			// Drop any excluded controls; include only included controls
+			for id, control := range controlMap {
+				if !AddControl(id, include, exclude) {
+					continue
+				}
+				// If the source/control is not already in the map, add it
+				if _, ok := addedControlMap[id]; !ok {
+					addedControlMap[id] = control
+				}
+			}
+
+			// Update sourceControlMap with anything imported
+			sourceControlMap[source] = addedControlMap
+
+			// Append controls to sourceControlMap[profile.UUID]
+			if _, ok := sourceControlMap[profile.UUID]; !ok {
+				sourceControlMap[profile.UUID] = make(map[string]oscalTypes.Control)
+			}
+			for id, control := range addedControlMap {
+				if _, ok := sourceControlMap[profile.UUID][id]; !ok {
+					sourceControlMap[profile.UUID][id] = control
+				}
+			}
+		}
+	}
+
+	return sourceControlMap, nil
+}
+
+// Recursive function that resolves all controls in the provided profile and any imported profiles or catalogs
+// rootDir is needed to resolve relative paths for imports
+func controlsFromImport(importItem oscalTypes.Import, rootDir string) (controlMap map[string]ControlMap, err error) {
+	// Fetch the import item
+	var dataBytes []byte
+	var fetchOpts []network.FetchOption
+	if rootDir != "" {
+		fetchOpts = append(fetchOpts, network.WithBaseDir(rootDir))
+	}
+
+	dataBytes, err = network.Fetch(importItem.Href, fetchOpts...)
+	if err != nil {
+		return controlMap, err
+	}
+
+	oscalModel, err := NewOscalModel(dataBytes)
+	if err != nil {
+		return controlMap, err
+	}
+
+	// Get include and exclude controls from import item
+	var include []string
+	var exclude []string
+	if importItem.IncludeControls != nil {
+		for _, includeControl := range *importItem.IncludeControls {
+			include = append(include, *includeControl.WithIds...)
+		}
+	} else if importItem.ExcludeControls != nil {
+		for _, excludeControl := range *importItem.ExcludeControls {
+			exclude = append(exclude, *excludeControl.WithIds...)
+		}
+	}
+
+	modelType, err := GetOscalModel(oscalModel)
+	if err != nil {
+		return controlMap, err
+	}
+	switch modelType {
+	case "profile":
+		return ResolveProfileControls(oscalModel.Profile, importItem.Href, rootDir, include, exclude)
+	case "catalog":
+		catalogControls, err := ResolveCatalogControls(oscalModel.Catalog, include, exclude)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]ControlMap{
+			oscalModel.Catalog.UUID: catalogControls,
+		}, nil
+	}
+
+	return nil, nil
+}
+
+// AddControl takes the control-id, include and exclude lists and returns a boolean indicating if the control should be included
+func AddControl(controlId string, include, exclude []string) bool {
+	// If include is not empty, check if the control is included, default to AddControl=false
+	// Include takes precedence over exclude
+	if len(include) > 0 {
+		for _, includeControl := range include {
+			if controlId == includeControl {
+				return true
+			}
+		}
+		return false
+	}
+
+	// If exclude is not empty, check if the control is excluded, default to AddControl=true
+	if len(exclude) > 0 {
+		for _, excludeControl := range exclude {
+			if controlId == excludeControl {
+				return false
+			}
+		}
+		return true
+	}
+
+	// If neither include nor exclude is specified, return AddControl=true
+	return true
 }

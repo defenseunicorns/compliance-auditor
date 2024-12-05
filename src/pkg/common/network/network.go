@@ -163,7 +163,12 @@ func GetLocalFileDir(inputURL, baseDir string) string {
 	}
 	requestUri := url.RequestURI()
 
-	if url.Scheme == "file" {
+	// Intent of check is to handle different specifications of file paths:
+	// - file:///path/to/file
+	// - ./path/to/file
+	// - /path/to/file
+	// - https://example.com/path/to/file
+	if url.Scheme == "file" || !url.IsAbs() {
 		fullPath := filepath.Join(baseDir, url.Host, requestUri)
 		if _, err := os.Stat(fullPath); err == nil {
 			return filepath.Dir(fullPath)
