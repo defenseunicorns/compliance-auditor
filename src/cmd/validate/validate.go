@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"github.com/spf13/cobra"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
 )
 
 var validateHelp = `
@@ -125,6 +126,7 @@ func ValidateCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	cmd.Flags().BoolVar(&runNonInteractively, "non-interactive", false, "run the command non-interactively")
 	cmd.Flags().BoolVar(&saveResources, "save-resources", false, "saves the resources to 'resources' directory at assessment-results level")
+	cmd.Flags().BoolVar(&runTests, "run-tests", false, "run tests specified in the validation, writes to test-results-<timestamp>.md in output directory")
 	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
 
 	return cmd

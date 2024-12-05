@@ -9,6 +9,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -107,7 +108,7 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, resourcesDir string) []oscalTypes_1_1_2.Observation {
+func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, outputsDir string) []oscalTypes_1_1_2.Observation {
 	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
 
 	for k, val := range v.validationMap {
@@ -149,7 +150,7 @@ func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, 
 				resourceUuid := uuid.NewUUID()
 				// Create a remote resource file -> create directory 'resources' in the assessment-results directory -> create file with UUID as name
 				filename := fmt.Sprintf("%s.json", resourceUuid)
-				resourceFile := filepath.Join(resourcesDir, "resources", filename)
+				resourceFile := filepath.Join(outputsDir, "resources", filename)
 				err := os.MkdirAll(filepath.Dir(resourceFile), os.ModePerm) // #nosec G301
 				if err != nil {
 					message.Debugf("Error creating directory for remote resource: %v", err)
@@ -203,4 +204,38 @@ func (v *ValidationStore) GetRelatedObservation(id string) (oscalTypes_1_1_2.Rel
 	return oscalTypes_1_1_2.RelatedObservation{
 		ObservationUuid: observation.UUID,
 	}, pass
+}
+
+// RunTests executes any tests defined on the validations in the validation store
+func (v *ValidationStore) RunTests(ctx context.Context) map[string]types.LulaValidationTestReport {
+	testReportMap := make(map[string]types.LulaValidationTestReport)
+
+	for uuid, validation := range v.validationMap {
+		// TODO: should test results be saved, e.g., if printResources is true?
+		testReport, err := validation.RunTests(ctx, false)
+		if err != nil {
+			testReportMap[uuid] = types.LulaValidationTestReport{
+				Name: validation.Name,
+				TestResults: []*types.LulaValidationTestResult{
+					{
+						TestName: "Error running validation",
+						Pass:     false,
+						Result:   err.Error(),
+					},
+				},
+			}
+			continue
+		}
+
+		// If no tests are defined, return an empty report for the validation
+		if testReport == nil {
+			testReportMap[uuid] = types.LulaValidationTestReport{
+				Name: validation.Name,
+			}
+			continue
+		}
+
+		testReportMap[uuid] = *testReport
+	}
+	return testReportMap
 }

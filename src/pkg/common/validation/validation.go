@@ -15,6 +15,7 @@ import (
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
 	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/types"
 )
 
 type Validator struct {
@@ -181,18 +182,14 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 
 	if v.runTests {
 		message.Title("\n🧪 Testing", "")
-		testReportsMap, err := validationStore.RunTests(ctx)
-		if err != nil {
-			message.Warnf("Error running tests: %v", err)
-		} else {
-			if len(testReportsMap) == 0 {
-				message.Warn("No tests found")
-			} else {
-				// Print test results
-				err = writeTestsToYaml(testReportsMap, v.outputsDir)
-				if err != nil {
-					message.Warnf("Error writing test results to file: %v", err)
-				}
+		testReportsMap := validationStore.RunTests(ctx)
+		summary, noTestsRun := types.SummarizeTestReport(testReportsMap)
+		message.Infof(summary)
+		if !noTestsRun {
+			// Print test results
+			err = writeTestsToYaml(testReportsMap, target, v.outputsDir)
+			if err != nil {
+				message.Warnf("Error writing test results to file: %v", err)
 			}
 		}
 	}
@@ -200,10 +197,12 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 	return findings, observations, err
 }
 
-func writeTestsToYaml(testReportsMap map[string][]types.TestReport, dir string) error {
+func writeTestsToYaml(testReportsMap map[string]types.LulaValidationTestReport, target, dir string) error {
 	// Create a new markdown file
 	timeStr := time.Now().Format("2006-01-02-15-04-05")
-	file, err := os.Create(filepath.Join(dir, fmt.Sprintf("test-results-%s.md", timeStr)))
+	targetClean := filepath.Base(target)
+
+	file, err := os.Create(filepath.Join(dir, fmt.Sprintf("test-results-%s-%s.md", targetClean, timeStr)))
 	if err != nil {
 		return err
 	}

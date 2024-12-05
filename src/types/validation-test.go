@@ -21,7 +21,7 @@ type LulaValidationTestData struct {
 // when provided with a changed input of Domain Resources
 type LulaValidationTest struct {
 	Name           string                     `json:"name" yaml:"name"`
-	Changes        []LulaValidationTestChange `json:"changes" yaml:"changes"`
+	Changes        []LulaValidationTestChange `json:"changes,omitempty" yaml:"changes,omitempty"`
 	ExpectedResult string                     `json:"expected-result" yaml:"expected-result"`
 }
 
@@ -49,8 +49,8 @@ func (l *LulaValidationTest) ValidateData() error {
 type LulaValidationTestChange struct {
 	Path     string                 `json:"path" yaml:"path"`
 	Type     transform.ChangeType   `json:"type" yaml:"type"`
-	Value    string                 `json:"value" yaml:"value"`
-	ValueMap map[string]interface{} `json:"value-map" yaml:"value-map"`
+	Value    string                 `json:"value,omitempty" yaml:"value,omitempty"`
+	ValueMap map[string]interface{} `json:"value-map,omitempty" yaml:"value-map,omitempty"`
 }
 
 // ValidateData validates the data in the LulaValidationTestChange struct
@@ -138,17 +138,17 @@ func (d *LulaValidationTestData) ExecuteTest(ctx context.Context, validation *Lu
 // LulaValidationTestResult is a struct that contains the details of the results of the test performed
 // on the LulaValidation
 type LulaValidationTestResult struct {
-	TestName          string            `json:"test-name"`
-	Pass              bool              `json:"pass"`
-	Result            string            `json:"result"`
-	Remarks           map[string]string `json:"remarks"`
-	TestResourcesPath string            `json:"test-resources-path"`
+	TestName          string            `json:"test-name" yaml:"test-name"`
+	Pass              bool              `json:"pass" yaml:"pass"`
+	Result            string            `json:"result" yaml:"result"`
+	Remarks           map[string]string `json:"remarks,omitempty" yaml:"remarks,omitempty"`
+	TestResourcesPath string            `json:"test-resources-path,omitempty" yaml:"test-resources-path,omitempty"`
 }
 
 // LulaValidationTestReport contains the report of all the tests performed on a LulaValidation
 type LulaValidationTestReport struct {
-	Name        string                      `json:"name"`
-	TestResults []*LulaValidationTestResult `json:"test-results"`
+	Name        string                      `json:"name" yaml:"name"`
+	TestResults []*LulaValidationTestResult `json:"test-results" yaml:"test-results"`
 }
 
 // NewLulaValidationTestReport creates a new report for a Lula Validation
@@ -200,4 +200,24 @@ func (r *LulaValidationTestReport) TestFailed() bool {
 		}
 	}
 	return false
+}
+
+func SummarizeTestReport(testReportMap map[string]LulaValidationTestReport) (string, bool) {
+	var testsFailing int
+	var testsPassing int
+	var missingTestResults int
+
+	for _, testReport := range testReportMap {
+		if len(testReport.TestResults) == 0 {
+			missingTestResults++
+		} else if testReport.TestFailed() {
+			testsFailing++
+		} else {
+			testsPassing++
+		}
+	}
+
+	noTestsRun := len(testReportMap) == missingTestResults
+
+	return fmt.Sprintf("Test Results: %d passing, %d failing, %d missing", testsPassing, testsFailing, missingTestResults), noTestsRun
 }
