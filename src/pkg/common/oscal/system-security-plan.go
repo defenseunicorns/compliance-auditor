@@ -471,26 +471,31 @@ func mergeSystemComponents(original []oscalTypes.SystemComponent, latest []oscal
 func mergeImplementedRequirements(original []oscalTypes.ImplementedRequirement, latest []oscalTypes.ImplementedRequirement) []oscalTypes.ImplementedRequirement {
 	for _, latestRequirement := range latest {
 		found := false
-		for _, originalRequirement := range original {
+		for oIdx, originalRequirement := range original {
 			if latestRequirement.ControlId == originalRequirement.ControlId {
 				found = true
 				// Update ByComponent
-				for _, latestByComponent := range *latestRequirement.ByComponents {
-					foundByComponent := false
-					// Latest component is already in original, do nothing
-					// ** Assumption: There should never be a different Component reference specification to the same control, e.g., different links to append
-					for _, originalByComponent := range *originalRequirement.ByComponents {
-						if latestByComponent.UUID == originalByComponent.UUID {
-							foundByComponent = true
-							break
+				// If no by-components in latest, skip
+				if latestRequirement.ByComponents != nil && originalRequirement.ByComponents != nil {
+					for _, latestByComponent := range *latestRequirement.ByComponents {
+						foundByComponent := false
+						// Latest component is already in original, do nothing
+						// ** Assumption: There should never be a different Component reference specification to the same control, e.g., different links to append
+						for _, originalByComponent := range *originalRequirement.ByComponents {
+							if latestByComponent.ComponentUuid == originalByComponent.ComponentUuid {
+								foundByComponent = true
+								break
+							}
+						}
+						//if not found, append
+						if !foundByComponent {
+							*originalRequirement.ByComponents = append(*originalRequirement.ByComponents, latestByComponent)
 						}
 					}
-					//if not found, append
-					if !foundByComponent {
-						*originalRequirement.ByComponents = append(*originalRequirement.ByComponents, latestByComponent)
-					}
+				} else if latestRequirement.ByComponents != nil && originalRequirement.ByComponents == nil {
+					original[oIdx].ByComponents = latestRequirement.ByComponents
 				}
-				break
+				break // Break when latest reqt is found in original
 			}
 		}
 		//if not found, append

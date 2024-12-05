@@ -44,7 +44,7 @@ func TestGenerateSSPCommand(t *testing.T) {
 
 		ssp := oscal.NewSystemSecurityPlan()
 
-		// Create the new profile object
+		// Create the new ssp object
 		err = ssp.NewModel(compiledBytes)
 		require.NoError(t, err, "error creating oscal model from ssp artifact")
 
@@ -75,7 +75,52 @@ func TestGenerateSSPCommand(t *testing.T) {
 
 		ssp := oscal.NewSystemSecurityPlan()
 
-		// Create the new profile object
+		// Create the new ssp object
+		err = ssp.NewModel(compiledBytes)
+		require.NoError(t, err, "error creating oscal model from ssp artifact")
+
+		complete := ssp.GetCompleteModel()
+		sspModel := complete.SystemSecurityPlan
+
+		require.NotNil(t, sspModel, "expected the SystemSecurityPlan model to be non-nil")
+		assert.Equal(t, 3, len(sspModel.ControlImplementation.ImplementedRequirements), "expected 3 controls")
+
+		for _, ir := range sspModel.ControlImplementation.ImplementedRequirements {
+			require.NotNil(t, ir.ByComponents)
+			assert.Equal(t, 1, len(*ir.ByComponents), "expected 1 component")
+		}
+
+		assert.Equal(t, "7c02500a-6e33-44e0-82ee-fba0f5ea0cae", sspModel.SystemImplementation.Components[0].UUID)
+	})
+
+	t.Run("Generate SSP on existing SSP", func(t *testing.T) {
+		tempDir := t.TempDir()
+		outputFile := filepath.Join(tempDir, "output.yaml")
+
+		// Generate the SSP with just profile
+		args := []string{
+			"--profile", "../../unit/common/oscal/valid-profile-remote-rev4.yaml",
+			"-o", outputFile,
+		}
+		err := test(t, args...)
+		require.NoError(t, err, "executing lula generate ssp %v resulted in an error\n", args)
+
+		// Re-generate the SSP with components
+		args = []string{
+			"--profile", "../../unit/common/oscal/valid-profile-remote-rev4.yaml",
+			"-o", outputFile,
+			"-c", "../../unit/common/oscal/valid-multi-component-validations.yaml",
+		}
+
+		err = test(t, args...)
+		require.NoError(t, err, "executing re-generation of ssp %v resulted in an error\n", args)
+
+		// Check output content is expected
+		compiledBytes, err := os.ReadFile(outputFile)
+		require.NoError(t, err, "error reading generated ssp")
+		ssp := oscal.NewSystemSecurityPlan()
+
+		// Create the new ssp object
 		err = ssp.NewModel(compiledBytes)
 		require.NoError(t, err, "error creating oscal model from ssp artifact")
 

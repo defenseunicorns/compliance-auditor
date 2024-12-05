@@ -200,3 +200,117 @@ func TestRemapSourceToUUID(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, "foo", v)
 }
+
+func TestMergeSystemSecurityPlanModels(t *testing.T) {
+	t.Run("Merge two SSPs", func(t *testing.T) {
+		original := &oscalTypes.SystemSecurityPlan{
+			UUID: "original-uuid",
+			ImportProfile: oscalTypes.ImportProfile{
+				Href: "profile1.yaml",
+			},
+			SystemImplementation: oscalTypes.SystemImplementation{
+				Components: []oscalTypes.SystemComponent{
+					{
+						UUID: "comp1",
+					},
+				},
+				Users: []oscalTypes.SystemUser{
+					{
+						UUID: "user1",
+					},
+				},
+			},
+			ControlImplementation: oscalTypes.ControlImplementation{
+				ImplementedRequirements: []oscalTypes.ImplementedRequirement{
+					{
+						ControlId: "ac-1",
+						ByComponents: &[]oscalTypes.ByComponent{
+							{
+								ComponentUuid: "comp1",
+							},
+						},
+					},
+					{
+						ControlId: "ac-2",
+					},
+				},
+			},
+		}
+
+		latest := &oscalTypes.SystemSecurityPlan{
+			UUID: "latest-uuid",
+			ImportProfile: oscalTypes.ImportProfile{
+				Href: "profile1.yaml",
+			},
+			SystemImplementation: oscalTypes.SystemImplementation{
+				Components: []oscalTypes.SystemComponent{
+					{
+						UUID: "comp1",
+					},
+					{
+						UUID: "comp2",
+					},
+				},
+			},
+			ControlImplementation: oscalTypes.ControlImplementation{
+				ImplementedRequirements: []oscalTypes.ImplementedRequirement{
+					{
+						ControlId: "ac-1",
+						ByComponents: &[]oscalTypes.ByComponent{
+							{
+								ComponentUuid: "comp1",
+							},
+							{
+								ComponentUuid: "comp2",
+							},
+						},
+					},
+					{
+						ControlId: "ac-2",
+						ByComponents: &[]oscalTypes.ByComponent{
+							{
+								ComponentUuid: "comp2",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		merged, err := oscal.MergeSystemSecurityPlanModels(original, latest)
+		require.NoError(t, err)
+
+		// Check that the merged model has the expected values
+		assert.Equal(t, 2, len(merged.SystemImplementation.Components))
+		assert.Equal(t, 2, len(merged.ControlImplementation.ImplementedRequirements))
+		assert.Equal(t, 1, len(merged.SystemImplementation.Users)) // Users should not change from original
+
+		for _, ir := range merged.ControlImplementation.ImplementedRequirements {
+			require.NotNil(t, ir.ByComponents)
+			if ir.ControlId == "ac-1" {
+				assert.Equal(t, 2, len(*ir.ByComponents))
+			} else if ir.ControlId == "ac-2" {
+				assert.Equal(t, 1, len(*ir.ByComponents))
+			}
+		}
+
+		assert.NotEqual(t, "original-uuid", merged.UUID)
+	})
+
+	t.Run("Merge two SSPs with different profiles", func(t *testing.T) {
+		original := &oscalTypes.SystemSecurityPlan{
+			UUID: "original-uuid",
+			ImportProfile: oscalTypes.ImportProfile{
+				Href: "profile1.yaml",
+			},
+		}
+		latest := &oscalTypes.SystemSecurityPlan{
+			UUID: "latest-uuid",
+			ImportProfile: oscalTypes.ImportProfile{
+				Href: "profile2.yaml",
+			},
+		}
+		_, err := oscal.MergeSystemSecurityPlanModels(original, latest)
+		require.Error(t, err)
+	})
+}

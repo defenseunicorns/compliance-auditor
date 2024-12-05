@@ -50,6 +50,7 @@ Contains all of the compliance controls the system must adhere to as outlined wi
 To generate a system security plan, you need the following context:
 * The profile source
   * Currently, profile resolution (i.e., the ability to extract imported profiles/catalogs) will only work for profiles that have hrefs to resolvable file paths; UUID references to back-matter resources are not supported.
+  * The profile support is limited to `imports` that `include-all`, `include-controls.with-ids`, and `exclude-controls.with-ids`. Support for `matching` and `with-child-controls` will be added in the future.
 * (Optional) list of component definitions linked to the profile
   * The component definition's implemented requirements will need to have the `source` field that equates to the profile source or any imported sources therein.
 * (Optional) output file path
