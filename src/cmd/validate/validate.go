@@ -48,6 +48,7 @@ func ValidateCommand() *cobra.Command {
 		confirmExecution    bool
 		runNonInteractively bool
 		saveResources       bool
+		runTests            bool
 	)
 
 	cmd := &cobra.Command{
@@ -81,8 +82,10 @@ func ValidateCommand() *cobra.Command {
 			// Set up the validator
 			validator, err := validation.New(
 				validation.WithComposition(composer, inputFile),
-				validation.WithResourcesDir(saveResources, filepath.Dir(outputFile)),
+				validation.WithOutputDir(filepath.Dir(outputFile)),
+				validation.WithSaveResources(saveResources),
 				validation.WithAllowExecution(confirmExecution, runNonInteractively),
+				validation.WithTests(runTests),
 			)
 			if err != nil {
 				return fmt.Errorf("error creating new validator: %v", err)

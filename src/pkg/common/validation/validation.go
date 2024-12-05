@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	"gopkg.in/yaml.v3"
+
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -18,7 +21,9 @@ type Validator struct {
 	composer                     *composition.Composer
 	requestExecutionConfirmation bool
 	runExecutableValidations     bool
-	resourcesDir                 string
+	outputsDir                   string
+	saveResources                bool
+	runTests                     bool
 }
 
 func New(opts ...Option) (*Validator, error) {
@@ -152,15 +157,9 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 		}
 	}
 
-	// Set values for saving resources
-	saveResources := false
-	if v.resourcesDir != "" {
-		saveResources = true
-	}
-
 	// Run Lula validations and generate observations & findings
 	message.Title("\n📐 Running Validations", "")
-	observations := validationStore.RunValidations(ctx, v.runExecutableValidations, saveResources, v.resourcesDir)
+	observations := validationStore.RunValidations(ctx, v.runExecutableValidations, v.saveResources, v.outputsDir)
 	message.Title("\n💡 Findings", "")
 	findings := requirementStore.GenerateFindings(validationStore)
 
@@ -180,5 +179,47 @@ func (v *Validator) ValidateOnControlImplementations(ctx context.Context, contro
 		err = message.Table(header, rows, columnSize)
 	}
 
+	if v.runTests {
+		message.Title("\n🧪 Testing", "")
+		testReportsMap, err := validationStore.RunTests(ctx)
+		if err != nil {
+			message.Warnf("Error running tests: %v", err)
+		} else {
+			if len(testReportsMap) == 0 {
+				message.Warn("No tests found")
+			} else {
+				// Print test results
+				err = writeTestsToYaml(testReportsMap, v.outputsDir)
+				if err != nil {
+					message.Warnf("Error writing test results to file: %v", err)
+				}
+			}
+		}
+	}
+
 	return findings, observations, err
+}
+
+func writeTestsToYaml(testReportsMap map[string][]types.TestReport, dir string) error {
+	// Create a new markdown file
+	timeStr := time.Now().Format("2006-01-02-15-04-05")
+	file, err := os.Create(filepath.Join(dir, fmt.Sprintf("test-results-%s.md", timeStr)))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Convert testReportsMap to yaml
+	reportYaml, err := yaml.Marshal(testReportsMap)
+	if err != nil {
+		return err
+	}
+
+	// Write yaml to file
+	_, err = file.Write(reportYaml)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
