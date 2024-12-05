@@ -321,7 +321,6 @@ func ResolveProfileControls(profile *oscalTypes.Profile, profilePath, rootDir st
 					sourceControlMap[profile.UUID][id] = control
 				}
 			}
-
 		}
 	}
 
