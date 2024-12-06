@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -81,7 +81,7 @@ func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentResults, target string, summary, machine bool) error {
+func EvaluateAssessments(assessmentMap map[string]*oscalTypes.AssessmentResults, target string, summary, machine bool) error {
 	// Identify the threshold & latest for comparison
 	resultMap := oscal.FilterResults(assessmentMap)
 
@@ -103,7 +103,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes_1_1_2.AssessmentRe
 
 	// Write each file back in the case of modification
 	for filePath, assessment := range assessmentMap {
-		model := oscalTypes_1_1_2.OscalCompleteSchema{
+		model := oscalTypes.OscalCompleteSchema{
 			AssessmentResults: assessment,
 		}
 
@@ -241,12 +241,12 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 
 // Read many filepaths into a map[filepath]*AssessmentResults
 // Placing here until otherwise decided on value elsewhere
-func readManyAssessmentResults(fileArray []string) (map[string]*oscalTypes_1_1_2.AssessmentResults, error) {
+func readManyAssessmentResults(fileArray []string) (map[string]*oscalTypes.AssessmentResults, error) {
 	if len(fileArray) == 0 {
 		return nil, fmt.Errorf("no files provided for evaluation")
 	}
 
-	assessmentMap := make(map[string]*oscalTypes_1_1_2.AssessmentResults)
+	assessmentMap := make(map[string]*oscalTypes.AssessmentResults)
 	for _, fileString := range fileArray {
 		err := files.IsJsonOrYaml(fileString)
 		if err != nil {

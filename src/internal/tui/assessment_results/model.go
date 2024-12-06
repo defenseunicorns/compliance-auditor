@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
@@ -43,7 +43,7 @@ type Model struct {
 	help                  common.HelpModel
 	keys                  keys
 	focus                 focus
-	oscalAssessment       *oscalTypes_1_1_2.AssessmentResults
+	oscalAssessment       *oscalTypes.AssessmentResults
 	results               []result
 	resultsPicker         common.PickerModel
 	selectedResult        result
@@ -67,7 +67,7 @@ type ModelOpenMsg struct {
 type ModelCloseMsg struct{}
 type AssessmentUpdatedMsg struct{}
 
-func NewAssessmentResultsModel(assessmentResults *oscalTypes_1_1_2.AssessmentResults) Model {
+func NewAssessmentResultsModel(assessmentResults *oscalTypes.AssessmentResults) Model {
 	help := common.NewHelpModel(false)
 	help.OneLine = true
 	help.ShortHelp = shortHelpNoFocus
@@ -379,11 +379,11 @@ func (m *Model) Open(height, width int) {
 	m.updateSizing(height, width)
 }
 
-func (m *Model) GetAssessmentResults() *oscalTypes_1_1_2.AssessmentResults {
+func (m *Model) GetAssessmentResults() *oscalTypes.AssessmentResults {
 	return m.oscalAssessment
 }
 
-func (m *Model) UpdateWithAssessmentResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) {
+func (m *Model) UpdateWithAssessmentResults(assessmentResults *oscalTypes.AssessmentResults) {
 	var selectedResult result
 	m.oscalAssessment = assessmentResults
 
@@ -408,7 +408,7 @@ func (m *Model) UpdateWithAssessmentResults(assessmentResults *oscalTypes_1_1_2.
 	m.currentObservations = selectedResult.ObservationsRows
 }
 
-func (m *Model) MergeNewResults(newResults *oscalTypes_1_1_2.AssessmentResults) error {
+func (m *Model) MergeNewResults(newResults *oscalTypes.AssessmentResults) error {
 	if newResults != nil {
 		if m.oscalAssessment == nil {
 			m.UpdateWithAssessmentResults(newResults)

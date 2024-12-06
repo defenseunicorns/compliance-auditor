@@ -3,24 +3,24 @@ package composition
 import (
 	"fmt"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 )
 
 // ResourceStore is a store of resources.
 type ResourceStore struct {
-	existing  map[string]*oscalTypes_1_1_2.Resource
-	fetched   map[string]*oscalTypes_1_1_2.Resource
+	existing  map[string]*oscalTypes.Resource
+	fetched   map[string]*oscalTypes.Resource
 	hrefIdMap map[string][]string
 	composer  *Composer
 }
 
 // NewResourceStoreFromBackMatter creates a new resource store from the back matter of a component definition.
-func NewResourceStoreFromBackMatter(composer *Composer, backMatter *oscalTypes_1_1_2.BackMatter) *ResourceStore {
+func NewResourceStoreFromBackMatter(composer *Composer, backMatter *oscalTypes.BackMatter) *ResourceStore {
 	store := &ResourceStore{
-		existing:  make(map[string]*oscalTypes_1_1_2.Resource),
-		fetched:   make(map[string]*oscalTypes_1_1_2.Resource),
+		existing:  make(map[string]*oscalTypes.Resource),
+		fetched:   make(map[string]*oscalTypes.Resource),
 		hrefIdMap: make(map[string][]string),
 		composer:  composer,
 	}
@@ -35,30 +35,30 @@ func NewResourceStoreFromBackMatter(composer *Composer, backMatter *oscalTypes_1
 }
 
 // AddExisting adds a resource to the store that is already in the back matter.
-func (s *ResourceStore) AddExisting(resource *oscalTypes_1_1_2.Resource) {
+func (s *ResourceStore) AddExisting(resource *oscalTypes.Resource) {
 	s.existing[resource.UUID] = resource
 }
 
 // GetExisting returns the resource with the given ID, if it exists.
-func (s *ResourceStore) GetExisting(id string) (*oscalTypes_1_1_2.Resource, bool) {
+func (s *ResourceStore) GetExisting(id string) (*oscalTypes.Resource, bool) {
 	resource, ok := s.existing[id]
 	return resource, ok
 }
 
 // AddFetched adds a resource to the store that was fetched from a remote source.
-func (s *ResourceStore) AddFetched(resource *oscalTypes_1_1_2.Resource) {
+func (s *ResourceStore) AddFetched(resource *oscalTypes.Resource) {
 	s.fetched[resource.UUID] = resource
 }
 
 // GetFetched returns the resource that was fetched from a remote source with the given ID, if it exists.
-func (s *ResourceStore) GetFetched(id string) (*oscalTypes_1_1_2.Resource, bool) {
+func (s *ResourceStore) GetFetched(id string) (*oscalTypes.Resource, bool) {
 	resource, ok := s.fetched[id]
 	return resource, ok
 }
 
 // AllFetched returns all the resources that were fetched from a remote source.
-func (s *ResourceStore) AllFetched() []oscalTypes_1_1_2.Resource {
-	resources := make([]oscalTypes_1_1_2.Resource, 0, len(s.fetched))
+func (s *ResourceStore) AllFetched() []oscalTypes.Resource {
+	resources := make([]oscalTypes.Resource, 0, len(s.fetched))
 	for _, resource := range s.fetched {
 		resources = append(resources, *resource)
 	}
@@ -79,7 +79,7 @@ func (s *ResourceStore) GetHrefIds(href string) (ids []string, err error) {
 }
 
 // Get returns the resource with the given ID, if it exists.
-func (s *ResourceStore) Get(id string) (*oscalTypes_1_1_2.Resource, bool) {
+func (s *ResourceStore) Get(id string) (*oscalTypes.Resource, bool) {
 	resource, inExisting := s.GetExisting(id)
 	if inExisting {
 		return resource, true
@@ -97,7 +97,7 @@ func (s *ResourceStore) Has(id string) bool {
 }
 
 // AddFromLink adds resources from a link to the store.
-func (s *ResourceStore) AddFromLink(link *oscalTypes_1_1_2.Link, baseDir string) (ids []string, err error) {
+func (s *ResourceStore) AddFromLink(link *oscalTypes.Link, baseDir string) (ids []string, err error) {
 	if link == nil {
 		return nil, fmt.Errorf("link is nil")
 	}
@@ -119,7 +119,7 @@ func (s *ResourceStore) AddFromLink(link *oscalTypes_1_1_2.Link, baseDir string)
 }
 
 // fetchFromRemoteLink expects a link to a remote validation or validation template
-func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes_1_1_2.Link, baseDir string) (ids []string, err error) {
+func (s *ResourceStore) fetchFromRemoteLink(link *oscalTypes.Link, baseDir string) (ids []string, err error) {
 	wantedId := common.TrimIdPrefix(link.ResourceFragment)
 
 	validationBytes, err := network.Fetch(link.Href, network.WithBaseDir(baseDir))

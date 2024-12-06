@@ -8,7 +8,7 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -18,7 +18,7 @@ import (
 type ValidationStore struct {
 	backMatterMap  map[string]string
 	validationMap  map[string]*types.LulaValidation
-	observationMap map[string]*oscalTypes_1_1_2.Observation
+	observationMap map[string]*oscalTypes.Observation
 }
 
 // NewValidationStore creates a new validation store
@@ -26,16 +26,16 @@ func NewValidationStore() *ValidationStore {
 	return &ValidationStore{
 		backMatterMap:  make(map[string]string),
 		validationMap:  make(map[string]*types.LulaValidation),
-		observationMap: make(map[string]*oscalTypes_1_1_2.Observation),
+		observationMap: make(map[string]*oscalTypes.Observation),
 	}
 }
 
 // NewValidationStoreFromBackMatter creates a new validation store from a back matter
-func NewValidationStoreFromBackMatter(backMatter oscalTypes_1_1_2.BackMatter) *ValidationStore {
+func NewValidationStoreFromBackMatter(backMatter oscalTypes.BackMatter) *ValidationStore {
 	return &ValidationStore{
 		backMatterMap:  oscal.BackMatterToMap(backMatter),
 		validationMap:  make(map[string]*types.LulaValidation),
-		observationMap: make(map[string]*oscalTypes_1_1_2.Observation),
+		observationMap: make(map[string]*oscalTypes.Observation),
 	}
 }
 
@@ -107,8 +107,8 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, resourcesDir string) []oscalTypes_1_1_2.Observation {
-	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
+func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, resourcesDir string) []oscalTypes.Observation {
+	observations := make([]oscalTypes.Observation, 0, len(v.validationMap))
 
 	for k, val := range v.validationMap {
 		if val != nil {
@@ -163,7 +163,7 @@ func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, 
 			}
 
 			// Create an observation
-			relevantEvidence := &[]oscalTypes_1_1_2.RelevantEvidence{
+			relevantEvidence := &[]oscalTypes.RelevantEvidence{
 				{
 					Description: fmt.Sprintf("Result: %s\n", val.Result.State),
 					Remarks:     remarks,
@@ -180,11 +180,11 @@ func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, 
 }
 
 // GetObservation returns the observation with the given ID as well as pass status
-func (v *ValidationStore) GetRelatedObservation(id string) (oscalTypes_1_1_2.RelatedObservation, bool) {
+func (v *ValidationStore) GetRelatedObservation(id string) (oscalTypes.RelatedObservation, bool) {
 	trimmedId := common.TrimIdPrefix(id)
 	observation, ok := v.observationMap[trimmedId]
 	if !ok {
-		return oscalTypes_1_1_2.RelatedObservation{}, false
+		return oscalTypes.RelatedObservation{}, false
 	}
 	pass := false
 
@@ -200,7 +200,7 @@ func (v *ValidationStore) GetRelatedObservation(id string) (oscalTypes_1_1_2.Rel
 		}
 	}
 
-	return oscalTypes_1_1_2.RelatedObservation{
+	return oscalTypes.RelatedObservation{
 		ObservationUuid: observation.UUID,
 	}, pass
 }

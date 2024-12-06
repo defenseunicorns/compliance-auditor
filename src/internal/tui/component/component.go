@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	pkgcommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
@@ -14,19 +14,19 @@ import (
 )
 
 type component struct {
-	OscalComponent   *oscalTypes_1_1_2.DefinedComponent
+	OscalComponent   *oscalTypes.DefinedComponent
 	Uuid, Name, Desc string
 	Frameworks       []framework
 }
 
 type framework struct {
-	OscalFramework *oscalTypes_1_1_2.ControlImplementationSet
+	OscalFramework *oscalTypes.ControlImplementationSet
 	Uuid, Name     string
 	Controls       []control
 }
 
 type control struct {
-	OscalControl *oscalTypes_1_1_2.ImplementedRequirementControlImplementation
+	OscalControl *oscalTypes.ImplementedRequirementControlImplementation
 	Uuid, Name   string
 	Validations  []validationLink
 }
@@ -36,7 +36,7 @@ func (i control) Description() string { return i.Uuid }
 func (i control) FilterValue() string { return i.Name }
 
 type validationLink struct {
-	OscalLink  *oscalTypes_1_1_2.Link
+	OscalLink  *oscalTypes.Link
 	Text       string
 	Name       string
 	Validation pkgcommon.Validation
@@ -46,7 +46,7 @@ func (i validationLink) Title() string       { return i.Name }
 func (i validationLink) Description() string { return i.Text }
 func (i validationLink) FilterValue() string { return i.Name }
 
-func GetComponents(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) []component {
+func GetComponents(oscalComponent *oscalTypes.ComponentDefinition) []component {
 	components := make([]component, 0)
 
 	if oscalComponent != nil {

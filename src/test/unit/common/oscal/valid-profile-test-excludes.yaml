@@ -1,0 +1,16 @@
+profile:
+  imports:
+    - href: ./subdir/basic-profile.yaml
+      exclude-controls:
+        - with-ids:
+            - s1.1.1
+            - s2.1.1
+  merge:
+    as-is: true
+  metadata:
+    last-modified: 2024-10-09T22:11:59.770494477Z
+    oscal-version: 1.1.2
+    published: 2024-10-09T22:11:59.770494477Z
+    title: Profile
+    version: 0.0.1
+  uuid: 11a8a440-0ddf-4c80-9989-9427581ccf65

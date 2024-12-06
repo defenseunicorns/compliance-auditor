@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -33,8 +33,8 @@ func New(opts ...Option) (*Validator, error) {
 	return &validator, nil
 }
 
-func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes_1_1_2.AssessmentResults, err error) {
-	var oscalModel *oscalTypes_1_1_2.OscalCompleteSchema
+func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes.AssessmentResults, err error) {
+	var oscalModel *oscalTypes.OscalCompleteSchema
 	if v.composer == nil {
 		path = filepath.Clean(path)
 		data, err := os.ReadFile(path)
@@ -69,7 +69,7 @@ func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (as
 	return assessmentResult, nil
 }
 
-func (v *Validator) ValidateOnCompDef(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, target string) (results []oscalTypes_1_1_2.Result, err error) {
+func (v *Validator) ValidateOnCompDef(ctx context.Context, compDef *oscalTypes.ComponentDefinition, target string) (results []oscalTypes.Result, err error) {
 	// TODO: Should we execute the validation even if there are no comp-def/components, e.g., create an empty assessment-results object?
 
 	if compDef == nil {
@@ -92,7 +92,7 @@ func (v *Validator) ValidateOnCompDef(ctx context.Context, compDef *oscalTypes_1
 	}
 
 	// Get results of validation execution
-	results = make([]oscalTypes_1_1_2.Result, 0)
+	results = make([]oscalTypes.Result, 0)
 	if target != "" {
 		if controlImplementation, ok := controlImplementations[target]; ok {
 			findings, observations, err := v.ValidateOnControlImplementations(ctx, &controlImplementation, validationStore, target)
@@ -131,7 +131,7 @@ func (v *Validator) ValidateOnCompDef(ctx context.Context, compDef *oscalTypes_1
 	return results, nil
 }
 
-func (v *Validator) ValidateOnControlImplementations(ctx context.Context, controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes_1_1_2.Finding, []oscalTypes_1_1_2.Observation, error) {
+func (v *Validator) ValidateOnControlImplementations(ctx context.Context, controlImplementations *[]oscalTypes.ControlImplementationSet, validationStore *validationstore.ValidationStore, target string) (map[string]oscalTypes.Finding, []oscalTypes.Observation, error) {
 	// Create requirement store for all implemented requirements
 	requirementStore := requirementstore.NewRequirementStore(controlImplementations)
 	message.Title("\n🔍 Collecting Requirements and Validations for Target: ", target)
