@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -60,7 +60,7 @@ func GenerateReport(inputFile string, fileFormat string) error {
 }
 
 // Processes an OSCAL Model based on the model type
-func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string, composer *composition.Composer) error {
+func handleOSCALModel(oscalModel *oscalTypes.OscalModels, format string, composer *composition.Composer) error {
 	// Start a new spinner for the report generation process
 	spinner := message.NewProgressSpinner("Determining OSCAL model type")
 	modelType, err := oscal.GetOscalModel(oscalModel)
@@ -99,7 +99,7 @@ func handleOSCALModel(oscalModel *oscalTypes_1_1_2.OscalModels, format string, c
 }
 
 // Handler for Component Definition OSCAL files to create the report
-func handleComponentDefinition(componentDefinition *oscalTypes_1_1_2.ComponentDefinition, format string) error {
+func handleComponentDefinition(componentDefinition *oscalTypes.ComponentDefinition, format string) error {
 
 	controlMap := oscal.FilterControlImplementations(componentDefinition)
 	extractedData := ExtractControlIDs(controlMap)
@@ -114,7 +114,7 @@ func handleComponentDefinition(componentDefinition *oscalTypes_1_1_2.ComponentDe
 }
 
 // Gets the unique Control IDs from each source and framework in the OSCAL Component Definition
-func ExtractControlIDs(controlMap map[string][]oscalTypes_1_1_2.ControlImplementationSet) *ComponentDefinitionReportData {
+func ExtractControlIDs(controlMap map[string][]oscalTypes.ControlImplementationSet) *ComponentDefinitionReportData {
 	sourceMap, frameworkMap := SplitControlMap(controlMap)
 
 	sourceControlIDs := make(map[string]int)

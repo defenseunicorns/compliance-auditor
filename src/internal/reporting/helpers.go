@@ -1,12 +1,12 @@
 package reporting
 
 import (
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 // Split the default controlMap into framework and source maps for further processing
-func SplitControlMap(controlMap map[string][]oscalTypes_1_1_2.ControlImplementationSet) (sourceMap map[string]map[string]int, frameworkMap map[string]map[string]int) {
+func SplitControlMap(controlMap map[string][]oscalTypes.ControlImplementationSet) (sourceMap map[string]map[string]int, frameworkMap map[string]map[string]int) {
 	sourceMap = make(map[string]map[string]int)
 	frameworkMap = make(map[string]map[string]int)
 

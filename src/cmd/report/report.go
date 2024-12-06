@@ -42,7 +42,7 @@ func ReportCommand() *cobra.Command {
 	cmd.Flags().StringVar(&fileFormat, "file-format", "table", "File format of the report")
 	err := cmd.MarkFlagRequired("input-file")
 	if err != nil {
-		message.Fatal(err, "error initializing upgrade command flags")
+		message.Fatal(err, "error initializing report command flags")
 	}
 
 	return cmd
