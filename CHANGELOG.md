@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.13.0](https://github.com/defenseunicorns/lula/compare/v0.12.0...v0.13.0) (2024-12-06)
+
+
+### Features
+
+* **deps:** add support for OSCAL 1.1.3 as default ([#837](https://github.com/defenseunicorns/lula/issues/837)) ([255e8ff](https://github.com/defenseunicorns/lula/commit/255e8ff5179098d9ddeb597fae929bd9cc16ebed))
+* **profile:** resolve all controls in profile ([#818](https://github.com/defenseunicorns/lula/issues/818)) ([1f9872b](https://github.com/defenseunicorns/lula/commit/1f9872b2fe35fad6f98daa1aa66d2547a203a294))
+
+
+### Miscellaneous
+
+* cleanup API domain docs ([#828](https://github.com/defenseunicorns/lula/issues/828)) ([f124257](https://github.com/defenseunicorns/lula/commit/f12425756269b02ddf3f064315ce4e1af1b8265a))
+* declare top-level read permissions in workflows ([#830](https://github.com/defenseunicorns/lula/issues/830)) ([713a249](https://github.com/defenseunicorns/lula/commit/713a249da0e23dfce28fc8cc76f658c44125f866))
+* **deps:** update dependency go to v1.23.4 ([#831](https://github.com/defenseunicorns/lula/issues/831)) ([4a64581](https://github.com/defenseunicorns/lula/commit/4a64581773d8d2c4bbe3abfcd52c684e7bc8cc62))
+* **deps:** update github/codeql-action action to v3.27.6 ([#829](https://github.com/defenseunicorns/lula/issues/829)) ([c9be948](https://github.com/defenseunicorns/lula/commit/c9be948e9c3834f2e028f09d15d4c61e053922d7))
+* **deps:** update module github.com/charmbracelet/bubbletea to v1.2.4 ([#822](https://github.com/defenseunicorns/lula/issues/822)) ([12ffaf5](https://github.com/defenseunicorns/lula/commit/12ffaf52f6d4b1d98fec1d355003e1d8a39107f4))
+* **deps:** update module github.com/defenseunicorns/go-oscal to v0.6.2 ([#833](https://github.com/defenseunicorns/lula/issues/833)) ([5099e9c](https://github.com/defenseunicorns/lula/commit/5099e9cf623457bf44c71f74ecc397bb4e6e7be6))
+* **deps:** update module github.com/pterm/pterm to v0.12.80 ([#824](https://github.com/defenseunicorns/lula/issues/824)) ([bc506fc](https://github.com/defenseunicorns/lula/commit/bc506fc216b08d448a45fa1cd586af5d22a182d5))
+* **deps:** update module github.com/stretchr/testify to v1.10.0 ([#821](https://github.com/defenseunicorns/lula/issues/821)) ([21099ba](https://github.com/defenseunicorns/lula/commit/21099ba35d4221ac55a53427bb5b5379d898072e))
+
 ## [0.12.0](https://github.com/defenseunicorns/lula/compare/v0.11.0...v0.12.0) (2024-11-23)
 
 
