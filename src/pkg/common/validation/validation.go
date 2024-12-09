@@ -205,7 +205,7 @@ func writeTestsToYaml(testReportsMap map[string]types.LulaValidationTestReport, 
 	targetBase := filepath.Base(target)
 	targetClean := cleanString(targetBase)
 
-	filename := fmt.Sprintf("test-results-%s-%s.md", targetClean, timeStr)
+	filename := fmt.Sprintf("test-results-%s-%s.yaml", targetClean, timeStr)
 	filepath := filepath.Join(dir, filename)
 
 	// Convert testReportsMap to yaml

@@ -128,17 +128,56 @@ Which will delete the existing labels map and then add an empty map, such that t
 
 ## Executing Tests
 
-Tests can be executed by specifying the `--run-tests` flag when running `lula dev validate`. E.g.,
+Tests can be executed by specifying the `--run-tests` flag when running both `lula validate` and `lula dev validate`, however the output of either will be slightly different.
 
+### lula validate
+When running `lula validate ... --run-tests`, a test results summary will be printed to the console, while the test results yaml file will be written to the same directory as the output data (either default to directory of the `component-definition` source file or to the directory specified by the `--output-file` flag).
+
+E.g., Running validate on a component-definition with two validations, one with tests and one without:
+```sh
+lula validate -f ./component.yaml --run-tests
+```
+
+Will print the test results summary to the console as:
+```sh
+Test Results: 1 passing, 0 failing, 1 missing
+```
+
+And will print a test results yaml file to the same directory as the output data:
+```yaml
+61ec8808-f0f4-4b35-9a5b-4d7516053534:
+    name: test-validation
+    test-results: []
+82099492-0601-4287-a2d1-cc94c49dca9b:
+    name: test-validation-with-tests
+    test-results:
+        - test-name: change-image-name
+          pass: true
+          result: not-satisfied
+        - test-name: no-containers
+          pass: true
+          result: not-satisfied
+```
+> Note that `61ec8808-f0f4-4b35-9a5b-4d7516053534` is the UUID of the validation without tests, and `82099492-0601-4287-a2d1-cc94c49dca9b` is the UUID of the validation with tests.
+
+### lula dev validate
+When executing `lula dev validate ... --run-tests`, the test results data will be written directly to console.
+
+E.g., Running dev validate on a Lula validation with two tests:
 ```sh
 lula dev validate -f ./validation.yaml --run-tests
 ```
 
-This will execute the tests and print the test results to the console. 
+Will print the test results to the console as:
+```sh
+  ✔  Pass: change-image-name
+  •  Result: not-satisfied
+  ✔  Pass: no-containers
+  •  Result: not-satisfied
+```
 
 To aid in debugging, the `--print-test-resources` flag can be used to print the resources used for each test to the validation directory, the filenames will be `<test-name>.json`.. E.g.,
 
 ```sh
 lula dev validate -f ./validation.yaml --run-tests --print-test-resources
 ```
-
