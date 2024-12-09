@@ -5,7 +5,7 @@ import (
 	"sort"
 	"testing"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
@@ -16,22 +16,22 @@ func TestUpdateProps(t *testing.T) {
 		propName      string
 		propNamespace string
 		propValue     string
-		props         *[]oscalTypes_1_1_2.Property
-		want          *[]oscalTypes_1_1_2.Property
+		props         *[]oscalTypes.Property
+		want          *[]oscalTypes.Property
 	}{
 		{
 			name:          "Update existing property",
 			propName:      "generation",
 			propNamespace: oscal.LULA_NAMESPACE,
 			propValue:     "lula gen component <updated-cmd>",
-			props: &[]oscalTypes_1_1_2.Property{
+			props: &[]oscalTypes.Property{
 				{
 					Name:  "generation",
 					Ns:    "https://docs.lula.dev/ns",
 					Value: "lula gen component <original-cmd>",
 				},
 			},
-			want: &[]oscalTypes_1_1_2.Property{
+			want: &[]oscalTypes.Property{
 				{
 					Name:  "generation",
 					Ns:    "https://docs.lula.dev/oscal/ns",
@@ -44,14 +44,14 @@ func TestUpdateProps(t *testing.T) {
 			propName:      "target",
 			propNamespace: oscal.LULA_NAMESPACE,
 			propValue:     "test",
-			props: &[]oscalTypes_1_1_2.Property{
+			props: &[]oscalTypes.Property{
 				{
 					Name:  "generation",
 					Ns:    "https://docs.lula.dev/ns",
 					Value: "lula gen component <original-cmd>",
 				},
 			},
-			want: &[]oscalTypes_1_1_2.Property{
+			want: &[]oscalTypes.Property{
 				{
 					Name:  "generation",
 					Ns:    "https://docs.lula.dev/ns",
@@ -69,14 +69,14 @@ func TestUpdateProps(t *testing.T) {
 			propName:      "target",
 			propNamespace: oscal.LULA_NAMESPACE,
 			propValue:     "test",
-			props: &[]oscalTypes_1_1_2.Property{
+			props: &[]oscalTypes.Property{
 				{
 					Name:  "target",
 					Ns:    "https://some-other-ns.com",
 					Value: "test",
 				},
 			},
-			want: &[]oscalTypes_1_1_2.Property{
+			want: &[]oscalTypes.Property{
 				{
 					Name:  "target",
 					Ns:    "https://some-other-ns.com",
@@ -94,8 +94,8 @@ func TestUpdateProps(t *testing.T) {
 			propName:      "target",
 			propNamespace: oscal.LULA_NAMESPACE,
 			propValue:     "test",
-			props:         &[]oscalTypes_1_1_2.Property{},
-			want: &[]oscalTypes_1_1_2.Property{
+			props:         &[]oscalTypes.Property{},
+			want: &[]oscalTypes.Property{
 				{
 					Name:  "target",
 					Ns:    "https://docs.lula.dev/oscal/ns",
@@ -121,7 +121,7 @@ func TestGetProps(t *testing.T) {
 		name          string
 		propName      string
 		propNamespace string
-		props         *[]oscalTypes_1_1_2.Property
+		props         *[]oscalTypes.Property
 		want          bool
 		wantValue     string
 	}{
@@ -129,7 +129,7 @@ func TestGetProps(t *testing.T) {
 			name:          "Get existing property",
 			propName:      "target",
 			propNamespace: oscal.LULA_NAMESPACE,
-			props: &[]oscalTypes_1_1_2.Property{
+			props: &[]oscalTypes.Property{
 				{
 					Name:  "target",
 					Ns:    oscal.LULA_NAMESPACE,
@@ -143,7 +143,7 @@ func TestGetProps(t *testing.T) {
 			name:          "Get existing property with old namespace",
 			propName:      "target",
 			propNamespace: oscal.LULA_NAMESPACE,
-			props: &[]oscalTypes_1_1_2.Property{
+			props: &[]oscalTypes.Property{
 				{
 					Name:  "target",
 					Ns:    "https://docs.lula.dev/ns",
@@ -157,7 +157,7 @@ func TestGetProps(t *testing.T) {
 			name:          "Don't get property",
 			propName:      "target",
 			propNamespace: oscal.LULA_NAMESPACE,
-			props: &[]oscalTypes_1_1_2.Property{
+			props: &[]oscalTypes.Property{
 				{
 					Name:  "target",
 					Ns:    "https://some-other-ns.com",
@@ -243,12 +243,12 @@ func TestSortControls(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		controls []oscalTypes_1_1_2.Control
-		expected []oscalTypes_1_1_2.Control
+		controls []oscalTypes.Control
+		expected []oscalTypes.Control
 	}{
 		{
 			name: "Sort controls with XX-##.## format 1",
-			controls: []oscalTypes_1_1_2.Control{
+			controls: []oscalTypes.Control{
 				{
 					Title: "ac-14",
 				},
@@ -262,7 +262,7 @@ func TestSortControls(t *testing.T) {
 					Title: "ac-4.4",
 				},
 			},
-			expected: []oscalTypes_1_1_2.Control{
+			expected: []oscalTypes.Control{
 				{
 					Title: "ac-4",
 				},

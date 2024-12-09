@@ -3,7 +3,7 @@ package oscal_test
 import (
 	"testing"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -13,50 +13,50 @@ func TestGetOscalModel(t *testing.T) {
 	t.Parallel()
 
 	type TestCase struct {
-		Model     oscalTypes_1_1_2.OscalModels
+		Model     oscalTypes.OscalModels
 		ModelType string
 	}
 
 	testCases := []TestCase{
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				Catalog: &oscalTypes_1_1_2.Catalog{},
+			Model: oscalTypes.OscalModels{
+				Catalog: &oscalTypes.Catalog{},
 			},
 			ModelType: "catalog",
 		},
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				Profile: &oscalTypes_1_1_2.Profile{},
+			Model: oscalTypes.OscalModels{
+				Profile: &oscalTypes.Profile{},
 			},
 			ModelType: "profile",
 		},
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				ComponentDefinition: &oscalTypes_1_1_2.ComponentDefinition{},
+			Model: oscalTypes.OscalModels{
+				ComponentDefinition: &oscalTypes.ComponentDefinition{},
 			},
 			ModelType: "component",
 		},
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				SystemSecurityPlan: &oscalTypes_1_1_2.SystemSecurityPlan{},
+			Model: oscalTypes.OscalModels{
+				SystemSecurityPlan: &oscalTypes.SystemSecurityPlan{},
 			},
 			ModelType: "system-security-plan",
 		},
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				AssessmentPlan: &oscalTypes_1_1_2.AssessmentPlan{},
+			Model: oscalTypes.OscalModels{
+				AssessmentPlan: &oscalTypes.AssessmentPlan{},
 			},
 			ModelType: "assessment-plan",
 		},
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				AssessmentResults: &oscalTypes_1_1_2.AssessmentResults{},
+			Model: oscalTypes.OscalModels{
+				AssessmentResults: &oscalTypes.AssessmentResults{},
 			},
 			ModelType: "assessment-results",
 		},
 		{
-			Model: oscalTypes_1_1_2.OscalModels{
-				PlanOfActionAndMilestones: &oscalTypes_1_1_2.PlanOfActionAndMilestones{},
+			Model: oscalTypes.OscalModels{
+				PlanOfActionAndMilestones: &oscalTypes.PlanOfActionAndMilestones{},
 			},
 			ModelType: "poam",
 		},
@@ -107,7 +107,7 @@ func TestInjectIntoOSCALModel(t *testing.T) {
 			expectedBytes := loadTestData(t, tt.expectedPath)
 
 			// Convert the test data to expected types
-			var targetModel oscalTypes_1_1_2.OscalCompleteSchema
+			var targetModel oscalTypes.OscalCompleteSchema
 			if err := yaml.Unmarshal(targetBytes, &targetModel); err != nil {
 				t.Fatalf("yaml.Unmarshal failed: %v", err)
 			}
@@ -115,7 +115,7 @@ func TestInjectIntoOSCALModel(t *testing.T) {
 			if err := yaml.Unmarshal(subsetBytes, &subsetMap); err != nil {
 				t.Fatalf("yaml.Unmarshal failed: %v", err)
 			}
-			var expectedModel oscalTypes_1_1_2.OscalCompleteSchema
+			var expectedModel oscalTypes.OscalCompleteSchema
 			if err := yaml.Unmarshal(expectedBytes, &expectedModel); err != nil {
 				t.Fatalf("yaml.Unmarshal failed: %v", err)
 			}

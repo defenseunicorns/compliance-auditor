@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
@@ -14,7 +14,7 @@ import (
 
 type RequirementStore struct {
 	requirementMap map[string]oscal.Requirement
-	findingMap     map[string]oscalTypes_1_1_2.Finding
+	findingMap     map[string]oscalTypes.Finding
 }
 
 type Stats struct {
@@ -26,10 +26,10 @@ type Stats struct {
 }
 
 // NewRequirementStore creates a new requirement store from component defintion
-func NewRequirementStore(controlImplementations *[]oscalTypes_1_1_2.ControlImplementationSet) *RequirementStore {
+func NewRequirementStore(controlImplementations *[]oscalTypes.ControlImplementationSet) *RequirementStore {
 	return &RequirementStore{
 		requirementMap: oscal.ControlImplementationstToRequirementsMap(controlImplementations),
-		findingMap:     make(map[string]oscalTypes_1_1_2.Finding),
+		findingMap:     make(map[string]oscalTypes.Finding),
 	}
 }
 
@@ -58,11 +58,11 @@ func (r *RequirementStore) ResolveLulaValidations(validationStore *validationsto
 }
 
 // GenerateFindings generates the findings in the store
-func (r *RequirementStore) GenerateFindings(validationStore *validationstore.ValidationStore) map[string]oscalTypes_1_1_2.Finding {
+func (r *RequirementStore) GenerateFindings(validationStore *validationstore.ValidationStore) map[string]oscalTypes.Finding {
 	// For each implemented requirement and linked validation, create a finding/observation
 	for _, requirement := range r.requirementMap {
 		// This should produce a finding - check if an existing finding for the control-id has been processed
-		var finding oscalTypes_1_1_2.Finding
+		var finding oscalTypes.Finding
 		var pass, fail int
 
 		// A single finding should be "control-id centric"
@@ -70,7 +70,7 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 			finding = r.findingMap[requirement.ImplementedRequirement.ControlId]
 			finding.Description += fmt.Sprintf("Control Implementation: %s / Implemented Requirement: %s\n%s\n", requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.UUID, requirement.ImplementedRequirement.Description)
 		} else {
-			finding = oscalTypes_1_1_2.Finding{
+			finding = oscalTypes.Finding{
 				UUID:        uuid.NewUUID(),
 				Title:       fmt.Sprintf("Validation Result - Control: %s", requirement.ImplementedRequirement.ControlId),
 				Description: fmt.Sprintf("Control Implementation: %s / Implemented Requirement: %s\n%s\n", requirement.ControlImplementation.UUID, requirement.ImplementedRequirement.UUID, requirement.ImplementedRequirement.Description),
@@ -78,7 +78,7 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 		}
 
 		if requirement.ImplementedRequirement.Links != nil {
-			relatedObservations := make([]oscalTypes_1_1_2.RelatedObservation, 0, len(*requirement.ImplementedRequirement.Links))
+			relatedObservations := make([]oscalTypes.RelatedObservation, 0, len(*requirement.ImplementedRequirement.Links))
 			for _, link := range *requirement.ImplementedRequirement.Links {
 				observation, passBool := validationStore.GetRelatedObservation(link.Href)
 				relatedObservations = append(relatedObservations, observation)
@@ -106,8 +106,8 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 			state = "not-satisfied"
 		}
 
-		finding.Target = oscalTypes_1_1_2.FindingTarget{
-			Status: oscalTypes_1_1_2.ObjectiveStatus{
+		finding.Target = oscalTypes.FindingTarget{
+			Status: oscalTypes.ObjectiveStatus{
 				State: state,
 			},
 			TargetId: requirement.ImplementedRequirement.ControlId,

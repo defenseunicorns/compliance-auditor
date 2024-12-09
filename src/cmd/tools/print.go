@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -121,7 +121,7 @@ func init() {
 	toolsCmd.AddCommand(PrintCommand())
 }
 
-func PrintResources(assessment *oscalTypes_1_1_2.AssessmentResults, observationUuid, assessmentDir, outputFile string) error {
+func PrintResources(assessment *oscalTypes.AssessmentResults, observationUuid, assessmentDir, outputFile string) error {
 	if assessment == nil {
 		return fmt.Errorf("assessment is nil")
 	}
@@ -168,7 +168,7 @@ func PrintResources(assessment *oscalTypes_1_1_2.AssessmentResults, observationU
 	return nil
 }
 
-func PrintValidation(component *oscalTypes_1_1_2.ComponentDefinition, assessment *oscalTypes_1_1_2.AssessmentResults, observationUuid, outputFile string) error {
+func PrintValidation(component *oscalTypes.ComponentDefinition, assessment *oscalTypes.AssessmentResults, observationUuid, outputFile string) error {
 	if component == nil {
 		return fmt.Errorf("component definition is nil")
 	}

@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,7 @@ const (
 )
 
 func TestComposeFromPath(t *testing.T) {
-	test := func(t *testing.T, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
+	test := func(t *testing.T, path string, opts ...composition.Option) (*oscalTypes.OscalCompleteSchema, error) {
 		t.Helper()
 		ctx := context.Background()
 
@@ -181,7 +181,7 @@ func TestComposeFromPath(t *testing.T) {
 }
 
 func TestComposeComponentDefinitions(t *testing.T) {
-	test := func(t *testing.T, compDef *oscalTypes_1_1_2.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
+	test := func(t *testing.T, compDef *oscalTypes.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes.OscalCompleteSchema, error) {
 		t.Helper()
 		ctx := context.Background()
 
@@ -198,7 +198,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 			return nil, err
 		}
 
-		return &oscalTypes_1_1_2.OscalCompleteSchema{
+		return &oscalTypes.OscalCompleteSchema{
 			ComponentDefinition: compDef,
 		}, nil
 	}
@@ -324,7 +324,7 @@ func TestComposeComponentDefinitions(t *testing.T) {
 }
 
 func TestComposeComponentValidations(t *testing.T) {
-	test := func(t *testing.T, compDef *oscalTypes_1_1_2.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes_1_1_2.OscalCompleteSchema, error) {
+	test := func(t *testing.T, compDef *oscalTypes.ComponentDefinition, path string, opts ...composition.Option) (*oscalTypes.OscalCompleteSchema, error) {
 		t.Helper()
 		ctx := context.Background()
 
@@ -341,7 +341,7 @@ func TestComposeComponentValidations(t *testing.T) {
 			return nil, err
 		}
 
-		return &oscalTypes_1_1_2.OscalCompleteSchema{
+		return &oscalTypes.OscalCompleteSchema{
 			ComponentDefinition: compDef,
 		}, nil
 	}
@@ -407,13 +407,13 @@ func TestComposeComponentValidations(t *testing.T) {
 	})
 }
 
-func getComponentDef(path string, t *testing.T) *oscalTypes_1_1_2.ComponentDefinition {
+func getComponentDef(path string, t *testing.T) *oscalTypes.ComponentDefinition {
 	compDef, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Error reading component definition file: %v", err)
 	}
 
-	var oscalModel oscalTypes_1_1_2.OscalModels
+	var oscalModel oscalTypes.OscalModels
 	if err := yaml.Unmarshal(compDef, &oscalModel); err != nil {
 		t.Fatalf("Error unmarshalling component definition: %v", err)
 	}

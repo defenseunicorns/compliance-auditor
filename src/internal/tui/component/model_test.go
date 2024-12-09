@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
@@ -150,7 +150,7 @@ func TestEditComponentDefinitionModel(t *testing.T) {
 	model.UpdateDescription(testDescription)
 
 	// Create OSCAL model
-	mdl := &oscalTypes_1_1_2.OscalCompleteSchema{
+	mdl := &oscalTypes.OscalCompleteSchema{
 		ComponentDefinition: model.GetComponentDefinition(),
 	}
 

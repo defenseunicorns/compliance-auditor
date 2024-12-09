@@ -9,11 +9,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
-func OscalFromPath(t *testing.T, path string) *oscalTypes_1_1_2.OscalCompleteSchema {
+func OscalFromPath(t *testing.T, path string) *oscalTypes.OscalCompleteSchema {
 	t.Helper()
 	path = filepath.Clean(path)
 	data, err := os.ReadFile(path)

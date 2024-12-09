@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -34,7 +34,7 @@ type ValidationCompleteMsg struct {
 	Err error
 }
 type ValidationDataMsg struct {
-	AssessmentResults *oscalTypes_1_1_2.AssessmentResults
+	AssessmentResults *oscalTypes.AssessmentResults
 }
 type ValidateCloseMsg struct{}
 
@@ -45,16 +45,16 @@ type ValidateModel struct {
 	validatable       bool
 	target            string
 	content           string
-	oscalComponent    *oscalTypes_1_1_2.ComponentDefinition
-	controlImplSet    []oscalTypes_1_1_2.ControlImplementationSet
+	oscalComponent    *oscalTypes.ComponentDefinition
+	controlImplSet    []oscalTypes.ControlImplementationSet
 	validationStore   *validationstore.ValidationStore
-	assessmentResults *oscalTypes_1_1_2.AssessmentResults
+	assessmentResults *oscalTypes.AssessmentResults
 	help              common.HelpModel
 	height            int
 	width             int
 }
 
-func NewValidateModel(oscalComponent *oscalTypes_1_1_2.ComponentDefinition) ValidateModel {
+func NewValidateModel(oscalComponent *oscalTypes.ComponentDefinition) ValidateModel {
 	help := common.NewHelpModel(true)
 	help.ShortHelp = []key.Binding{common.CommonKeys.Confirm, common.CommonKeys.Cancel}
 
@@ -208,7 +208,7 @@ func (m *ValidateModel) updateSizing(height, width int) {
 	m.width = common.Max(width, minimumWidth)
 }
 
-func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*oscalTypes_1_1_2.AssessmentResults, error) {
+func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*oscalTypes.AssessmentResults, error) {
 	validator, err := validation.New(
 		validation.WithAllowExecution(runExecutable, true),
 	)
@@ -216,7 +216,7 @@ func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*osca
 		return nil, err
 	}
 
-	results := make([]oscalTypes_1_1_2.Result, 0)
+	results := make([]oscalTypes.Result, 0)
 	if len(m.controlImplSet) > 0 {
 		findings, observations, _ := validator.ValidateOnControlImplementations(context.Background(), &m.controlImplSet, m.validationStore, target)
 		result, err := oscal.CreateResult(findings, observations)

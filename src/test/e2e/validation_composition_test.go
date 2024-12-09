@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
@@ -98,7 +98,7 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		}
 	}
 
-	var oscalModel oscalTypes_1_1_2.OscalCompleteSchema
+	var oscalModel oscalTypes.OscalCompleteSchema
 	err = yaml.Unmarshal(compDefBytes, &oscalModel)
 	if err != nil {
 		t.Error(err)

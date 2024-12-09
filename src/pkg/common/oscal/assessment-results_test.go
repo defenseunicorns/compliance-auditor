@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -17,41 +17,41 @@ import (
 
 // Create re-usable findings and observations
 // use those in tests to generate test assessment results
-var findingMapPass = map[string]oscalTypes_1_1_2.Finding{
+var findingMapPass = map[string]oscalTypes.Finding{
 	"ID-1": {
-		Target: oscalTypes_1_1_2.FindingTarget{
+		Target: oscalTypes.FindingTarget{
 			TargetId: "ID-1",
-			Status: oscalTypes_1_1_2.ObjectiveStatus{
+			Status: oscalTypes.ObjectiveStatus{
 				State: "satisfied",
 			},
 		},
 	},
 }
 
-var findingMapFail = map[string]oscalTypes_1_1_2.Finding{
+var findingMapFail = map[string]oscalTypes.Finding{
 	"ID-1": {
-		Target: oscalTypes_1_1_2.FindingTarget{
+		Target: oscalTypes.FindingTarget{
 			TargetId: "ID-1",
-			Status: oscalTypes_1_1_2.ObjectiveStatus{
+			Status: oscalTypes.ObjectiveStatus{
 				State: "not-satisfied",
 			},
 		},
 	},
 }
 
-var findings = []oscalTypes_1_1_2.Finding{
+var findings = []oscalTypes.Finding{
 	{
-		Target: oscalTypes_1_1_2.FindingTarget{
+		Target: oscalTypes.FindingTarget{
 			TargetId: "ID-1",
-			Status: oscalTypes_1_1_2.ObjectiveStatus{
+			Status: oscalTypes.ObjectiveStatus{
 				State: "satisfied",
 			},
 		},
 	},
 	{
-		Target: oscalTypes_1_1_2.FindingTarget{
+		Target: oscalTypes.FindingTarget{
 			TargetId: "ID-2",
-			Status: oscalTypes_1_1_2.ObjectiveStatus{
+			Status: oscalTypes.ObjectiveStatus{
 				State: "not-satisfied",
 			},
 		},
@@ -59,7 +59,7 @@ var findings = []oscalTypes_1_1_2.Finding{
 }
 
 // Delineate between these two observations based on the description
-var observations = []oscalTypes_1_1_2.Observation{
+var observations = []oscalTypes.Observation{
 	{
 		Collected:   time.Now(),
 		Methods:     []string{"TEST"},
@@ -80,11 +80,11 @@ func TestFilterResults(t *testing.T) {
 	// Expecting an error when evaluating assessment without results
 	t.Run("Handle invalid assessment containing no results", func(t *testing.T) {
 
-		var assessment = &oscalTypes_1_1_2.AssessmentResults{
+		var assessment = &oscalTypes.AssessmentResults{
 			UUID: uuid.NewUUID(),
 		}
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
 			"valid.yaml": assessment,
 		}
 
@@ -103,13 +103,13 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{result})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
 			"valid.yaml": assessment,
 		}
 
@@ -131,7 +131,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{result})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{result})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -141,13 +141,13 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultSecond})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultSecond})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
 			"valid.yaml":   assessment,
 			"invalid.yaml": assessment2,
 		}
@@ -183,7 +183,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -193,13 +193,13 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
 
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
 			"valid.yaml":   assessment,
 			"invalid.yaml": assessment2,
 		}
@@ -233,7 +233,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -243,7 +243,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -256,7 +256,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error merging assessment results: %v", err)
 		}
 
-		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
 			"valid.yaml": assessment,
 		}
 
@@ -289,7 +289,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultFail})
+		assessment, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultFail})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -299,7 +299,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("error generating result from findings and observations: %v", err)
 		}
 
-		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes_1_1_2.Result{resultPass})
+		assessment2, err := oscal.GenerateAssessmentResults([]oscalTypes.Result{resultPass})
 		if err != nil {
 			t.Fatalf("error generating assessment results: %v", err)
 		}
@@ -318,7 +318,7 @@ func TestFilterResults(t *testing.T) {
 			t.Fatalf("Expected backmatter to be nil")
 		}
 
-		var assessmentMap = map[string]*oscalTypes_1_1_2.AssessmentResults{
+		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
 			"valid.yaml": assessment,
 		}
 
@@ -355,14 +355,14 @@ func TestFilterResults(t *testing.T) {
 func TestEvaluateResultsPassing(t *testing.T) {
 	message.NoProgress = true
 
-	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockThresholdResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			findingMapPass["ID-1"],
 		},
 	}
 
-	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockEvaluationResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			findingMapPass["ID-1"],
 		},
 	}
@@ -381,14 +381,14 @@ func TestEvaluateResultsPassing(t *testing.T) {
 
 func TestEvaluateResultsFailed(t *testing.T) {
 	message.NoProgress = true
-	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockThresholdResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			findingMapPass["ID-1"],
 		},
 	}
 
-	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockEvaluationResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			findingMapFail["ID-1"],
 		},
 	}
@@ -411,12 +411,12 @@ func TestEvaluateResultsFailed(t *testing.T) {
 
 func TestEvaluateResultsNoFindings(t *testing.T) {
 	message.NoProgress = true
-	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{},
+	mockThresholdResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{},
 	}
 
-	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{},
+	mockEvaluationResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{},
 	}
 
 	status, _, err := oscal.EvaluateResults(&mockThresholdResult, &mockEvaluationResult)
@@ -433,14 +433,14 @@ func TestEvaluateResultsNoFindings(t *testing.T) {
 
 func TestEvaluateResultsNoThreshold(t *testing.T) {
 	message.NoProgress = true
-	mockThresholdResult := oscalTypes_1_1_2.Result{}
+	mockThresholdResult := oscalTypes.Result{}
 
-	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockEvaluationResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
@@ -456,12 +456,12 @@ func TestEvaluateResultsNoThreshold(t *testing.T) {
 
 func TestEvaluateResultsNewFindings(t *testing.T) {
 	message.NoProgress = true
-	mockThresholdResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockThresholdResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
@@ -469,28 +469,28 @@ func TestEvaluateResultsNewFindings(t *testing.T) {
 		},
 	}
 	// Adding two new findings
-	mockEvaluationResult := oscalTypes_1_1_2.Result{
-		Findings: &[]oscalTypes_1_1_2.Finding{
+	mockEvaluationResult := oscalTypes.Result{
+		Findings: &[]oscalTypes.Finding{
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: "ID-1",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
 			},
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: "ID-2",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: "satisfied",
 					},
 				},
 			},
 			{
-				Target: oscalTypes_1_1_2.FindingTarget{
+				Target: oscalTypes.FindingTarget{
 					TargetId: "ID-3",
-					Status: oscalTypes_1_1_2.ObjectiveStatus{
+					Status: oscalTypes.ObjectiveStatus{
 						State: "not-satisfied",
 					},
 				},
@@ -520,7 +520,7 @@ func TestMakeAssessmentResultsDeterministic(t *testing.T) {
 	slices.Reverse(observations)
 
 	// Will already be in reverse order
-	var results = []oscalTypes_1_1_2.Result{
+	var results = []oscalTypes.Result{
 		{
 			Start:        time.Now(),
 			UUID:         "d66c9509-cb92-4597-86f8-6e6623ea9154",
@@ -535,7 +535,7 @@ func TestMakeAssessmentResultsDeterministic(t *testing.T) {
 		},
 	}
 
-	var assessment = oscalTypes_1_1_2.AssessmentResults{
+	var assessment = oscalTypes.AssessmentResults{
 		Results: results,
 	}
 
@@ -597,8 +597,8 @@ func TestMakeAssessmentResultsDeterministic(t *testing.T) {
 func TestCreateResult(t *testing.T) {
 	tests := []struct {
 		name         string
-		findingMap   map[string]oscalTypes_1_1_2.Finding
-		observations []oscalTypes_1_1_2.Observation
+		findingMap   map[string]oscalTypes.Finding
+		observations []oscalTypes.Observation
 		expected     string
 	}{
 		{
