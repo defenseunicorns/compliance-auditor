@@ -108,8 +108,8 @@ func (v *ValidationStore) DryRun() (executable bool, msg string) {
 }
 
 // RunValidations runs the validations in the store
-func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, resourcesDir string) []oscalTypes.Observation {
-	observations := make([]oscalTypes_1_1_2.Observation, 0, len(v.validationMap))
+func (v *ValidationStore) RunValidations(ctx context.Context, confirmExecution, saveResources bool, outputsDir string) []oscalTypes.Observation {
+	observations := make([]oscalTypes.Observation, 0, len(v.validationMap))
 
 	for k, val := range v.validationMap {
 		if val != nil {
