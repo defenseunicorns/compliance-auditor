@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
@@ -289,4 +290,24 @@ func TestSortControls(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzCompareControls(f *testing.F) {
+	f.Add("apple", "anotherword")
+	f.Add("AC-1", "ac-1")
+	f.Add("ac-4.4", "ac-4.21")
+
+	f.Fuzz(func(t *testing.T, a string, b string) {
+		oscal.CompareControls(a, b)
+	})
+}
+
+func FuzzCompareControlsInt(f *testing.F) {
+	f.Add("apple", "anotherword")
+	f.Add("AC-1", "ac-1")
+	f.Add("ac-4.4", "ac-4.21")
+
+	f.Fuzz(func(t *testing.T, a string, b string) {
+		oscal.CompareControlsInt(a, b)
+	})
 }

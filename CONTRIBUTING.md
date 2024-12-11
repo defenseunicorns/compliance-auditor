@@ -50,13 +50,17 @@ Please follow our [Code of Conduct](CODE_OF_CONDUCT.md) to maintain a respectful
 - PRs must pass CI checks.
 - All commits must be signed.
 - PRs should have a related issue, except for trivial fixes.
+- Include tests that fail without your code, and pass with it.
+- Update the code comments, documentation, and examples: whatever is affected by your contribution.
 
-## Running Tests
+## Testing
 
 ### Automated Tests
 
-Automated tests will begin based on the paths you have edited in your Pull Request.
+Automated tests will begin based on the paths you have edited in your Pull Request. 
 ⚠️ NOTE: If you are an external third-party contributor, the pipelines won't run until a [CODEOWNER](CODEOWNERS) approves the pipeline run.
+
+The exception to the automated tests are fuzzing tests, which run nightly.
 
 ### Run Tests Locally
 
