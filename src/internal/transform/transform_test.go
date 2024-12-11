@@ -230,10 +230,8 @@ func TestDelete(t *testing.T) {
 		t.Helper()
 
 		node := createRNode(t, current)
-		filters, err := transform.BuildFilters(node, []string{})
-		require.NoError(t, err)
 
-		err = transform.Delete(node, lastSegment, filters)
+		err := transform.Delete(node, lastSegment, []yaml.Filter{yaml.PathGetter{Path: []string{"a"}}})
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
@@ -310,15 +308,13 @@ k3:
 
 // TestSetNodeAtPath tests the SetNodeAtPath function
 func TestSetNodeAtPath(t *testing.T) {
-	runTest := func(t *testing.T, pathSlice []string, nodeBytes, newNodeBytes, expected []byte) {
+	runTest := func(t *testing.T, pathParts []transform.PathPart, filters []yaml.Filter, lastItemIdx int, nodeBytes, newNodeBytes, expected []byte) {
 		t.Helper()
 
 		node := createRNode(t, nodeBytes)
 		newNode := createRNode(t, newNodeBytes)
-		filters, err := transform.BuildFilters(node, pathSlice)
-		require.NoError(t, err)
 
-		err = transform.SetNodeAtPath(node, newNode, filters, pathSlice)
+		err := transform.SetNodeAtPath(node, newNode, filters, pathParts, lastItemIdx)
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
@@ -329,21 +325,33 @@ func TestSetNodeAtPath(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		pathSlice []string
-		node      []byte
-		newNode   []byte
-		expected  []byte
+		name         string
+		pathParts    []transform.PathPart
+		filters      []yaml.Filter
+		finalItemIdx int
+		node         []byte
+		newNode      []byte
+		expected     []byte
+		expectErr    bool
+		errContains  string
 	}{
 		{
-			name:      "simple-path",
-			pathSlice: []string{"a", "b"},
+			name: "simple-path:a.b",
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeMap, Value: "a"},
+				{Type: transform.PartTypeMap, Value: "b"},
+			},
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.PathGetter{Path: []string{"b"}},
+			},
+			finalItemIdx: 1,
 			node: []byte(`
 a:
   b:
     c: z
   d: y
-e: 
+e:
   f: g
 `),
 			newNode: []byte(`
@@ -354,13 +362,21 @@ a:
   b:
     c: x
   d: y
-e: 
+e:
   f: g
 `),
 		},
 		{
-			name:      "path-with-index-filter",
-			pathSlice: []string{"a", "[b=y]"},
+			name: "path-with-filter:a[b=y]",
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeFilter, Value: "b=y"},
+			},
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.ElementMatcher{Keys: []string{"b"}, Values: []string{"y"}},
+			},
+			finalItemIdx: -1,
 			node: []byte(`
 a:
   - b: z
@@ -380,11 +396,41 @@ a:
     c: 3
 `),
 		},
+		{
+			name: "path-with-index-filter:a[0]",
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeIndex, Value: "0"},
+			},
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.ElementIndexer{Index: 0},
+			},
+			finalItemIdx: -1,
+			node: []byte(`
+a:
+  - b: z
+    c: 1
+  - b: y
+    c: 2
+`),
+			newNode: []byte(`
+b: y
+c: 3
+`),
+			expected: []byte(`
+a:
+  - b: y
+    c: 3
+  - b: y
+    c: 2
+`),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			runTest(t, tt.pathSlice, tt.node, tt.newNode, tt.expected)
+			runTest(t, tt.pathParts, tt.filters, tt.finalItemIdx, tt.node, tt.newNode, tt.expected)
 		})
 	}
 }
@@ -496,7 +542,7 @@ foo:
 		},
 		{
 			name:       "update-at-index-string-with-encapsulation",
-			path:       "foo.subset.[\"complex.key\"]",
+			path:       `foo.subset["complex.key"]`,
 			changeType: transform.ChangeTypeUpdate,
 			target: []byte(`
 foo:
@@ -508,6 +554,53 @@ foo:
 foo:
   subset:
     complex.key: new-value
+`),
+		},
+		{
+			name:       "update-at-int-index",
+			path:       "foo.subset.[0].test",
+			changeType: transform.ChangeTypeUpdate,
+			target: []byte(`
+foo:
+  subset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: some more data
+`),
+			value: "just a string to inject",
+			expected: []byte(`
+foo:
+  subset:
+    - uuid: 321
+      test: just a string to inject
+    - uuid: 123
+      test: some more data
+`),
+		},
+		{
+			name:       "update-at-int-index-last",
+			path:       "foo.subset.[0]",
+			changeType: transform.ChangeTypeUpdate,
+			target: []byte(`
+foo:
+  subset:
+    - uuid: 321
+      test: some data
+    - uuid: 123
+      test: some more data
+`),
+			valueByte: []byte(`
+uuid: new-uuid
+test: just a string to inject
+`),
+			expected: []byte(`
+foo:
+  subset:
+    - uuid: new-uuid
+      test: just a string to inject
+    - uuid: 123
+      test: some more data
 `),
 		},
 		{

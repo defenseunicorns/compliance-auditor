@@ -99,6 +99,10 @@ Which will point to the labels key of the first namespace. Additionally, a `[-]`
 >[!IMPORTANT]
 > The path will return only one item, the first item that matches the filters along the path. If no items match the filters, the path will return an empty map.
 
+#### Path Requirements (to re-word)
+* Use quotes for json keys that contain periods, e.g., `foo["some.key"=value]`. Do not escape the quotes... is this valid yaml?
+* Document incompatiblities? Or is that below... could i make a table?
+
 ### Change Type Behavior
 
 **Add**

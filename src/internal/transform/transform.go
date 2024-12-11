@@ -2,9 +2,8 @@ package transform
 
 import (
 	"fmt"
-	"strings"
+	"strconv"
 
-	"sigs.k8s.io/kustomize/kyaml/utils"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 	"sigs.k8s.io/kustomize/kyaml/yaml/merge2"
 
@@ -37,63 +36,73 @@ func CreateTransformTarget(parent map[string]interface{}) (*TransformTarget, err
 
 func (t *TransformTarget) ExecuteTransform(path string, cType ChangeType, value string, valueMap map[string]interface{}) (map[string]interface{}, error) {
 	rootNodeCopy := t.RootNode.Copy()
-	pathSlice, lastSegment, err := CalcPath(path, cType)
-	message.Debugf("Path Slice: %v\nLast Item: %s", pathSlice, lastSegment)
+
+	fullPathParts, finalItemIdx, err := ResolvePath(path, cType)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error resolving path: %v", err)
 	}
-	filters, err := BuildFilters(rootNodeCopy, pathSlice)
+	message.Debug("Path Parts: %v\n", fullPathParts)
+
+	filters, err := BuildFilters(rootNodeCopy, fullPathParts)
 	if err != nil {
 		return nil, fmt.Errorf("error building filters: %v", err)
 	}
 
+	// If change type is add or update and value is set -> add the value as a pathPart
 	switch cType {
 	case ChangeTypeAdd, ChangeTypeUpdate:
-		var newNode *yaml.RNode
+		if value != "" {
+			if finalItemIdx == -1 {
+				return nil, fmt.Errorf("invalid combination, cannot set a string value to a sequence")
+			}
+			if len(filters) == 0 {
+				return nil, fmt.Errorf("invalid path, cannot set a string value to root")
+			}
 
-		node, err := rootNodeCopy.Pipe(filters...)
-		if err != nil {
-			return nil, fmt.Errorf("error finding node in root: %v", err)
-		}
+			finalNode := yaml.NewScalarRNode(value)
+			filters = append(filters[:len(filters)-1], yaml.SetField(fullPathParts[finalItemIdx].Value, finalNode))
 
-		if valueMap != nil {
-			newNode, err = getNewNodeFromMap(lastSegment, valueMap)
+			err = rootNodeCopy.PipeE(filters...)
+			if err != nil {
+				return nil, fmt.Errorf("error setting value: %v", err)
+			}
+		} else {
+			// Find the node that will be merged into
+			node, err := rootNodeCopy.Pipe(filters...)
+			if err != nil {
+				return nil, fmt.Errorf("error finding node in root: %v", err)
+			}
+
+			newNode, err := yaml.FromMap(valueMap)
 			if err != nil {
 				return nil, fmt.Errorf("error creating new node from map: %v", err)
 			}
-		} else {
-			if len(pathSlice) == 0 {
-				return nil, fmt.Errorf("invalid path<>value, cannot set new node as string at root")
-			}
-			newNode, err = getNewNodeFromString(lastSegment, value)
-			if err != nil {
-				return nil, fmt.Errorf("error creating new node from string: %v", err)
-			}
-		}
 
-		if cType == ChangeTypeAdd {
-			err := Add(node, newNode)
-			if err != nil {
-				return nil, err
+			if cType == ChangeTypeAdd {
+				err := Add(node, newNode)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				node, err = Update(node, newNode)
+				if err != nil {
+					return nil, err
+				}
 			}
-		} else {
-			node, err = Update(node, newNode)
-			if err != nil {
-				return nil, err
-			}
-		}
 
-		// Set the node back into the target
-		if len(pathSlice) == 0 {
-			rootNodeCopy = node
-		} else {
-			if err := SetNodeAtPath(rootNodeCopy, node, filters, pathSlice); err != nil {
-				return nil, fmt.Errorf("error setting merged node back into target: %v", err)
+			// Set the merged node back into the target
+			if len(filters) == 0 {
+				// If root node is being replaced there will be no filters
+				rootNodeCopy = node
+			} else {
+				if err := SetNodeAtPath(rootNodeCopy, node, filters, fullPathParts, finalItemIdx); err != nil {
+					return nil, fmt.Errorf("error setting merged node back into target: %v", err)
+				}
 			}
 		}
 
 	case ChangeTypeDelete:
-		err := Delete(rootNodeCopy, lastSegment, filters)
+		err := Delete(rootNodeCopy, fullPathParts[finalItemIdx].Value, filters)
 		if err != nil {
 			return nil, err
 		}
@@ -128,98 +137,105 @@ func Update(node, newNode *yaml.RNode) (*yaml.RNode, error) {
 // Deletes data at the path
 func Delete(node *yaml.RNode, lastSegment string, filters []yaml.Filter) (err error) {
 	if lastSegment != "" {
-		filters = append(filters, yaml.FieldClearer{Name: lastSegment})
+		filters = append(filters[:len(filters)-1], yaml.FieldClearer{Name: lastSegment})
 		_, err = node.Pipe(filters...)
 		if err != nil {
 			return fmt.Errorf("error deleting node key: %v", err)
 		}
 	} else {
-		// TODO: If the last segment is a list, we need to delete the last item in the list
-		// doesn't appear there's a kyaml filter to help with this...
+		// TODO: If the last segment is a filter, find the corresponding item in the list and remove
 		return fmt.Errorf("cannot delete a list entry")
 	}
 
 	return nil
 }
 
-// SetNodeAtPath injects the updated node into rootNode according to the specified path
-func SetNodeAtPath(rootNode *yaml.RNode, node *yaml.RNode, filters []yaml.Filter, pathSlice []string) error {
-	// Check if the last segment is a filter, changes the behavior of the set function
-	lastSegment := pathSlice[len(pathSlice)-1]
+// SetNodeAtPath injects the updated node into rootNode according to the specified path and final node type
+func SetNodeAtPath(rootNode *yaml.RNode, node *yaml.RNode, filters []yaml.Filter, pathParts []PathPart, finalItemIdx int) error {
 
-	if isFilter, filterParts, err := extractFilter(pathSlice[len(pathSlice)-1]); err != nil {
-		return err
-	} else if isFilter {
-		keys := make([]string, 0)
-		values := make([]string, 0)
-		for _, part := range filterParts {
-			if isComposite(lastSegment) {
-				// idk how to handle this... should there be a composite filter here anyway?
-				return fmt.Errorf("composite filters not supported in final path segment")
-			} else {
-				keys = append(keys, part.key)
-				values = append(values, part.value)
+	if finalItemIdx == -1 {
+		lastPart := pathParts[len(pathParts)-1]
+		if lastPart.Type == PartTypeFilter {
+			// Last item is a filter
+			filterParts, err := extractFilter(lastPart.Value)
+			if err != nil {
+				return err
+			}
+
+			keys := make([]string, 0)
+			values := make([]string, 0)
+			for _, part := range filterParts {
+				if isComposite(lastPart.Value) {
+					return fmt.Errorf("composite filters not supported in final path segment")
+				} else {
+					keys = append(keys, part.key)
+					values = append(values, part.value)
+				}
+			}
+			filters = append(filters[:len(filters)-1], yaml.ElementSetter{
+				Element: node.Document(),
+				Keys:    keys,
+				Values:  values,
+			})
+
+		} else { // Last item is an index
+			// Length of filters should be > 1 to find the sequence node key
+			if len(filters) < 2 {
+				return fmt.Errorf("invalid path length")
+			}
+			sequenceKey := pathParts[len(pathParts)-2].Value
+
+			// Get all elements, update the node that matches, then set the sequence back in...
+			parentSeq, err := rootNode.Pipe(filters[:len(filters)-1]...)
+			if err != nil {
+				return err
+			}
+			if parentSeq == nil {
+				return fmt.Errorf("parent sequence is nil")
+			}
+
+			if parentSeq.YNode().Kind == yaml.SequenceNode {
+				// Get all nodes in the sequence
+				allSeqNodes, err := parentSeq.Elements()
+				if err != nil {
+					return err
+				}
+
+				// Convert the index to a usable int
+				var idx int
+				if lastPart.Value == "-" {
+					idx = len(allSeqNodes) - 1
+				} else {
+					idx, err = strconv.Atoi(lastPart.Value)
+					if err != nil {
+						return err
+					}
+				}
+
+				newSeqNode := &yaml.Node{
+					Kind:    yaml.SequenceNode,
+					Content: make([]*yaml.Node, 0),
+				}
+				for i, seqNode := range allSeqNodes {
+					if i == idx {
+						newSeqNode.Content = append(newSeqNode.Content, node.YNode())
+					} else {
+						newSeqNode.Content = append(newSeqNode.Content, seqNode.YNode())
+					}
+				}
+
+				filters = append(filters[:len(filters)-2], yaml.FieldSetter{
+					Name:  sequenceKey,
+					Value: yaml.NewRNode(newSeqNode),
+				})
 			}
 		}
-		filters = append(filters[:len(filters)-1], yaml.ElementSetter{
-			Element: node.Document(),
-			Keys:    keys,
-			Values:  values,
-		})
 	} else {
-		filters = append(filters[:len(filters)-1], yaml.SetField(lastSegment, node))
+		// Replace the last filter (which should be identifying the node) with a SetField filter
+		filters = append(filters[:len(filters)-1], yaml.SetField(pathParts[finalItemIdx].Value, node))
 	}
 
 	return rootNode.PipeE(filters...)
-}
-
-func CalcPath(path string, cType ChangeType) ([]string, string, error) {
-	var lastSegment string
-	pathSlice := cleanPath(utils.SmarterPathSplitter(path, "."))
-
-	// Path has rules for different change types
-	switch cType {
-	case ChangeTypeAdd, ChangeTypeUpdate:
-		// Add path is the last segment
-		if len(pathSlice) > 0 {
-			if isFilter(pathSlice[len(pathSlice)-1]) {
-				// If the last segment is a filter, the full path will be used as pathSlice
-				return pathSlice, "", nil
-			} else {
-				return pathSlice[:len(pathSlice)-1], pathSlice[len(pathSlice)-1], nil
-			}
-		}
-	case ChangeTypeDelete:
-		if len(pathSlice) == 0 {
-			return nil, "", fmt.Errorf("invalid path, cannot delete a root node")
-		} else {
-			if isFilter(pathSlice[len(pathSlice)-1]) {
-				// List entry cannot be deleted
-				return nil, "", fmt.Errorf("cannot delete a list entry")
-			} else {
-				return pathSlice[:len(pathSlice)-1], pathSlice[len(pathSlice)-1], nil
-			}
-		}
-	}
-
-	return pathSlice, lastSegment, nil
-}
-
-// cleanPath cleans the path slice
-func cleanPath(pathSlice []string) []string {
-	for i, p := range pathSlice {
-		// Remove escaped double quotes
-		p = strings.ReplaceAll(p, "\"", "")
-		pathSlice[i] = p
-
-		if isFilter(p) {
-			// If there's no equal, assume item is a key, NOT a filter
-			if !strings.Contains(p, "=") {
-				pathSlice[i] = strings.TrimPrefix(strings.TrimSuffix(p, "]"), "[")
-			}
-		}
-	}
-	return pathSlice
 }
 
 // getNodeFromMap returns the new node to merge from map input
@@ -231,18 +247,6 @@ func getNewNodeFromMap(lastSegment string, valueMap map[string]interface{}) (*ya
 	}
 
 	return yaml.FromMap(valueMap)
-}
-
-// getNodeFromString returns the new node to merge from string input
-func getNewNodeFromString(lastSegment string, valueStr string) (*yaml.RNode, error) {
-	// if the last segment of the pathSlice is a key, set it as the root map key
-	if lastSegment != "" {
-		return yaml.FromMap(map[string]interface{}{
-			lastSegment: valueStr,
-		})
-	} else {
-		return yaml.NewScalarRNode(valueStr), nil
-	}
 }
 
 // mergeYAMLNodes recursively merges the subset node into the target node
