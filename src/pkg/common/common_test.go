@@ -7,13 +7,15 @@ import (
 	"strings"
 	"testing"
 
+	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
+	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
+
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
-	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
-	"sigs.k8s.io/yaml"
 )
 
 const multiValidationPath = "../../test/e2e/scenarios/remote-validations/multi-validations.yaml"
@@ -525,4 +527,25 @@ func TestIsVersionValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzPrefix(f *testing.F) {
+	f.Add("uuid")
+	f.Add("149f0049-7a3c-4e4d-8431-bec3a55f31d9")
+
+	f.Fuzz(func(t *testing.T, a string) {
+		withPrefix := common.AddIdPrefix(a)
+		removed := common.TrimIdPrefix(withPrefix)
+		require.Equal(t, a, removed)
+	})
+}
+
+func FuzzReadValidationsFromYaml(f *testing.F) {
+	bytes, err := os.ReadFile(multiValidationPath)
+	require.NoError(f, err)
+	f.Add(bytes)
+
+	f.Fuzz(func(t *testing.T, a []byte) {
+		common.ReadValidationsFromYaml(a)
+	})
 }

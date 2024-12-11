@@ -12,6 +12,9 @@ import (
 	"strings"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	goversion "github.com/hashicorp/go-version"
+	"k8s.io/apimachinery/pkg/util/yaml"
+
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	"github.com/defenseunicorns/lula/src/pkg/domains/files"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
@@ -19,8 +22,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
-	goversion "github.com/hashicorp/go-version"
-	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 const (
