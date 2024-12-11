@@ -10,7 +10,7 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/template"
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -42,7 +42,7 @@ func New(opts ...Option) (*Composer, error) {
 }
 
 // ComposeFromPath composes an OSCAL model from a file path
-func (c *Composer) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes_1_1_2.OscalCompleteSchema, err error) {
+func (c *Composer) ComposeFromPath(ctx context.Context, path string) (model *oscalTypes.OscalCompleteSchema, err error) {
 	path = filepath.Clean(path)
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -71,7 +71,7 @@ func (c *Composer) ComposeFromPath(ctx context.Context, path string) (model *osc
 }
 
 // ComposeComponentDefinitions composes an OSCAL component definition by adding the remote resources to the back matter and updating with back matter links.
-func (c *Composer) ComposeComponentDefinitions(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
+func (c *Composer) ComposeComponentDefinitions(ctx context.Context, compDef *oscalTypes.ComponentDefinition, baseDir string) error {
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
 	}
@@ -86,12 +86,12 @@ func (c *Composer) ComposeComponentDefinitions(ctx context.Context, compDef *osc
 	// Components aren't required by oscal but are by merge?
 	// TODO: fix merge to match required OSCAL fields
 	if compDef.Components == nil {
-		compDef.Components = &[]oscalTypes_1_1_2.DefinedComponent{}
+		compDef.Components = &[]oscalTypes.DefinedComponent{}
 	}
 
 	// Same as above
 	if compDef.BackMatter == nil {
-		compDef.BackMatter = &oscalTypes_1_1_2.BackMatter{}
+		compDef.BackMatter = &oscalTypes.BackMatter{}
 	}
 
 	if compDef.ImportComponentDefinitions != nil {
@@ -139,7 +139,7 @@ func (c *Composer) ComposeComponentDefinitions(ctx context.Context, compDef *osc
 }
 
 // ComposeComponentValidations compiles the component validations by adding the remote resources to the back matter and updating with back matter links.
-func (c *Composer) ComposeComponentValidations(ctx context.Context, compDef *oscalTypes_1_1_2.ComponentDefinition, baseDir string) error {
+func (c *Composer) ComposeComponentValidations(ctx context.Context, compDef *oscalTypes.ComponentDefinition, baseDir string) error {
 
 	if compDef == nil {
 		return fmt.Errorf("component definition is nil")
@@ -159,7 +159,7 @@ func (c *Composer) ComposeComponentValidations(ctx context.Context, compDef *osc
 			for controlImplementationIndex, controlImplementation := range controlImplementations {
 				for implementedRequirementIndex, implementedRequirement := range controlImplementation.ImplementedRequirements {
 					if implementedRequirement.Links != nil {
-						compiledLinks := []oscalTypes_1_1_2.Link{}
+						compiledLinks := []oscalTypes.Link{}
 
 						for _, link := range *implementedRequirement.Links {
 							if common.IsLulaLink(link) {
@@ -171,7 +171,7 @@ func (c *Composer) ComposeComponentValidations(ctx context.Context, compDef *osc
 									ids = []string{newId}
 								}
 								for _, id := range ids {
-									link := oscalTypes_1_1_2.Link{
+									link := oscalTypes.Link{
 										Rel:  link.Rel,
 										Href: common.AddIdPrefix(id),
 										Text: link.Text,
@@ -196,7 +196,7 @@ func (c *Composer) ComposeComponentValidations(ctx context.Context, compDef *osc
 		existingResources = append(existingResources, allFetched...)
 		compDef.BackMatter.Resources = &existingResources
 	} else {
-		compDef.BackMatter = &oscalTypes_1_1_2.BackMatter{
+		compDef.BackMatter = &oscalTypes.BackMatter{
 			Resources: &allFetched,
 		}
 	}
@@ -212,11 +212,11 @@ func CreateTempDir() (string, error) {
 }
 
 // ReadComponentDefinitionsFromYaml reads a yaml file of validations to an array of validations
-func readComponentDefinitionsFromYaml(componentDefinitionBytes []byte) (componentDefinitionsArray []*oscalTypes_1_1_2.ComponentDefinition, err error) {
+func readComponentDefinitionsFromYaml(componentDefinitionBytes []byte) (componentDefinitionsArray []*oscalTypes.ComponentDefinition, err error) {
 	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(componentDefinitionBytes), 4096)
 
 	for {
-		oscalComplete := &oscalTypes_1_1_2.OscalCompleteSchema{}
+		oscalComplete := &oscalTypes.OscalCompleteSchema{}
 		if err := decoder.Decode(oscalComplete); err != nil {
 			if err == io.EOF {
 				break

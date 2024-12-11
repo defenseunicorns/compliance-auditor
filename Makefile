@@ -25,6 +25,7 @@ TESTFLAGS   := -race -v
 LDFLAGS     := -w -s -X 'github.com/defenseunicorns/lula/src/config.CLIVersion=$(CLI_VERSION)'
 GOFLAGS     :=
 CGO_ENABLED ?= 0
+FUZZTIME := 10s
 
 # Allows us to set VERSION from the command line.
 # Otherwise, if BINARY_VERSION is not set, use the current git tag.
@@ -75,6 +76,10 @@ test-e2e:
 .PHONY: test-cmd
 test-cmd: 
 	cd src/cmd && go clean -testcache && go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
+
+.PHONY: test-fuzz
+test-fuzz:
+	cd src && $(SHELL) ../build/scripts/fuzz.sh $(FUZZTIME)
 
 .PHONY: install
 install: ## Install binary to $INSTALL_PATH.

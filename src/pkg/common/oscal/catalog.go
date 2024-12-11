@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"gopkg.in/yaml.v3"
 
 	"github.com/defenseunicorns/lula/src/pkg/message"

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	pkgResult "github.com/defenseunicorns/lula/src/pkg/common/result"
@@ -26,9 +26,9 @@ var (
 type result struct {
 	Uuid, Title      string
 	Timestamp        string
-	OscalResult      *oscalTypes_1_1_2.Result
-	Findings         *[]oscalTypes_1_1_2.Finding
-	Observations     *[]oscalTypes_1_1_2.Observation
+	OscalResult      *oscalTypes.Result
+	Findings         *[]oscalTypes.Finding
+	Observations     *[]oscalTypes.Observation
 	FindingsRows     []table.Row
 	ObservationsRows []table.Row
 	FindingsMap      map[string]table.Row
@@ -42,7 +42,7 @@ type summaryData struct {
 	NumObservationsSatisfied     int
 }
 
-func GetResults(assessmentResults *oscalTypes_1_1_2.AssessmentResults) []result {
+func GetResults(assessmentResults *oscalTypes.AssessmentResults) []result {
 	results := make([]result, 0)
 
 	if assessmentResults != nil {

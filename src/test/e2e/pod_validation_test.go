@@ -13,7 +13,7 @@ import (
 	"github.com/defenseunicorns/go-oscal/src/pkg/revision"
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
 	"github.com/defenseunicorns/go-oscal/src/pkg/versioning"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
@@ -262,7 +262,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
 
-	var model = oscalTypes_1_1_2.OscalModels{
+	var model = oscalTypes.OscalModels{
 		AssessmentResults: report,
 	}
 
@@ -281,7 +281,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	// Get the UUID of the report results - there should only be one
 	resultId := report.Results[0].UUID
 
-	model = oscalTypes_1_1_2.OscalModels{
+	model = oscalTypes.OscalModels{
 		AssessmentResults: report,
 	}
 
@@ -316,7 +316,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	return ctx
 }
 
-func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.Finding, *[]oscalTypes_1_1_2.Observation) {
+func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes.Finding, *[]oscalTypes.Observation) {
 	message.NoProgress = true
 
 	validator, err := validation.New(validation.WithAllowExecution(false, true))
@@ -352,7 +352,7 @@ func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes_1_1_2.F
 	return result.Findings, result.Observations
 }
 
-func generateObservationRemarksMap(observations []oscalTypes_1_1_2.Observation) map[string]string {
+func generateObservationRemarksMap(observations []oscalTypes.Observation) map[string]string {
 	observationMap := make(map[string]string, len(observations))
 
 	for i := range observations {
@@ -414,7 +414,7 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 	}
 
 	// Check that assessment results can be written to file
-	var model = oscalTypes_1_1_2.OscalModels{
+	var model = oscalTypes.OscalModels{
 		AssessmentResults: assessment,
 	}
 

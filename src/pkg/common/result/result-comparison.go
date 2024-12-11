@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -21,8 +21,8 @@ const (
 type ResultComparison struct {
 	StateChange      StateChange
 	Satisfied        bool
-	Finding          *oscalTypes_1_1_2.Finding
-	ComparedFinding  *oscalTypes_1_1_2.Finding
+	Finding          *oscalTypes.Finding
+	ComparedFinding  *oscalTypes.Finding
 	ObservationPairs []*ObservationPair
 }
 
@@ -94,12 +94,12 @@ func (rm ResultComparisonMap) PrintObservationComparisonTable(changedOnly bool, 
 }
 
 // NewResultComparisonMap -> create a map of result comparisons from two OSCAL results
-func NewResultComparisonMap(result oscalTypes_1_1_2.Result, comparedResult oscalTypes_1_1_2.Result) map[string]ResultComparison {
+func NewResultComparisonMap(result oscalTypes.Result, comparedResult oscalTypes.Result) map[string]ResultComparison {
 	findingMap := generateFindingMap(*result.Findings)
 	comparedFindingMap := generateFindingMap(*comparedResult.Findings)
 
-	relatedObservationsMap := make(map[string][]*oscalTypes_1_1_2.Observation)
-	comparedRelatedObservationsMap := make(map[string][]*oscalTypes_1_1_2.Observation)
+	relatedObservationsMap := make(map[string][]*oscalTypes.Observation)
+	comparedRelatedObservationsMap := make(map[string][]*oscalTypes.Observation)
 	resultComparisonMap := make(map[string]ResultComparison)
 
 	if result.Observations != nil {
@@ -196,7 +196,7 @@ func GetMachineFriendlyObservations(resultComparisonMap ResultComparisonMap) map
 }
 
 // newResultComparison create new result comparison from two findings
-func newResultComparison(finding *oscalTypes_1_1_2.Finding, comparedFinding *oscalTypes_1_1_2.Finding, relatedObservations []*oscalTypes_1_1_2.Observation, comparedRelatedObservations []*oscalTypes_1_1_2.Observation) ResultComparison {
+func newResultComparison(finding *oscalTypes.Finding, comparedFinding *oscalTypes.Finding, relatedObservations []*oscalTypes.Observation, comparedRelatedObservations []*oscalTypes.Observation) ResultComparison {
 	var state StateChange
 	var satisfied bool
 	observationPairs := CreateObservationPairs(relatedObservations, comparedRelatedObservations)
@@ -223,8 +223,8 @@ func newResultComparison(finding *oscalTypes_1_1_2.Finding, comparedFinding *osc
 
 // generateFindingMap creates a finding map on the TargetId
 // ** Note: this assumes 1:1 relationship between targetId and finding
-func generateFindingMap(findings []oscalTypes_1_1_2.Finding) map[string]*oscalTypes_1_1_2.Finding {
-	findingMap := make(map[string]*oscalTypes_1_1_2.Finding, len(findings))
+func generateFindingMap(findings []oscalTypes.Finding) map[string]*oscalTypes.Finding {
+	findingMap := make(map[string]*oscalTypes.Finding, len(findings))
 	for i := range findings {
 		finding := &findings[i]
 		findingMap[finding.Target.TargetId] = finding
@@ -233,8 +233,8 @@ func generateFindingMap(findings []oscalTypes_1_1_2.Finding) map[string]*oscalTy
 }
 
 // generateObservationMap creates observations map on a slice of observations
-func generateObservationMap(observations []oscalTypes_1_1_2.Observation) map[string]*oscalTypes_1_1_2.Observation {
-	observationMap := make(map[string]*oscalTypes_1_1_2.Observation, len(observations))
+func generateObservationMap(observations []oscalTypes.Observation) map[string]*oscalTypes.Observation {
+	observationMap := make(map[string]*oscalTypes.Observation, len(observations))
 
 	for i := range observations {
 		observation := &observations[i]
@@ -246,12 +246,12 @@ func generateObservationMap(observations []oscalTypes_1_1_2.Observation) map[str
 
 // generateRelatedObservationsMap creates observations map on the TargetId from the findingMap and observationMap
 // ** Note: this assumes 1:1 relationship between targetId and finding
-func generateRelatedObservationsMap(findingMap map[string]*oscalTypes_1_1_2.Finding, observationMap map[string]*oscalTypes_1_1_2.Observation) map[string][]*oscalTypes_1_1_2.Observation {
-	relatedObservationsMap := make(map[string][]*oscalTypes_1_1_2.Observation, len(findingMap))
+func generateRelatedObservationsMap(findingMap map[string]*oscalTypes.Finding, observationMap map[string]*oscalTypes.Observation) map[string][]*oscalTypes.Observation {
+	relatedObservationsMap := make(map[string][]*oscalTypes.Observation, len(findingMap))
 
 	for i := range findingMap {
 		relatedObservations := findingMap[i].RelatedObservations
-		observations := make([]*oscalTypes_1_1_2.Observation, 0)
+		observations := make([]*oscalTypes.Observation, 0)
 		if relatedObservations != nil {
 			for _, relatedObservation := range *relatedObservations {
 				if observation, ok := observationMap[relatedObservation.ObservationUuid]; ok {
@@ -268,7 +268,7 @@ func generateRelatedObservationsMap(findingMap map[string]*oscalTypes_1_1_2.Find
 }
 
 // compareFindings compares the target.status.state of two findings and calculates the state change between the two
-func compareFindings(finding *oscalTypes_1_1_2.Finding, comparedFinding *oscalTypes_1_1_2.Finding) StateChange {
+func compareFindings(finding *oscalTypes.Finding, comparedFinding *oscalTypes.Finding) StateChange {
 	var state StateChange = UNCHANGED
 
 	if finding == nil {

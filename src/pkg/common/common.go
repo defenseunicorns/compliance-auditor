@@ -11,7 +11,10 @@ import (
 	"regexp"
 	"strings"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	goversion "github.com/hashicorp/go-version"
+	"k8s.io/apimachinery/pkg/util/yaml"
+
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	"github.com/defenseunicorns/lula/src/pkg/domains/files"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
@@ -19,8 +22,6 @@ import (
 	"github.com/defenseunicorns/lula/src/pkg/providers/kyverno"
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
 	"github.com/defenseunicorns/lula/src/types"
-	goversion "github.com/hashicorp/go-version"
-	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 const (
@@ -40,7 +41,7 @@ func AddIdPrefix(id string) string {
 }
 
 // IsLulaLink checks if the link is a lula link
-func IsLulaLink(link oscalTypes_1_1_2.Link) bool {
+func IsLulaLink(link oscalTypes.Link) bool {
 	rel := strings.Split(link.Rel, ".")
 	return link.Text == "Lula Validation" || rel[0] == "lula"
 }

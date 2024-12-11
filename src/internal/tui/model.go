@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	assessmentresults "github.com/defenseunicorns/lula/src/internal/tui/assessment_results"
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/internal/tui/component"
@@ -27,7 +27,7 @@ type model struct {
 	activeTab                 int
 	componentFilePath         string
 	assessmentResultsFilePath string
-	writtenComponentModel     *oscalTypes_1_1_2.ComponentDefinition
+	writtenComponentModel     *oscalTypes.ComponentDefinition
 	componentModel            component.Model
 	assessmentResultsModel    assessmentresults.Model
 	catalogModel              common.TbdModal
@@ -41,7 +41,7 @@ type model struct {
 	height                    int
 }
 
-func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, filePathMap map[string]string, dumpFile *os.File) model {
+func NewOSCALModel(modelMap map[string]*oscalTypes.OscalCompleteSchema, filePathMap map[string]string, dumpFile *os.File) model {
 	tabs := []string{
 		"ComponentDefinition",
 		"AssessmentResults",
@@ -57,7 +57,7 @@ func NewOSCALModel(modelMap map[string]*oscalTypes_1_1_2.OscalCompleteSchema, fi
 	}
 
 	// get the right model types assigned to their respective tea models
-	writtenComponentModel := new(oscalTypes_1_1_2.ComponentDefinition)
+	writtenComponentModel := new(oscalTypes.ComponentDefinition)
 	componentModel := component.NewComponentDefinitionModel(writtenComponentModel)
 	componentFilePath := "component.yaml"
 	assessmentResultsModel := assessmentresults.NewAssessmentResultsModel(nil)
@@ -118,7 +118,7 @@ func (m *model) writeOscalModel() tea.Msg {
 	common.PrintToLog("componentFilePath: %s", m.componentFilePath)
 
 	saveStart := time.Now()
-	err := oscal.OverwriteOscalModel(m.componentFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{ComponentDefinition: m.componentModel.GetComponentDefinition()})
+	err := oscal.OverwriteOscalModel(m.componentFilePath, &oscalTypes.OscalCompleteSchema{ComponentDefinition: m.componentModel.GetComponentDefinition()})
 	saveDuration := time.Since(saveStart)
 	// just adding a minimum of 2 seconds to the "saving" popup
 	if saveDuration < time.Second*2 {
@@ -251,7 +251,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// TODO: add to save workflow
 		assessmentResults := m.assessmentResultsModel.GetAssessmentResults()
 		if assessmentResults != nil {
-			err := oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes_1_1_2.OscalCompleteSchema{AssessmentResults: assessmentResults})
+			err := oscal.OverwriteOscalModel(m.assessmentResultsFilePath, &oscalTypes.OscalCompleteSchema{AssessmentResults: assessmentResults})
 			if err != nil {
 				common.PrintToLog("error writing assessment results model: %v", err)
 			}

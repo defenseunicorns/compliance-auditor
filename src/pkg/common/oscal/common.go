@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 var legacy_namespaces = []string{"https://docs.lula.dev/ns"}
 
 // UpdateProps updates a property in a slice of properties or adds if not exists
-func UpdateProps(name string, namespace string, value string, props *[]oscalTypes_1_1_2.Property) {
+func UpdateProps(name string, namespace string, value string, props *[]oscalTypes.Property) {
 
 	for index, prop := range *props {
 		found, propNamespace := checkOrUpdateNamespace(prop.Ns, namespace)
@@ -29,7 +29,7 @@ func UpdateProps(name string, namespace string, value string, props *[]oscalType
 		}
 	}
 	// Prop does not exist
-	prop := oscalTypes_1_1_2.Property{
+	prop := oscalTypes.Property{
 		Ns:    namespace,
 		Name:  name,
 		Value: value,
@@ -38,7 +38,7 @@ func UpdateProps(name string, namespace string, value string, props *[]oscalType
 	*props = append(*props, prop)
 }
 
-func GetProp(name string, namespace string, props *[]oscalTypes_1_1_2.Property) (bool, string) {
+func GetProp(name string, namespace string, props *[]oscalTypes.Property) (bool, string) {
 
 	if props == nil {
 		return false, ""

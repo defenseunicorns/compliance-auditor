@@ -9,7 +9,7 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalValidation "github.com/defenseunicorns/go-oscal/src/pkg/validation"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/config"
@@ -52,7 +52,7 @@ func (v *Validation) MarshalYaml() ([]byte, error) {
 }
 
 // ToResource converts a Validation object to a Resource object
-func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err error) {
+func (v *Validation) ToResource() (resource *oscalTypes.Resource, err error) {
 	resourceUuid := uuid.NewUUID()
 	title := "Lula Validation"
 	if v.Metadata != nil {
@@ -81,7 +81,7 @@ func (v *Validation) ToResource() (resource *oscalTypes_1_1_2.Resource, err erro
 		return nil, err
 	}
 
-	return &oscalTypes_1_1_2.Resource{
+	return &oscalTypes.Resource{
 		Title:       title,
 		UUID:        resourceUuid,
 		Description: string(validationBytes),

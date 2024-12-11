@@ -3,7 +3,7 @@ package result
 import (
 	"strings"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 )
 
 type ObservationPair struct {
@@ -17,7 +17,7 @@ type ObservationPair struct {
 }
 
 // CreateObservationPairs creates a slice of observation pairs from a slice of observations and compared observations
-func CreateObservationPairs(observations []*oscalTypes_1_1_2.Observation, comparedObservations []*oscalTypes_1_1_2.Observation) []*ObservationPair {
+func CreateObservationPairs(observations []*oscalTypes.Observation, comparedObservations []*oscalTypes.Observation) []*ObservationPair {
 	observationPairs := make([]*ObservationPair, 0)
 
 	// Add all observations to the observation pairs
@@ -39,7 +39,7 @@ func CreateObservationPairs(observations []*oscalTypes_1_1_2.Observation, compar
 }
 
 // NewObservationPair -> create a new observation pair from a given observation and slice of comparedObservations
-func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObservation *oscalTypes_1_1_2.Observation) *ObservationPair {
+func newObservationPair(observation *oscalTypes.Observation, comparedObservation *oscalTypes.Observation) *ObservationPair {
 	// Calculate the state change
 	var state StateChange
 	var result bool
@@ -81,7 +81,7 @@ func newObservationPair(observation *oscalTypes_1_1_2.Observation, comparedObser
 }
 
 // findObservation finds an observation in a slice of observations
-func findObservation(observation *oscalTypes_1_1_2.Observation, observations []*oscalTypes_1_1_2.Observation) *oscalTypes_1_1_2.Observation {
+func findObservation(observation *oscalTypes.Observation, observations []*oscalTypes.Observation) *oscalTypes.Observation {
 	for _, comparedObservation := range observations {
 		if observation.Description == comparedObservation.Description {
 			return comparedObservation
@@ -91,7 +91,7 @@ func findObservation(observation *oscalTypes_1_1_2.Observation, observations []*
 }
 
 // getStateChange compares the relevant evidence of two observations and calculates the state change between the two
-func getStateChange(observation *oscalTypes_1_1_2.Observation, comparedObservation *oscalTypes_1_1_2.Observation) StateChange {
+func getStateChange(observation *oscalTypes.Observation, comparedObservation *oscalTypes.Observation) StateChange {
 	var state StateChange = UNCHANGED
 	relevantEvidence := observation.RelevantEvidence
 	comparedRelevantEvidence := comparedObservation.RelevantEvidence
@@ -111,7 +111,7 @@ func getStateChange(observation *oscalTypes_1_1_2.Observation, comparedObservati
 	return state
 }
 
-func compareRelevantEvidence(relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence, comparedRelevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence) StateChange {
+func compareRelevantEvidence(relevantEvidence *[]oscalTypes.RelevantEvidence, comparedRelevantEvidence *[]oscalTypes.RelevantEvidence) StateChange {
 	var state StateChange = UNCHANGED
 
 	reResults := getObservationResult(relevantEvidence)
@@ -126,7 +126,7 @@ func compareRelevantEvidence(relevantEvidence *[]oscalTypes_1_1_2.RelevantEviden
 	return state
 }
 
-func getObservationResult(relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence) bool {
+func getObservationResult(relevantEvidence *[]oscalTypes.RelevantEvidence) bool {
 	var satisfied bool
 	if relevantEvidence != nil {
 		for _, re := range *relevantEvidence {
@@ -138,7 +138,7 @@ func getObservationResult(relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence)
 	return satisfied
 }
 
-func getRemarks(relevantEvidence *[]oscalTypes_1_1_2.RelevantEvidence) string {
+func getRemarks(relevantEvidence *[]oscalTypes.RelevantEvidence) string {
 	var remarks string
 	if relevantEvidence != nil {
 		remarks = (*relevantEvidence)[0].Remarks

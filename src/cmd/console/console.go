@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/internal/tui"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -106,8 +106,8 @@ func ConsoleCommand() *cobra.Command {
 	return consoleCmd
 }
 
-func GetModelsByFiles(inputFiles []string, setOutputFiles map[string]string) (map[string]*oscalTypes_1_1_2.OscalModels, map[string]string, error) {
-	var models = make(map[string]*oscalTypes_1_1_2.OscalModels)
+func GetModelsByFiles(inputFiles []string, setOutputFiles map[string]string) (map[string]*oscalTypes.OscalModels, map[string]string, error) {
+	var models = make(map[string]*oscalTypes.OscalModels)
 	var modelFiles = make(map[string]string)
 
 	// Get the OSCAL models from the files

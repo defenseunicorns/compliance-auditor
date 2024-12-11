@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
@@ -122,7 +122,7 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatalf(err, "error creating component - %s\n", err.Error())
 		}
 
-		var model = oscalTypes_1_1_2.OscalModels{
+		var model = oscalTypes.OscalModels{
 			ComponentDefinition: comp,
 		}
 

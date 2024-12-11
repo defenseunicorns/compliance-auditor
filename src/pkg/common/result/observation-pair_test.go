@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
-	oscalTypes_1_1_2 "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
 )
 
-func createObservation(description, satisfaction string) *oscalTypes_1_1_2.Observation {
-	return &oscalTypes_1_1_2.Observation{
+func createObservation(description, satisfaction string) *oscalTypes.Observation {
+	return &oscalTypes.Observation{
 		UUID:        uuid.NewUUID(),
 		Description: description,
-		RelevantEvidence: &[]oscalTypes_1_1_2.RelevantEvidence{
+		RelevantEvidence: &[]oscalTypes.RelevantEvidence{
 			{
 				Description: fmt.Sprintf("Result: %s", satisfaction),
 				Remarks:     "Some remarks about this observation",
@@ -26,17 +26,17 @@ func TestCreateObservationPairs(t *testing.T) {
 	// tests different variations of observation pairs
 	tests := []struct {
 		name                string
-		observations        []*oscalTypes_1_1_2.Observation
-		compareObservations []*oscalTypes_1_1_2.Observation
+		observations        []*oscalTypes.Observation
+		compareObservations []*oscalTypes.Observation
 		expectedPairs       int
 		expectedStateChange map[string]result.StateChange
 	}{
 		{
 			name: "One observation pair, not satisfied to satisfied",
-			observations: []*oscalTypes_1_1_2.Observation{
+			observations: []*oscalTypes.Observation{
 				createObservation("test-1", "satisfied"),
 			},
-			compareObservations: []*oscalTypes_1_1_2.Observation{
+			compareObservations: []*oscalTypes.Observation{
 				createObservation("test-1", "not-satisfied"),
 			},
 			expectedPairs: 1,
@@ -46,10 +46,10 @@ func TestCreateObservationPairs(t *testing.T) {
 		},
 		{
 			name: "One observation pair, satisfied to not-satisfied",
-			observations: []*oscalTypes_1_1_2.Observation{
+			observations: []*oscalTypes.Observation{
 				createObservation("test-1", "not-satisfied"),
 			},
-			compareObservations: []*oscalTypes_1_1_2.Observation{
+			compareObservations: []*oscalTypes.Observation{
 				createObservation("test-1", "satisfied"),
 			},
 			expectedPairs: 1,
@@ -59,10 +59,10 @@ func TestCreateObservationPairs(t *testing.T) {
 		},
 		{
 			name: "Two observation pairs",
-			observations: []*oscalTypes_1_1_2.Observation{
+			observations: []*oscalTypes.Observation{
 				createObservation("test-1", "satisfied"),
 			},
-			compareObservations: []*oscalTypes_1_1_2.Observation{
+			compareObservations: []*oscalTypes.Observation{
 				createObservation("test-1", "satisfied"),
 				createObservation("test-2", "not-satisfied"),
 			},
@@ -74,11 +74,11 @@ func TestCreateObservationPairs(t *testing.T) {
 		},
 		{
 			name: "Three observation pairs",
-			observations: []*oscalTypes_1_1_2.Observation{
+			observations: []*oscalTypes.Observation{
 				createObservation("test-1", "satisfied"),
 				createObservation("test-3", "not-satisfied"),
 			},
-			compareObservations: []*oscalTypes_1_1_2.Observation{
+			compareObservations: []*oscalTypes.Observation{
 				createObservation("test-2", "not-satisfied"),
 				createObservation("test-3", "not-satisfied"),
 			},
@@ -91,8 +91,8 @@ func TestCreateObservationPairs(t *testing.T) {
 		},
 		{
 			name:                "No observation pairs",
-			observations:        []*oscalTypes_1_1_2.Observation{},
-			compareObservations: []*oscalTypes_1_1_2.Observation{},
+			observations:        []*oscalTypes.Observation{},
+			compareObservations: []*oscalTypes.Observation{},
 			expectedPairs:       0,
 			expectedStateChange: map[string]result.StateChange{},
 		},
