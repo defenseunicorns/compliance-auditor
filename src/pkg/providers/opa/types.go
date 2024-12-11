@@ -2,6 +2,7 @@ package opa
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,12 +13,13 @@ import (
 )
 
 var (
-	ErrNilSpec                = fmt.Errorf("spec is nil")
-	ErrEmptyRego              = fmt.Errorf("rego policy cannot be empty")
-	ErrInvalidValidationPath  = fmt.Errorf("validation field must be a json path")
-	ErrInvalidObservationPath = fmt.Errorf("observation field must be a json path")
-	ErrDownloadModule         = fmt.Errorf("error downloading module")
-	ErrReadModule             = fmt.Errorf("error reading module")
+	ErrNilSpec                = errors.New("spec is nil")
+	ErrEmptyRego              = errors.New("rego policy cannot be empty")
+	ErrInvalidValidationPath  = errors.New("validation field must be a json path")
+	ErrInvalidObservationPath = errors.New("observation field must be a json path")
+	ErrDownloadModule         = errors.New("error downloading module")
+	ErrReadModule             = errors.New("error reading module")
+	ErrReservedModuleName     = errors.New("module name is reserved and cannot be used in custom modules")
 )
 
 type OpaProvider struct {
@@ -60,6 +62,10 @@ func CreateOpaProvider(_ context.Context, spec *OpaSpec) (types.Provider, error)
 func loadModules(ctx context.Context, modulePaths map[string]string) (map[string]string, error) {
 	if len(modulePaths) == 0 {
 		return nil, nil
+	}
+
+	if _, ok := modulePaths[mainPolicyModuleName]; ok {
+		return nil, fmt.Errorf("%w: %s", ErrReservedModuleName, mainPolicyModuleName)
 	}
 
 	workDir, ok := ctx.Value(types.LulaValidationWorkDir).(string)
@@ -107,7 +113,8 @@ type OpaSpec struct {
 	// Required: Rego is the OPA policy
 	Rego string `json:"rego" yaml:"rego"`
 	// Optional: Modules is a map of additional OPA modules to include. The key is the name of the
-	// module and the value is the file with the contents of the module.
+	// module and the value is the file with the contents of the module. The `validate.rego` module
+	// name is reserved and cannot be used in custom modules.
 	Modules map[string]string `json:"modules,omitempty" yaml:"modules,omitempty"`
 	// Optional: Output is the output of the OPA policy
 	Output *OpaOutput `json:"output,omitempty" yaml:"output,omitempty"`

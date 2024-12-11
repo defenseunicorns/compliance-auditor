@@ -524,7 +524,7 @@
                     "pattern": ".*\\S\\s\\n.*"
                 },
                 "modules": {
-                    "type": "object",
+                    "type": "object"
                 },
                 "output": {
                     "type": "object",

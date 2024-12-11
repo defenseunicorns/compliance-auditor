@@ -156,3 +156,5 @@ provider:
         }
       }
 ```
+> [!Note]
+> The `validate.rego` module name is reserved for the main rego policy and cannot be used as a custom module name.

@@ -2,6 +2,7 @@ package opa
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -12,26 +13,30 @@ import (
 )
 
 var (
-	ErrCompileRego  = fmt.Errorf("failed to compile rego policy")
-	ErrEvaluateRego = fmt.Errorf("failed to evaluate rego policy")
+	ErrCompileRego  = errors.New("failed to compile rego policy")
+	ErrEvaluateRego = errors.New("failed to evaluate rego policy")
 )
+
+// mainPolicyModuleName is the name of the OPA module containing the main policy from the spec.rego field.
+const mainPolicyModuleName = "validate.rego"
 
 // GetValidatedAssets performs the validation of the dataset against the given rego policy
 func GetValidatedAssets(ctx context.Context, regoPolicy string, regoModules map[string]string, dataset map[string]interface{}, output *OpaOutput) (types.Result, error) {
 	var matchResult types.Result
 
 	if len(dataset) == 0 {
-		return matchResult, fmt.Errorf("opa validation not performed - no resources to validate")
+		return matchResult, errors.New("opa validation not performed - no resources to validate")
 	}
 
 	if output == nil {
 		output = &OpaOutput{}
 	}
 
-	modules := map[string]string{"validate.rego": regoPolicy}
+	modules := make(map[string]string, len(regoModules)+1)
 	for k, v := range regoModules {
 		modules[k] = v
 	}
+	modules[mainPolicyModuleName] = regoPolicy
 
 	compiler, err := ast.CompileModules(modules)
 	if err != nil {

@@ -49,6 +49,14 @@ func TestOpaModules(t *testing.T) {
 			wantErr: opa.ErrDownloadModule,
 		},
 		{
+			name: "reserved module validation",
+			spec: &opa.OpaSpec{
+				Rego:    "package validate\n\nimport data.lula.labels as lula_labels\n\nvalidate { lula_labels.has_lula_label(input.pod) }",
+				Modules: map[string]string{"lula.labels": "testdata/lula.rego", "validate.rego": "not-used"},
+			},
+			wantErr: opa.ErrReservedModuleName,
+		},
+		{
 			name: "module validation",
 			spec: &opa.OpaSpec{
 				Rego:    "package validate\n\nimport data.lula.labels as lula_labels\n\nvalidate { lula_labels.has_lula_label(input.pod) }",

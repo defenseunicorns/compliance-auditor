@@ -2,9 +2,9 @@
 
 Domains, generically, are the areas or categories from which data is collected to be evaluated by a `Lula Validation`. Currently supported Domains are:
 
-* Kubernetes
-* API
-* File
+* [Kubernetes](kubernetes-domain.md)
+* [API](api-domain.md)
+* [File](file-domain.md)
 
 The domain block of a `Lula Validation` is given as follows, where the sample is indicating a Kubernetes domain is in use:
 ```yaml

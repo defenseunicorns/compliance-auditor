@@ -2,8 +2,8 @@
 
 Providers are the policy engines which evaluate the input data from the specified domain. Currently supported Providers are:
 
-* OPA (Open Policy Agent)
-* Kyverno
+* [OPA (Open Policy Agent)](opa-provider.md)
+* [Kyverno](kyverno-provider.md)
 
 The provider block of a `Lula Validation` is given as follows, where the sample is indicating the OPA provider is in use:
 ```yaml
