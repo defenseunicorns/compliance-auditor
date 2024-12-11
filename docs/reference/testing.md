@@ -1,8 +1,8 @@
 # Testing
 
-Testing is a key part of Lula Validation development. Since the results of the Lula Validations are determined by the policy set by the `provider`, those policies must be tested to ensure they are working as expected.
+Testing is a key part of Lula Validation development. Since the results of the Lula Validations are determined by the policy set by the `provider`, those policies must be tested to ensure they are working as expected. The Validation Testing framework allows those tests to be specified directly in the `validation.yaml` file, and executed as part of the `validate` workflows.
 
-## Validation Testing
+## Specification
 
 In the Lula Validation, a `tests` property is used to specify each test that should be performed against the validation. Each test is a map of the following properties:
 

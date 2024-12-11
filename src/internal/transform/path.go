@@ -1,22 +1,23 @@
 package transform
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"sigs.k8s.io/kustomize/kyaml/utils"
+
+	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
 type PartType int
 
 const (
-	PartTypeMap PartType = iota
-	PartTypeSequence
-	PartTypeScalar
-	PartTypeFilter
-	PartTypeIndex
+	PartTypeMap      PartType = iota // e.g., a in a.b
+	PartTypeSequence                 // e.g., a in a[b=c]
+	PartTypeScalar                   // e.g., b in a.b
+	PartTypeSelector                 // e.g., [a=b]
+	PartTypeIndex                    // e.g., [0]
 )
 
 type PathPart struct {
@@ -24,46 +25,12 @@ type PathPart struct {
 	Value string
 }
 
-// ResolvePath converts a path based on the context of the change
-// The full path parts are returned, along with the index of the part
-// that should be used as an anchor for the change
-func ResolvePath(path string, cType ChangeType) ([]PathPart, int, error) {
-	allPathParts := PathToParts(path)
-	lastPart := 0
-
-	// Path has rules for different change types
-	switch cType {
-	case ChangeTypeAdd, ChangeTypeUpdate:
-		if len(allPathParts) > 0 {
-			if allPathParts[len(allPathParts)-1].Type == PartTypeScalar {
-				// If the last segment is a scalar, that is the last item
-				return allPathParts, len(allPathParts) - 1, nil
-			} else {
-				// Otherwise there is no final item
-				return allPathParts, -1, nil
-			}
-		}
-
-	case ChangeTypeDelete:
-		if len(allPathParts) == 1 && allPathParts[0].Value == "" {
-			return nil, -1, fmt.Errorf("invalid path, cannot delete root")
-		} else {
-			if allPathParts[len(allPathParts)-1].Type == PartTypeScalar {
-				// If the last segment is a scalar, that is the last item
-				return allPathParts, len(allPathParts) - 1, nil
-			} else {
-				// List entry cannot be deleted
-				return nil, -1, fmt.Errorf("cannot delete a list entry")
-			}
-		}
-	}
-
-	return allPathParts, lastPart, nil
-}
-
 // PathToParts converts the path string into a slice of pathParts
 func PathToParts(path string) []PathPart {
-	return makePathParts(utils.SmarterPathSplitter(normalizePath(path), "."))
+	pathSlice := utils.SmarterPathSplitter(normalizePath(path), ".")
+	message.Debug("Path Slice: %v\n", pathSlice) // Helpful for understanding issues with how a path is parsed
+
+	return makePathParts(pathSlice)
 }
 
 // Normalize the path to kyaml syntax by inserting any missing "." before "["
@@ -108,6 +75,7 @@ func makePathParts(pathSlice []string) []PathPart {
 			// Calculate the pathPart from the current element
 			pathPart = PathPart{Type: currentPartType, Value: removeDoubleQuotes(p)}
 		}
+
 		pathParts = append(pathParts, pathPart)
 	}
 
@@ -135,7 +103,7 @@ func removeDoubleQuotes(part string) string {
 
 func pathPartFromLookAhead(current string, nextType PartType) PathPart {
 	switch nextType {
-	case PartTypeFilter, PartTypeIndex:
+	case PartTypeSelector, PartTypeIndex:
 		return PathPart{Type: PartTypeSequence, Value: current}
 	case PartTypeScalar:
 		fallthrough
@@ -147,7 +115,7 @@ func pathPartFromLookAhead(current string, nextType PartType) PathPart {
 func getPartType(part string) PartType {
 	if isFilter(part) {
 		// Check if the part is a filter (e.g. [a=b] or [a.b=c] or ["a.b"=c])
-		return PartTypeFilter
+		return PartTypeSelector
 	} else if isListIndex(part) {
 		// Check if the part is a list index (e.g. 0 or -)
 		return PartTypeIndex

@@ -226,12 +226,12 @@ k3:
 
 // TestDelete tests the Delete function
 func TestDelete(t *testing.T) {
-	runTest := func(t *testing.T, lastSegment string, current []byte, expected []byte) {
+	runTest := func(t *testing.T, filters []yaml.Filter, pathParts []transform.PathPart, operandIdx int, current []byte, expected []byte) {
 		t.Helper()
 
 		node := createRNode(t, current)
 
-		err := transform.Delete(node, lastSegment, []yaml.Filter{yaml.PathGetter{Path: []string{"a"}}})
+		err := transform.Delete(node, filters, pathParts, operandIdx)
 		require.NoError(t, err)
 
 		var nodeMap map[string]interface{}
@@ -242,14 +242,22 @@ func TestDelete(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		lastSegment string
-		current     []byte
-		expected    []byte
+		name       string
+		filters    []yaml.Filter
+		pathParts  []transform.PathPart
+		operandIdx int
+		current    []byte
+		expected   []byte
 	}{
 		{
-			name:        "test-delete-key-value",
-			lastSegment: "k2",
+			name: "delete-root-key-value",
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"k1"}},
+			},
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeScalar, Value: "k1"},
+			},
+			operandIdx: 0,
 			current: []byte(`
 k1: v1
 k2: v2
@@ -258,30 +266,46 @@ k3:
   - v4
 `),
 			expected: []byte(`
-k1: v1
+k2: v2
 k3:
   - v3
   - v4
 `),
 		},
 		{
-			name:        "test-delete-list-key",
-			lastSegment: "k3",
+			name: "delete-sub-key",
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"k1"}},
+				yaml.PathGetter{Path: []string{"k2"}},
+			},
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeMap, Value: "k1"},
+				{Type: transform.PartTypeScalar, Value: "k2"},
+			},
+			operandIdx: 1,
 			current: []byte(`
-k1: v1
-k2: v2
+k1:
+  k2: v2
 k3:
   - v3
   - v4
 `),
 			expected: []byte(`
-k1: v1
-k2: v2
+k1: {}
+k3:
+  - v3
+  - v4
 `),
 		},
 		{
-			name:        "test-delete-non-existent-key",
-			lastSegment: "k4",
+			name: "delete-non-existent-key",
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"k4"}},
+			},
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeScalar, Value: "k4"},
+			},
+			operandIdx: 0,
 			current: []byte(`
 k1: v1
 k2: v2
@@ -295,13 +319,63 @@ k2: v2
 k3:
   - v3
   - v4
+`),
+		},
+		{
+			name: "delete-indexed-key",
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"k3"}},
+				yaml.PathGetter{Path: []string{"0"}},
+			},
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "k3"},
+				{Type: transform.PartTypeIndex, Value: "0"},
+			},
+			operandIdx: -1,
+			current: []byte(`
+k1: v1
+k2: v2
+k3:
+  - k31: v3
+  - k32: v4
+`),
+			expected: []byte(`
+k1: v1
+k2: v2
+k3:
+  - k32: v4
+`),
+		},
+		{
+			name: "delete-selected-key",
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"k3"}},
+				yaml.ElementMatcher{Keys: []string{"k32"}, Values: []string{"v4"}},
+			},
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "k3"},
+				{Type: transform.PartTypeSelector, Value: "k32=v4"},
+			},
+			operandIdx: -1,
+			current: []byte(`
+k1: v1
+k2: v2
+k3:
+  - k31: v3
+  - k32: v4
+`),
+			expected: []byte(`
+k1: v1
+k2: v2
+k3:
+  - k31: v3
 `),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			runTest(t, tt.lastSegment, tt.current, tt.expected)
+			runTest(t, tt.filters, tt.pathParts, tt.operandIdx, tt.current, tt.expected)
 		})
 	}
 }
@@ -370,7 +444,7 @@ e:
 			name: "path-with-filter:a[b=y]",
 			pathParts: []transform.PathPart{
 				{Type: transform.PartTypeSequence, Value: "a"},
-				{Type: transform.PartTypeFilter, Value: "b=y"},
+				{Type: transform.PartTypeSelector, Value: "b=y"},
 			},
 			filters: []yaml.Filter{
 				yaml.PathGetter{Path: []string{"a"}},
