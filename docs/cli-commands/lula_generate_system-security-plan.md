@@ -5,7 +5,7 @@ type: docs
 ---
 ## lula generate system-security-plan
 
-Generate a system security plan OSCAL template
+Generate a system security plan OSCAL artifact
 
 ### Synopsis
 
@@ -30,7 +30,7 @@ To specify the name and filetype of the generated artifact:
 ### Options
 
 ```
-  -c, --component strings                       comma delimited list the paths to the component definitions to include for the SSP
+  -c, --components strings                      comma delimited list the paths to the component definitions to include for the SSP
   -h, --help                                    help for system-security-plan
   -o, --output-file system-security-plan.yaml   the path to the output file. If not specified, the output file will default to system-security-plan.yaml
   -p, --profile string                          the path to the imported profile

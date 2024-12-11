@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-2"
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
@@ -25,7 +25,7 @@ var sspLong = `Generation of a System Security Plan OSCAL artifact from a source
 
 func GenerateSSPCommand() *cobra.Command {
 	var (
-		component  []string
+		components []string
 		profile    string
 		outputFile string
 		remarks    []string
@@ -34,7 +34,7 @@ func GenerateSSPCommand() *cobra.Command {
 	sspCmd := &cobra.Command{
 		Use:     "system-security-plan",
 		Aliases: []string{"ssp"},
-		Short:   "Generate a system security plan OSCAL template",
+		Short:   "Generate a system security plan OSCAL artifact",
 		Long:    sspLong,
 		Example: sspExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -62,8 +62,8 @@ func GenerateSSPCommand() *cobra.Command {
 			command := fmt.Sprintf("%s --profile %s --remarks %s", cmd.CommandPath(), profile, strings.Join(remarks, ","))
 
 			// Get component definitions from file(s)
-			componentDefs := make([]*oscalTypes.ComponentDefinition, 0, len(component))
-			for _, componentPath := range component {
+			componentDefs := make([]*oscalTypes.ComponentDefinition, 0, len(components))
+			for _, componentPath := range components {
 				// Compose component definition
 				// TODO: Partial Compose (just imported component-definitions) and remap links (validation links + source links)
 				opts := []composition.Option{
@@ -111,7 +111,7 @@ func GenerateSSPCommand() *cobra.Command {
 	if err != nil {
 		message.Fatal(err, "error initializing profile command flags")
 	}
-	sspCmd.Flags().StringSliceVarP(&component, "component", "c", []string{}, "comma delimited list the paths to the component definitions to include for the SSP")
+	sspCmd.Flags().StringSliceVarP(&components, "components", "c", []string{}, "comma delimited list the paths to the component definitions to include for the SSP")
 	sspCmd.Flags().StringSliceVar(&remarks, "remarks", []string{"statement"}, "Target for remarks population")
 	sspCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "the path to the output file. If not specified, the output file will default to `system-security-plan.yaml`")
 
