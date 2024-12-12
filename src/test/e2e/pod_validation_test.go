@@ -34,6 +34,10 @@ func TestPodLabelValidation(t *testing.T) {
 	const ckTestPodLabel contextKey = "test-pod-label"
 	featureTrueValidation := features.New("Check Pod Validation - Success").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Set the work directory to the directory containing the oscal component and the modules to import
+			return context.WithValue(ctx, types.LulaValidationWorkDir, "./scenarios/pod-label")
+		}).
+		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/pod-label/pod.pass.yaml")
 			if err != nil {
 				t.Fatal(err)
@@ -80,6 +84,10 @@ func TestPodLabelValidation(t *testing.T) {
 
 	featureFalseValidation := features.New("Check Pod Validation - Failure").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Set the work directory to the directory containing the oscal component and the modules to import
+			return context.WithValue(ctx, types.LulaValidationWorkDir, "./scenarios/pod-label")
+		}).
+		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/pod-label/pod.fail.yaml")
 			if err != nil {
 				t.Fatal(err)
@@ -95,12 +103,12 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("Validate pod label", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component.yaml"
-			validatePodLabelFail(t, oscalPath)
+			validatePodLabelFail(ctx, t, oscalPath)
 			return ctx
 		}).
 		Assess("Validate pod label (Kyverno)", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-kyverno.yaml"
-			validatePodLabelFail(t, oscalPath)
+			validatePodLabelFail(ctx, t, oscalPath)
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
@@ -118,6 +126,10 @@ func TestPodLabelValidation(t *testing.T) {
 
 	featureBadValidation := features.New("Check Graceful Failure - check all not-satisfied and matching error").
 		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
+			// Set the work directory to the directory containing the oscal component and the modules to import
+			return context.WithValue(ctx, types.LulaValidationWorkDir, "./scenarios/pod-label")
+		}).
+		Setup(func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			pod, err := util.GetPod("./scenarios/pod-label/pod.pass.yaml")
 			if err != nil {
 				t.Fatal(err)
@@ -133,7 +145,7 @@ func TestPodLabelValidation(t *testing.T) {
 		}).
 		Assess("All not-satisfied", func(ctx context.Context, t *testing.T, config *envconf.Config) context.Context {
 			oscalPath := "./scenarios/pod-label/oscal-component-all-bad.yaml"
-			findings, observations := validatePodLabelFail(t, oscalPath)
+			findings, observations := validatePodLabelFail(ctx, t, oscalPath)
 			observationRemarksMap := generateObservationRemarksMap(*observations)
 
 			for _, f := range *findings {
@@ -213,7 +225,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 
 	tempDir := t.TempDir()
 
-	// Upgrade the component definition to latest osscal version
+	// Upgrade the component definition to latest oscal version
 	revisionOptions := revision.RevisionOptions{
 		InputFile:  oscalPath,
 		OutputFile: tempDir + "/oscal-component-upgraded.yaml",
@@ -234,7 +246,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validator.ValidateOnPath(context.Background(), revisionOptions.OutputFile, "")
+	assessment, err := validator.ValidateOnPath(ctx, revisionOptions.OutputFile, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", revisionOptions.OutputFile)
 	}
@@ -316,7 +328,7 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	return ctx
 }
 
-func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes.Finding, *[]oscalTypes.Observation) {
+func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (*[]oscalTypes.Finding, *[]oscalTypes.Observation) {
 	message.NoProgress = true
 
 	validator, err := validation.New(validation.WithAllowExecution(false, true))
@@ -324,7 +336,7 @@ func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes.Finding
 		t.Fatalf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
+	assessment, err := validator.ValidateOnPath(ctx, oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
@@ -347,7 +359,6 @@ func validatePodLabelFail(t *testing.T, oscalPath string) (*[]oscalTypes.Finding
 				t.Fatal("State should be not-satisfied, but got :", state)
 			}
 		}
-
 	}
 	return result.Findings, result.Observations
 }
@@ -376,7 +387,7 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 		t.Errorf("error creating validation context: %v", err)
 	}
 
-	assessment, err := validator.ValidateOnPath(context.Background(), oscalPath, "")
+	assessment, err := validator.ValidateOnPath(ctx, oscalPath, "")
 	if err != nil {
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}

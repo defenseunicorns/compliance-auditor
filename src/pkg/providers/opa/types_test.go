@@ -2,6 +2,7 @@ package opa_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/defenseunicorns/lula/src/pkg/providers/opa"
@@ -13,14 +14,13 @@ func TestCreateOpaProvider(t *testing.T) {
 	tests := []struct {
 		name    string
 		spec    *opa.OpaSpec
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "valid spec",
 			spec: &opa.OpaSpec{
 				Rego: "package validate\n\ndefault validate = false",
 			},
-			wantErr: false,
 		},
 		{
 			name: "valid spec with output",
@@ -33,19 +33,18 @@ func TestCreateOpaProvider(t *testing.T) {
 					},
 				},
 			},
-			wantErr: false,
 		},
 		{
 			name:    "nil spec",
 			spec:    nil,
-			wantErr: true,
+			wantErr: opa.ErrNilSpec,
 		},
 		{
 			name: "empty rego",
 			spec: &opa.OpaSpec{
 				Rego: "",
 			},
-			wantErr: true,
+			wantErr: opa.ErrEmptyRego,
 		},
 		{
 			name: "invalid validation path",
@@ -55,7 +54,7 @@ func TestCreateOpaProvider(t *testing.T) {
 					Validation: "invalid-path",
 				},
 			},
-			wantErr: true,
+			wantErr: opa.ErrInvalidValidationPath,
 		},
 		{
 			name: "invalid observation path",
@@ -65,16 +64,15 @@ func TestCreateOpaProvider(t *testing.T) {
 					Observations: []string{"invalid-path"},
 				},
 			},
-			wantErr: true,
+			wantErr: opa.ErrInvalidObservationPath,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := opa.CreateOpaProvider(context.Background(), tt.spec)
-			if (err != nil) != tt.wantErr {
+			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("CreateOpaProvider() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
 		})
 	}
