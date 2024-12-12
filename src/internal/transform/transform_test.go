@@ -413,7 +413,7 @@ func TestSetNodeAtPath(t *testing.T) {
 			name: "simple-path:a.b",
 			pathParts: []transform.PathPart{
 				{Type: transform.PartTypeMap, Value: "a"},
-				{Type: transform.PartTypeMap, Value: "b"},
+				{Type: transform.PartTypeScalar, Value: "b"},
 			},
 			filters: []yaml.Filter{
 				yaml.PathGetter{Path: []string{"a"}},

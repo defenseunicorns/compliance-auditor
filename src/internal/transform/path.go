@@ -70,10 +70,10 @@ func makePathParts(pathSlice []string) []PathPart {
 		// If the current part is a scalar, look ahead to see if it's a map or sequence
 		if currentPartType == PartTypeScalar && i < len(pathSlice)-1 {
 			nextPart := cleanPart(pathSlice[i+1])
-			pathPart = pathPartFromLookAhead(removeDoubleQuotes(p), getPartType(nextPart))
+			pathPart = pathPartFromLookAhead(trimDoubleQuotes(p), getPartType(nextPart))
 		} else {
 			// Calculate the pathPart from the current element
-			pathPart = PathPart{Type: currentPartType, Value: removeDoubleQuotes(p)}
+			pathPart = PathPart{Type: currentPartType, Value: trimDoubleQuotes(p)}
 		}
 
 		pathParts = append(pathParts, pathPart)
@@ -97,8 +97,12 @@ func cleanPart(part string) string {
 	return part
 }
 
-func removeDoubleQuotes(part string) string {
-	return strings.TrimPrefix(strings.TrimSuffix(part, `"`), `"`)
+// trimDoubleQuotes removes leading and trailing double quotes, if present
+func trimDoubleQuotes(part string) string {
+	if strings.HasPrefix(part, `"`) && strings.HasSuffix(part, `"`) {
+		part = strings.TrimPrefix(strings.TrimSuffix(part, `"`), `"`)
+	}
+	return part
 }
 
 func pathPartFromLookAhead(current string, nextType PartType) PathPart {

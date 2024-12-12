@@ -328,17 +328,6 @@ func SetNodeAtPath(rootNode *yaml.RNode, node *yaml.RNode, filters []yaml.Filter
 	return rootNode.PipeE(filters...)
 }
 
-// getNodeFromMap returns the new node to merge from map input
-func getNewNodeFromMap(lastSegment string, valueMap map[string]interface{}) (*yaml.RNode, error) {
-	if lastSegment != "" {
-		valueMap = map[string]interface{}{
-			lastSegment: valueMap,
-		}
-	}
-
-	return yaml.FromMap(valueMap)
-}
-
 // mergeYAMLNodes recursively merges the subset node into the target node
 // Note - this is an alternate to kyaml merge2 function which doesn't append lists, it replaces them
 func mergeYAMLNodes(target, subset *yaml.RNode) error {

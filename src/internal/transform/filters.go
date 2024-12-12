@@ -40,11 +40,11 @@ func ResolvePathWithFilters(targetNode *yaml.RNode, path string) ([]PathPart, []
 					pathParts[i].Type = PartTypeIndex
 				}
 			} else {
-				filters = append(filters, yaml.MatchElement(cleanEncapsulatedKey(selectorParts[0].key), selectorParts[0].value))
+				filters = append(filters, yaml.MatchElement(trimDoubleQuotes(selectorParts[0].key), selectorParts[0].value))
 			}
 		} else {
 			if part.Value != "" {
-				filters = append(filters, yaml.Lookup(part.Value))
+				filters = append(filters, yaml.Lookup(trimDoubleQuotes(part.Value)))
 			}
 		}
 
@@ -152,16 +152,11 @@ func nodeMatchesAllFilters(node *yaml.RNode, selectorParts []selectorPart) bool 
 				return false
 			}
 		} else {
-			n, err := node.Pipe(yaml.MatchField(cleanEncapsulatedKey(part.key), part.value))
+			n, err := node.Pipe(yaml.MatchField(trimDoubleQuotes(part.key), part.value))
 			if err != nil || n == nil {
 				return false
 			}
 		}
 	}
 	return true
-}
-
-// Remove leading and trailing quotes from a key
-func cleanEncapsulatedKey(key string) string {
-	return strings.TrimSuffix(strings.TrimPrefix(key, `"`), `"`)
 }
