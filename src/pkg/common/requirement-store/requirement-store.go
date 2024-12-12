@@ -95,30 +95,32 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 			finding.RelatedObservations = &relatedObservations
 		}
 
-		// If there is no result (pass or fail) it means that no validation was performed by Lula.
-		// When that happens we can explicitly add a note to the finding, to properly explain the
-		// reason for the control being not-satisfied, or we can not add it to the list of findings, so that
-		// the generated assessment results will contain only findings and "reviewed-controls" for the controls
-		// that were actually checked by Lula.
-		if pass == 0 && fail == 0 {
-			//finding.Remarks = "No Lula validation was defined for this control"
-			continue
-		}
-
 		// Using language from Assessment Results model for Target Objective Status State
-		var state string
+		var state, reason, remarks string
 		message.Debugf("Pass: %v / Fail: %v / Existing State: %s", pass, fail, finding.Target.Status.State)
 		if finding.Target.Status.State == "not-satisfied" {
 			state = "not-satisfied"
-		} else if pass > 0 && fail <= 0 {
+		} else if pass > 0 && fail == 0 {
 			state = "satisfied"
+			reason = "pass"
+		} else if pass == 0 && fail == 0 {
+			// If there is no result (pass or fail) it means that no validation was performed by Lula.
+			// When that happens we can explicitly add a note to the finding, to properly explain the
+			// reason for the control being not-satisfied
+			state = "not-satisfied"
+			reason = "other"
+			remarks = "No Lula validations were defined for this control"
+			finding.Remarks = remarks
 		} else {
 			state = "not-satisfied"
+			reason = "fail"
 		}
 
 		finding.Target = oscalTypes.FindingTarget{
 			Status: oscalTypes.ObjectiveStatus{
-				State: state,
+				State:   state,
+				Reason:  reason,
+				Remarks: remarks,
 			},
 			TargetId: requirement.ImplementedRequirement.ControlId,
 			Type:     "objective-id",
