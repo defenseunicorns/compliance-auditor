@@ -7,6 +7,7 @@ metadata:
   namespace: validation-test
   labels: 
     foo: bar
+    lula: "true"
 spec:
   containers:
     - image: nginx
