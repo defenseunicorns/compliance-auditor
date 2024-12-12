@@ -347,6 +347,31 @@ k3:
 `),
 		},
 		{
+			name: "delete-indexed-key-for-string",
+			filters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"k3"}},
+				yaml.PathGetter{Path: []string{"0"}},
+			},
+			pathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "k3"},
+				{Type: transform.PartTypeIndex, Value: "0"},
+			},
+			operandIdx: -1,
+			current: []byte(`
+k1: v1
+k2: v2
+k3:
+  - v3
+  - v4
+`),
+			expected: []byte(`
+k1: v1
+k2: v2
+k3:
+  - v4
+`),
+		},
+		{
 			name: "delete-selected-key",
 			filters: []yaml.Filter{
 				yaml.PathGetter{Path: []string{"k3"}},
