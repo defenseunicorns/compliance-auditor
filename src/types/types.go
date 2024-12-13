@@ -168,7 +168,7 @@ func (v *LulaValidation) Validate(ctx context.Context, opts ...LulaValidationOpt
 		}
 
 		// Perform the evaluation using the provider
-		result, err = (*v.Provider).Evaluate(resources)
+		result, err = (*v.Provider).Evaluate(ctx, resources)
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrProviderEvaluate, err)
 		}
@@ -235,7 +235,7 @@ type Domain interface {
 }
 
 type Provider interface {
-	Evaluate(DomainResources) (Result, error)
+	Evaluate(context.Context, DomainResources) (Result, error)
 }
 
 // native type for conversion to targeted report format
