@@ -249,7 +249,7 @@ Here, we will step through creating a sample validation using the Kubernetes dom
 
         Success! Additional conditions can be tested this way to fully stress-test the validity of the policy.
     
-    3) **Preferred Approach** Implement tests natively in the validation, using the [testing guide](../reference/testing.md). See the next tuturial [test a validation](./test-a-validation.md) for more information.
+    3) **Preferred Approach** Implement tests natively in the validation, using the [testing guide](../reference/testing.md). See the next tutorial [test a validation](./test-a-validation.md) for more information.
 
 9. Finally, we can bring this back into the `component-definition`. This validation should be added as a link to the respective  `implemented-requirement`:
     ```yaml
