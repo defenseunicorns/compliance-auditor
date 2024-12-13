@@ -86,7 +86,20 @@ func init() {
 		},
 	}
 
-	pterm.SetDefaultOutput(os.Stderr)
+	SetDefaultOutput(os.Stderr)
+}
+
+// SetDefaultOutput sets the default output for all messages.
+// Deprecated. Use pterm.SetDefaultOutput instead when https://github.com/pterm/pterm/issues/701 is fixed.
+func SetDefaultOutput(w io.Writer) {
+	pterm.SetDefaultOutput(w)
+	pterm.Info = *(pterm.Info.WithWriter(w))
+	pterm.Warning = *(pterm.Warning.WithWriter(w))
+	pterm.Success = *(pterm.Success.WithWriter(w))
+	pterm.Error = *(pterm.Error.WithWriter(w))
+	pterm.Fatal = *(pterm.Fatal.WithWriter(w))
+	pterm.Debug = *(pterm.Debug.WithWriter(w))
+	pterm.Description = *(pterm.Description.WithWriter(w))
 }
 
 // UseLogFile writes output to stderr and a logFile.
@@ -98,7 +111,7 @@ func UseLogFile(inputLogFile *os.File) {
 	if inputLogFile != nil {
 		// Use the existing log file if logFile is set
 		LogWriter = io.MultiWriter(inputLogFile)
-		pterm.SetDefaultOutput(LogWriter)
+		SetDefaultOutput(LogWriter)
 	} else {
 		// Try to create a temp log file if one hasn't been made already
 		if logFile, err = os.CreateTemp("", fmt.Sprintf("lula-%s-*.log", ts)); err != nil {
@@ -106,7 +119,7 @@ func UseLogFile(inputLogFile *os.File) {
 		} else {
 			useLogFile = true
 			LogWriter = io.MultiWriter(os.Stderr, logFile)
-			pterm.SetDefaultOutput(LogWriter)
+			SetDefaultOutput(LogWriter)
 			message := fmt.Sprintf("Saving log file to %s", logFile.Name())
 			Note(message)
 		}
@@ -116,7 +129,7 @@ func UseLogFile(inputLogFile *os.File) {
 // UseBuffer writes output to a buffer
 func UseBuffer(buf *bytes.Buffer) {
 	LogWriter = io.MultiWriter(buf)
-	pterm.SetDefaultOutput(LogWriter)
+	SetDefaultOutput(LogWriter)
 }
 
 // SetLogLevel sets the log level.
