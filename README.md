@@ -35,6 +35,7 @@ Lula operates on a framework of proof by adding custom overlays mapped to the th
 |----------|----------|----------|
 | [Kubernetes](./docs/reference/domains/kubernetes-domain.md) | ✅ | - |
 | [API](./docs/reference/domains/api-domain.md) | ✅ | - |
+| [File](./docs/reference/domains/file-domain.md) | ✅ | - |
 | Cloud Infrastructure | ❌ | ✅ |
 
 **Provider** is the "engine" performing the validation using policy and the data collected. Below are the active providers:
