@@ -84,7 +84,7 @@ func GenerateSSPCommand() *cobra.Command {
 				}
 
 				componentDefs = append(componentDefs, model.ComponentDefinition)
-				command += fmt.Sprintf(" --component %s", componentPath)
+				command += fmt.Sprintf(" --components %s", componentPath)
 			}
 
 			// Generate the system security plan
