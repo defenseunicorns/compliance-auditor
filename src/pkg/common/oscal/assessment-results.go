@@ -16,7 +16,7 @@ import (
 	"github.com/defenseunicorns/lula/src/types"
 )
 
-const OSCAL_VERSION = "1.1.2"
+const OSCAL_VERSION = "1.1.3"
 
 type EvalResult struct {
 	Threshold *oscalTypes.Result
