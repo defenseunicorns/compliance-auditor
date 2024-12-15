@@ -1,0 +1,23 @@
+Generation of a System Security Plan OSCAL artifact from a source profile along with an optional list of component definitions.
+
+Usage:
+  system-security-plan [flags]
+
+Aliases:
+  system-security-plan, ssp
+
+Examples:
+
+To generate a system security plan from profile and component definition:
+	lula generate system-security-plan -p <path/to/profile> -c <path/to/component-definition>
+
+To specify the name and filetype of the generated artifact:
+	lula generate system-security-plan -p <path/to/profile> -c <path/to/component-definition> -o my_ssp.yaml
+
+
+Flags:
+  -c, --components strings                      comma delimited list the paths to the component definitions to include for the SSP
+  -h, --help                                    help for system-security-plan
+  -o, --output-file system-security-plan.yaml   the path to the output file. If not specified, the output file will default to system-security-plan.yaml
+  -p, --profile string                          the path to the imported profile
+      --remarks strings                         Target for remarks population (default [statement])
