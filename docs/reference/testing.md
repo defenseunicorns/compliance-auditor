@@ -107,7 +107,7 @@ Which will point to the labels key of the first namespace. Additionally, a `[-]`
 * In addition to simple selectors for a list, e.g., `path[key=value]`, complex filters can be used, e.g., `path[key=value,key2=value2]` or `path[key.subkey=value]`
 * Use double quotes to access keys that contain periods, e.g., `foo["some.key"=value]` or `foo["some.key/label"]`
 * To access the index of a list, use `[0]` (where 0 is any valid index) or `[-]` for the last item in the list
-* If you need to access a map key that is an integer, either use `foo["0"]` or `foo.0`
+* In the scenario where you need to access a map key which is a stringified integer (e.g., the "0" in `{ "foo": { "0": "some-value" }}`), either enclose the key in quotes, `foo["0"]`, or access through the normal path syntax, `foo.0`.
 
 ### Change Type Behavior
 

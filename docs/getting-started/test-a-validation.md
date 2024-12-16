@@ -77,7 +77,7 @@ We'd like to verify that our rego policy is going to correctly evaluate the `pod
 
 ```json
 {
-    "podinfoDeployment": {}
+  "podinfoDeployment": {}
 }
 ```
 
@@ -114,7 +114,35 @@ tests:
 
 4. For the second test case, we want to verify that the policy is `not-satisfied` if the resource is found, but the number of replicas is 0. This mimics a scenario where the deployment is in the cluster, but there are no pods.
 
-To mimic the json manifest we expect for this scenario, we'd like to set the `podinfoDeployment.spec.replicas` to 0. We can do this by adding the following to the `changes` section:
+An abridged version of the json manifest we expect for this scenario is:
+
+```json
+{
+  "podinfoDeployment": {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "name": "podinfo"
+      // Rest of the metadata
+    },
+    "spec": {
+      "replicas": 0
+      // Rest of the spec
+    }
+  }
+}
+```
+
+On first glance, we might be tempted to set the `podinfoDeployment.spec.replicas` to 0 using the following change:
+
+```yaml
+# invalid change for our resource!
+- path: podinfoDeployment.status.replicas
+  type: update
+  value: "0"
+```
+
+However, this will NOT correctly generate the expected json structure since the `replicas` field is a number, and not a string. Instead, we need to use the `value-map` change type, which allows us to set the value of a field to any type of value, as follows:
 
 ```yaml
 - path: podinfoDeployment.status
@@ -123,18 +151,7 @@ To mimic the json manifest we expect for this scenario, we'd like to set the `po
     replicas: 0
 ```
 
-This is another test case where at first pass we'd expect to set up a change as follows:
-
-```yaml
-# Does NOT work
-- path: podinfoDeployment.status.replicas
-  type: update
-  value: "0"
-```
-
-However, this will not correctly generate the expected json structure, as the `replicas` field is a number, and not a string. Instead, we need to use the `value-map` change type, which allows us to set the value of a field to any type of value.
-
-Now the tests will look like the following:
+Now the tests, containing both test cases, will become:
 
 ```yaml
 tests:
