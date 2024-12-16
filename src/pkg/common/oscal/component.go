@@ -48,6 +48,21 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition *oscalTypes.C
 	return oscalModels.ComponentDefinition, nil
 }
 
+// MergeVariadicComponentDefinition merges multiple variadic component definitions into a single component definition
+func MergeVariadicComponentDefinition(compdefs ...*oscalTypes.ComponentDefinition) (mergedCompDef *oscalTypes.ComponentDefinition, err error) {
+	for _, compdef := range compdefs {
+		if mergedCompDef == nil {
+			mergedCompDef = compdef
+		} else {
+			mergedCompDef, err = MergeComponentDefinitions(mergedCompDef, compdef)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return mergedCompDef, nil
+}
+
 // This function should perform a merge of two component-definitions where maintaining the original component-definition is the primary concern.
 func MergeComponentDefinitions(original *oscalTypes.ComponentDefinition, latest *oscalTypes.ComponentDefinition) (*oscalTypes.ComponentDefinition, error) {
 

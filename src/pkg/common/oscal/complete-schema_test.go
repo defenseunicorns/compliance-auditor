@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 func TestGetOscalModel(t *testing.T) {
@@ -125,6 +127,39 @@ func TestInjectIntoOSCALModel(t *testing.T) {
 				t.Errorf("InjectIntoOSCALModel() error = %v", err)
 			}
 			assert.Equal(t, expectedModel, *result, "The OSCAL models should be equal")
+		})
+	}
+}
+
+func TestFetchOSCALModel(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		uri      string
+		rootDir  string
+		expected string
+	}{
+		{
+			name:     "fetch-remote-catalog",
+			uri:      "https://raw.githubusercontent.com/usnistgov/oscal-content/refs/heads/main/nist.gov/SP800-53/rev5/yaml/NIST_SP-800-53_rev5_MODERATE-baseline-resolved-profile_catalog.yaml",
+			rootDir:  "",
+			expected: "catalog",
+		},
+		{
+			name:     "fetch-local-component",
+			uri:      "../../../test/unit/common/oscal/valid-component.yaml",
+			rootDir:  "",
+			expected: "component",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, modelType, err := oscal.FetchOSCALModel(tt.uri, tt.rootDir)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, modelType)
+			assert.NotNil(t, result)
 		})
 	}
 }

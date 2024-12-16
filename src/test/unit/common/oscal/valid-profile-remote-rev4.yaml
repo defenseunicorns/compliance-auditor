@@ -1,0 +1,22 @@
+profile:
+  imports:
+    - href: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml
+      include-controls:
+        - with-ids:
+            - ac-1
+            - ac-2
+            - ac-3
+  merge:
+    as-is: true
+  metadata:
+    last-modified: 2024-10-09T22:11:59.770494477Z
+    oscal-version: 1.1.2
+    props:
+      - name: generation
+        ns: https://docs.lula.dev/oscal/ns
+        value: lula generate profile --source https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev4/yaml/NIST_SP-800-53_rev4_HIGH-baseline-resolved-profile_catalog.yaml --include ac-1,ac-2,ac-3
+    published: 2024-10-09T22:11:59.770494477Z
+    remarks: Profile generated from Lula
+    title: Profile
+    version: 0.0.1
+  uuid: 2dc47ad2-4f31-475f-b46e-78811e22349a
