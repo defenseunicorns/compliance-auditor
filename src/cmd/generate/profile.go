@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/spf13/cobra"
 )
 
 var profileExample = `
@@ -35,7 +36,7 @@ func GenerateProfileCommand() *cobra.Command {
 		Use:     "profile",
 		Aliases: []string{"p"},
 		Args:    cobra.MaximumNArgs(1),
-		Short:   "Generate a profile OSCAL template",
+		Short:   "Generate a profile OSCAL artifact",
 		Long:    profileLong,
 		Example: profileExample,
 		RunE: func(cmd *cobra.Command, args []string) error {

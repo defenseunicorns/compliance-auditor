@@ -25,5 +25,6 @@ Generate a specified compliance artifact template
 
 * [lula](./lula.md)	 - Risk Management as Code
 * [lula generate component](./lula_generate_component.md)	 - Generate a component definition OSCAL template
-* [lula generate profile](./lula_generate_profile.md)	 - Generate a profile OSCAL template
+* [lula generate profile](./lula_generate_profile.md)	 - Generate a profile OSCAL artifact
+* [lula generate system-security-plan](./lula_generate_system-security-plan.md)	 - Generate a system security plan OSCAL artifact
 

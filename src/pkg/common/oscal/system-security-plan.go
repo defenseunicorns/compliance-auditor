@@ -116,15 +116,16 @@ func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
 
 // GenerateSystemSecurityPlan generates an OSCALModel System Security Plan.
 // Command is the command that was used to generate the SSP.
-// Source is the catalog source url that should be extracted from the component definition.
-// Compdef is the partially* composed component definition and all merged component-definitions.
-// TODOs: implement *partially = just imported component-definitions, remapped validation links;
-// implement system-characteristics, parties->users->components, component status, (probably more);
-// support for target instead of source?
-func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
-	if compdef == nil {
-		return nil, fmt.Errorf("component definition is nil")
+// Source is the profile source url that should be used to pull implemented-requirements from the component definition. "Target" not currently supported.
+// Profile is the profile model that should be used to populate the SSP.
+// Compdefs are all component definitions that should be merged into the SSP.
+// This will return an error if the profile does not contain any controls.
+func GenerateSystemSecurityPlan(command, source string, targetRemarks []string, profile *oscalTypes.Profile, compdefs ...*oscalTypes.ComponentDefinition) (*SystemSecurityPlan, error) {
+	compdef, err := MergeVariadicComponentDefinition(compdefs...)
+	if err != nil {
+		return nil, err
 	}
+	componentsMap := ComponentsToMap(compdef)
 
 	// Create the OSCAL SSP model for use and later assignment to the oscal.SystemSecurityPlan implementation
 	var model oscalTypes.SystemSecurityPlan
@@ -142,11 +143,6 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 			Ns:    LULA_NAMESPACE,
 			Value: command,
 		},
-		{
-			Name:  "framework", // Should this be here? ** Assuming framework:source is 1:1
-			Ns:    LULA_NAMESPACE,
-			Value: source,
-		},
 	}
 
 	// Create metadata object with requires fields and a few extras
@@ -159,7 +155,12 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 		Published:    &rfc3339Time,
 		LastModified: rfc3339Time,
 		Props:        &props,
-		Parties:      compdef.Metadata.Parties, // TODO: Should these be handled on compdef merge?
+	}
+
+	// Update parties from component definition if not nil
+	// TODO: Handle parties on component definition merge op
+	if compdef != nil {
+		model.Metadata.Parties = compdef.Metadata.Parties
 	}
 
 	// Update the import-profile
@@ -167,12 +168,12 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 		Href: source,
 	}
 
-	// Add system characteristics
+	// Add placeholder system characteristics
 	model.SystemCharacteristics = oscalTypes.SystemCharacteristics{
 		SystemName: "Generated System",
 		Status: oscalTypes.Status{
 			State:   "operational", // Defaulting to operational, will need to revisit how this should be set
-			Remarks: "<TODO: Validate state and remove this remark>",
+			Remarks: "TODO: Validate state and remove this remark",
 		},
 		SystemIds: []oscalTypes.SystemId{
 			{
@@ -184,70 +185,129 @@ func GenerateSystemSecurityPlan(command string, source string, compdef *oscalTyp
 				{
 					UUID:        uuid.NewUUID(),
 					Title:       "Generated System Information",
-					Description: "<TODO: Update information types>",
+					Description: "TODO: Update information types",
 				},
 			},
 		},
 	}
 
-	// Decompose the component defn and add to the right sections of the SSP
-	// TODO: external mapping of status? users? etc
-	// only pull components from the selected source...
-	implementedRequirementMap := CreateImplementedRequirementsByFramework(compdef)
-	componentsMap := ComponentsToMap(compdef)
-
-	if implementedRequirements, ok := implementedRequirementMap[source]; ok {
-		// Update the control-implementation.implemented-requirements & system-implementation.components
-		model.ControlImplementation = oscalTypes.ControlImplementation{
-			ImplementedRequirements: make([]oscalTypes.ImplementedRequirement, 0),
-		}
-		model.SystemImplementation = oscalTypes.SystemImplementation{
-			Components: make([]oscalTypes.SystemComponent, 0),
-			Users: []oscalTypes.SystemUser{
-				{
-					UUID:    uuid.NewUUID(),
-					Title:   "Generated User",
-					Remarks: "<TODO: Update generated user>",
+	// Add placeholder system-implementation
+	model.SystemImplementation = oscalTypes.SystemImplementation{
+		Components: []oscalTypes.SystemComponent{
+			{
+				UUID:    uuid.NewUUID(),
+				Title:   "Generated Component",
+				Remarks: "TODO: Update generated component",
+				Type:    "software",
+				Status: oscalTypes.SystemComponentStatus{
+					State:   "operational", // Defaulting to operational, will need to revisit how this should be set
+					Remarks: "TODO: Validate state and remove this remark",
 				},
 			},
+		},
+		Users: []oscalTypes.SystemUser{
+			{
+				UUID:    uuid.NewUUID(),
+				Title:   "Generated User",
+				Remarks: "TODO: Update generated user",
+			},
+		},
+	}
+
+	// Get all source/target-mapped control-ids -> by-components
+	componentControlMap := CreateSourceControlsMap(compdef)
+
+	// This will most likely remove all "target" keys, since those will not be resolvable links
+	componentControlMapUUIDs := RemapSourceToUUID(componentControlMap)
+
+	// Get all controls from profile -> implemented-requirements
+	profileControlMap, err := ResolveProfileControls(profile, source, "", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all implemented requirements
+	controlMap, ok := profileControlMap[profile.UUID]
+	if !ok {
+		return nil, fmt.Errorf("profile %s not found", profile.UUID)
+	}
+
+	// Return an error if the profile does not contain any controls (or should I add a placeholder?)
+	if len(controlMap) == 0 {
+		return nil, fmt.Errorf("profile %s does not contain any controls", profile.UUID)
+	}
+
+	model.ControlImplementation = oscalTypes.ControlImplementation{
+		ImplementedRequirements: make([]oscalTypes.ImplementedRequirement, 0, len(controlMap)),
+	}
+
+	componentsUsed := make([]string, 0)
+	// Update the control-implementation.implemented-requirements
+	for id, control := range controlMap {
+		// Create an implemented-requirement
+		implementedRequirement, err := createImplementedRequirement(&control, targetRemarks)
+		if err != nil {
+			return nil, err
 		}
-		componentsAdded := make([]string, 0)
 
-		for _, implementedRequirement := range implementedRequirements {
-			// Append to the control-implementation.implemented-requirements
-			model.ControlImplementation.ImplementedRequirements = append(model.ControlImplementation.ImplementedRequirements, implementedRequirement)
-
-			// Append to the system-implementation.components
-			for _, byComponent := range *implementedRequirement.ByComponents {
-				if !slices.Contains(componentsAdded, byComponent.ComponentUuid) {
-					if component, ok := componentsMap[byComponent.ComponentUuid]; ok {
-						model.SystemImplementation.Components = append(model.SystemImplementation.Components, oscalTypes.SystemComponent{
-							UUID:             component.UUID,
-							Type:             component.Type,
-							Title:            component.Title,
-							Description:      component.Description,
-							Props:            component.Props,
-							Links:            component.Links,
-							ResponsibleRoles: component.ResponsibleRoles,
-							Protocols:        component.Protocols,
-							Status: oscalTypes.SystemComponentStatus{
-								State:   "operational", // Defaulting to operational, will need to revisit how this should be set
-								Remarks: "<TODO: Validate state and remove this remark>",
-							},
-						})
+		// Check if any source UUIDs in componentControlMapUUIDs are in the profileControlMap -> update the respective implemented-requirement
+		for u, componentControls := range componentControlMapUUIDs {
+			// Check if the UUID is in the profileControlMap
+			if _, ok := profileControlMap[u]; ok {
+				// Check if the control-id is linked to the component
+				if _, ok := componentControls[id]; ok {
+					// Update the implemented-requirement.by-components
+					for _, component := range componentControls[id] {
+						if implementedRequirement.ByComponents == nil {
+							implementedRequirement.ByComponents = new([]oscalTypes.ByComponent)
+						}
+						*implementedRequirement.ByComponents = append(*implementedRequirement.ByComponents, component)
+						if !slices.Contains(componentsUsed, component.ComponentUuid) {
+							// Add new components only
+							componentsUsed = append(componentsUsed, component.ComponentUuid)
+						}
 					}
-
-					componentsAdded = append(componentsAdded, byComponent.ComponentUuid)
 				}
 			}
 		}
-	} else {
-		return nil, fmt.Errorf("no implemented requirements found for source %s", source)
+
+		// Add the implemented-requirement to the SSP
+		model.ControlImplementation.ImplementedRequirements = append(model.ControlImplementation.ImplementedRequirements, implementedRequirement)
 	}
 
-	return &SystemSecurityPlan{
+	// Update the system-implementation.components with any components used in the implemented-requirements
+	if len(componentsUsed) > 0 {
+		actualComponents := make([]oscalTypes.SystemComponent, 0, len(componentsUsed))
+		for _, cUUID := range componentsUsed {
+			component, ok := componentsMap[cUUID]
+			if !ok {
+				continue
+			}
+			actualComponents = append(actualComponents, oscalTypes.SystemComponent{
+				UUID:             component.UUID,
+				Type:             component.Type,
+				Title:            component.Title,
+				Description:      component.Description,
+				Props:            component.Props,
+				Links:            component.Links,
+				ResponsibleRoles: component.ResponsibleRoles,
+				Protocols:        component.Protocols,
+				Status: oscalTypes.SystemComponentStatus{
+					State:   "operational", // Defaulting to operational, will need to revisit how this should be set
+					Remarks: "TODO: Validate state and remove this remark",
+				},
+			})
+		}
+		model.SystemImplementation.Components = actualComponents
+	}
+
+	ssp := &SystemSecurityPlan{
 		Model: &model,
-	}, nil
+	}
+
+	// TODO: Perform a model merge of anything in oscal-parameters (ssp.MergeConfigurationData) overwrites anything as a "placeholder" or from the component-definition
+
+	return ssp, nil
 
 }
 
@@ -289,11 +349,14 @@ func MergeSystemSecurityPlanModels(original *oscalTypes.SystemSecurityPlan, late
 	return original, nil
 }
 
-type ImplementedRequirementMap map[string]oscalTypes.ImplementedRequirement
+// Get Components -> ImplementedRequirements map[string]ComponentsIRs
 
-// CreateImplementedRequirementsByFramework sorts the implemented requirements for each framework
-func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefinition) map[string]ImplementedRequirementMap {
-	frameworkImplementedRequirementsMap := make(map[string]ImplementedRequirementMap)
+type ByComponentsMap map[string][]oscalTypes.ByComponent
+
+// CreateSourceControlsMap maps the source/framework -> control-id -> []by-component
+func CreateSourceControlsMap(compdef *oscalTypes.ComponentDefinition) map[string]ByComponentsMap {
+	// Map that groups all sources/frameworks -> control-id -> by-component
+	sourceControlsMap := make(map[string]ByComponentsMap)
 
 	// Sort components by framework
 	if compdef != nil && compdef.Components != nil {
@@ -309,36 +372,31 @@ func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefin
 
 					for _, framework := range frameworks {
 						// Initialize the map for the source and framework if it doesn't exist
-						_, ok := frameworkImplementedRequirementsMap[framework]
+						_, ok := sourceControlsMap[framework]
 						if !ok {
-							frameworkImplementedRequirementsMap[framework] = make(map[string]oscalTypes.ImplementedRequirement)
+							sourceControlsMap[framework] = make(map[string][]oscalTypes.ByComponent)
 						}
 
 						// For each implemented requirement, add it to the map
 						for _, implementedRequirement := range controlImplementation.ImplementedRequirements {
-							existingIr, ok := frameworkImplementedRequirementsMap[framework][implementedRequirement.ControlId]
+							_, ok := sourceControlsMap[framework][implementedRequirement.ControlId]
 							if ok {
 								// If found, update the existing implemented requirement
 								// TODO: add other "ByComponents" fields?
-								*existingIr.ByComponents = append(*existingIr.ByComponents, oscalTypes.ByComponent{
+								sourceControlsMap[framework][implementedRequirement.ControlId] = append(sourceControlsMap[framework][implementedRequirement.ControlId], oscalTypes.ByComponent{
 									ComponentUuid: component.UUID,
 									UUID:          uuid.NewUUID(),
 									Description:   implementedRequirement.Description,
 									Links:         implementedRequirement.Links,
 								})
 							} else {
-								// Otherwise create a new implemented-requirement
-								frameworkImplementedRequirementsMap[framework][implementedRequirement.ControlId] = oscalTypes.ImplementedRequirement{
-									UUID:      uuid.NewUUID(),
-									ControlId: implementedRequirement.ControlId,
-									Remarks:   implementedRequirement.Remarks,
-									ByComponents: &[]oscalTypes.ByComponent{
-										{
-											ComponentUuid: component.UUID,
-											UUID:          uuid.NewUUID(),
-											Description:   implementedRequirement.Description,
-											Links:         implementedRequirement.Links,
-										},
+								// Otherwise create a new by-components slice
+								sourceControlsMap[framework][implementedRequirement.ControlId] = []oscalTypes.ByComponent{
+									{
+										ComponentUuid: component.UUID,
+										UUID:          uuid.NewUUID(),
+										Description:   implementedRequirement.Description,
+										Links:         implementedRequirement.Links,
 									},
 								}
 							}
@@ -348,7 +406,48 @@ func CreateImplementedRequirementsByFramework(compdef *oscalTypes.ComponentDefin
 			}
 		}
 	}
-	return frameworkImplementedRequirementsMap
+
+	return sourceControlsMap
+}
+
+// RemapSourceToUUID takes a map[string]any and remaps any source keys (profiles and catalogs) to their UUID
+// NOTE: Doesn't support backmatter resources as source keys, only network resolvable links
+func RemapSourceToUUID[V any](inMap map[string]V) map[string]V {
+	outMap := make(map[string]V)
+
+	for source, v := range inMap {
+		// Fetch OSCAL Model
+		// TODO: how to handle local file paths?
+		oscalModel, modelType, err := FetchOSCALModel(source, "")
+		if err != nil {
+			// If unable to fetch, skip
+			continue
+		}
+
+		switch modelType {
+		case "profile":
+			profile := oscalModel.Profile
+			outMap[profile.UUID] = v
+		case "catalog":
+			catalog := oscalModel.Catalog
+			outMap[catalog.UUID] = v
+		}
+	}
+	return outMap
+}
+
+func createImplementedRequirement(control *oscalTypes.Control, targetRemarks []string) (implementedRequirement oscalTypes.ImplementedRequirement, err error) {
+	remarks, err := getControlRemarks(control, targetRemarks)
+	if err != nil {
+		return implementedRequirement, err
+	}
+
+	// Create the implemented-requirement
+	return oscalTypes.ImplementedRequirement{
+		UUID:      uuid.NewUUID(),
+		ControlId: control.ID,
+		Remarks:   remarks,
+	}, nil
 }
 
 func mergeSystemComponents(original []oscalTypes.SystemComponent, latest []oscalTypes.SystemComponent) []oscalTypes.SystemComponent {
@@ -372,26 +471,31 @@ func mergeSystemComponents(original []oscalTypes.SystemComponent, latest []oscal
 func mergeImplementedRequirements(original []oscalTypes.ImplementedRequirement, latest []oscalTypes.ImplementedRequirement) []oscalTypes.ImplementedRequirement {
 	for _, latestRequirement := range latest {
 		found := false
-		for _, originalRequirement := range original {
+		for oIdx, originalRequirement := range original {
 			if latestRequirement.ControlId == originalRequirement.ControlId {
 				found = true
 				// Update ByComponent
-				for _, latestByComponent := range *latestRequirement.ByComponents {
-					foundByComponent := false
-					// Latest component is already in original, do nothing
-					// ** Assumption: There should never be a different Component reference specification to the same control, e.g., different links to append
-					for _, originalByComponent := range *originalRequirement.ByComponents {
-						if latestByComponent.UUID == originalByComponent.UUID {
-							foundByComponent = true
-							break
+				// If no by-components in latest, skip
+				if latestRequirement.ByComponents != nil && originalRequirement.ByComponents != nil {
+					for _, latestByComponent := range *latestRequirement.ByComponents {
+						foundByComponent := false
+						// Latest component is already in original, do nothing
+						// ** Assumption: There should never be a different Component reference specification to the same control, e.g., different links to append
+						for _, originalByComponent := range *originalRequirement.ByComponents {
+							if latestByComponent.ComponentUuid == originalByComponent.ComponentUuid {
+								foundByComponent = true
+								break
+							}
+						}
+						//if not found, append
+						if !foundByComponent {
+							*originalRequirement.ByComponents = append(*originalRequirement.ByComponents, latestByComponent)
 						}
 					}
-					//if not found, append
-					if !foundByComponent {
-						*originalRequirement.ByComponents = append(*originalRequirement.ByComponents, latestByComponent)
-					}
+				} else if latestRequirement.ByComponents != nil && originalRequirement.ByComponents == nil {
+					original[oIdx].ByComponents = latestRequirement.ByComponents
 				}
-				break
+				break // Break when latest reqt is found in original
 			}
 		}
 		//if not found, append

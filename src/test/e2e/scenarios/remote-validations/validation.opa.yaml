@@ -14,14 +14,18 @@ domain:
 provider:
   type: opa
   opa-spec:
+    modules:
+      lula.labels: https://raw.githubusercontent.com/defenseunicorns/lula/main/src/test/e2e/scenarios/pod-label/labels.rego
     rego: |
       package validate
 
       import future.keywords.every
+      import data.lula.labels as lula_labels
 
       validate {
         every pod in input.podsvt {
           podLabel := pod.metadata.labels.foo
           podLabel == "bar"
+          lula_labels.has_lula_label(pod)
         }
       }
