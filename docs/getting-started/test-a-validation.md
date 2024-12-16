@@ -126,6 +126,7 @@ To mimic the json manifest we expect for this scenario, we'd like to set the `po
 This is another test case where at first pass we'd expect to set up a change as follows:
 
 ```yaml
+# Does NOT work
 - path: podinfoDeployment.status.replicas
   type: update
   value: "0"
