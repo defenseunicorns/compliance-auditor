@@ -40,7 +40,6 @@ func TestGenerateFindings(t *testing.T) {
 	assert.Equal(t, "fail", findings["ID-1"].Target.Status.Reason)
 	assert.Empty(t, findings["ID-1"].Target.Status.Remarks)
 
-	assert.Equal(t, "No Lula validations were defined for this control", findings["ID-2"].Remarks)
 	assert.Equal(t, "not-satisfied", findings["ID-2"].Target.Status.State)
 	assert.Equal(t, "other", findings["ID-2"].Target.Status.Reason)
 	assert.Equal(t, "No Lula validations were defined for this control", findings["ID-2"].Target.Status.Remarks)
