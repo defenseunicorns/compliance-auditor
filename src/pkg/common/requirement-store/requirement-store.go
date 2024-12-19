@@ -117,7 +117,6 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 			state = "not-satisfied"
 			reason = "other"
 			remarks = "No Lula validations were defined for this control"
-			// finding.Remarks = remarks
 		} else {
 			state = "not-satisfied"
 			reason = "fail"
