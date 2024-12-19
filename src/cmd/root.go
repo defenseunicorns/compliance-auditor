@@ -12,6 +12,7 @@ import (
 	"github.com/defenseunicorns/lula/src/cmd/dev"
 	"github.com/defenseunicorns/lula/src/cmd/evaluate"
 	"github.com/defenseunicorns/lula/src/cmd/generate"
+	"github.com/defenseunicorns/lula/src/cmd/report"
 	"github.com/defenseunicorns/lula/src/cmd/tools"
 	"github.com/defenseunicorns/lula/src/cmd/validate"
 	"github.com/defenseunicorns/lula/src/cmd/version"
@@ -63,6 +64,7 @@ func init() {
 		validate.ValidateCommand(),
 		evaluate.EvaluateCommand(),
 		generate.GenerateCommand(),
+		report.ReportCommand(),
 		console.ConsoleCommand(),
 		dev.DevCommand(),
 	}
