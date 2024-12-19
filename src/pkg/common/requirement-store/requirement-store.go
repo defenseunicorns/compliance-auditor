@@ -100,6 +100,13 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 		message.Debugf("Pass: %v / Fail: %v / Existing State: %s", pass, fail, finding.Target.Status.State)
 		if finding.Target.Status.State == "not-satisfied" {
 			state = "not-satisfied"
+			// If the previous state was not-satisfied but there are RelatedObservations
+			// Then we want to update the reason or remarks in the event the reason
+			// was 'other' previously
+			if finding.RelatedObservations != nil {
+				reason = "fail"
+				remarks = "One or more Lula validations are failing"
+			}
 		} else if pass > 0 && fail == 0 {
 			state = "satisfied"
 			reason = "pass"
@@ -110,7 +117,7 @@ func (r *RequirementStore) GenerateFindings(validationStore *validationstore.Val
 			state = "not-satisfied"
 			reason = "other"
 			remarks = "No Lula validations were defined for this control"
-			finding.Remarks = remarks
+			// finding.Remarks = remarks
 		} else {
 			state = "not-satisfied"
 			reason = "fail"
