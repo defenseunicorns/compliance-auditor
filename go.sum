@@ -96,8 +96,8 @@ github.com/charmbracelet/x/ansi v0.4.5 h1:LqK4vwBNaXw2AyGIICa5/29Sbdq58GbGdFngSe
 github.com/charmbracelet/x/ansi v0.4.5/go.mod h1:dk73KoMTT5AX5BsX0KrqhsTqAnhZZoCBjs7dGWp4Ktw=
 github.com/charmbracelet/x/exp/golden v0.0.0-20240919170804-a4978c8e603a h1:IUy+N6nKpGfijckOe8KGnAQwBUT6xz63n3tbb0Gy8aY=
 github.com/charmbracelet/x/exp/golden v0.0.0-20240919170804-a4978c8e603a/go.mod h1:wDlXFlCrmJ8J+swcL/MnGUuYnqgQdW9rhSD61oNMb6U=
-github.com/charmbracelet/x/exp/teatest v0.0.0-20241108191800-317c90dc73b2 h1:jdRg7KEeM7PiRipulKq13bsIBrXvqp9fW1Vz72gNoF0=
-github.com/charmbracelet/x/exp/teatest v0.0.0-20241108191800-317c90dc73b2/go.mod h1:ag+SpTUkiN/UuUGYPX3Ci4fR1oF3XX97PpGhiXK7i6U=
+github.com/charmbracelet/x/exp/teatest v0.0.0-20241220083205-e9f42afc4e49 h1:eVJx3BKRxDVEnrs/CvR1T2TtkJ9P63pyEohc+VEn1AQ=
+github.com/charmbracelet/x/exp/teatest v0.0.0-20241220083205-e9f42afc4e49/go.mod h1:ag+SpTUkiN/UuUGYPX3Ci4fR1oF3XX97PpGhiXK7i6U=
 github.com/charmbracelet/x/term v0.2.1 h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=
 github.com/charmbracelet/x/term v0.2.1/go.mod h1:oQ4enTYFV7QN4m0i9mzHrViD7TQKvNEEkHUMCmsxdUg=
 github.com/cockroachdb/apd/v3 v3.2.1 h1:U+8j7t0axsIgvQUqthuNm82HIrYXodOV2iWLWtEaIwg=
