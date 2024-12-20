@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	"github.com/spf13/cobra"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/validation"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 	"github.com/defenseunicorns/lula/src/types"
-	"github.com/spf13/cobra"
 )
 
 var validateHelp = `
@@ -27,6 +28,8 @@ To run validations and automatically confirm execution
 	lula dev validate -f ./oscal-component.yaml --confirm-execution
 To run validations non-interactively (no execution)
 	lula dev validate -f ./oscal-component.yaml --non-interactive
+To run validations and their tests, generating a test-results file
+	lula dev validate -f ./oscal-component.yaml --run-tests
 `
 
 var (
@@ -48,6 +51,7 @@ func ValidateCommand() *cobra.Command {
 		confirmExecution    bool
 		runNonInteractively bool
 		saveResources       bool
+		runTests            bool
 	)
 
 	cmd := &cobra.Command{
@@ -81,8 +85,10 @@ func ValidateCommand() *cobra.Command {
 			// Set up the validator
 			validator, err := validation.New(
 				validation.WithComposition(composer, inputFile),
-				validation.WithResourcesDir(saveResources, filepath.Dir(outputFile)),
+				validation.WithOutputDir(filepath.Dir(outputFile)),
+				validation.WithSaveResources(saveResources),
 				validation.WithAllowExecution(confirmExecution, runNonInteractively),
+				validation.WithTests(runTests),
 			)
 			if err != nil {
 				return fmt.Errorf("error creating new validator: %v", err)
@@ -122,6 +128,7 @@ func ValidateCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&confirmExecution, "confirm-execution", false, "confirm execution scripts run as part of the validation")
 	cmd.Flags().BoolVar(&runNonInteractively, "non-interactive", false, "run the command non-interactively")
 	cmd.Flags().BoolVar(&saveResources, "save-resources", false, "saves the resources to 'resources' directory at assessment-results level")
+	cmd.Flags().BoolVar(&runTests, "run-tests", false, "run tests specified in the validation, writes to test-results-<timestamp>.yaml in output directory")
 	cmd.Flags().StringSliceVarP(&setOpts, "set", "s", []string{}, "set a value in the template data")
 
 	return cmd

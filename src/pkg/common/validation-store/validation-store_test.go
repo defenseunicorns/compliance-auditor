@@ -6,6 +6,7 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
@@ -241,4 +242,39 @@ func TestGetRelatedObservation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRunTests(t *testing.T) {
+	message.NoProgress = true
+	ctx := context.Background()
+	v := validationstore.NewValidationStore()
+
+	validation := generateValidation(t, "./testdata/validation.yaml")
+	validationWithTests := generateValidation(t, "./testdata/validation-with-tests.yaml")
+
+	idValidation, err := v.AddValidation(&validation)
+	require.NoError(t, err)
+	idValidationWithTests, err := v.AddValidation(&validationWithTests)
+	require.NoError(t, err)
+
+	// Run validations to populate domain resources for tests
+	v.RunValidations(ctx, true, false, "")
+
+	// Run tests
+	testReport := v.RunTests(ctx)
+
+	// Validate the content of the test report
+	reportValidation, ok := testReport[idValidation]
+	require.True(t, ok)
+
+	// no tests defined, should be empty
+	assert.Equal(t, 0, len(reportValidation.TestResults))
+
+	reportValidationWithTests, ok := testReport[idValidationWithTests]
+	require.True(t, ok)
+
+	// 2 tests defined, should have 2 results, both passing
+	assert.Equal(t, 2, len(reportValidationWithTests.TestResults))
+	assert.True(t, reportValidationWithTests.TestResults[0].Pass)
+	assert.True(t, reportValidationWithTests.TestResults[1].Pass)
 }
