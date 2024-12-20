@@ -200,12 +200,11 @@ func (v *LulaValidation) RunTests(ctx context.Context, saveResources bool) (*Lul
 					return nil, err
 				}
 				testReport.AddTestResult(testResult)
+			} else if d.Result != nil {
+				testReport.AddTestResult(d.Result)
 			}
-
 		}
 		return testReport, nil
-	} else {
-		message.Debugf("No tests defined for validation %s", v.Name)
 	}
 
 	return nil, nil

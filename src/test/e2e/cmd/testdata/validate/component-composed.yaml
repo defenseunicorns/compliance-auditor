@@ -1,0 +1,115 @@
+component-definition:
+  back-matter:
+    resources:
+      - description: |
+          domain:
+            file-spec:
+              filepaths:
+              - name: data
+                path: data.json
+            type: file
+          lula-version: ""
+          metadata:
+            name: test-validation
+            uuid: 61ec8808-f0f4-4b35-9a5b-4d7516053534
+          provider:
+            opa-spec:
+              rego: |
+                package validate
+                import rego.v1
+
+                default validate = false
+
+                validate if {
+                  every container in input.data.containers {
+                    container.image == "nginx"
+                  }
+                }
+            type: opa
+        title: test-validation
+        uuid: 61ec8808-f0f4-4b35-9a5b-4d7516053534
+      - description: |
+          domain:
+            file-spec:
+              filepaths:
+              - name: data
+                path: data.json
+            type: file
+          lula-version: ""
+          metadata:
+            name: test-validation-with-tests
+            uuid: 82099492-0601-4287-a2d1-cc94c49dca9b
+          provider:
+            opa-spec:
+              rego: |
+                package validate
+                import rego.v1
+
+                default validate = false
+
+                validate if {
+                  every container in input.data.containers {
+                    container.image == "nginx"
+                  }
+                }
+            type: opa
+          tests:
+          - changes:
+            - path: data.containers.[name=test-container1].image
+              type: update
+              value: other
+            expected-result: not-satisfied
+            name: change-image-name
+          - changes:
+            - path: data.containers
+              type: delete
+            expected-result: not-satisfied
+            name: no-containers
+        title: test-validation-with-tests
+        uuid: 82099492-0601-4287-a2d1-cc94c49dca9b
+  components:
+    - control-implementations:
+        - description: Control Implementation Description
+          implemented-requirements:
+            - control-id: s1.1.1
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              links:
+                - href: '#82099492-0601-4287-a2d1-cc94c49dca9b'
+                  rel: lula
+                  text: Test Validation With Tests
+              remarks: |-
+                STATEMENT:
+                All information security responsibilities should be defined and allocated.
+
+                A value has been assigned to [Selection: (one-or-more) organization-defined initiating a device lock after a duration of inactivity; requiring the user to initiate a device lock before leaving the system unattended;].
+
+                A cross link has been established with a choppy syntax: [(choppy)](#s1.2).
+              uuid: 1ad97566-ded1-4fb5-bdcd-03e8415cb409
+            - control-id: s2.1.1
+              description: <how the specified control may be implemented if the containing component or capability is instantiated in a system security plan>
+              links:
+                - href: '#61ec8808-f0f4-4b35-9a5b-4d7516053534'
+                  rel: lula
+                  text: Test Validation No Tests
+              remarks: |-
+                STATEMENT:
+                An access control policy should be established, documented and reviewed based on business and information security requirements.
+              uuid: 7ad83404-4d50-42a0-a1b3-54027d697bf6
+          props:
+            - name: generation
+              ns: https://docs.lula.dev/oscal/ns
+              value: lula generate component --catalog-source https://raw.githubusercontent.com/usnistgov/oscal-content/refs/heads/main/examples/catalog/yaml/basic-catalog.yaml --component 'Test Component' --requirements s1.1.1,s2.1.1 --remarks statement
+          source: https://raw.githubusercontent.com/usnistgov/oscal-content/refs/heads/main/examples/catalog/yaml/basic-catalog.yaml
+          uuid: 1a6971a1-a1c1-5f6f-9654-3e245453d99b
+      description: Component Description
+      title: Test Component
+      type: software
+      uuid: cfeeea29-d666-4b0f-b23e-f35dcf7cd22d
+  metadata:
+    last-modified: 2024-12-09T08:50:22.384126-05:00
+    oscal-version: 1.1.2
+    published: 2024-12-06T10:59:28.226314-05:00
+    remarks: Lula Generated Component Definition
+    title: Component Title
+    version: 0.0.1
+  uuid: 21279dc8-bc11-4130-98b2-ec0fcf2c0c3e

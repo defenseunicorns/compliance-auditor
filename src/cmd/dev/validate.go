@@ -128,6 +128,10 @@ func DevValidateCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("error running tests")
 				}
+				if testReport == nil {
+					message.Debug("No tests defined for validation")
+					return nil
+				}
 				// Print the test report using messages
 				testReport.PrintReport()
 
