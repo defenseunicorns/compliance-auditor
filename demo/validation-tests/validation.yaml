@@ -40,3 +40,27 @@ provider:
       validation: validate.validate
       observations:
         - validate.msg
+tests:
+  - name: missing-podinfo-deployment
+    expected-result: not-satisfied
+    changes:
+      - path: podinfoDeployment
+        type: delete
+      - path: "."
+        type: add
+        value-map:
+          podinfoDeployment: {}
+  - name: zero-replicas
+    expected-result: not-satisfied
+    changes:
+      - path: podinfoDeployment.spec
+        type: update
+        value-map: 
+          replicas: 0
+  - name: not-equal-replicas
+    expected-result: not-satisfied
+    changes:
+      - path: podinfoDeployment.status
+        type: update
+        value-map: 
+          availableReplicas: 0

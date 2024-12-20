@@ -9,6 +9,7 @@ Lula Validations are constructed by establishing the collection of measurements 
 The currently supported domains are:
 - API
 - Kubernetes
+- Files
 
 The currently supported providers are:
 - OPA (Open Policy Agent)
@@ -181,7 +182,7 @@ Here, we will step through creating a sample validation using the Kubernetes dom
           msg = check_podinfo_healthy.msg
 
           check_podinfo_healthy = {"result": true, "msg": msg} if {
-            input.podinfoDeployment.status.replicas > 0
+            input.podinfoDeployment.spec.replicas > 0
             input.podinfoDeployment.status.availableReplicas == input.podinfoDeployment.status.replicas
             msg := "Number of replicas > 0 and all replicas are available."
           } else = {"result": false, "msg": msg} {
@@ -229,7 +230,7 @@ Here, we will step through creating a sample validation using the Kubernetes dom
     
     If we expected this validation to fail, we would have added `-e=false`
 
-8. Now that we have our baseline validation, and we know it is returning an expected result for our current cluster configuration, we should probably ensure that the policy results are successful when other resource cases exist. There are really two options here:
+8. Now that we have our baseline validation, and we know it is returning an expected result for our current cluster configuration, we should probably ensure that the policy results are successful when other resource cases exist. There are a few options here:
     
     1) Manually modify the resources in your cluster and re-run `lula dev validate`
 
@@ -247,6 +248,8 @@ Here, we will step through creating a sample validation using the Kubernetes dom
         ```
 
         Success! Additional conditions can be tested this way to fully stress-test the validity of the policy.
+    
+    3) **Preferred Approach** Implement tests natively in the validation, using the [testing guide](../reference/testing.md). See the next tutorial [test a validation](./test-a-validation.md) for more information.
 
 9. Finally, we can bring this back into the `component-definition`. This validation should be added as a link to the respective  `implemented-requirement`:
     ```yaml
@@ -268,6 +271,6 @@ Here, we will step through creating a sample validation using the Kubernetes dom
 
 ## Limitations
 
-We are aware that many of these validations are brittle to environment changes, for instance if namespaces change. This is a known limitation and on our roadmap as something to offer a possible templating solution for in the future.
+We are aware that many of these validations are brittle to environment changes, for instance if namespaces change. See the [templating doc](./templating.md) for more information on how to create modular validations.
 
 Additionally, since we are adding these validations to OSCAL yaml documents, there is some ugliness with having to compose strings of yaml into yaml. We support "remote" validations, where instead of a reference to a backmatter uuid, instead a link to a file is provided. A limitation of that currently is that it does not support authentication if the remote link is in a protected location. 

@@ -7,57 +7,70 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
-type filterParts struct {
+type selectorPart struct {
 	key   string
 	value string
 }
 
-// BuildFilters builds kyaml filters from a pathSlice
-func BuildFilters(targetNode *yaml.RNode, pathSlice []string) ([]yaml.Filter, error) {
-	if targetNode == nil {
-		return nil, fmt.Errorf("root node is nil")
-	}
+// ResolvePathWithFilters converts a path to its individual parts which define the type of part
+// along with the appropriate kyaml filters to apply to the path
+func ResolvePathWithFilters(targetNode *yaml.RNode, path string) ([]PathPart, []yaml.Filter, error) {
+	pathParts := PathToParts(path) // Will always return at least one item
 
 	filters := make([]yaml.Filter, 0)
-	for _, segment := range pathSlice {
-		if isFilter, filterParts, err := extractFilter(segment); err != nil {
-			return nil, err
-		} else if isFilter {
-			// if it's a complex filter, e.g., [key1=value1,key2=value2] or [composite.key=value], lookup the index
-			if len(filterParts) > 1 || isComposite(filterParts[0].key) {
-				index, err := returnIndexFromComplexFilters(targetNode, filters, filterParts)
+	for i, part := range pathParts {
+		if part.Type == PartTypeSelector {
+			selectorParts, err := extractSelector(part.Value)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			if len(selectorParts) > 1 || isComposite(selectorParts[0].key) {
+				index, err := returnIndexFromComplexSelectors(targetNode, filters, selectorParts)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 
 				if index == -1 {
-					return nil, fmt.Errorf("composite path not found")
+					return nil, nil, fmt.Errorf("composite path not found")
 				} else {
 					filters = append(filters, yaml.GetElementByIndex(index))
+					// Update the partPath with the index instead of composite key
+					pathParts[i].Value = fmt.Sprintf("%d", index)
+					pathParts[i].Type = PartTypeIndex
 				}
 			} else {
-				filters = append(filters, yaml.MatchElement(filterParts[0].key, filterParts[0].value))
+				filters = append(filters, yaml.MatchElement(trimDoubleQuotes(selectorParts[0].key), selectorParts[0].value))
 			}
 		} else {
-			filters = append(filters, yaml.Lookup(segment))
+			if part.Value != "" {
+				filters = append(filters, yaml.Lookup(trimDoubleQuotes(part.Value)))
+			}
 		}
+
 	}
-	return filters, nil
+
+	// Validate that the filters are valid for the target node
+	err := targetNode.PipeE(filters...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return pathParts, filters, nil
 }
 
-// Helper to determine if item in path is a filter
-func isFilter(item string) bool {
-	// check if first and last char are [ and ]
-	return strings.HasPrefix(item, "[") && strings.HasSuffix(item, "]")
-}
-
-// isComposite checks if a string is a composite string, e.g., metadata.name
+// isComposite checks if a string is a composite selector, e.g., metadata.name
+// input is not composite if encapsulated in quotes, e.g., "metadata.name" -> it's the value of the key
 func isComposite(input string) bool {
+	if input[0] == '"' && input[len(input)-1] == '"' {
+		return false
+	}
+
 	keys := strings.Split(input, ".")
 	return len(keys) > 1
 }
 
-// buildCompositeFilters creates a yaml.Filter slice for a composite key
+// buildCompositeFilters creates a yaml.Filter slice for a composite selector
 // e.g., [metadata.namespace=foo]
 func buildCompositeFilters(key, value string) []yaml.Filter {
 	path := strings.Split(key, ".")
@@ -72,37 +85,35 @@ func buildCompositeFilters(key, value string) []yaml.Filter {
 	return compositeFilters
 }
 
-// extractFilter extracts the filter parts from a string
-// e.g., [key1=value1,key2=value2], [composite.key=value], [val.key.test=bar]
-func extractFilter(item string) (bool, []filterParts, error) {
-	if !isFilter(item) {
-		return false, []filterParts{}, nil
-	}
-	item = strings.TrimPrefix(item, "[")
-	item = strings.TrimSuffix(item, "]")
-
+// extractSelector extracts the selector parts from a string
+// e.g., key1=value1,key2=value2; composite.key=value; val.key.test=bar
+func extractSelector(item string) ([]selectorPart, error) {
 	items := strings.Split(item, ",")
 	if len(items) == 0 {
-		return false, []filterParts{}, fmt.Errorf("filter is empty")
+		return []selectorPart{}, fmt.Errorf("filter is empty")
 	}
 
-	filterPartsSlice := make([]filterParts, 0, len(items))
+	selelctorParts := make([]selectorPart, 0, len(items))
 	for _, i := range items {
 		if !strings.Contains(i, "=") {
-			return false, []filterParts{}, fmt.Errorf("filter is not in the correct format")
+			return []selectorPart{}, fmt.Errorf("filter is not in the correct format")
 		}
-		filterPartsSlice = append(filterPartsSlice, filterParts{
+		selelctorParts = append(selelctorParts, selectorPart{
 			key:   strings.SplitN(i, "=", 2)[0],
 			value: strings.SplitN(i, "=", 2)[1],
 		})
 	}
 
-	return true, filterPartsSlice, nil
+	return selelctorParts, nil
 }
 
-// returnIndexFromComplexFilters returns the index of the node that matches the filterParts
+// returnIndexFromComplexSelectors returns the index of the node that matches the filterParts
 // e.g., [key1=value1,key2=value2], [composite.key=value], [val.key.test=bar]
-func returnIndexFromComplexFilters(targetNode *yaml.RNode, parentFilters []yaml.Filter, filterParts []filterParts) (int, error) {
+func returnIndexFromComplexSelectors(targetNode *yaml.RNode, parentFilters []yaml.Filter, selectorParts []selectorPart) (int, error) {
+	if targetNode == nil {
+		return -1, fmt.Errorf("root node cannot be nil")
+	}
+
 	index := -1
 
 	parentNode, err := targetNode.Pipe(parentFilters...)
@@ -120,7 +131,7 @@ func returnIndexFromComplexFilters(targetNode *yaml.RNode, parentFilters []yaml.
 			return index, err
 		}
 		for i, node := range nodes {
-			if nodeMatchesAllFilters(node, filterParts) {
+			if nodeMatchesAllFilters(node, selectorParts) {
 				index = i
 				break
 			}
@@ -132,8 +143,8 @@ func returnIndexFromComplexFilters(targetNode *yaml.RNode, parentFilters []yaml.
 	return index, nil
 }
 
-func nodeMatchesAllFilters(node *yaml.RNode, filterParts []filterParts) bool {
-	for _, part := range filterParts {
+func nodeMatchesAllFilters(node *yaml.RNode, selectorParts []selectorPart) bool {
+	for _, part := range selectorParts {
 		if isComposite(part.key) {
 			compositeFilters := buildCompositeFilters(part.key, part.value)
 			n, err := node.Pipe(compositeFilters...)
@@ -141,7 +152,7 @@ func nodeMatchesAllFilters(node *yaml.RNode, filterParts []filterParts) bool {
 				return false
 			}
 		} else {
-			n, err := node.Pipe(yaml.MatchElement(part.key, part.value))
+			n, err := node.Pipe(yaml.MatchField(trimDoubleQuotes(part.key), part.value))
 			if err != nil || n == nil {
 				return false
 			}

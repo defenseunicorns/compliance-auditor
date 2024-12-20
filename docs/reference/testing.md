@@ -1,8 +1,10 @@
 # Testing
 
-Testing is a key part of Lula Validation development. Since the results of the Lula Validations are determined by the policy set by the `provider`, those policies must be tested to ensure they are working as expected.
+Testing is a key part of Lula Validation development. Since the results of the Lula Validations are determined by the policy set by the `provider`, those policies must be tested to ensure they are working as expected. The Validation Testing framework allows those tests to be specified directly in the `validation.yaml` file, and executed as part of the `validate` workflows.
 
-## Validation Testing
+See the ["Test a Validation"](../getting-started/test-a-validation.md) tutorial for an example walkthrough
+
+## Specification
 
 In the Lula Validation, a `tests` property is used to specify each test that should be performed against the validation. Each test is a map of the following properties:
 
@@ -50,13 +52,13 @@ tests:
   - name: modify-pod-label-not-satisfied
     expected-result: not-satisfied
     changes:
-      - path: podsvt.[metadata.namespace=validation-test].metadata.labels.foo
+      - path: podsvt[metadata.namespace=validation-test].metadata.labels.foo
         type: update
         value: baz
   - name: delete-pod-label-not-satisfied
     expected-result: not-satisfied
     changes:
-      - path: podsvt.[metadata.namespace=validation-test].metadata.labels.foo
+      - path: podsvt[metadata.namespace=validation-test].metadata.labels.foo
         type: delete
 ```
 
@@ -64,34 +66,35 @@ There are two tests here:
 * The first test will locate the first pod in the `validation-test` namespace and update the label `foo` to `baz`. Then a `validate` will be executed against the modified resources. The expected result of this is that the validation will fail, i.e., will be `not-satisfied`, which would result in a successful test.
 * The second test will locate the first pod in the `validation-test` namespace and delete the label `foo`, then proceed to validate the modified resources and compare to the expected result.
 
+
 ### Path Syntax
 
-This feature uses the kyaml library to inject data into the resources, so the path syntax is based on this library. 
+This feature uses the kyaml library to inject data into the resources, so the path syntax is adapted from this library. With that said, the implementation in Lula offers some additional functionality to resolve more complex paths.
 
-The path should be a "." delimited string that specifies the keys along the path to the resource seeking to be modified. In addition to keys, a list item can be specified by using the “[some-key=value]” syntax. For example, the following path:
+The path should be a "." delimited string that specifies the keys along the path to the resource seeking to be modified. Any key followed by `[*=*]` will be treated as a list, where the content inside the brackets specify the item to be selected from the list. For example, the following path:
 
 ```
-pods.[metadata.namespace=grafana].spec.containers.[name=istio-proxy]
+pods[metadata.namespace=grafana].spec.containers[name=istio-proxy]
 ```
 
-Will start at the pods key, then since the next item is a [*=*] it assumes pods is a list, and will iterate over each item in the list to find where the key `metadata.namespace` is equal to `grafana`. It will then find the `containers` list item in `spec`, and iterate over each item in the list to find where the key `name` is equal to `istio-proxy`.
+Will start at the pods key, then since the next item is formatted as [*=*] it assumes pods is a list, and will iterate over each item in the list to find where the key `metadata.namespace` is equal to `grafana`. It will then find the `containers` list item in `spec`, and iterate over each item in the list to find where the key `name` is equal to `istio-proxy`.
 
 Multiple filters can be added for a list, for example the above example could be modified to filter both by namespace and pod name:
 
 ```
-pods.[metadata.namespace=grafana,metadata.name=operator].spec.containers.[name=istio-proxy]
+pods[metadata.namespace=grafana,metadata.name=operator].spec.containers[name=istio-proxy]
 ```
 
-To support map keys containing ".", [] syntax will also be used, e.g.,
+To support map keys containing ".", [] syntax will also be used, however the data inside the brackets will need to be encapsulated in quotes, e.g.,
 
 ```
-namespaces.[metadata.namespace=grafana].metadata.labels.["some.key/label"]
+namespaces[metadata.namespace=grafana].metadata.labels["some.key/label"]
 ```
 
 Additionally, individual list items can be found via their index, e.g.,
 
 ```
-namespaces.[0].metadata.labels
+namespaces[0].metadata.labels
 ```
 
 Which will point to the labels key of the first namespace. Additionally, a `[-]` can be used to specify the last item in the list.
@@ -99,20 +102,51 @@ Which will point to the labels key of the first namespace. Additionally, a `[-]`
 >[!IMPORTANT]
 > The path will return only one item, the first item that matches the filters along the path. If no items match the filters, the path will return an empty map.
 
+#### Path Rules
+* Path resolution supports both `path.[key=value]` and `path[key=value]` syntax
+* In addition to simple selectors for a list, e.g., `path[key=value]`, complex filters can be used, e.g., `path[key=value,key2=value2]` or `path[key.subkey=value]`
+* Use double quotes to access keys that contain periods, e.g., `foo["some.key"=value]` or `foo["some.key/label"]`
+* To access the index of a list, use `[0]` (where 0 is any valid index) or `[-]` for the last item in the list
+* In the scenario where you need to access a map key which is a stringified integer (e.g., the "0" in `{ "foo": { "0": "some-value" }}`), either enclose the key in quotes, `foo["0"]`, or access through the normal path syntax, `foo.0`.
+
 ### Change Type Behavior
 
-**Add**
-* All keys in the path must exist, except for the last key. If you are trying to add a map, then use `value-map` and specify the existing root key.
-* If a sequence is "added" to, then the value items will be appended to the sequence.
+**Add**/**Update**
+* These are nearly identical, except that `add` will append to a list, while `update` will replace the entire list
+* All keys in the path must exist, except for the last key. If you are trying to update a key with anything other than a string, use `value-map` and specify the existing root key:
 
-**Update**
-* If a sequence is "updated", then the entire sequence will be replaced.
+original data:
+```json
+{
+  "foo": {
+    "bar": 1
+  }
+}
+```
+
+desired data:
+```json
+{
+  "foo": {
+    "bar": 0
+  }
+}
+```
+
+change:
+```yaml
+changes:
+  - path: foo
+    type: update
+    value-map:
+      bar: 0
+```
 
 **Delete**
-* Currently only supports deleting a key, error will be returned if the last item in the path resolves to a sequence.
-* No values should be specified for delete.
+* You can delete list entries by specifying the index, e.g., `path[0]`, or by specifying a selector, e.g., `path[key=value]`
+* When using delete, `value` nor `value-map` should be specified
 
-A note about replacing a key with an empty map - due to the way the `kyaml` library works, simply trying to overwrite an existing key with an empty map will not yield a removal of all the existing data of the map, it will just try and merge the differences, which is possibly not the desired outcome. To replace a map with an empty map, you must combine `delete` a change type and `add` a change type, e.g.,
+A note about replacing a key with an empty map - due to the way the `kyaml` merge functionality works, simply trying to overwrite an existing key with an empty map will not yield a removal of all the existing data of the map, it will just try and merge the differences, which is possibly not the desired outcome. To replace a map with an empty map, you must combine the `delete` change type and an `add` change type, e.g.,
 
 ```yaml
 changes:
