@@ -1,0 +1,23 @@
+metadata:
+  name: test-validation
+  uuid: 61ec8808-f0f4-4b35-9a5b-4d7516053534
+domain:
+  type: file
+  file-spec:
+    filepaths:
+     - name: 'data'
+       path: 'data.json'
+provider:
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+      import rego.v1
+
+      default validate = false
+
+      validate if {
+        every container in input.data.containers {
+          container.image == "nginx"
+        } 
+      }

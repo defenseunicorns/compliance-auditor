@@ -38,11 +38,23 @@ func WithAllowExecution(confirmExecution, runNonInteractively bool) Option {
 	}
 }
 
-func WithResourcesDir(saveResources bool, rootDir string) Option {
+func WithOutputDir(rootDir string) Option {
 	return func(v *Validator) error {
-		if saveResources {
-			v.resourcesDir = rootDir
-		}
+		v.outputsDir = rootDir
+		return nil
+	}
+}
+
+func WithSaveResources(saveResources bool) Option {
+	return func(v *Validator) error {
+		v.saveResources = saveResources
+		return nil
+	}
+}
+
+func WithTests(runTests bool) Option {
+	return func(v *Validator) error {
+		v.runTests = runTests
 		return nil
 	}
 }

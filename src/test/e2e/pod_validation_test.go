@@ -382,7 +382,10 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 	message.NoProgress = true
 	tempDir := t.TempDir()
 
-	validator, err := validation.New(validation.WithResourcesDir(true, tempDir))
+	validator, err := validation.New(
+		validation.WithOutputDir(tempDir),
+		validation.WithSaveResources(true),
+	)
 	if err != nil {
 		t.Errorf("error creating validation context: %v", err)
 	}
