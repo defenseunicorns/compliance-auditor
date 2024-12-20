@@ -9,69 +9,145 @@ import (
 	"github.com/defenseunicorns/lula/src/internal/transform"
 )
 
-func TestBuildFilters(t *testing.T) {
-	runTest := func(t *testing.T, node []byte, pathSlice []string, expected []yaml.Filter) {
+func TestResolvePathWithFilters(t *testing.T) {
+	runTest := func(t *testing.T, node []byte, path string, expectedPathParts []transform.PathPart, expectedFilters []yaml.Filter) {
 		t.Helper()
 
 		n := createRNode(t, node)
 
-		filters, err := transform.BuildFilters(n, pathSlice)
+		pathParts, filters, err := transform.ResolvePathWithFilters(n, path)
 		require.NoError(t, err)
 
-		require.Equal(t, expected, filters)
+		require.Equal(t, expectedPathParts, pathParts)
+		require.Equal(t, expectedFilters, filters)
 	}
 
 	tests := []struct {
-		name      string
-		pathSlice []string
-		nodeBytes []byte
-		expected  []yaml.Filter
+		name              string
+		path              string
+		nodeBytes         []byte
+		expectedPathParts []transform.PathPart
+		expectedFilters   []yaml.Filter
 	}{
 		{
-			name: "test-simple-path",
-			pathSlice: []string{
-				"a",
-				"b",
+			name: "simple-path",
+			path: "a.b",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeMap, Value: "a"},
+				{Type: transform.PartTypeScalar, Value: "b"},
 			},
-			expected: []yaml.Filter{
+			expectedFilters: []yaml.Filter{
 				yaml.PathGetter{Path: []string{"a"}},
 				yaml.PathGetter{Path: []string{"b"}},
 			},
 		},
 		{
-			name: "test-sequence-path",
-			pathSlice: []string{
-				"a",
-				"[b=c]",
+			name: "filter-path",
+			path: "a[b=c]",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeSelector, Value: "b=c"},
 			},
-			expected: []yaml.Filter{
+			expectedFilters: []yaml.Filter{
 				yaml.PathGetter{Path: []string{"a"}},
 				yaml.ElementMatcher{Keys: []string{"b"}, Values: []string{"c"}},
 			},
 		},
 		{
-			name: "test-composite-path",
-			pathSlice: []string{
-				"a",
-				"[b.c=d]",
+			name: "complex-filter-path",
+			path: "a[b.c=d]",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeIndex, Value: "0"},
 			},
 			nodeBytes: []byte(`
 a:
-  - b: 
+  - b:
       c: d
   - b:
       c: e
 `),
-			expected: []yaml.Filter{
+			expectedFilters: []yaml.Filter{
 				yaml.PathGetter{Path: []string{"a"}},
 				yaml.ElementIndexer{Index: 0},
 			},
+		},
+		{
+			name: "composite-multi-filter-path",
+			path: "a[b.c=d,e=f]",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeIndex, Value: "1"},
+			},
+			nodeBytes: []byte(`
+a:
+  - b:
+      c: d
+    e: c
+  - b:
+      c: d
+    e: f
+`),
+			expectedFilters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.ElementIndexer{Index: 1},
+			},
+		},
+		{
+			name: "multi-filter-path",
+			path: "a[b=d,e=f]",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeIndex, Value: "1"},
+			},
+			nodeBytes: []byte(`
+a:
+  - b: d
+    e: c
+  - b: d
+    e: f
+`),
+			expectedFilters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.ElementIndexer{Index: 1},
+			},
+		},
+		{
+			name: "encapsulated-key",
+			path: "a[\"b.c=d\"]",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeMap, Value: "a"},
+				{Type: transform.PartTypeScalar, Value: "b.c=d"},
+			},
+			expectedFilters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.PathGetter{Path: []string{"b.c=d"}},
+			},
+		},
+		{
+			name: "encapsulated-filter-path",
+			path: `a["b.c"=d]`,
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeSequence, Value: "a"},
+				{Type: transform.PartTypeSelector, Value: `"b.c"=d`},
+			},
+			expectedFilters: []yaml.Filter{
+				yaml.PathGetter{Path: []string{"a"}},
+				yaml.ElementMatcher{Keys: []string{"b.c"}, Values: []string{"d"}},
+			},
+		},
+		{
+			name: "root-path",
+			expectedPathParts: []transform.PathPart{
+				{Type: transform.PartTypeScalar, Value: ""},
+			},
+			expectedFilters: []yaml.Filter{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			runTest(t, tt.nodeBytes, tt.pathSlice, tt.expected)
+			runTest(t, tt.nodeBytes, tt.path, tt.expectedPathParts, tt.expectedFilters)
 		})
 	}
 }
