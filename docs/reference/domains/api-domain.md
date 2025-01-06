@@ -97,3 +97,30 @@ provider:
         resp == true
       }
 ```
+
+## Chaining API Calls
+(here for the POC; will be integrated into the main document when real)
+Additional fields in the Spec support chaining API requests:
+
+- use `Outputs` & kyaml syntax to store values from one API call & reference in another:
+```yaml
+requests:
+  - name: keycloak-token
+    outputs:
+    - name: token
+      path: // kyaml syntax, relative to the output of this request 
+    url: //etc
+```
+
+Now future requests can use any of the "tpl" fields to specify templates (using go syntax, with [[ ]] as delimiters to differentiate from our whole-file templatizing)
+
+Yes all the names are terrible I'm VERY open to suggestions. In the long term / real implementation I'd like this all to just happen if outputs are detected instead of using additional (`tpl`) fields, but again: poc 
+
+```yaml
+requests:
+  - name: keycloak-realm-check
+    options:
+      headerstpl:
+        # syntax is requestname.outputname
+        authorization: `Bearer [[.keycloak-token.token]]`
+```

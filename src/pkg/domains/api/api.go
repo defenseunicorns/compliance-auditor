@@ -8,6 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"text/template"
+
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 
 	"github.com/defenseunicorns/lula/src/types"
 )
@@ -41,7 +45,18 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		// requests with overrides (in request.Options.Headers) will get bespoke clients.
 		defaultClient := clientFromOpts(defaultOpts)
 		var errs error
-		for _, request := range a.Spec.Requests {
+		for i, request := range a.Spec.Requests {
+			if i > 0 { // the first request cannot use outputs
+				if a.Spec.outputs != nil {
+					var err error
+					request, err = executeTpls(request, a.Spec.outputs)
+					if err != nil {
+						/// TODO: better error
+						return collection, err
+					}
+				}
+			}
+
 			var r io.Reader
 			if request.Body != "" {
 				r = bytes.NewBufferString(request.Body)
@@ -68,6 +83,21 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 					"raw":      response.Raw,
 					"response": response.Response,
 				}
+
+				if request.Outputs != nil {
+					node, err := yaml.ConvertJSONToYamlNode(string(response.Raw))
+					if err != nil {
+						errs = errors.Join(errs, err)
+						break
+					}
+					for _, output := range request.Outputs {
+						v, err := node.GetFieldValue(output.Path)
+						if err != nil {
+							errs = errors.Join(errs, err)
+						}
+						a.Spec.outputs[request.Name][output.Name] = v
+					}
+				}
 			} else {
 				// If the entire response is empty, return a validly empty resource
 				collection[request.Name] = types.DomainResources{"status": 0}
@@ -75,4 +105,70 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 		}
 		return collection, errs
 	}
+}
+
+func executeTpls(req Request, vars map[string]map[string]interface{}) (Request, error) {
+	modifiedReq := req.DeepCopy()
+
+	// url
+	if req.URLTpl != "" {
+		urlstr, err := executeTpl(req.URLTpl, vars)
+		if err != nil {
+			return modifiedReq, err
+		}
+		reqUrl, err := url.Parse(urlstr)
+		if err != nil {
+			// TODO: error types! this is a copy!
+			// TODO: we should attempt each template step and return a wrapped error
+			return modifiedReq, errors.New("invalid request url")
+		}
+		modifiedReq.reqURL = reqUrl
+	}
+
+	// headers
+	if req.Options.HeadersTpl != nil {
+		headers := make(map[string]string)
+		for k, v := range req.Options.HeadersTpl {
+			h, err := executeTpl(v, vars)
+			if err != nil {
+				return modifiedReq, err
+			}
+			headers[k] = h
+		}
+		modifiedReq.Options.Headers = headers
+	}
+
+	// params
+	if req.ParamsTpl != nil {
+		params := make(map[string]string)
+		for k, v := range req.ParamsTpl {
+			h, err := executeTpl(v, vars)
+			if err != nil {
+				return modifiedReq, err
+			}
+			params[k] = h
+		}
+		modifiedReq.Params = params // this isn't strictly _necessary_ but let's get all the info in place
+		queryParameters := url.Values{}
+		for k, v := range modifiedReq.Params {
+			queryParameters.Add(k, v)
+		}
+		modifiedReq.reqParameters = queryParameters
+	}
+
+	return modifiedReq, nil
+}
+
+func executeTpl(tplstr string, vars map[string]map[string]interface{}) (string, error) {
+	tpl, err := template.New("lula").Delims("[[", "]]").Parse(tplstr)
+	if err != nil {
+		return "", err
+	}
+
+	var res bytes.Buffer
+	err = tpl.Execute(&res, vars)
+	if err != nil {
+		return "", err
+	}
+	return res.String(), nil
 }
