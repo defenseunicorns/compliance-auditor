@@ -24,6 +24,7 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), body)
 	if err != nil {
+		message.Debugf("error from http.NewRequestWithContext: %s", err)
 		return nil, err
 	}
 	// add each header to the request
@@ -32,20 +33,23 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 	}
 
 	// log the request
-	message.Debug("%q %s", method, req.URL.Redacted())
+	message.Debugf("%q %s", method, req.URL.Redacted())
 
 	// do the thing
 	res, err := client.Do(req)
 	if err != nil {
+		message.Debugf("error from client.Do: %s", err)
 		return nil, err
 	}
 	if res == nil {
-		return nil, fmt.Errorf("error: calling %s returned empty response", url.Redacted())
+		message.Debug("empty response")
+		return nil, fmt.Errorf("error: %s returned empty response", url.Redacted())
 	}
 	defer res.Body.Close()
 
 	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
+		message.Debugf("error reading response body: %s", err)
 		return nil, err
 	}
 
@@ -53,6 +57,9 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 	respObj.Raw = responseData
 	respObj.Status = res.StatusCode
 	err = json.Unmarshal(responseData, &respObj.Response)
+	if err != nil {
+		message.Debugf("error unmarshalling response: %s", err)
+	}
 	return &respObj, err
 }
 
