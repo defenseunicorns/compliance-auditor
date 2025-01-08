@@ -118,7 +118,8 @@ func TestGetResources(t *testing.T) {
 				"response": map[string]interface{}{
 					"healthcheck": "ok",
 				},
-				"status": 200,
+				"status":     "200 OK",
+				"statuscode": 200,
 			}}
 		require.Equal(t, want, drs)
 	})
@@ -135,13 +136,15 @@ func TestGetResources(t *testing.T) {
 
 		require.NoError(t, err) // the spec is correct
 		drs, err := api.GetResources(context.Background())
-		require.Error(t, err)
-		require.Equal(t, drs, types.DomainResources{
+		require.NoError(t, err)
+		require.Equal(t, types.DomainResources{
 			apiReqName: types.DomainResources{
-				"status":   400,
-				"raw":      json.RawMessage{},
-				"response": nil,
-			},
-		})
+				"statuscode": 400,
+				"status":     "400 Bad Request",
+				"response":   nil,
+				"raw":        json.RawMessage(nil),
+			}},
+			drs,
+		)
 	})
 }

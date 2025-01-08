@@ -13,9 +13,10 @@ import (
 )
 
 type APIResponse struct {
-	Status   int
-	Raw      json.RawMessage
-	Response any
+	StatusCode int
+	Status     string
+	Raw        json.RawMessage
+	Response   any
 }
 
 func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, error) {
@@ -63,11 +64,13 @@ func (a ApiDomain) makeRequests(ctx context.Context) (types.DomainResources, err
 				errs = errors.Join(errs, err)
 			}
 			if response != nil {
-				collection[request.Name] = types.DomainResources{
-					"status":   response.Status,
-					"raw":      response.Raw,
-					"response": response.Response,
+				dr := types.DomainResources{
+					"status":     response.Status,
+					"statuscode": response.StatusCode,
+					"raw":        response.Raw,
+					"response":   response.Response,
 				}
+				collection[request.Name] = dr
 			} else {
 				// If the entire response is empty, return a validly empty resource
 				collection[request.Name] = types.DomainResources{"status": 0}

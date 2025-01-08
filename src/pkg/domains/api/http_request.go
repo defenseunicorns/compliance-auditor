@@ -46,21 +46,28 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 		return nil, fmt.Errorf("error: %s returned empty response", url.Redacted())
 	}
 	defer res.Body.Close()
-
+	var respObj APIResponse
+	respObj.StatusCode = res.StatusCode
+	if res.Status == "" {
+		respObj.Status = http.StatusText(res.StatusCode)
+	} else {
+		respObj.Status = res.Status
+	}
 	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
 		message.Debugf("error reading response body: %s", err)
 		return nil, err
 	}
 
-	var respObj APIResponse
-	respObj.Raw = responseData
-	respObj.Status = res.StatusCode
-	err = json.Unmarshal(responseData, &respObj.Response)
-	if err != nil {
-		message.Debugf("error unmarshalling response: %s", err)
+	if respObj.StatusCode >= http.StatusOK && respObj.StatusCode < http.StatusMultiStatus {
+		respObj.Raw = responseData
+		err = json.Unmarshal(responseData, &respObj.Response)
+		if err != nil {
+			message.Debugf("error unmarshalling response: %s", err)
+			return nil, err
+		}
 	}
-	return &respObj, err
+	return &respObj, nil
 }
 
 func clientFromOpts(opts *ApiOpts) http.Client {
