@@ -308,6 +308,9 @@ func TestMergeComponentDefinitions(t *testing.T) {
 			generated, _ := oscal.ComponentFromCatalog("Mock Command", tt.source, catalog, tt.title, tt.requirements, tt.remarks, "impact")
 
 			if generated == nil {
+				if tt.wantErr {
+					return
+				}
 				t.Errorf("ComponentFromCatalog() generated should not be nil")
 			}
 
