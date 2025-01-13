@@ -2,6 +2,8 @@ package oscal
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -11,6 +13,7 @@ import (
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"sigs.k8s.io/yaml"
 
+	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
 
@@ -28,6 +31,76 @@ type parameter struct {
 	ID     string
 	Label  string
 	Select *selection
+}
+
+type ComponentDefinition struct {
+	Model *oscalTypes.ComponentDefinition
+}
+
+func NewComponentDefinition() *ComponentDefinition {
+	var compdef ComponentDefinition
+	compdef.Model = nil
+	return &compdef
+}
+
+// Create a new ComponentDefinition from a byte array
+func (c *ComponentDefinition) NewModel(data []byte) error {
+	model, err := NewOscalModel(data)
+	if err != nil {
+		return err
+	}
+
+	c.Model = model.ComponentDefinition
+
+	return nil
+}
+
+// Return the type of the component definition
+func (*ComponentDefinition) GetType() string {
+	return OSCAL_COMPONENT
+}
+
+// Returns the complete OSCAL model with component definition
+func (c *ComponentDefinition) GetCompleteModel() *oscalTypes.OscalModels {
+	return &oscalTypes.OscalModels{
+		ComponentDefinition: c.Model,
+	}
+}
+
+// MakeDeterministic ensures the relevant elements of the Component Definition are sorted deterministically
+func (c *ComponentDefinition) MakeDeterministic() error {
+	if c.Model == nil {
+		return fmt.Errorf("cannot make nil model deterministic")
+	}
+
+	MakeComponentDeterminstic(c.Model)
+	return nil
+}
+
+// HandleExisting updates the existing Component Defintion if a file is provided
+func (c *ComponentDefinition) HandleExisting(path string) error {
+	exists, err := common.CheckFileExists(path)
+	if err != nil {
+		return err
+	}
+	if exists {
+		path = filepath.Clean(path)
+		existingFileBytes, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("error reading file: %v", err)
+		}
+		compdef := NewComponentDefinition()
+		err = compdef.NewModel(existingFileBytes)
+		if err != nil {
+			return err
+		}
+		model, err := MergeComponentDefinitions(compdef.Model, c.Model)
+		if err != nil {
+			return err
+		}
+		c.Model = model
+	}
+	return nil
 }
 
 // NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
@@ -251,28 +324,28 @@ func mergeLinks(orig []oscalTypes.Link, latest []oscalTypes.Link) *[]oscalTypes.
 }
 
 // Creates a component-definition from a catalog and identified (or all) controls. Allows for specification of what the content of the remarks section should contain.
-func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Catalog, componentTitle string, targetControls []string, targetRemarks []string, framework string) (*oscalTypes.ComponentDefinition, error) {
+func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Catalog, componentTitle string, targetControls []string, targetRemarks []string, framework string) (*ComponentDefinition, error) {
 	// store all of the implemented requirements
 	implementedRequirements := make([]oscalTypes.ImplementedRequirementControlImplementation, 0)
 	var componentDefinition = &oscalTypes.ComponentDefinition{}
 
 	if len(targetControls) == 0 {
-		return componentDefinition, fmt.Errorf("no controls identified for generation")
+		return nil, fmt.Errorf("no controls identified for generation")
 	}
 
 	controlsToImplement, err := ResolveCatalogControls(catalog, targetControls, nil)
 	if err != nil {
-		return componentDefinition, err
+		return nil, err
 	}
 
 	if len(controlsToImplement) == 0 {
-		return componentDefinition, fmt.Errorf("no controls were identified in the catalog from the requirements list: %v\n", targetControls)
+		return nil, fmt.Errorf("no controls were identified in the catalog from the requirements list: %v\n", targetControls)
 	}
 
 	for _, control := range controlsToImplement {
 		ir, err := ControlToImplementedRequirement(&control, targetRemarks)
 		if err != nil {
-			return componentDefinition, fmt.Errorf("error creating implemented requirement: %v", err)
+			return nil, fmt.Errorf("error creating implemented requirement: %v", err)
 		}
 		implementedRequirements = append(implementedRequirements, ir)
 	}
@@ -330,7 +403,9 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Cat
 		Version:      "0.0.1",
 	}
 
-	return componentDefinition, nil
+	return &ComponentDefinition{
+		Model: componentDefinition,
+	}, nil
 
 }
 

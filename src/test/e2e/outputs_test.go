@@ -47,9 +47,14 @@ func TestOutputs(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			compDef, err := oscal.NewOscalComponentDefinition(data)
+			model, err := oscal.NewOscalModel(data)
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			compDef := model.ComponentDefinition
+			if compDef == nil {
+				t.Fatal("Expected non-nil component definition")
 			}
 
 			if compDef.Components == nil {

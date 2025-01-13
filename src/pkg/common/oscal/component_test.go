@@ -112,13 +112,14 @@ func TestNewOscalComponentDefinition(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := oscal.NewOscalComponentDefinition(tt.data)
+			model := oscal.NewComponentDefinition()
+			err := model.NewModel(tt.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewOscalComponentDefinition() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) && !tt.wantErr {
-				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(model.Model, tt.want) && !tt.wantErr {
+				t.Errorf("NewOscalComponentDefinition() got = %v, want %v", model.Model, tt.want)
 			}
 		})
 	}
@@ -198,7 +199,7 @@ func TestComponentFromCatalog(t *testing.T) {
 			}
 
 			// DeepEqual will be difficult with time/uuid generation
-			component := (*got.Components)[0]
+			component := (*got.Model.Components)[0]
 			if component.Title != tt.title {
 				t.Errorf("ComponentFromCatalog() title = %v, want %v", component.Title, tt.title)
 			}
@@ -306,7 +307,11 @@ func TestMergeComponentDefinitions(t *testing.T) {
 
 			generated, _ := oscal.ComponentFromCatalog("Mock Command", tt.source, catalog, tt.title, tt.requirements, tt.remarks, "impact")
 
-			merged, err := oscal.MergeComponentDefinitions(validComponent, generated)
+			if generated == nil {
+				t.Errorf("ComponentFromCatalog() generated should not be nil")
+			}
+
+			merged, err := oscal.MergeComponentDefinitions(validComponent, generated.Model)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MergeComponentDefinitions() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -10,7 +10,6 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
-	"gopkg.in/yaml.v3"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
@@ -27,7 +26,7 @@ func NewProfile() *Profile {
 }
 
 func (p *Profile) GetType() string {
-	return "profile"
+	return OSCAL_PROFILE
 }
 
 func (p *Profile) GetCompleteModel() *oscalTypes.OscalModels {
@@ -115,20 +114,12 @@ func (p *Profile) HandleExisting(path string) error {
 
 // Create a new profile model
 func (p *Profile) NewModel(data []byte) error {
-
-	var oscalModels oscalTypes.OscalModels
-
-	err := multiModelValidate(data)
+	model, err := NewOscalModel(data)
 	if err != nil {
 		return err
 	}
 
-	err = yaml.Unmarshal(data, &oscalModels)
-	if err != nil {
-		return err
-	}
-
-	p.Model = oscalModels.Profile
+	p.Model = model.Profile
 
 	return nil
 }
@@ -365,9 +356,9 @@ func controlsFromImport(importItem oscalTypes.Import, rootDir string) (controlMa
 		return controlMap, err
 	}
 	switch modelType {
-	case "profile":
+	case OSCAL_PROFILE:
 		return ResolveProfileControls(oscalModel.Profile, importItem.Href, rootDir, include, exclude)
-	case "catalog":
+	case OSCAL_CATALOG:
 		catalogControls, err := ResolveCatalogControls(oscalModel.Catalog, include, exclude)
 		if err != nil {
 			return nil, err

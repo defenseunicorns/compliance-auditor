@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
@@ -122,12 +121,8 @@ var generateComponentCmd = &cobra.Command{
 			message.Fatalf(err, "error creating component - %s\n", err.Error())
 		}
 
-		var model = oscalTypes.OscalModels{
-			ComponentDefinition: comp,
-		}
-
 		// Write the component definition to file
-		err = oscal.WriteOscalModel(opts.OutputFile, &model)
+		err = oscal.WriteOscalModelNew(opts.OutputFile, comp)
 		if err != nil {
 			message.Fatalf(err, "error writing component to file")
 		}
