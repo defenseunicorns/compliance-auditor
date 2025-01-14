@@ -682,7 +682,7 @@ func TestGetObservationByUuid(t *testing.T) {
 	})
 }
 
-func TestHandleExistingComponent(t *testing.T) {
+func TestHandleExistingAssessment(t *testing.T) {
 	validAssessmentBytes := loadTestData(t, validAssessmentPath)
 
 	var validAssessment oscalTypes.OscalCompleteSchema
