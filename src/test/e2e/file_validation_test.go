@@ -25,11 +25,11 @@ func TestFileValidation(t *testing.T) {
 		assessment, err := validator.ValidateOnPath(ctx, passDir+oscalFile, "")
 		require.NoError(t, err)
 
-		if len(assessment.Results) == 0 {
+		if len(assessment.Model.Results) == 0 {
 			t.Fatal("Expected greater than zero results")
 		}
 
-		result := assessment.Results[0]
+		result := assessment.Model.Results[0]
 		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
@@ -46,9 +46,9 @@ func TestFileValidation(t *testing.T) {
 
 		assessment, err := validator.ValidateOnPath(ctx, passDir+kyvernoFile, "")
 		require.NoError(t, err)
-		require.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		require.NotEmpty(t, assessment.Model.Results, "Expected greater than zero results")
 
-		result := assessment.Results[0]
+		result := assessment.Model.Results[0]
 		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
@@ -62,9 +62,9 @@ func TestFileValidation(t *testing.T) {
 		require.NoError(t, err)
 		assessment, err := validator.ValidateOnPath(ctx, passDir+"/component-definition-string-file.yaml", "")
 		require.NoError(t, err)
-		require.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		require.NotEmpty(t, assessment.Model.Results, "Expected greater than zero results")
 
-		result := assessment.Results[0]
+		result := assessment.Model.Results[0]
 		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
@@ -79,9 +79,9 @@ func TestFileValidation(t *testing.T) {
 
 		assessment, err := validator.ValidateOnPath(ctx, failDir+oscalFile, "")
 		require.NoError(t, err)
-		require.NotEmpty(t, assessment.Results, "Expected greater than zero results")
+		require.NotEmpty(t, assessment.Model.Results, "Expected greater than zero results")
 
-		result := assessment.Results[0]
+		result := assessment.Model.Results[0]
 		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
@@ -96,11 +96,11 @@ func TestFileValidation(t *testing.T) {
 		assessment, err := validator.ValidateOnPath(ctx, failDir+kyvernoFile, "")
 		require.NoError(t, err)
 
-		if len(assessment.Results) == 0 {
+		if len(assessment.Model.Results) == 0 {
 			t.Fatal("Expected greater than zero results")
 		}
 
-		result := assessment.Results[0]
+		result := assessment.Model.Results[0]
 		require.NotNil(t, result, "Expected findings to be not nil")
 
 		for _, finding := range *result.Findings {
@@ -125,8 +125,8 @@ func TestFileValidation(t *testing.T) {
 		require.NoError(t, err)
 		assessment, err := validator.ValidateOnPath(ctx, "scenarios/file-validations/pass/component-definition-remote-files.yaml", "")
 		require.NoError(t, err)
-		require.Len(t, assessment.Results, 1)
-		result := assessment.Results[0]
+		require.Len(t, assessment.Model.Results, 1)
+		result := assessment.Model.Results[0]
 		require.NotNil(t, result, "Expected findings to be not nil")
 		for _, finding := range *result.Findings {
 			state := finding.Target.Status.State

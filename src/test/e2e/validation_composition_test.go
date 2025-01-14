@@ -8,17 +8,18 @@ import (
 	"time"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
-	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
-	"github.com/defenseunicorns/lula/src/pkg/common/validation"
-	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
-	"github.com/defenseunicorns/lula/src/test/util"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	validationstore "github.com/defenseunicorns/lula/src/pkg/common/validation-store"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 type contextKey string
@@ -81,11 +82,11 @@ func validateComposition(ctx context.Context, t *testing.T, oscalPath, expectedF
 		t.Fatal(err)
 	}
 
-	if len(assessment.Results) == 0 {
+	if len(assessment.Model.Results) == 0 {
 		t.Fatal("Expected greater than zero results")
 	}
 
-	result := assessment.Results[0]
+	result := assessment.Model.Results[0]
 
 	if result.Findings == nil {
 		t.Fatal("Expected findings to be not nil")

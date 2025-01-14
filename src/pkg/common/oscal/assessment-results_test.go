@@ -2,6 +2,7 @@ package oscal_test
 
 import (
 	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 	"time"
@@ -10,11 +11,15 @@ import (
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	"github.com/defenseunicorns/lula/src/internal/testhelpers"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
 )
+
+const validAssessmentPath = "../../../test/unit/common/oscal/valid-assessment-results.yaml"
+const validMultiAssessmentPath = "../../../test/unit/common/oscal/valid-assessment-results-multi.yaml"
 
 // Create re-usable findings and observations
 // use those in tests to generate test assessment results
@@ -81,12 +86,14 @@ func TestFilterResults(t *testing.T) {
 	// Expecting an error when evaluating assessment without results
 	t.Run("Handle invalid assessment containing no results", func(t *testing.T) {
 
-		var assessment = &oscalTypes.AssessmentResults{
-			UUID: uuid.NewUUID(),
+		var assessment = oscal.AssessmentResults{
+			Model: &oscalTypes.AssessmentResults{
+				UUID: uuid.NewUUID(),
+			},
 		}
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
-			"valid.yaml": assessment,
+		var assessmentMap = map[string]*oscal.AssessmentResults{
+			"valid.yaml": &assessment,
 		}
 
 		resultMap := oscal.FilterResults(assessmentMap)
@@ -110,7 +117,7 @@ func TestFilterResults(t *testing.T) {
 		}
 
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
+		var assessmentMap = map[string]*oscal.AssessmentResults{
 			"valid.yaml": assessment,
 		}
 
@@ -148,7 +155,7 @@ func TestFilterResults(t *testing.T) {
 		}
 
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
+		var assessmentMap = map[string]*oscal.AssessmentResults{
 			"valid.yaml":   assessment,
 			"invalid.yaml": assessment2,
 		}
@@ -200,7 +207,7 @@ func TestFilterResults(t *testing.T) {
 		}
 
 		// key name does not matter here
-		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
+		var assessmentMap = map[string]*oscal.AssessmentResults{
 			"valid.yaml":   assessment,
 			"invalid.yaml": assessment2,
 		}
@@ -250,15 +257,20 @@ func TestFilterResults(t *testing.T) {
 		}
 
 		// Update assessment 2 props so that we only have 1 threshold
-		oscal.UpdateProps("threshold", "docs.lula.dev/ns", "false", assessment2.Results[0].Props)
+		if assessment2.Model == nil {
+			t.Fatal("assessment2 model is nil")
+		}
+		oscal.UpdateProps("threshold", "docs.lula.dev/ns", "false", assessment2.Model.Results[0].Props)
 
-		assessment, err = oscal.MergeAssessmentResults(assessment, assessment2)
+		assessmentMerged, err := oscal.MergeAssessmentResults(assessment.Model, assessment2.Model)
 		if err != nil {
 			t.Fatalf("error merging assessment results: %v", err)
 		}
 
-		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
-			"valid.yaml": assessment,
+		var assessmentMap = map[string]*oscal.AssessmentResults{
+			"valid.yaml": {
+				Model: assessmentMerged,
+			},
 		}
 
 		resultMap := oscal.FilterResults(assessmentMap)
@@ -306,21 +318,26 @@ func TestFilterResults(t *testing.T) {
 		}
 
 		// Update assessment props so that we only have 1 threshold
-		oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "false", assessment.Results[0].Props)
+		if assessment.Model == nil {
+			t.Fatal("assessment model is nil")
+		}
+		oscal.UpdateProps("threshold", oscal.LULA_NAMESPACE, "false", assessment.Model.Results[0].Props)
 
 		// TODO: review assumptions made about order of assessments during merge
-		assessment, err = oscal.MergeAssessmentResults(assessment, assessment2)
+		assessmentMerged, err := oscal.MergeAssessmentResults(assessment.Model, assessment2.Model)
 		if err != nil {
 			t.Fatalf("error merging assessment results: %v", err)
 		}
 
 		// Backmatter should be nil
-		if assessment.BackMatter != nil {
+		if assessmentMerged.BackMatter != nil {
 			t.Fatalf("Expected backmatter to be nil")
 		}
 
-		var assessmentMap = map[string]*oscalTypes.AssessmentResults{
-			"valid.yaml": assessment,
+		var assessmentMap = map[string]*oscal.AssessmentResults{
+			"valid.yaml": {
+				Model: assessmentMerged,
+			},
 		}
 
 		resultMap := oscal.FilterResults(assessmentMap)
@@ -665,6 +682,39 @@ func TestGetObservationByUuid(t *testing.T) {
 	})
 }
 
+func TestHandleExistingAssessment(t *testing.T) {
+	validAssessmentBytes := loadTestData(t, validAssessmentPath)
+
+	var validAssessment oscalTypes.OscalCompleteSchema
+	err := yaml.Unmarshal(validAssessmentBytes, &validAssessment)
+	require.NoError(t, err)
+
+	t.Run("Handle Existing with no existing data", func(t *testing.T) {
+		var assessment oscal.AssessmentResults
+		assessment.NewModel(validAssessmentBytes)
+
+		tmpDir := t.TempDir()
+		tmpFilePath := filepath.Join(tmpDir, "assessment.yaml")
+
+		err := assessment.HandleExisting(tmpFilePath)
+		require.NoError(t, err)
+
+		// Check length of results are the same
+		require.Equal(t, len(validAssessment.AssessmentResults.Results), len(assessment.Model.Results))
+	})
+
+	t.Run("Handle Existing with existing data", func(t *testing.T) {
+		var assessment oscal.AssessmentResults
+		assessment.NewModel(validAssessmentBytes)
+
+		err := assessment.HandleExisting(validMultiAssessmentPath)
+		require.NoError(t, err)
+
+		// Check length of results is 3
+		require.Equal(t, 3, len(assessment.Model.Results))
+	})
+}
+
 func FuzzNewAssessmentResults(f *testing.F) {
 	for _, tc := range []string{"../../../test/unit/common/oscal/valid-assessment-results-multi.yaml",
 		"../../../test/unit/common/oscal/valid-assessment-results-with-resources.yaml"} {
@@ -676,6 +726,7 @@ func FuzzNewAssessmentResults(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, a []byte) {
 		// errors are ok, just watching for panics.
-		oscal.NewAssessmentResults(a)
+		var assessment oscal.AssessmentResults
+		assessment.NewModel(a)
 	})
 }

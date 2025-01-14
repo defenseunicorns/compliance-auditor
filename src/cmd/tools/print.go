@@ -60,14 +60,15 @@ func PrintCommand() *cobra.Command {
 				return fmt.Errorf("error getting assessment directory: %v", err)
 			}
 
-			oscalAssessment, err := oscal.NewAssessmentResults(assessmentData)
+			var assessment oscal.AssessmentResults
+			err = assessment.NewModel(assessmentData)
 			if err != nil {
 				return fmt.Errorf("error creating oscal assessment results model: %v", err)
 			}
 
 			// Print the resources or validation
 			if resources {
-				err = PrintResources(oscalAssessment, observationUuid, assessmentDir, outputFile)
+				err = PrintResources(assessment.Model, observationUuid, assessmentDir, outputFile)
 				if err != nil {
 					return fmt.Errorf("error printing resources: %v", err)
 				}
@@ -83,7 +84,7 @@ func PrintCommand() *cobra.Command {
 				}
 
 				// Print the validation
-				err = PrintValidation(oscalModel.ComponentDefinition, oscalAssessment, observationUuid, outputFile)
+				err = PrintValidation(oscalModel.ComponentDefinition, assessment.Model, observationUuid, outputFile)
 				if err != nil {
 					return fmt.Errorf("error printing validation: %v", err)
 				}

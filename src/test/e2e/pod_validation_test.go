@@ -251,11 +251,11 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 		t.Fatalf("Failed to validate oscal file: %s", revisionOptions.OutputFile)
 	}
 
-	if len(assessment.Results) == 0 {
+	if len(assessment.Model.Results) == 0 {
 		t.Fatal("Expected greater than zero results")
 	}
 
-	result := assessment.Results[0]
+	result := assessment.Model.Results[0]
 
 	if result.Findings == nil {
 		t.Fatal("Expected findings to be not nil")
@@ -269,36 +269,28 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 	}
 
 	// Test report generation
-	report, err := oscal.GenerateAssessmentResults(assessment.Results)
+	report, err := oscal.GenerateAssessmentResults(assessment.Model.Results)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
 
-	var model = oscalTypes.OscalModels{
-		AssessmentResults: report,
-	}
-
 	// Write the assessment results to file
-	err = oscal.WriteOscalModel("sar-test.yaml", &model)
+	err = oscal.WriteOscalModelNew("sar-test.yaml", report)
 	require.NoError(t, err)
 
-	initialResultCount := len(report.Results)
+	initialResultCount := len(report.Model.Results)
 
 	//Perform the write operation again and read the file to ensure result was appended
-	report, err = oscal.GenerateAssessmentResults(assessment.Results)
+	report, err = oscal.GenerateAssessmentResults(assessment.Model.Results)
 	if err != nil {
 		t.Fatal("Failed generation of Assessment Results object with: ", err)
 	}
 
 	// Get the UUID of the report results - there should only be one
-	resultId := report.Results[0].UUID
-
-	model = oscalTypes.OscalModels{
-		AssessmentResults: report,
-	}
+	resultId := report.Model.Results[0].UUID
 
 	// Write the assessment results to file
-	err = oscal.WriteOscalModel("sar-test.yaml", &model)
+	err = oscal.WriteOscalModelNew("sar-test.yaml", report)
 	require.NoError(t, err)
 
 	data, err := os.ReadFile("sar-test.yaml")
@@ -306,17 +298,18 @@ func validatePodLabelPass(ctx context.Context, t *testing.T, oscalPath string) c
 		t.Fatal(err)
 	}
 
-	tempAssessment, err := oscal.NewAssessmentResults(data)
+	var tempAssessment oscal.AssessmentResults
+	err = tempAssessment.NewModel(data)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// The number of results in the file should be more than initially
-	if len(tempAssessment.Results) <= initialResultCount {
+	if len(tempAssessment.Model.Results) <= initialResultCount {
 		t.Fatal("Failed to append results to existing report")
 	}
 
-	if resultId != tempAssessment.Results[0].UUID {
+	if resultId != tempAssessment.Model.Results[0].UUID {
 		t.Fatal("Failed to prepend results to existing report")
 	}
 
@@ -341,11 +334,11 @@ func validatePodLabelFail(ctx context.Context, t *testing.T, oscalPath string) (
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
 
-	if len(assessment.Results) == 0 {
+	if len(assessment.Model.Results) == 0 {
 		t.Fatal("Expected greater than zero results")
 	}
 
-	result := assessment.Results[0]
+	result := assessment.Model.Results[0]
 
 	if result.Findings == nil {
 		t.Fatal("Expected findings to be not nil")
@@ -395,11 +388,11 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
 
-	if len(assessment.Results) == 0 {
+	if len(assessment.Model.Results) == 0 {
 		t.Fatal("Expected greater than zero results")
 	}
 
-	result := assessment.Results[0]
+	result := assessment.Model.Results[0]
 
 	// Check that remote files are created
 	for _, o := range *result.Observations {
@@ -427,13 +420,8 @@ func validateSaveResources(ctx context.Context, t *testing.T, oscalPath string) 
 		}
 	}
 
-	// Check that assessment results can be written to file
-	var model = oscalTypes.OscalModels{
-		AssessmentResults: assessment,
-	}
-
 	// Write the assessment results to file
-	err = oscal.WriteOscalModel(filepath.Join(tempDir, "assessment-results.yaml"), &model)
+	err = oscal.WriteOscalModelNew(filepath.Join(tempDir, "assessment-results.yaml"), assessment)
 	if err != nil {
 		t.Fatal("error writing assessment results to file")
 	}

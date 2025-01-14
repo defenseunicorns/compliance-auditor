@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	"github.com/spf13/cobra"
 
 	"github.com/defenseunicorns/lula/src/cmd/common"
@@ -104,12 +103,8 @@ func ValidateCommand() *cobra.Command {
 				return fmt.Errorf("assessment results are nil")
 			}
 
-			var model = oscalTypes.OscalModels{
-				AssessmentResults: assessmentResults,
-			}
-
 			// Write the assessment results to file
-			err = oscal.WriteOscalModel(outputFile, &model)
+			err = oscal.WriteOscalModelNew(outputFile, assessmentResults)
 			if err != nil {
 				return fmt.Errorf("error writing component to file: %v", err)
 			}
