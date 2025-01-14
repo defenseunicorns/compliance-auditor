@@ -11,7 +11,6 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
-	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/message"
@@ -101,24 +100,6 @@ func (c *ComponentDefinition) HandleExisting(path string) error {
 		c.Model = model
 	}
 	return nil
-}
-
-// NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
-// Standard use is to read a file from the filesystem and pass the []byte to this function
-func NewOscalComponentDefinition(data []byte) (componentDefinition *oscalTypes.ComponentDefinition, err error) {
-	var oscalModels oscalTypes.OscalModels
-
-	// validate the data
-	err = multiModelValidate(data)
-	if err != nil {
-		return componentDefinition, err
-	}
-
-	err = yaml.Unmarshal(data, &oscalModels)
-	if err != nil {
-		return componentDefinition, err
-	}
-	return oscalModels.ComponentDefinition, nil
 }
 
 // MergeVariadicComponentDefinition merges multiple variadic component definitions into a single component definition
