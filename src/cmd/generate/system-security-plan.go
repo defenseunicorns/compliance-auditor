@@ -55,7 +55,7 @@ func GenerateSSPCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if modelType != "profile" {
+			if modelType != oscal.OSCAL_PROFILE {
 				return fmt.Errorf("profile must be a valid OSCAL profile")
 			}
 

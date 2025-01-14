@@ -10,7 +10,6 @@ import (
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/uuid"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
-	"sigs.k8s.io/yaml"
 
 	"github.com/defenseunicorns/lula/src/pkg/common"
 )
@@ -26,7 +25,7 @@ func NewSystemSecurityPlan() *SystemSecurityPlan {
 }
 
 func (ssp *SystemSecurityPlan) GetType() string {
-	return "system-security-plan"
+	return OSCAL_SYSTEM_SECURITY_PLAN
 }
 
 func (ssp *SystemSecurityPlan) GetCompleteModel() *oscalTypes.OscalModels {
@@ -39,33 +38,34 @@ func (ssp *SystemSecurityPlan) GetCompleteModel() *oscalTypes.OscalModels {
 func (ssp *SystemSecurityPlan) MakeDeterministic() error {
 	if ssp.Model == nil {
 		return fmt.Errorf("cannot make nil model deterministic")
-	} else {
-		// Sort the SystemImplementation.Components by title
-		slices.SortStableFunc(ssp.Model.SystemImplementation.Components, func(a, b oscalTypes.SystemComponent) int {
-			return strings.Compare(a.Title, b.Title)
-		})
+	}
 
-		// Sort the ControlImplementation.ImplementedRequirements by control-id
-		slices.SortStableFunc(ssp.Model.ControlImplementation.ImplementedRequirements, func(a, b oscalTypes.ImplementedRequirement) int {
-			return CompareControlsInt(a.ControlId, b.ControlId)
-		})
+	// Sort the SystemImplementation.Components by title
+	slices.SortStableFunc(ssp.Model.SystemImplementation.Components, func(a, b oscalTypes.SystemComponent) int {
+		return strings.Compare(a.Title, b.Title)
+	})
 
-		// Sort the ControlImplementation.ImplementedRequirements.ByComponent by title
-		for _, implementedRequirement := range ssp.Model.ControlImplementation.ImplementedRequirements {
-			if implementedRequirement.ByComponents != nil {
-				slices.SortStableFunc(*implementedRequirement.ByComponents, func(a, b oscalTypes.ByComponent) int {
-					return strings.Compare(a.ComponentUuid, b.ComponentUuid)
-				})
-			}
-		}
+	// Sort the ControlImplementation.ImplementedRequirements by control-id
+	slices.SortStableFunc(ssp.Model.ControlImplementation.ImplementedRequirements, func(a, b oscalTypes.ImplementedRequirement) int {
+		return CompareControlsInt(a.ControlId, b.ControlId)
+	})
 
-		// sort backmatter
-		if ssp.Model.BackMatter != nil {
-			backmatter := *ssp.Model.BackMatter
-			sortBackMatter(&backmatter)
-			ssp.Model.BackMatter = &backmatter
+	// Sort the ControlImplementation.ImplementedRequirements.ByComponent by title
+	for _, implementedRequirement := range ssp.Model.ControlImplementation.ImplementedRequirements {
+		if implementedRequirement.ByComponents != nil {
+			slices.SortStableFunc(*implementedRequirement.ByComponents, func(a, b oscalTypes.ByComponent) int {
+				return strings.Compare(a.ComponentUuid, b.ComponentUuid)
+			})
 		}
 	}
+
+	// sort backmatter
+	if ssp.Model.BackMatter != nil {
+		backmatter := *ssp.Model.BackMatter
+		sortBackMatter(&backmatter)
+		ssp.Model.BackMatter = &backmatter
+	}
+
 	return nil
 }
 
@@ -81,12 +81,12 @@ func (ssp *SystemSecurityPlan) HandleExisting(path string) error {
 		if err != nil {
 			return fmt.Errorf("error reading file: %v", err)
 		}
-		ssp := NewSystemSecurityPlan()
-		err = ssp.NewModel(existingFileBytes)
+		newSsp := NewSystemSecurityPlan()
+		err = newSsp.NewModel(existingFileBytes)
 		if err != nil {
 			return err
 		}
-		model, err := MergeSystemSecurityPlanModels(ssp.Model, ssp.Model)
+		model, err := MergeSystemSecurityPlanModels(ssp.Model, newSsp.Model)
 		if err != nil {
 			return err
 		}
@@ -97,19 +97,12 @@ func (ssp *SystemSecurityPlan) HandleExisting(path string) error {
 
 // NewModel updates the SSP model with the provided data
 func (ssp *SystemSecurityPlan) NewModel(data []byte) error {
-	var oscalModels oscalTypes.OscalModels
-
-	err := multiModelValidate(data)
+	model, err := NewOscalModel(data)
 	if err != nil {
 		return err
 	}
 
-	err = yaml.Unmarshal(data, &oscalModels)
-	if err != nil {
-		return err
-	}
-
-	ssp.Model = oscalModels.SystemSecurityPlan
+	ssp.Model = model.SystemSecurityPlan
 
 	return nil
 }
@@ -425,10 +418,10 @@ func RemapSourceToUUID[V any](inMap map[string]V) map[string]V {
 		}
 
 		switch modelType {
-		case "profile":
+		case OSCAL_PROFILE:
 			profile := oscalModel.Profile
 			outMap[profile.UUID] = v
-		case "catalog":
+		case OSCAL_CATALOG:
 			catalog := oscalModel.Catalog
 			outMap[catalog.UUID] = v
 		}
