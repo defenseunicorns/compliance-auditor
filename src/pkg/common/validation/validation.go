@@ -41,7 +41,7 @@ func New(opts ...Option) (*Validator, error) {
 	return &validator, nil
 }
 
-func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscalTypes.AssessmentResults, err error) {
+func (v *Validator) ValidateOnPath(ctx context.Context, path, target string) (assessmentResult *oscal.AssessmentResults, err error) {
 	var oscalModel *oscalTypes.OscalCompleteSchema
 	if v.composer == nil {
 		path = filepath.Clean(path)
