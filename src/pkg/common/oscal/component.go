@@ -38,9 +38,9 @@ type ComponentDefinition struct {
 }
 
 func NewComponentDefinition() *ComponentDefinition {
-	var compdef ComponentDefinition
-	compdef.Model = nil
-	return &compdef
+	var compDef ComponentDefinition
+	compDef.Model = nil
+	return &compDef
 }
 
 // Create a new ComponentDefinition from a byte array
@@ -89,12 +89,12 @@ func (c *ComponentDefinition) HandleExisting(path string) error {
 		if err != nil {
 			return fmt.Errorf("error reading file: %v", err)
 		}
-		compdef := NewComponentDefinition()
-		err = compdef.NewModel(existingFileBytes)
+		compDef := NewComponentDefinition()
+		err = compDef.NewModel(existingFileBytes)
 		if err != nil {
 			return err
 		}
-		model, err := MergeComponentDefinitions(compdef.Model, c.Model)
+		model, err := MergeComponentDefinitions(compDef.Model, c.Model)
 		if err != nil {
 			return err
 		}
@@ -122,12 +122,12 @@ func NewOscalComponentDefinition(data []byte) (componentDefinition *oscalTypes.C
 }
 
 // MergeVariadicComponentDefinition merges multiple variadic component definitions into a single component definition
-func MergeVariadicComponentDefinition(compdefs ...*oscalTypes.ComponentDefinition) (mergedCompDef *oscalTypes.ComponentDefinition, err error) {
-	for _, compdef := range compdefs {
+func MergeVariadicComponentDefinition(compDefs ...*oscalTypes.ComponentDefinition) (mergedCompDef *oscalTypes.ComponentDefinition, err error) {
+	for _, compDef := range compDefs {
 		if mergedCompDef == nil {
-			mergedCompDef = compdef
+			mergedCompDef = compDef
 		} else {
-			mergedCompDef, err = MergeComponentDefinitions(mergedCompDef, compdef)
+			mergedCompDef, err = MergeComponentDefinitions(mergedCompDef, compDef)
 			if err != nil {
 				return nil, err
 			}

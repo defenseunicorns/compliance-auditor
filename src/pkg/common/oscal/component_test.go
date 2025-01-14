@@ -2,17 +2,20 @@ package oscal_test
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 )
 
 const validComponentPath = "../../../test/unit/common/oscal/valid-component.yaml"
+const validGeneratedComponentPath = "../../../test/unit/common/oscal/valid-generated-component.yaml"
 const catalogPath = "../../../test/unit/common/oscal/catalog.yaml"
 
 // Helper function to load test data
@@ -571,4 +574,37 @@ func TestFilterControlImplementations(t *testing.T) {
 
 		})
 	}
+}
+
+func TestHandleExistingComponent(t *testing.T) {
+	validComponentBytes := loadTestData(t, validComponentPath)
+
+	var validComponent oscalTypes.OscalCompleteSchema
+	err := yaml.Unmarshal(validComponentBytes, &validComponent)
+	require.NoError(t, err)
+
+	t.Run("Handle Existing with no existing data", func(t *testing.T) {
+		component := oscal.ComponentDefinition{}
+		component.NewModel(validComponentBytes)
+
+		tmpDir := t.TempDir()
+		tmpFilePath := filepath.Join(tmpDir, "component.yaml")
+
+		err := component.HandleExisting(tmpFilePath)
+		require.NoError(t, err)
+
+		// Check length of components are the same
+		require.Equal(t, len(*validComponent.ComponentDefinition.Components), len(*component.Model.Components))
+	})
+
+	t.Run("Handle Existing with existing data", func(t *testing.T) {
+		component := oscal.ComponentDefinition{}
+		component.NewModel(validComponentBytes)
+
+		err := component.HandleExisting(validGeneratedComponentPath)
+		require.NoError(t, err)
+
+		// Check length of components is 2
+		require.Equal(t, 2, len(*component.Model.Components))
+	})
 }
