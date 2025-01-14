@@ -384,9 +384,10 @@ func ComponentFromCatalog(command string, source string, catalog *oscalTypes.Cat
 		Version:      "0.0.1",
 	}
 
-	return &ComponentDefinition{
-		Model: componentDefinition,
-	}, nil
+	var compDef ComponentDefinition
+	compDef.Model = componentDefinition
+
+	return &compDef, nil
 
 }
 

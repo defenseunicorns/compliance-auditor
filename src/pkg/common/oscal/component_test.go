@@ -298,7 +298,7 @@ func TestMergeComponentDefinitions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			component := oscal.ComponentDefinition{}
+			var component oscal.ComponentDefinition
 			err := component.NewModel(validBytes)
 			require.NoError(t, err)
 
@@ -519,7 +519,7 @@ func TestControlImplementationsToRequirementsMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			component := oscal.ComponentDefinition{}
+			var component oscal.ComponentDefinition
 
 			data := loadTestData(t, tt.filepath)
 			err := component.NewModel(data)
@@ -565,7 +565,7 @@ func TestFilterControlImplementations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			component := oscal.ComponentDefinition{}
+			var component oscal.ComponentDefinition
 
 			data := loadTestData(t, tt.filepath)
 			err := component.NewModel(data)
@@ -593,7 +593,7 @@ func TestHandleExistingComponent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("Handle Existing with no existing data", func(t *testing.T) {
-		component := oscal.ComponentDefinition{}
+		var component oscal.ComponentDefinition
 		component.NewModel(validComponentBytes)
 
 		tmpDir := t.TempDir()
@@ -607,7 +607,7 @@ func TestHandleExistingComponent(t *testing.T) {
 	})
 
 	t.Run("Handle Existing with existing data", func(t *testing.T) {
-		component := oscal.ComponentDefinition{}
+		var component oscal.ComponentDefinition
 		component.NewModel(validComponentBytes)
 
 		err := component.HandleExisting(validGeneratedComponentPath)
