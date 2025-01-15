@@ -617,3 +617,39 @@ func TestHandleExistingComponent(t *testing.T) {
 		require.Equal(t, 2, len(*component.Model.Components))
 	})
 }
+
+func TestRewritePaths(t *testing.T) {
+	// Re-write all paths in the component definition to be relative to project root
+
+	// Define the paths, relative to the current directory
+	componentRel := "../../../test/unit/common/oscal/valid-component-local-refs.yaml"
+	rootRel := "../../../../README.md"
+
+	// Calculate the absolute paths
+	componentDirAbs, err := filepath.Abs(componentRel)
+	require.NoError(t, err)
+	componentDirAbs = filepath.Dir(componentDirAbs)
+
+	rootDirAbs, err := filepath.Abs(rootRel)
+	require.NoError(t, err)
+	rootDirAbs = filepath.Dir(rootDirAbs)
+
+	componentBytes := loadTestData(t, componentRel)
+
+	var component oscal.ComponentDefinition
+	err = component.NewModel(componentBytes)
+	require.NoError(t, err)
+
+	err = component.RewritePaths(componentDirAbs, rootDirAbs)
+	require.NoError(t, err)
+
+	// Get the expected component definition
+	expectedComponentBytes := loadTestData(t, "../../../test/unit/common/oscal/valid-component-refs-from-root.yaml")
+
+	var expectedComponent oscalTypes.OscalCompleteSchema
+	err = yaml.Unmarshal(expectedComponentBytes, &expectedComponent)
+	require.NoError(t, err)
+
+	// Compare the expected and actual component definitions
+	require.Equal(t, expectedComponent, *component.GetCompleteModel())
+}

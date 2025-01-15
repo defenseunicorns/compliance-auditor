@@ -224,3 +224,64 @@ func TestParseChecksum(t *testing.T) {
 		})
 	}
 }
+
+func TestGetLocalFileDir(t *testing.T) {
+	tests := []struct {
+		name        string
+		inputFile   string
+		baseDir     string
+		expectedDir string
+	}{
+		{
+			name:        "Absolute Path",
+			inputFile:   "/root/path/to/file.txt",
+			baseDir:     "/root",
+			expectedDir: "",
+		},
+		{
+			name:        "Relative Path",
+			inputFile:   "path/to/file.txt",
+			baseDir:     "/root",
+			expectedDir: "/root/path/to",
+		},
+		{
+			name:        "http URL",
+			inputFile:   "https://example.com/path/to/file.txt",
+			baseDir:     "/path/to",
+			expectedDir: "",
+		},
+		{
+			name:        "Relative Path with ..",
+			inputFile:   "../path/to/file.txt",
+			baseDir:     "/root/path",
+			expectedDir: "/root/path/to",
+		},
+		{
+			name:        "Relative Path with file://",
+			inputFile:   "file://path/to/file.txt",
+			baseDir:     "/root",
+			expectedDir: "/root/path/to",
+		},
+		{
+			name:        "Relative Path with file://..",
+			inputFile:   "file://../path/to/file.txt",
+			baseDir:     "/root/path",
+			expectedDir: "/root/path/to",
+		},
+		{
+			name:        "Absolute Path with file://",
+			inputFile:   "file:///root/path/to/file.txt",
+			baseDir:     "/root",
+			expectedDir: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotDir := network.GetLocalFileDir(tt.inputFile, tt.baseDir)
+			if tt.expectedDir != gotDir {
+				t.Errorf("GetLocalFileDir() gotDir = %v, want %v", gotDir, tt.expectedDir)
+			}
+		})
+	}
+}

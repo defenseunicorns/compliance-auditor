@@ -6,7 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
+	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
 	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
@@ -525,6 +527,273 @@ func TestIsVersionValid(t *testing.T) {
 			if valid != tc.expectedValid {
 				t.Fatalf("expected valid: %v, got: %v", tc.expectedValid, valid)
 			}
+		})
+	}
+}
+
+func TestRemapPath(t *testing.T) {
+	tests := []struct {
+		name          string
+		path          string
+		baseDir       string
+		newDir        string
+		expectedPath  string
+		expectedError bool
+	}{
+		{
+			name:          "Absolute Path",
+			path:          "/path/to/file.txt",
+			baseDir:       "/path/to",
+			newDir:        "/new/path",
+			expectedPath:  "/path/to/file.txt",
+			expectedError: false,
+		},
+		{
+			name:          "Relative Path",
+			path:          "path/to/file.txt",
+			baseDir:       "/app",
+			newDir:        "/app2",
+			expectedPath:  "../app/path/to/file.txt",
+			expectedError: false,
+		},
+		{
+			name:          "Relative Path with ..",
+			path:          "../path/to/file.txt",
+			baseDir:       "/app/sub-path",
+			newDir:        "/app",
+			expectedPath:  "path/to/file.txt",
+			expectedError: false,
+		},
+		{
+			name:          "Relative Path with deep nesting",
+			path:          "../../file.txt",
+			baseDir:       "/app/path/to/caller",
+			newDir:        "/app",
+			expectedPath:  "path/file.txt",
+			expectedError: false,
+		},
+		{
+			name:          "Relative Path with file://",
+			path:          "file://path/to/file.txt",
+			baseDir:       "/app",
+			newDir:        "/app2",
+			expectedPath:  "../app/path/to/file.txt",
+			expectedError: false,
+		},
+		{
+			name:          "Absolute Path with file://",
+			path:          "file:///path/to/file.txt",
+			baseDir:       "/path/to",
+			newDir:        "/new/path",
+			expectedPath:  "file:///path/to/file.txt",
+			expectedError: false,
+		},
+		{
+			name:          "UUID",
+			path:          "#0a2b9722-06ce-446f-85e5-cdfe2fe70975",
+			baseDir:       "/path/to",
+			newDir:        "/new/path",
+			expectedPath:  "#0a2b9722-06ce-446f-85e5-cdfe2fe70975",
+			expectedError: false,
+		},
+		{
+			// This doesn't error because there's no check in the function to validate the path
+			// I think this is ok, because the old path wouldn't work anyway, so the new path not working doesn't matter(?)
+			name:          "Invalid path remap",
+			path:          "../../path/to/file.txt",
+			baseDir:       "/app",
+			newDir:        "/app2",
+			expectedPath:  "../../path/to/file.txt",
+			expectedError: false,
+		},
+		{
+			// Similar logic to previous case: This doesn't error because there's no check in the function to validate the path
+			name:          "Invalid path name",
+			path:          "inv@1*d pa#h",
+			baseDir:       "/app",
+			newDir:        "/app2",
+			expectedPath:  "../app/inv@1*d pa#h",
+			expectedError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPath, err := common.RemapPath(tt.path, tt.baseDir, tt.newDir)
+			if (err != nil) != tt.expectedError {
+				t.Errorf("RemapPath() error = %v, wantErr %v", err, tt.expectedError)
+				return
+			}
+			require.Equal(t, tt.expectedPath, gotPath)
+		})
+	}
+
+}
+
+func TestTraverseAndUpdatePaths(t *testing.T) {
+	tests := []struct {
+		name             string
+		obj              interface{}
+		expectedObj      interface{}
+		path             string
+		curDir           string
+		newDir           string
+		expectedError    bool
+		expectedErrorMsg string
+	}{
+		{
+			name: "Paths nested in list",
+			path: "Metadata.Links.Href",
+			obj: &oscalTypes.ComponentDefinition{
+				Metadata: oscalTypes.Metadata{
+					Title: "Test Title",
+					Links: &[]oscalTypes.Link{
+						{
+							Href: "https://example.com",
+							Rel:  "no change",
+						},
+						{
+							Href: "./file.txt",
+							Rel:  "re-map",
+						},
+					},
+				},
+			},
+			expectedObj: &oscalTypes.ComponentDefinition{
+				Metadata: oscalTypes.Metadata{
+					Title: "Test Title",
+					Links: &[]oscalTypes.Link{
+						{
+							Href: "https://example.com",
+							Rel:  "no change",
+						},
+						{
+							Href: "../file.txt",
+							Rel:  "re-map",
+						},
+					},
+				},
+			},
+			curDir:        "/app",
+			newDir:        "/app/new",
+			expectedError: false,
+		},
+		{
+			name: "Double nested paths in list",
+			path: "Components.Links.Href",
+			obj: &oscalTypes.ComponentDefinition{
+				Components: &[]oscalTypes.DefinedComponent{
+					{
+						Title: "Test Component",
+						Links: &[]oscalTypes.Link{
+							{
+								Href: "https://foo.com",
+								Rel:  "no change",
+							},
+							{
+								Href: "my-file.txt",
+								Rel:  "re-map",
+							},
+						},
+					},
+					{
+						Title: "Test Component 2",
+						Links: &[]oscalTypes.Link{
+							{
+								Href: "path/to/component.yaml",
+								Rel:  "component link change",
+							},
+						},
+					},
+				},
+			},
+			expectedObj: &oscalTypes.ComponentDefinition{
+				Components: &[]oscalTypes.DefinedComponent{
+					{
+						Title: "Test Component",
+						Links: &[]oscalTypes.Link{
+							{
+								Href: "https://foo.com",
+								Rel:  "no change",
+							},
+							{
+								Href: "../my-file.txt",
+								Rel:  "re-map",
+							},
+						},
+					},
+					{
+						Title: "Test Component 2",
+						Links: &[]oscalTypes.Link{
+							{
+								Href: "../path/to/component.yaml",
+								Rel:  "component link change",
+							},
+						},
+					},
+				},
+			},
+			curDir:        "/app",
+			newDir:        "/app/new",
+			expectedError: false,
+		},
+		{
+			name: "Incorrect type",
+			path: "Metadata.LastModified",
+			obj: &oscalTypes.ComponentDefinition{
+				Metadata: oscalTypes.Metadata{
+					Title:        "Test Title",
+					LastModified: time.Now(),
+					Links: &[]oscalTypes.Link{
+						{
+							Href: "https://example.com",
+							Rel:  "no change",
+						},
+						{
+							Href: "./file.txt",
+							Rel:  "re-map",
+						},
+					},
+				},
+			},
+			expectedError:    true,
+			expectedErrorMsg: "cannot update type",
+		},
+		{
+			name: "Not a valid field",
+			path: "Metadata.Foo",
+			obj: &oscalTypes.ComponentDefinition{
+				Metadata: oscalTypes.Metadata{
+					Title: "Test Title",
+					Links: &[]oscalTypes.Link{
+						{
+							Href: "https://example.com",
+							Rel:  "no change",
+						},
+						{
+							Href: "./file.txt",
+							Rel:  "re-map",
+						},
+					},
+				},
+			},
+			expectedError:    true,
+			expectedErrorMsg: "field Foo not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := common.TraverseAndUpdatePaths(tt.obj, tt.path, tt.curDir, tt.newDir)
+			if (err != nil) != tt.expectedError {
+				t.Errorf("TraverseAndUpdatePaths() error = %v, wantErr %v", err, tt.expectedError)
+				return
+			}
+			if tt.expectedError {
+				require.Contains(t, err.Error(), tt.expectedErrorMsg)
+				return
+			}
+			require.Equal(t, tt.expectedObj, tt.obj)
 		})
 	}
 }

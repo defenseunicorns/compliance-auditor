@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 	goversion "github.com/hashicorp/go-version"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
+	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/domains/api"
 	"github.com/defenseunicorns/lula/src/pkg/domains/files"
 	kube "github.com/defenseunicorns/lula/src/pkg/domains/kubernetes"
@@ -210,4 +212,99 @@ func CleanMultilineString(str string) string {
 	re := regexp.MustCompile(`[ \t]+\r?\n`)
 	formatted := re.ReplaceAllString(str, "\n")
 	return formatted
+}
+
+// RemapPath takes an input path, relative to the baseDir, and remaps it to be relative to the newDir
+// Example: path = "folder/file.txt", baseDir = "/home/user/dir", newDir = "/home/user/newDir"
+// output path = "../dir/folder/file.txt"
+func RemapPath(path string, baseDir string, newDir string) (string, error) {
+	// Do nothing if the path is a UUID reference
+	if isUUIDReference(path) {
+		return path, nil
+	}
+
+	// Return if the path is a URL or absolute link
+	localDir := network.GetLocalFileDir(path, baseDir)
+	if localDir == "" {
+		return path, nil
+	}
+
+	// Trim file://, if present
+	path = strings.TrimPrefix(path, "file://")
+
+	// Find the relative path from newDir to baseDir
+	relativePath, err := filepath.Rel(newDir, baseDir)
+	if err != nil {
+		return "", err
+	}
+
+	// Append the original relative path to the computed relative path
+	remappedPath := filepath.Join(relativePath, path)
+	remappedPath = filepath.Clean(remappedPath)
+
+	return remappedPath, nil
+}
+
+func isUUIDReference(path string) bool {
+	path = strings.TrimPrefix(path, UUID_PREFIX)
+	return checkValidUuid(path)
+}
+
+// TraverseAndUpdatePaths uses reflection to traverse the obj based on the path and update file path references
+func TraverseAndUpdatePaths(obj interface{}, path string, baseDir string, newDir string) error {
+	// Split the path into components
+	components := splitPath(path)
+
+	// Start reflection traversal
+	return reflectTraverseAndUpdate(reflect.ValueOf(obj), components, baseDir, newDir)
+}
+
+func reflectTraverseAndUpdate(val reflect.Value, components []string, baseDir string, newDir string) error {
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem() // Dereference pointer
+	}
+
+	if val.Kind() == reflect.Slice || val.Kind() == reflect.Array {
+		// Handle slices/arrays
+		for i := 0; i < val.Len(); i++ {
+			err := reflectTraverseAndUpdate(val.Index(i), components, baseDir, newDir)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	if val.Kind() == reflect.Struct && len(components) > 0 {
+		// Handle structs
+		field := val.FieldByName(components[0])
+		if !field.IsValid() {
+			return fmt.Errorf("field %s not found", components[0])
+		}
+		return reflectTraverseAndUpdate(field, components[1:], baseDir, newDir)
+	}
+
+	if len(components) == 0 {
+		if val.Kind() == reflect.String {
+			// Update the final field (assumed to be a string)
+			newValue, err := RemapPath(val.String(), baseDir, newDir)
+			if err != nil {
+				return fmt.Errorf("error remapping path %s: %v", val.String(), err)
+			}
+			if val.CanSet() {
+				val.SetString(newValue)
+				return nil
+			}
+			return fmt.Errorf("unable to set string value")
+		}
+		// if val.Kind() is not a string, we can't update it
+		return fmt.Errorf("cannot update type %s", val.Kind())
+	}
+
+	return nil
+}
+
+func splitPath(path string) []string {
+	components := strings.Split(path, ".")
+	return components
 }

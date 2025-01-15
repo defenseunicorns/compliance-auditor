@@ -156,25 +156,37 @@ func FetchLocalFile(url *url.URL, config *fetchOpts) ([]byte, error) {
 	return bytes, err
 }
 
+// GetLocalFileDir returns the directory of a local file
+// Intent of check is to handle different specifications of file paths:
+// - file:///path/to/file
+// - ./path/to/file
+// - /path/to/file
+// - https://example.com/path/to/file
+// ** This will not work for Windows file paths, but Lula doesn't run on Windows for now
 func GetLocalFileDir(inputURL, baseDir string) string {
 	url, err := url.Parse(inputURL)
 	if err != nil {
 		return ""
 	}
+
 	requestUri := url.RequestURI()
 
-	// Intent of check is to handle different specifications of file paths:
-	// - file:///path/to/file
-	// - ./path/to/file
-	// - /path/to/file
-	// - https://example.com/path/to/file
-	if url.Scheme == "file" || !url.IsAbs() {
-		fullPath := filepath.Join(baseDir, url.Host, requestUri)
-		if _, err := os.Stat(fullPath); err == nil {
-			return filepath.Dir(fullPath)
+	if url.Scheme == "file" {
+		// If the scheme is file, check if the path is absolute (if host is "", it's absolute)
+		if url.Host == "" {
+			return ""
 		}
+	} else if url.Scheme != "" {
+		return ""
 	}
-	return ""
+
+	// If the path is not absolute, join it with the baseDir
+	if filepath.IsAbs(filepath.Join(url.Host, requestUri)) {
+		return ""
+	}
+
+	fullPath := filepath.Join(baseDir, url.Host, requestUri)
+	return filepath.Dir(fullPath)
 }
 
 // ValidateChecksum validates a given checksum against a given []bytes.

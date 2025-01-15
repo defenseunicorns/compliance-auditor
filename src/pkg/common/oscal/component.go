@@ -102,6 +102,48 @@ func (c *ComponentDefinition) HandleExisting(path string) error {
 	return nil
 }
 
+// RewritePaths finds all the paths in the component definition relative to the baseDir and updates them to be relative to the newDir
+func (c *ComponentDefinition) RewritePaths(baseDir string, newDir string) error {
+	if c.Model == nil {
+		return fmt.Errorf("cannot remap paths, model is nil")
+	}
+
+	// Find all the paths in the component definition
+	pathsToRemap := []string{
+		"BackMatter.Resources.Rlinks.Href",
+		"Metadata.Links.Href",
+		"Metadata.Revisions.Links.Href",
+		"Metadata.Roles.Links.Href",
+		"Metadata.Locations.Links.Href",
+		"Metadata.Parties.Links.Href",
+		"Metadata.ResponsibleParties.Links.Href",
+		"Metadata.Actions.Links.Href",
+		"ImportComponentDefinitions.Href",
+		"Components.Links.Href",
+		"Components.ResponsibleRoles.Links.Href",
+		"Components.ControlImplementations.Links.Href",
+		"Components.ControlImplementations.Source",
+		"Components.ControlImplementations.ImplementedRequirements.Links.Href",
+		"Components.ControlImplementations.ImplementedRequirements.ResponsibleRoles.Links.Href",
+		"Components.ControlImplementations.ImplementedRequirements.Statements.Links.Href",
+		"Components.ControlImplementations.ImplementedRequirements.Statements.ResponsibleRoles.Links.Href",
+		"Capabilities.Links.Href",
+		"Capabilities.ControlImplementations.Links.Href",
+		"Capabilities.ControlImplementations.Source",
+		"Capabilities.ControlImplementations.ImplementedRequirements.Links.Href",
+		"Capabilities.ControlImplementations.ImplementedRequirements.ResponsibleRoles.Links.Href",
+		"Capabilities.ControlImplementations.ImplementedRequirements.Statements.Links.Href",
+		"Capabilities.ControlImplementations.ImplementedRequirements.Statements.ResponsibleRoles.Links.Href",
+	}
+
+	// For pathsToRemap, find all paths in the component defintion and run common.RemapPath on them
+	for _, path := range pathsToRemap {
+		common.TraverseAndUpdatePaths(c.Model, path, baseDir, newDir)
+	}
+
+	return nil
+}
+
 // MergeVariadicComponentDefinition merges multiple variadic component definitions into a single component definition
 func MergeVariadicComponentDefinition(compDefs ...*oscalTypes.ComponentDefinition) (mergedCompDef *oscalTypes.ComponentDefinition, err error) {
 	for _, compDef := range compDefs {
