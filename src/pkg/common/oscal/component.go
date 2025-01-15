@@ -138,7 +138,10 @@ func (c *ComponentDefinition) RewritePaths(baseDir string, newDir string) error 
 
 	// For pathsToRemap, find all paths in the component defintion and run common.RemapPath on them
 	for _, path := range pathsToRemap {
-		common.TraverseAndUpdatePaths(c.Model, path, baseDir, newDir)
+		err := common.TraverseAndUpdatePaths(c.Model, path, baseDir, newDir)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
