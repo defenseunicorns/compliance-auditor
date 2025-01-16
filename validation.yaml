@@ -1,0 +1,20 @@
+domain:
+  type: api
+  api-spec:
+    options:
+      timeout: 15s
+      headers:
+        special: "lula"
+    requests:
+    - name: httpbin
+      url: https://httpbin.org/get
+provider: 
+  type: opa
+  opa-spec:
+    rego: |
+      package validate
+
+      validate {
+        input.httpbin.statusCode == 200
+        input.httpbin.response.headers.Special == "lula"
+      }
