@@ -6,12 +6,13 @@ import (
 	"fmt"
 
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	"gopkg.in/yaml.v3"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/composition"
 	"github.com/defenseunicorns/lula/src/pkg/common/network"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"gopkg.in/yaml.v3"
 )
 
 type ReportData struct {
@@ -69,11 +70,11 @@ func handleOSCALModel(oscalModel *oscalTypes.OscalModels, format string, compose
 	}
 
 	switch modelType {
-	case "catalog", "profile", "assessment-plan", "assessment-results", "system-security-plan", "poam":
+	case oscal.OSCAL_CATALOG, oscal.OSCAL_PROFILE, oscal.OSCAL_ASSESSMENT_PLAN, oscal.OSCAL_ASSESSMENT_RESULTS, oscal.OSCAL_SYSTEM_SECURITY_PLAN, oscal.OSCAL_POAM:
 		// If the model type is not supported, stop the spinner with a warning
 		return fmt.Errorf("reporting does not create reports for %s at this time", modelType)
 
-	case "component":
+	case oscal.OSCAL_COMPONENT:
 		spinner.Updatef("Composing Component Definition")
 		err := composer.ComposeComponentDefinitions(context.Background(), oscalModel.ComponentDefinition, "")
 		if err != nil {

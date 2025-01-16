@@ -21,6 +21,8 @@ var (
 	validProfileRemoteRev4               = "../../../test/unit/common/oscal/valid-profile-remote-rev4.yaml"
 	validProfileNoControls               = "../../../test/unit/common/oscal/valid-profile-test-excludes.yaml"
 	validSSP                             = "../../../test/unit/common/oscal/valid-ssp.yaml"
+	validSSPNoComponents                 = "../../../test/unit/common/oscal/valid-ssp-no-components.yaml"
+	validGeneratedSSP                    = "../../../test/unit/common/oscal/valid-generated-ssp.yaml"
 )
 
 func getComponentDefinition(t *testing.T, path string) *oscalTypes.ComponentDefinition {
@@ -312,5 +314,38 @@ func TestMergeSystemSecurityPlanModels(t *testing.T) {
 		}
 		_, err := oscal.MergeSystemSecurityPlanModels(original, latest)
 		require.Error(t, err)
+	})
+}
+
+func TestHandleExistingSSP(t *testing.T) {
+	validSSPBytes := loadTestData(t, validGeneratedSSP)
+
+	var validSSP oscalTypes.OscalCompleteSchema
+	err := yaml.Unmarshal(validSSPBytes, &validSSP)
+	require.NoError(t, err)
+
+	t.Run("Handle Existing with no existing data", func(t *testing.T) {
+		ssp := oscal.SystemSecurityPlan{}
+		ssp.NewModel(validSSPBytes)
+
+		tmpDir := t.TempDir()
+		tmpFilePath := filepath.Join(tmpDir, "ssp.yaml")
+
+		err := ssp.HandleExisting(tmpFilePath)
+		require.NoError(t, err)
+
+		// Check length of components are the same
+		require.Equal(t, len(validSSP.SystemSecurityPlan.SystemImplementation.Components), len(ssp.Model.SystemImplementation.Components))
+	})
+
+	t.Run("Handle Existing with existing data", func(t *testing.T) {
+		ssp := oscal.SystemSecurityPlan{}
+		ssp.NewModel(validSSPBytes)
+
+		err := ssp.HandleExisting(validSSPNoComponents)
+		require.NoError(t, err)
+
+		// Check length of components is 2
+		require.Equal(t, 2, len(ssp.Model.SystemImplementation.Components))
 	})
 }
