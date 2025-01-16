@@ -69,7 +69,7 @@ func TestBackMatterToMap(t *testing.T) {
 	}
 }
 
-func TestNewComponentDefinition(t *testing.T) {
+func TestNewModel(t *testing.T) {
 	validBytes := loadTestData(t, validComponentPath)
 
 	var validWantSchema oscalTypes.OscalCompleteSchema
