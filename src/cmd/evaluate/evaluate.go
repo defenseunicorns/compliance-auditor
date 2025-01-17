@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/defenseunicorns/go-oscal/src/pkg/files"
-	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+	"github.com/spf13/cobra"
+
 	"github.com/defenseunicorns/lula/src/cmd/common"
 	pkgCommon "github.com/defenseunicorns/lula/src/pkg/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	"github.com/defenseunicorns/lula/src/pkg/common/result"
 	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/spf13/cobra"
 )
 
 var evaluateHelp = `
@@ -81,7 +81,7 @@ func EvaluateCommand() *cobra.Command {
 	return evaluateCmd
 }
 
-func EvaluateAssessments(assessmentMap map[string]*oscalTypes.AssessmentResults, target string, summary, machine bool) error {
+func EvaluateAssessments(assessmentMap map[string]*oscal.AssessmentResults, target string, summary, machine bool) error {
 	// Identify the threshold & latest for comparison
 	resultMap := oscal.FilterResults(assessmentMap)
 
@@ -103,11 +103,7 @@ func EvaluateAssessments(assessmentMap map[string]*oscalTypes.AssessmentResults,
 
 	// Write each file back in the case of modification
 	for filePath, assessment := range assessmentMap {
-		model := oscalTypes.OscalCompleteSchema{
-			AssessmentResults: assessment,
-		}
-
-		err := oscal.WriteOscalModel(filePath, &model)
+		err := oscal.WriteOscalModelNew(filePath, assessment)
 		if err != nil {
 			return err
 		}
@@ -241,12 +237,12 @@ func evaluateTarget(target oscal.EvalResult, source string, summary, machine boo
 
 // Read many filepaths into a map[filepath]*AssessmentResults
 // Placing here until otherwise decided on value elsewhere
-func readManyAssessmentResults(fileArray []string) (map[string]*oscalTypes.AssessmentResults, error) {
+func readManyAssessmentResults(fileArray []string) (map[string]*oscal.AssessmentResults, error) {
 	if len(fileArray) == 0 {
 		return nil, fmt.Errorf("no files provided for evaluation")
 	}
 
-	assessmentMap := make(map[string]*oscalTypes.AssessmentResults)
+	assessmentMap := make(map[string]*oscal.AssessmentResults)
 	for _, fileString := range fileArray {
 		err := files.IsJsonOrYaml(fileString)
 		if err != nil {
@@ -257,11 +253,14 @@ func readManyAssessmentResults(fileArray []string) (map[string]*oscalTypes.Asses
 		if err != nil {
 			return nil, err
 		}
-		assessment, err := oscal.NewAssessmentResults(data)
+
+		var assessment oscal.AssessmentResults
+		err = assessment.NewModel(data)
 		if err != nil {
 			return nil, err
 		}
-		assessmentMap[fileString] = assessment
+
+		assessmentMap[fileString] = &assessment
 	}
 
 	return assessmentMap, nil

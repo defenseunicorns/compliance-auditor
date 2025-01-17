@@ -49,11 +49,11 @@ func TestCreateResourceDataValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(assessment.Results) == 0 {
+			if len(assessment.Model.Results) == 0 {
 				t.Fatal("Expected greater than zero results")
 			}
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 
 			if result.Findings == nil {
 				t.Fatal("Expected findings to be not nil")
@@ -108,11 +108,11 @@ func TestCreateResourceDataValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(assessment.Results) == 0 {
+			if len(assessment.Model.Results) == 0 {
 				t.Fatal("Expected greater than zero results")
 			}
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 
 			if result.Findings == nil {
 				t.Fatal("Expected findings to be not nil")
@@ -174,11 +174,11 @@ func TestDeniedCreateResources(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(assessment.Results) == 0 {
+			if len(assessment.Model.Results) == 0 {
 				t.Fatal("Expected greater than zero results")
 			}
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 
 			if result.Findings == nil {
 				t.Fatal("Expected findings to be not nil")

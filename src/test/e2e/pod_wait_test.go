@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/defenseunicorns/lula/src/pkg/common/validation"
-	"github.com/defenseunicorns/lula/src/pkg/message"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/pkg/message"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 func TestPodWaitValidation(t *testing.T) {
@@ -43,11 +44,11 @@ func TestPodWaitValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(assessment.Results) == 0 {
+			if len(assessment.Model.Results) == 0 {
 				t.Fatal("Expected greater than zero results")
 			}
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 
 			if result.Findings == nil {
 				t.Fatal("Expected findings to be not nil")

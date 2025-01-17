@@ -173,11 +173,11 @@ func validateFindingsSatisfied(ctx context.Context, t *testing.T, oscalPath stri
 		t.Fatalf("Failed to validate oscal file: %s", oscalPath)
 	}
 
-	if len(assessment.Results) == 0 {
+	if len(assessment.Model.Results) == 0 {
 		t.Fatal("Expected greater than zero results")
 	}
 
-	result := assessment.Results[0]
+	result := assessment.Model.Results[0]
 
 	if result.Findings == nil {
 		t.Fatal("Expected findings to be not nil")

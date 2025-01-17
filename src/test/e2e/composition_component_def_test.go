@@ -5,14 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/defenseunicorns/lula/src/pkg/common/composition"
-	"github.com/defenseunicorns/lula/src/pkg/common/validation"
-	"github.com/defenseunicorns/lula/src/test/util"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/klient/wait/conditions"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+
+	"github.com/defenseunicorns/lula/src/pkg/common/composition"
+	"github.com/defenseunicorns/lula/src/pkg/common/validation"
+	"github.com/defenseunicorns/lula/src/test/util"
 )
 
 type compDefContextKey string
@@ -51,11 +52,11 @@ func TestComponentDefinitionComposition(t *testing.T) {
 				t.Errorf("Error validating component definition: %v", err)
 			}
 
-			if assessment.Results == nil {
+			if assessment.Model.Results == nil {
 				t.Fatal("Expected to have results")
 			}
 
-			results := assessment.Results
+			results := assessment.Model.Results
 
 			var expectedFindings, expectedObservations int
 			expectedResults := len(results)
