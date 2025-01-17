@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	oscalTypes "github.com/defenseunicorns/go-oscal/src/types/oscal-1-1-3"
+
 	"github.com/defenseunicorns/lula/src/internal/tui/common"
 	"github.com/defenseunicorns/lula/src/pkg/common/oscal"
 	requirementstore "github.com/defenseunicorns/lula/src/pkg/common/requirement-store"
@@ -73,7 +74,6 @@ func (m ValidateModel) Init() tea.Cmd {
 
 func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
-	var err error
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -106,10 +106,12 @@ func (m ValidateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case ValidateStartMsg:
 		validationStart := time.Now()
-		m.assessmentResults, err = m.RunValidations(m.runExecutable, m.target)
+		assessmentResults, err := m.RunValidations(m.runExecutable, m.target)
 		if err != nil {
 			common.PrintToLog("error running validations: %v", err)
 		}
+		m.assessmentResults = assessmentResults.Model
+
 		validationDuration := time.Since(validationStart)
 		// just adding a minimum of 2 seconds to the "validating" popup
 		if validationDuration < time.Second*2 {
@@ -208,7 +210,7 @@ func (m *ValidateModel) updateSizing(height, width int) {
 	m.width = common.Max(width, minimumWidth)
 }
 
-func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*oscalTypes.AssessmentResults, error) {
+func (m *ValidateModel) RunValidations(runExecutable bool, target string) (*oscal.AssessmentResults, error) {
 	validator, err := validation.New(
 		validation.WithAllowExecution(runExecutable, true),
 	)

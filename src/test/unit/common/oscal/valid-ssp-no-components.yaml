@@ -1,0 +1,83 @@
+system-security-plan:
+  control-implementation:
+    description: ""
+    implemented-requirements:
+      - control-id: ac-1
+        remarks: |
+          STATEMENT:
+          The organization:a. Develops, documents, and disseminates to [Assignment: organization-defined organization-defined personnel or roles]:
+          	1. An access control policy that addresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and
+          	2. Procedures to facilitate the implementation of the access control policy and associated access controls; and
+          b. Reviews and updates the current:
+          	1. Access control policy [Assignment: organization-defined organization-defined frequency]; and
+          	2. Access control procedures [Assignment: organization-defined organization-defined frequency].
+        uuid: bb9c282d-1302-4931-b6a5-ef73bea10c19
+      - control-id: ac-2
+        remarks: |
+          STATEMENT:
+          The organization:a. Identifies and selects the following types of information system accounts to support organizational missions/business functions: [Assignment: organization-defined organization-defined information system account types];
+          b. Assigns account managers for information system accounts;
+          c. Establishes conditions for group and role membership;
+          d. Specifies authorized users of the information system, group and role membership, and access authorizations (i.e., privileges) and other attributes (as required) for each account;
+          e. Requires approvals by [Assignment: organization-defined organization-defined personnel or roles] for requests to create information system accounts;
+          f. Creates, enables, modifies, disables, and removes information system accounts in accordance with [Assignment: organization-defined organization-defined procedures or conditions];
+          g. Monitors the use of information system accounts;
+          h. Notifies account managers:
+          	1. When accounts are no longer required;
+          	2. When users are terminated or transferred; and
+          	3. When individual information system usage or need-to-know changes;
+          i. Authorizes access to the information system based on:
+          	1. A valid access authorization;
+          	2. Intended system usage; and
+          	3. Other attributes as required by the organization or associated missions/business functions;
+          j. Reviews accounts for compliance with account management requirements [Assignment: organization-defined organization-defined frequency]; and
+          k. Establishes a process for reissuing shared/group account credentials (if deployed) when individuals are removed from the group.
+        uuid: fc0e50eb-625e-44d2-b641-a0353d343522
+      - control-id: ac-3
+        remarks: |-
+          STATEMENT:
+          The information system enforces approved authorizations for logical access to information and system resources in accordance with applicable access control policies.
+        uuid: f32f0aa7-635a-4d74-a0de-dfdd3d4a87b5
+  import-profile:
+    href: ./src/test/unit/common/oscal/valid-profile-remote-rev4.yaml
+  metadata:
+    last-modified: 2025-01-14T09:08:04.550816-05:00
+    oscal-version: 1.1.3
+    props:
+      - name: generation
+        ns: https://docs.lula.dev/oscal/ns
+        value: lula generate system-security-plan --profile ./src/test/unit/common/oscal/valid-profile-remote-rev4.yaml --remarks statement
+    published: 2025-01-14T09:08:04.550816-05:00
+    remarks: System Security Plan generated from Lula
+    title: System Security Plan
+    version: 0.0.1
+  system-characteristics:
+    authorization-boundary:
+      description: ""
+    description: ""
+    status:
+      remarks: 'TODO: Validate state and remove this remark'
+      state: operational
+    system-ids:
+      - id: generated-system
+    system-information:
+      information-types:
+        - description: 'TODO: Update information types'
+          title: Generated System Information
+          uuid: acf53bb3-270c-4f82-9027-78a57c0f3c39
+    system-name: Generated System
+  system-implementation:
+    components:
+      - description: ""
+        remarks: 'TODO: Update generated component'
+        status:
+          remarks: 'TODO: Validate state and remove this remark'
+          state: operational
+        title: Generated Component
+        type: software
+        uuid: b7fa6f6d-8016-4d61-b161-332a7cd27d36
+    users:
+      - remarks: 'TODO: Update generated user'
+        title: Generated User
+        uuid: 63659a2b-ae9f-42a3-91ee-2b23a1717971
+  uuid: c04a5bf1-5b02-4120-aa02-b5895e515311

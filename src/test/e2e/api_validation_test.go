@@ -73,11 +73,11 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(assessment.Results) == 0 {
+			if len(assessment.Model.Results) == 0 {
 				t.Fatal("Expected greater than zero results")
 			}
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 
 			if result.Findings == nil {
 				t.Fatal("Expected findings to be not nil")
@@ -162,11 +162,11 @@ func TestApiValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(assessment.Results) == 0 {
+			if len(assessment.Model.Results) == 0 {
 				t.Fatal("Expected greater than zero results")
 			}
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 
 			if result.Findings == nil {
 				t.Fatal("Expected findings to be not nil")
@@ -270,9 +270,9 @@ func TestApiValidation_templatedGet(t *testing.T) {
 
 			assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(assessment.Results), 1)
+			require.GreaterOrEqual(t, len(assessment.Model.Results), 1)
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 			require.NotNil(t, result.Findings)
 			for _, finding := range *result.Findings {
 				state := finding.Target.Status.State
@@ -358,9 +358,9 @@ func TestApiValidation_templatedPost(t *testing.T) {
 
 			assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(assessment.Results), 1)
+			require.GreaterOrEqual(t, len(assessment.Model.Results), 1)
 
-			result := assessment.Results[0]
+			result := assessment.Model.Results[0]
 			require.NotNil(t, result.Findings)
 			for _, finding := range *result.Findings {
 				state := finding.Target.Status.State
