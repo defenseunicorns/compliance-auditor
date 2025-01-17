@@ -48,6 +48,7 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 	defer res.Body.Close()
 	var respObj APIResponse
 	respObj.StatusCode = res.StatusCode
+	contentType := res.Header.Get("Content-Type")
 	if res.Status == "" {
 		respObj.Status = http.StatusText(res.StatusCode)
 	} else {
@@ -56,16 +57,24 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
 		message.Debugf("error reading response body: %s", err)
-		return nil, err
+		return &respObj, err
 	}
 
 	if respObj.StatusCode >= http.StatusOK && respObj.StatusCode < http.StatusMultiStatus {
-		respObj.Raw = responseData
-		err = json.Unmarshal(responseData, &respObj.Response)
-		if err != nil {
-			message.Debugf("error unmarshalling response: %s", err)
-			return nil, err
+
+		// Check for the application/json response Content-Type
+		// Response is intended only for structured responses
+		if contentType == "application/json" {
+			respObj.Raw = json.RawMessage(responseData)
+			err = json.Unmarshal(responseData, &respObj.Response)
+			if err != nil {
+				message.Debugf("error unmarshalling response: %s", err)
+				return &respObj, err
+			}
+		} else {
+			respObj.Raw = string(responseData)
 		}
+
 	}
 	return &respObj, nil
 }

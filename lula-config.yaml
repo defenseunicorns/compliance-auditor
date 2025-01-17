@@ -1,1 +1,8 @@
 log_level: info
+
+constants:
+  tests:
+    file: app.test.ts
+  app:
+    namespace: kibana
+  endpoint: https://kibana.uds.dev/login?next=%2F
