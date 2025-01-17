@@ -61,15 +61,18 @@ func doHTTPReq(ctx context.Context, client http.Client, method string, url url.U
 	}
 
 	if respObj.StatusCode >= http.StatusOK && respObj.StatusCode < http.StatusMultiStatus {
-		respObj.Raw = responseData
+
+		// Check for the application/json response Content-Type
+		// Response is intended only for structured responses
 		if contentType == "application/json" {
+			respObj.Raw = json.RawMessage(responseData)
 			err = json.Unmarshal(responseData, &respObj.Response)
 			if err != nil {
 				message.Debugf("error unmarshalling response: %s", err)
 				return &respObj, err
 			}
 		} else {
-			respObj.Response = string(responseData)
+			respObj.Raw = string(responseData)
 		}
 
 	}

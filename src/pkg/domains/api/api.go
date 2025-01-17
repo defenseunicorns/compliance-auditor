@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,7 +14,7 @@ import (
 type APIResponse struct {
 	StatusCode int
 	Status     string
-	Raw        json.RawMessage
+	Raw        any
 	Response   any
 }
 
