@@ -391,6 +391,20 @@
                             },
                             "options": {
                                 "$ref": "#/definitions/api-options"
+                            },
+                            "outputs": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "path": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -412,6 +426,10 @@
                     "type": "string"
                 },
                 "headers": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string"}
+                },
+                "headerstpl": {
                     "type": "object",
                     "additionalProperties": { "type": "string"}
                 }

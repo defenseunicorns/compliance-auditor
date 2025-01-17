@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -339,7 +340,7 @@ func TestApiValidation_templatedPost(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			// Let's prove that the API DOmain is picking up the `executable`
+			// Let's prove that the API Domain is picking up the `executable`
 			// flag from the request in the test fixture by forcing
 			// AllowExecution to false.
 			validator, err := validation.New(validation.WithComposition(composer, tmpl), validation.WithAllowExecution(false, true))
@@ -369,5 +370,65 @@ func TestApiValidation_templatedPost(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestAPI_chain(t *testing.T) {
+	tmpl := "scenarios/api-validations/component-definition-multi.yaml.tmpl"
+
+	mux := http.NewServeMux()
+	// login returns a token ...
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("login")
+		w.Header().Set("Content-Type", "application/json")
+		resp := struct {
+			Token string `json:"token"`
+		}{
+			"abcdefg",
+		}
+		json.NewEncoder(w).Encode(resp)
+	})
+
+	// ...which should be piped into the Authorization header for the healthcheck
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("healthcheck")
+		passRsp := false
+		gotHeader := r.Header.Get("Authorization")
+		if gotHeader == "Bearer: abcdefg" {
+			w.Header().Set("Content-Type", "application/json")
+			passRsp = true
+		}
+		resp := struct {
+			Pass bool `json:"pass"`
+		}{
+			passRsp,
+		}
+		json.NewEncoder(w).Encode(resp)
+	})
+	svr := httptest.NewServer(mux)
+
+	composer, err := composition.New(
+		composition.WithModelFromLocalPath(tmpl),
+		composition.WithRenderSettings("all", true),
+		composition.WithTemplateRenderer("all", nil, []template.VariableConfig{
+			{
+				Key:     "reqUrl",
+				Default: svr.URL,
+			},
+		}, []string{}),
+	)
+	require.NoError(t, err)
+
+	validator, err := validation.New(validation.WithComposition(composer, tmpl))
+	require.NoError(t, err)
+
+	assessment, err := validator.ValidateOnPath(context.Background(), tmpl, "")
+	require.NoError(t, err)
+	require.Equal(t, len(assessment.Results), 1)
+
+	result := assessment.Results[0]
+	require.NotNil(t, result.Findings)
+	for _, finding := range *result.Findings {
+		require.Equal(t, "satisfied", finding.Target.Status.State)
 	}
 }

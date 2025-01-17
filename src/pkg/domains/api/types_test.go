@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -147,4 +149,69 @@ func TestGetResources(t *testing.T) {
 			drs,
 		)
 	})
+}
+
+func TestRequest_DeepCopy(t *testing.T) {
+	examplecom, err := url.Parse("example.com")
+	require.NoError(t, err)
+	params := map[string]string{
+		"key": "value",
+	}
+	queryParameters := url.Values{}
+	for k, v := range params {
+		queryParameters.Add(k, v)
+	}
+
+	tests := map[string]struct {
+		want Request
+	}{
+		"zero value": {
+			Request{},
+		},
+		"slightly less zero": {
+			Request{
+				Params:  make(map[string]string),
+				Outputs: make([]*Output, 0),
+				Options: &ApiOpts{},
+			},
+		},
+		"populated request": {
+			Request{
+				Name: "get",
+				URL:  "example.com",
+				Params: map[string]string{
+					"key": "value",
+				},
+				Method:     "get",
+				Body:       "corpus",
+				Executable: false,
+				Outputs: []*Output{
+					{
+						Name: "token",
+						Path: "get.input.token",
+					},
+				},
+				Options: &ApiOpts{
+					Headers: map[string]string{
+						"x-lula-special": "birb",
+					},
+				},
+				URLTpl: `weirder[[.string]]`,
+				ParamsTpl: map[string]string{
+					"amapof": `weird[[.string]]`,
+				},
+				reqURL:        examplecom,
+				reqParameters: queryParameters,
+			},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := test.want.DeepCopy()
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("wrong result: got\n%#v\nwant:\n%#v\n", got, test.want)
+			}
+		})
+	}
 }
