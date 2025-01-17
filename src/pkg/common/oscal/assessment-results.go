@@ -24,6 +24,55 @@ type EvalResult struct {
 	Latest    *oscalTypes.Result
 }
 
+type AssessmentResults struct {
+	Model *oscalTypes.AssessmentResults
+}
+
+func NewAssessmentResults2() *AssessmentResults {
+	var ar AssessmentResults
+	ar.Model = nil
+	return &ar
+}
+
+func (a *AssessmentResults) NewModel(data []byte) error {
+	var oscalModels oscalTypes.OscalModels
+
+	err := multiModelValidate(data)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(data, &oscalModels)
+	if err != nil {
+		return err
+	}
+
+	a.Model = oscalModels.AssessmentResults
+	if a.Model == nil {
+		return fmt.Errorf("unable to find assessment results model")
+	}
+
+	return nil
+}
+
+func (*AssessmentResults) GetType() string {
+	return "assessment-results"
+}
+
+func (a *AssessmentResults) GetCompleteModel() *oscalTypes.OscalModels {
+	return &oscalTypes.OscalModels{
+		AssessmentResults: a.Model,
+	}
+}
+
+func (a *AssessmentResults) MakeDeterministic() error {
+	return nil
+}
+
+func (a *AssessmentResults) HandleExisting(path string) error {
+	return nil
+}
+
 // NewAssessmentResults creates a new assessment results object from the given data.
 func NewAssessmentResults(data []byte) (*oscalTypes.AssessmentResults, error) {
 	var oscalModels oscalTypes.OscalModels

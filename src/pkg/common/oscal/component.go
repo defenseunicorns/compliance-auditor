@@ -30,6 +30,57 @@ type parameter struct {
 	Select *selection
 }
 
+type ComponentDefinition struct {
+	Model *oscalTypes.ComponentDefinition
+}
+
+func NewComponentDefinition() *ComponentDefinition {
+	var compdef ComponentDefinition
+	compdef.Model = nil
+	return &compdef
+}
+
+// Create a new ComponentDefinition model
+func (c *ComponentDefinition) NewModel(data []byte) error {
+
+	var oscalModels oscalTypes.OscalModels
+
+	err := multiModelValidate(data)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(data, &oscalModels)
+	if err != nil {
+		return err
+	}
+
+	c.Model = oscalModels.ComponentDefinition
+	if c.Model == nil {
+		return fmt.Errorf("unable to find component definition model")
+	}
+
+	return nil
+}
+
+func (*ComponentDefinition) GetType() string {
+	return "component-definition"
+}
+
+func (c *ComponentDefinition) GetCompleteModel() *oscalTypes.OscalModels {
+	return &oscalTypes.OscalModels{
+		ComponentDefinition: c.Model,
+	}
+}
+
+func (c *ComponentDefinition) ImportComponentDefinitions() error {
+	// TODO: get all imported component definitions and re-write any relative links?
+
+	return nil
+}
+
+// TODO: Add other interface methods(?)
+
 // NewOscalComponentDefinition consumes a byte array and returns a new single OscalComponentDefinitionModel object
 // Standard use is to read a file from the filesystem and pass the []byte to this function
 func NewOscalComponentDefinition(data []byte) (componentDefinition *oscalTypes.ComponentDefinition, err error) {
