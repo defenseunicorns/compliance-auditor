@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.15.0](https://github.com/defenseunicorns/lula/compare/v0.14.0...v0.15.0) (2025-01-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **oscal:** oscalmodel interface implementation for component definitions ([#874](https://github.com/defenseunicorns/lula/issues/874))
+* **oscal:** oscalmodel for assessment results ([#876](https://github.com/defenseunicorns/lula/issues/876))
+
+### Features
+
+* **oscal:** oscalmodel for assessment results ([#876](https://github.com/defenseunicorns/lula/issues/876)) ([ff0be6d](https://github.com/defenseunicorns/lula/commit/ff0be6d68969ba5fb80232a11d2fa221ca06629e))
+* **oscal:** oscalmodel interface implementation for component definitions ([#874](https://github.com/defenseunicorns/lula/issues/874)) ([cd77cdd](https://github.com/defenseunicorns/lula/commit/cd77cdd2fb3cd8cc55007d37f5275f06f2ae3e9c))
+
+
+### Miscellaneous
+
+* add debug-level logging to doHTTPReq ([#869](https://github.com/defenseunicorns/lula/issues/869)) ([376f686](https://github.com/defenseunicorns/lula/commit/376f68648ff6ce6210506b20b67146bbf6e946dd))
+* **deps:** update actions/github-script digest to d705669 ([#888](https://github.com/defenseunicorns/lula/issues/888)) ([ce8e2c5](https://github.com/defenseunicorns/lula/commit/ce8e2c5830b3af43245dbe8285561dc9f7f49ba7))
+* **deps:** update actions/upload-artifact action to v4.6.0 ([#871](https://github.com/defenseunicorns/lula/issues/871)) ([35dfae7](https://github.com/defenseunicorns/lula/commit/35dfae7d39d9f70d49212db3f0d45b5e62bd14f4))
+* **deps:** update dependency go to v1.23.5 ([#884](https://github.com/defenseunicorns/lula/issues/884)) ([fd49cc8](https://github.com/defenseunicorns/lula/commit/fd49cc81ac523ad552071df64eeb4b6227572f75))
+* **deps:** update github/codeql-action action to v3.28.1 ([#872](https://github.com/defenseunicorns/lula/issues/872)) ([a970bf3](https://github.com/defenseunicorns/lula/commit/a970bf3ea773f46d3cec3deef3e9dceee6996c6f))
+* **deps:** update golangci/golangci-lint-action action to v6.2.0 ([#885](https://github.com/defenseunicorns/lula/issues/885)) ([4748b16](https://github.com/defenseunicorns/lula/commit/4748b161ab9034252da13cdb032fc846aa046946))
+* **deps:** update kubernetes packages to v0.32.1 ([#880](https://github.com/defenseunicorns/lula/issues/880)) ([aa5a6d5](https://github.com/defenseunicorns/lula/commit/aa5a6d5593ca7b36ee8d256c077ea80c661d68aa))
+* **deps:** update module sigs.k8s.io/e2e-framework to v0.6.0 ([#886](https://github.com/defenseunicorns/lula/issues/886)) ([003d21e](https://github.com/defenseunicorns/lula/commit/003d21ec1ecb6fdf3585c45de07d40c18c5edd1e))
+* **deps:** update module sigs.k8s.io/kustomize/kyaml to v0.19.0 ([#877](https://github.com/defenseunicorns/lula/issues/877)) ([579e43a](https://github.com/defenseunicorns/lula/commit/579e43a245e59d8e869d1197a2e6ad1fcf482148))
+
 ## [0.14.0](https://github.com/defenseunicorns/lula/compare/v0.13.0...v0.14.0) (2024-12-20)
 
 
